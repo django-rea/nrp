@@ -1,156 +1,44 @@
 # -*- coding: utf-8 -*-
-from south.utils import datetime_utils as datetime
-from south.db import db
-from south.v2 import SchemaMigration
-from django.db import models
+from __future__ import unicode_literals
+
+from django.db import models, migrations
 
 
-class Migration(SchemaMigration):
+class Migration(migrations.Migration):
 
-    def forwards(self, orm):
-        # Adding model 'MembershipRequest'
-        db.create_table('work_membershiprequest', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('surname', self.gf('django.db.models.fields.CharField')(max_length=255, blank=True)),
-            ('requested_username', self.gf('django.db.models.fields.CharField')(max_length=32)),
-            ('email_address', self.gf('django.db.models.fields.EmailField')(max_length=96)),
-            ('phone_number', self.gf('django.db.models.fields.CharField')(max_length=32, null=True, blank=True)),
-            ('address', self.gf('django.db.models.fields.CharField')(max_length=255, blank=True)),
-            ('native_language', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('type_of_membership', self.gf('django.db.models.fields.CharField')(default='individual', max_length=12)),
-            ('membership_for_services', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('autonomous_membership', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('ocp_user_membership', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('consumer_membership', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('number_of_shares', self.gf('django.db.models.fields.IntegerField')(default=1)),
-            ('work_for_shares', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('description', self.gf('django.db.models.fields.TextField')(blank=True)),
-            ('website', self.gf('django.db.models.fields.CharField')(max_length=255, blank=True)),
-            ('how_do_you_know_fc', self.gf('django.db.models.fields.TextField')(blank=True)),
-            ('known_member', self.gf('django.db.models.fields.TextField')(blank=True)),
-            ('agent', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='membership_requests', null=True, to=orm['valueaccounting.EconomicAgent'])),
-        ))
-        db.send_create_signal('work', ['MembershipRequest'])
+    dependencies = [
+        ('valueaccounting', '0001_initial'),
+    ]
 
-
-    def backwards(self, orm):
-        # Deleting model 'MembershipRequest'
-        db.delete_table('work_membershiprequest')
-
-
-    models = {
-        'auth.group': {
-            'Meta': {'object_name': 'Group'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '80'}),
-            'permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'})
-        },
-        'auth.permission': {
-            'Meta': {'ordering': "('content_type__app_label', 'content_type__model', 'codename')", 'unique_together': "(('content_type', 'codename'),)", 'object_name': 'Permission'},
-            'codename': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'content_type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['contenttypes.ContentType']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50'})
-        },
-        'auth.user': {
-            'Meta': {'object_name': 'User'},
-            'date_joined': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'blank': 'True'}),
-            'first_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
-            'groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Group']", 'symmetrical': 'False', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'is_staff': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'is_superuser': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'last_login': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'last_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
-            'password': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'}),
-            'username': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'})
-        },
-        'contenttypes.contenttype': {
-            'Meta': {'ordering': "('name',)", 'unique_together': "(('app_label', 'model'),)", 'object_name': 'ContentType', 'db_table': "'django_content_type'"},
-            'app_label': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
-        },
-        'valueaccounting.agenttype': {
-            'Meta': {'ordering': "('name',)", 'object_name': 'AgentType'},
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'is_context': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'parent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'sub-agents'", 'null': 'True', 'to': "orm['valueaccounting.AgentType']"}),
-            'party_type': ('django.db.models.fields.CharField', [], {'default': "'individual'", 'max_length': '12'})
-        },
-        'valueaccounting.economicagent': {
-            'Meta': {'ordering': "('nick',)", 'object_name': 'EconomicAgent'},
-            'address': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'}),
-            'agent_type': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'agents'", 'to': "orm['valueaccounting.AgentType']"}),
-            'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'agents_changed'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'changed_date': ('django.db.models.fields.DateField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
-            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'agents_created'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'created_date': ('django.db.models.fields.DateField', [], {'default': 'datetime.date.today'}),
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'email': ('django.db.models.fields.EmailField', [], {'max_length': '96', 'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'is_context': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'latitude': ('django.db.models.fields.FloatField', [], {'default': '0.0', 'null': 'True', 'blank': 'True'}),
-            'longitude': ('django.db.models.fields.FloatField', [], {'default': '0.0', 'null': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'nick': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '32'}),
-            'phone_primary': ('django.db.models.fields.CharField', [], {'max_length': '32', 'null': 'True', 'blank': 'True'}),
-            'phone_secondary': ('django.db.models.fields.CharField', [], {'max_length': '32', 'null': 'True', 'blank': 'True'}),
-            'photo': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'photo_url': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'}),
-            'primary_location': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'agents_at_location'", 'null': 'True', 'on_delete': 'models.SET_NULL', 'to': "orm['valueaccounting.Location']"}),
-            'reputation': ('django.db.models.fields.DecimalField', [], {'default': "'0.00'", 'max_digits': '8', 'decimal_places': '2'}),
-            'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50'}),
-            'unit_of_claim_value': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'agents'", 'null': 'True', 'to': "orm['valueaccounting.Unit']"}),
-            'url': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'})
-        },
-        'valueaccounting.location': {
-            'Meta': {'object_name': 'Location'},
-            'address': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'}),
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'latitude': ('django.db.models.fields.FloatField', [], {'default': '0.0', 'null': 'True', 'blank': 'True'}),
-            'longitude': ('django.db.models.fields.FloatField', [], {'default': '0.0', 'null': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '128'})
-        },
-        'valueaccounting.unit': {
-            'Meta': {'ordering': "('name',)", 'object_name': 'Unit'},
-            'abbrev': ('django.db.models.fields.CharField', [], {'max_length': '8'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '64'}),
-            'symbol': ('django.db.models.fields.CharField', [], {'max_length': '1', 'blank': 'True'}),
-            'unit_type': ('django.db.models.fields.CharField', [], {'max_length': '12'})
-        },
-        'work.membershiprequest': {
-            'Meta': {'object_name': 'MembershipRequest'},
-            'address': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'}),
-            'agent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'membership_requests'", 'null': 'True', 'to': "orm['valueaccounting.EconomicAgent']"}),
-            'autonomous_membership': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'consumer_membership': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'description': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'email_address': ('django.db.models.fields.EmailField', [], {'max_length': '96'}),
-            'how_do_you_know_fc': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'known_member': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'membership_for_services': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'native_language': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'number_of_shares': ('django.db.models.fields.IntegerField', [], {'default': '1'}),
-            'ocp_user_membership': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'phone_number': ('django.db.models.fields.CharField', [], {'max_length': '32', 'null': 'True', 'blank': 'True'}),
-            'requested_username': ('django.db.models.fields.CharField', [], {'max_length': '32'}),
-            'surname': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'}),
-            'type_of_membership': ('django.db.models.fields.CharField', [], {'default': "'individual'", 'max_length': '12'}),
-            'website': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'}),
-            'work_for_shares': ('django.db.models.fields.BooleanField', [], {'default': 'False'})
-        }
-    }
-
-    complete_apps = ['work']
+    operations = [
+        migrations.CreateModel(
+            name='MembershipRequest',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('request_date', models.DateField(auto_now_add=True, null=True)),
+                ('name', models.CharField(max_length=255, verbose_name='name')),
+                ('surname', models.CharField(max_length=255, verbose_name='surname (for individuals)', blank=True)),
+                ('requested_username', models.CharField(max_length=32, verbose_name='requested username')),
+                ('email_address', models.EmailField(max_length=96, verbose_name='email address')),
+                ('phone_number', models.CharField(max_length=32, null=True, verbose_name='phone number', blank=True)),
+                ('address', models.CharField(max_length=255, verbose_name='address (where do you live?)', blank=True)),
+                ('native_language', models.CharField(max_length=255, verbose_name='native language')),
+                ('type_of_membership', models.CharField(default=b'individual', max_length=12, verbose_name='type of membership', choices=[(b'individual', 'individual'), (b'collective', 'collective')])),
+                ('membership_for_services', models.BooleanField(default=False, help_text='you have legal entity and want to offer services or products to the cooperative', verbose_name='Membership for services')),
+                ('autonomous_membership', models.BooleanField(default=False, help_text="you don't have legal entity and want to use the cooperative to make invoices either from inside and to outside the cooperative", verbose_name='Autonomous membership')),
+                ('ocp_user_membership', models.BooleanField(default=False, help_text='for those that only want to use the OCP platform', verbose_name='OCP user membership')),
+                ('consumer_membership', models.BooleanField(default=False, help_text="you don't offer any product or service but want to consume through it and support the cooperative", verbose_name='Consumer membership')),
+                ('number_of_shares', models.IntegerField(default=1, help_text='How many shares do you want to underwrite? (minimum one. Each share worth 600 Faircoin = 30 Euro.', verbose_name='number of shares')),
+                ('work_for_shares', models.BooleanField(default=False, help_text="You can get 1 share for 6 hours of work. If you choose this option, we will send you a list of tasks and the deadline. You won't have full access before the tasks are accomplished.", verbose_name='work for one share')),
+                ('description', models.TextField(help_text='Describe your project or collective and skills or abilities you can offer to the cooperative', verbose_name='Description')),
+                ('website', models.CharField(max_length=255, verbose_name='website', blank=True)),
+                ('how_do_you_know_fc', models.TextField(verbose_name='How do you know Freedom Coop?', blank=True)),
+                ('known_member', models.TextField(verbose_name='Do you know any member already from FreedomCoop or FairCoop? If so, who?', blank=True)),
+                ('comments_and_questions', models.TextField(verbose_name='Comments and questions', blank=True)),
+                ('agent', models.ForeignKey(related_name='membership_requests', blank=True, to='valueaccounting.EconomicAgent', help_text='this membership request became this EconomicAgent', null=True, verbose_name='agent')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+    ]

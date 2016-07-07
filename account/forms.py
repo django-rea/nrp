@@ -1,5 +1,10 @@
 import re
 
+try:
+    from collections import OrderedDict
+except ImportError:
+    OrderedDict = None
+
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 
@@ -98,8 +103,11 @@ class LoginUsernameForm(LoginForm):
     
     def __init__(self, *args, **kwargs):
         super(LoginUsernameForm, self).__init__(*args, **kwargs)
-        #import pdb; pdb.set_trace()
-        self.fields.keyOrder = ["username", "password", "remember"]
+        field_order = ["username", "password", "remember"]
+        if not OrderedDict or hasattr(self.fields, "keyOrder"):
+            self.fields.keyOrder = field_order
+        else:
+            self.fields = OrderedDict((k, self.fields[k]) for k in field_order)
 
 
 class LoginEmailForm(LoginForm):

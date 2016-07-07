@@ -3457,9 +3457,13 @@ def create_order(request):
             rec_tt = None
             if rec_tts:
                 rec_tt = rec_tts[0]
+            from_name = "Unknown"
+            receiver = order.receiver
+            if receiver:
+                from_name = receiver.nick
             cr_xfer = Transfer(
                 exchange=exchange,
-                name=rec_tt.name + " from " + order.receiver.nick,
+                name=rec_tt.name + " from " + from_name,
                 transfer_type=rec_tt,
                 context_agent=exchange.context_agent,
                 transfer_date=commit.commitment_date,

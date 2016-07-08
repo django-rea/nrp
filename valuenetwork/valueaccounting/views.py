@@ -115,7 +115,7 @@ def create_user(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     if request.method == "POST":
         user_form = UserCreationForm(data=request.POST)
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         if user_form.is_valid():
             user = user_form.save(commit=False)
             user.email = agent.email

@@ -127,7 +127,7 @@ def create_user(request, agent_id):
                 agent = agent,
                 user = user)
             au.save()
-            #agent.request_faircoin_address()
+            agent.request_faircoin_address()
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/agent', agent.id))            
                                                                                     

@@ -175,6 +175,7 @@ legend {
                         <form id="userForm" enctype="multipart/form-data" action="{% url "create_user" agent_id=agent.id %}" method="POST" >
                             {% csrf_token %}
                             {{ user_form|as_bootstrap }}
+                            <input type="checkbox" id="staff" name="is_staff"> <label for="staff">Coop Admin user?</label>
 
                             <div class="modal-footer">
                             <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>

@@ -115,16 +115,19 @@ def create_user(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     if request.method == "POST":
         user_form = UserCreationForm(data=request.POST)
-        #import pdb; pdb.set_trace()
+        import pdb; pdb.set_trace()
         if user_form.is_valid():
             user = user_form.save(commit=False)
             user.email = agent.email
+            is_staff = request.POST.get("is_staff")
+            if is_staff == 'on':
+                user.is_staff = True
             user.save()
             au = AgentUser(
                 agent = agent,
                 user = user)
             au.save()
-            agent.request_faircoin_address()
+            #agent.request_faircoin_address()
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/agent', agent.id))            
                                                                                     

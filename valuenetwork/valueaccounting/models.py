@@ -307,7 +307,7 @@ class AgentTypeManager(models.Manager):
 class AgentType(models.Model):
     name = models.CharField(_('name'), max_length=128)
     parent = models.ForeignKey('self', blank=True, null=True, 
-        verbose_name=_('parent'), related_name='sub-agents', editable=False)
+        verbose_name=_('parent'), related_name='sub_agents', editable=False)
     party_type = models.CharField(_('party type'), 
         max_length=12, choices=SIZE_CHOICES,
         default='individual')
@@ -7735,6 +7735,8 @@ class Transfer(models.Model):
         resource = ""
         from_to = ""
         qty = ""
+        give_text = ""
+        receive_text = ""
         commits = self.commitments.all()
         if commits:
             et_give = EventType.objects.get(name="Give")

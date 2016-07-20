@@ -1,995 +1,1468 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
+from django.db import models, migrations
 import datetime
-from south.db import db
-from south.v2 import SchemaMigration
-from django.db import models
-
-
-class Migration(SchemaMigration):
-
-    def forwards(self, orm):
-        # Adding model 'Help'
-        db.create_table('valueaccounting_help', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('page', self.gf('django.db.models.fields.CharField')(unique=True, max_length=16)),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-        ))
-        db.send_create_signal('valueaccounting', ['Help'])
-
-        # Adding model 'Facet'
-        db.create_table('valueaccounting_facet', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=32)),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-        ))
-        db.send_create_signal('valueaccounting', ['Facet'])
-
-        # Adding model 'FacetValue'
-        db.create_table('valueaccounting_facetvalue', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('facet', self.gf('django.db.models.fields.related.ForeignKey')(related_name='values', to=orm['valueaccounting.Facet'])),
-            ('value', self.gf('django.db.models.fields.CharField')(max_length=32)),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-        ))
-        db.send_create_signal('valueaccounting', ['FacetValue'])
-
-        # Adding unique constraint on 'FacetValue', fields ['facet', 'value']
-        db.create_unique('valueaccounting_facetvalue', ['facet_id', 'value'])
-
-        # Adding model 'Unit'
-        db.create_table('valueaccounting_unit', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('unit_type', self.gf('django.db.models.fields.CharField')(max_length=12)),
-            ('abbrev', self.gf('django.db.models.fields.CharField')(max_length=8)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=64)),
-            ('symbol', self.gf('django.db.models.fields.CharField')(max_length=1, blank=True)),
-        ))
-        db.send_create_signal('valueaccounting', ['Unit'])
-
-        # Adding model 'AgentType'
-        db.create_table('valueaccounting_agenttype', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('parent', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='sub-agents', null=True, to=orm['valueaccounting.AgentType'])),
-            ('member_type', self.gf('django.db.models.fields.CharField')(default='active', max_length=12)),
-            ('party_type', self.gf('django.db.models.fields.CharField')(default='individual', max_length=12)),
-        ))
-        db.send_create_signal('valueaccounting', ['AgentType'])
-
-        # Adding model 'EconomicAgent'
-        db.create_table('valueaccounting_economicagent', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('nick', self.gf('django.db.models.fields.CharField')(unique=True, max_length=32)),
-            ('url', self.gf('django.db.models.fields.CharField')(max_length=255, blank=True)),
-            ('agent_type', self.gf('django.db.models.fields.related.ForeignKey')(related_name='agents', to=orm['valueaccounting.AgentType'])),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('address', self.gf('django.db.models.fields.CharField')(max_length=255, blank=True)),
-            ('email', self.gf('django.db.models.fields.EmailField')(max_length=96, null=True, blank=True)),
-            ('latitude', self.gf('django.db.models.fields.FloatField')(default=0.0, null=True, blank=True)),
-            ('longitude', self.gf('django.db.models.fields.FloatField')(default=0.0, null=True, blank=True)),
-            ('reputation', self.gf('django.db.models.fields.DecimalField')(default='0.00', max_digits=8, decimal_places=2)),
-            ('photo', self.gf('django.db.models.fields.files.ImageField')(max_length=100, null=True, blank=True)),
-            ('photo_url', self.gf('django.db.models.fields.CharField')(max_length=255, blank=True)),
-            ('slug', self.gf('django.db.models.fields.SlugField')(max_length=50)),
-            ('created_date', self.gf('django.db.models.fields.DateField')(default=datetime.date.today)),
-            ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='agents_created', null=True, to=orm['auth.User'])),
-            ('changed_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='agents_changed', null=True, to=orm['auth.User'])),
-            ('changed_date', self.gf('django.db.models.fields.DateField')(auto_now=True, null=True, blank=True)),
-        ))
-        db.send_create_signal('valueaccounting', ['EconomicAgent'])
-
-        # Adding model 'AgentUser'
-        db.create_table('valueaccounting_agentuser', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('agent', self.gf('django.db.models.fields.related.ForeignKey')(related_name='users', to=orm['valueaccounting.EconomicAgent'])),
-            ('user', self.gf('django.db.models.fields.related.OneToOneField')(related_name='agent', unique=True, to=orm['auth.User'])),
-        ))
-        db.send_create_signal('valueaccounting', ['AgentUser'])
-
-        # Adding model 'AssociationType'
-        db.create_table('valueaccounting_associationtype', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=128)),
-        ))
-        db.send_create_signal('valueaccounting', ['AssociationType'])
-
-        # Adding model 'AgentAssociation'
-        db.create_table('valueaccounting_agentassociation', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('from_agent', self.gf('django.db.models.fields.related.ForeignKey')(related_name='associations_from', to=orm['valueaccounting.EconomicAgent'])),
-            ('to_agent', self.gf('django.db.models.fields.related.ForeignKey')(related_name='associations_to', to=orm['valueaccounting.EconomicAgent'])),
-            ('association_type', self.gf('django.db.models.fields.related.ForeignKey')(related_name='associations', to=orm['valueaccounting.AssociationType'])),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-        ))
-        db.send_create_signal('valueaccounting', ['AgentAssociation'])
-
-        # Adding model 'EventType'
-        db.create_table('valueaccounting_eventtype', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('label', self.gf('django.db.models.fields.CharField')(max_length=32)),
-            ('inverse_label', self.gf('django.db.models.fields.CharField')(max_length=40, blank=True)),
-            ('relationship', self.gf('django.db.models.fields.CharField')(default='in', max_length=12)),
-            ('related_to', self.gf('django.db.models.fields.CharField')(default='process', max_length=12)),
-            ('resource_effect', self.gf('django.db.models.fields.CharField')(max_length=12)),
-            ('unit_type', self.gf('django.db.models.fields.CharField')(max_length=12, blank=True)),
-            ('slug', self.gf('django.db.models.fields.SlugField')(max_length=50)),
-        ))
-        db.send_create_signal('valueaccounting', ['EventType'])
-
-        # Adding model 'EconomicResourceType'
-        db.create_table('valueaccounting_economicresourcetype', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=128)),
-            ('parent', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='children', null=True, to=orm['valueaccounting.EconomicResourceType'])),
-            ('unit', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='resource_units', null=True, to=orm['valueaccounting.Unit'])),
-            ('unit_of_use', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='units_of_use', null=True, to=orm['valueaccounting.Unit'])),
-            ('photo', self.gf('django.db.models.fields.files.ImageField')(max_length=100, null=True, blank=True)),
-            ('photo_url', self.gf('django.db.models.fields.CharField')(max_length=255, blank=True)),
-            ('url', self.gf('django.db.models.fields.CharField')(max_length=255, blank=True)),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('rate', self.gf('django.db.models.fields.DecimalField')(default='0.00', max_digits=6, decimal_places=2)),
-            ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='resource_types_created', null=True, to=orm['auth.User'])),
-            ('changed_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='resource_types_changed', null=True, to=orm['auth.User'])),
-            ('created_date', self.gf('django.db.models.fields.DateField')(auto_now_add=True, null=True, blank=True)),
-            ('changed_date', self.gf('django.db.models.fields.DateField')(auto_now=True, null=True, blank=True)),
-            ('slug', self.gf('django.db.models.fields.SlugField')(max_length=50)),
-        ))
-        db.send_create_signal('valueaccounting', ['EconomicResourceType'])
-
-        # Adding model 'ResourceTypeFacetValue'
-        db.create_table('valueaccounting_resourcetypefacetvalue', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('resource_type', self.gf('django.db.models.fields.related.ForeignKey')(related_name='facets', to=orm['valueaccounting.EconomicResourceType'])),
-            ('facet_value', self.gf('django.db.models.fields.related.ForeignKey')(related_name='resource_types', to=orm['valueaccounting.FacetValue'])),
-        ))
-        db.send_create_signal('valueaccounting', ['ResourceTypeFacetValue'])
-
-        # Adding unique constraint on 'ResourceTypeFacetValue', fields ['resource_type', 'facet_value']
-        db.create_unique('valueaccounting_resourcetypefacetvalue', ['resource_type_id', 'facet_value_id'])
-
-        # Adding model 'ProcessPattern'
-        db.create_table('valueaccounting_processpattern', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=32)),
-        ))
-        db.send_create_signal('valueaccounting', ['ProcessPattern'])
-
-        # Adding model 'PatternFacetValue'
-        db.create_table('valueaccounting_patternfacetvalue', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('pattern', self.gf('django.db.models.fields.related.ForeignKey')(related_name='facets', to=orm['valueaccounting.ProcessPattern'])),
-            ('facet_value', self.gf('django.db.models.fields.related.ForeignKey')(related_name='patterns', to=orm['valueaccounting.FacetValue'])),
-            ('event_type', self.gf('django.db.models.fields.related.ForeignKey')(related_name='patterns', to=orm['valueaccounting.EventType'])),
-        ))
-        db.send_create_signal('valueaccounting', ['PatternFacetValue'])
-
-        # Adding unique constraint on 'PatternFacetValue', fields ['pattern', 'facet_value', 'event_type']
-        db.create_unique('valueaccounting_patternfacetvalue', ['pattern_id', 'facet_value_id', 'event_type_id'])
-
-        # Adding model 'UseCase'
-        db.create_table('valueaccounting_usecase', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('identifier', self.gf('django.db.models.fields.CharField')(max_length=12)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('restrict_to_one_pattern', self.gf('django.db.models.fields.BooleanField')(default=False)),
-        ))
-        db.send_create_signal('valueaccounting', ['UseCase'])
-
-        # Adding model 'PatternUseCase'
-        db.create_table('valueaccounting_patternusecase', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('pattern', self.gf('django.db.models.fields.related.ForeignKey')(related_name='use_cases', to=orm['valueaccounting.ProcessPattern'])),
-            ('use_case', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='patterns', null=True, to=orm['valueaccounting.UseCase'])),
-        ))
-        db.send_create_signal('valueaccounting', ['PatternUseCase'])
-
-        # Adding model 'EconomicResource'
-        db.create_table('valueaccounting_economicresource', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('resource_type', self.gf('django.db.models.fields.related.ForeignKey')(related_name='resources', to=orm['valueaccounting.EconomicResourceType'])),
-            ('identifier', self.gf('django.db.models.fields.CharField')(max_length=128, blank=True)),
-            ('url', self.gf('django.db.models.fields.CharField')(max_length=255, blank=True)),
-            ('author', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='authored_resources', null=True, to=orm['valueaccounting.EconomicAgent'])),
-            ('owner', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='owned_resources', null=True, to=orm['valueaccounting.EconomicAgent'])),
-            ('custodian', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='custody_resources', null=True, to=orm['valueaccounting.EconomicAgent'])),
-            ('quantity', self.gf('django.db.models.fields.DecimalField')(default='1.00', max_digits=8, decimal_places=2)),
-            ('unit_of_quantity', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='resource_qty_units', null=True, to=orm['valueaccounting.Unit'])),
-            ('quality', self.gf('django.db.models.fields.DecimalField')(default='0', null=True, max_digits=3, decimal_places=0, blank=True)),
-            ('notes', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('photo', self.gf('django.db.models.fields.files.ImageField')(max_length=100, null=True, blank=True)),
-            ('photo_url', self.gf('django.db.models.fields.CharField')(max_length=255, blank=True)),
-            ('created_date', self.gf('django.db.models.fields.DateField')(default=datetime.date.today)),
-            ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='resources_created', null=True, to=orm['auth.User'])),
-            ('changed_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='resources_changed', null=True, to=orm['auth.User'])),
-            ('changed_date', self.gf('django.db.models.fields.DateField')(auto_now=True, null=True, blank=True)),
-        ))
-        db.send_create_signal('valueaccounting', ['EconomicResource'])
-
-        # Adding model 'AgentResourceType'
-        db.create_table('valueaccounting_agentresourcetype', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('agent', self.gf('django.db.models.fields.related.ForeignKey')(related_name='resource_types', to=orm['valueaccounting.EconomicAgent'])),
-            ('resource_type', self.gf('django.db.models.fields.related.ForeignKey')(related_name='agents', to=orm['valueaccounting.EconomicResourceType'])),
-            ('score', self.gf('django.db.models.fields.DecimalField')(default='0.0', max_digits=8, decimal_places=2)),
-            ('event_type', self.gf('django.db.models.fields.related.ForeignKey')(related_name='agent_resource_types', to=orm['valueaccounting.EventType'])),
-            ('lead_time', self.gf('django.db.models.fields.IntegerField')(default=0)),
-            ('value', self.gf('django.db.models.fields.DecimalField')(default='0.0', max_digits=8, decimal_places=2)),
-            ('unit_of_value', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='agent_resource_value_units', null=True, to=orm['valueaccounting.Unit'])),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='arts_created', null=True, to=orm['auth.User'])),
-            ('changed_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='arts_changed', null=True, to=orm['auth.User'])),
-            ('created_date', self.gf('django.db.models.fields.DateField')(auto_now_add=True, null=True, blank=True)),
-            ('changed_date', self.gf('django.db.models.fields.DateField')(auto_now=True, null=True, blank=True)),
-        ))
-        db.send_create_signal('valueaccounting', ['AgentResourceType'])
-
-        # Adding model 'Project'
-        db.create_table('valueaccounting_project', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('parent', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='sub_projects', null=True, to=orm['valueaccounting.Project'])),
-            ('project_team', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='project_team', null=True, to=orm['valueaccounting.EconomicAgent'])),
-            ('importance', self.gf('django.db.models.fields.DecimalField')(default='0', max_digits=3, decimal_places=0)),
-            ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='projects_created', null=True, to=orm['auth.User'])),
-            ('changed_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='projects_changed', null=True, to=orm['auth.User'])),
-            ('created_date', self.gf('django.db.models.fields.DateField')(auto_now_add=True, null=True, blank=True)),
-            ('changed_date', self.gf('django.db.models.fields.DateField')(auto_now=True, null=True, blank=True)),
-            ('slug', self.gf('django.db.models.fields.SlugField')(max_length=50)),
-        ))
-        db.send_create_signal('valueaccounting', ['Project'])
-
-        # Adding model 'ProcessType'
-        db.create_table('valueaccounting_processtype', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('parent', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='sub_process_types', null=True, to=orm['valueaccounting.ProcessType'])),
-            ('process_pattern', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='process_types', null=True, to=orm['valueaccounting.ProcessPattern'])),
-            ('project', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='process_types', null=True, to=orm['valueaccounting.Project'])),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('url', self.gf('django.db.models.fields.CharField')(max_length=255, blank=True)),
-            ('estimated_duration', self.gf('django.db.models.fields.IntegerField')(default=0)),
-            ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='process_types_created', null=True, to=orm['auth.User'])),
-            ('changed_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='process_types_changed', null=True, to=orm['auth.User'])),
-            ('created_date', self.gf('django.db.models.fields.DateField')(auto_now_add=True, null=True, blank=True)),
-            ('changed_date', self.gf('django.db.models.fields.DateField')(auto_now=True, null=True, blank=True)),
-            ('slug', self.gf('django.db.models.fields.SlugField')(max_length=50)),
-        ))
-        db.send_create_signal('valueaccounting', ['ProcessType'])
-
-        # Adding model 'ProcessTypeResourceType'
-        db.create_table('valueaccounting_processtyperesourcetype', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('process_type', self.gf('django.db.models.fields.related.ForeignKey')(related_name='resource_types', to=orm['valueaccounting.ProcessType'])),
-            ('resource_type', self.gf('django.db.models.fields.related.ForeignKey')(related_name='process_types', to=orm['valueaccounting.EconomicResourceType'])),
-            ('event_type', self.gf('django.db.models.fields.related.ForeignKey')(related_name='process_resource_types', to=orm['valueaccounting.EventType'])),
-            ('quantity', self.gf('django.db.models.fields.DecimalField')(default='0.00', max_digits=8, decimal_places=2)),
-            ('unit_of_quantity', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='process_resource_qty_units', null=True, to=orm['valueaccounting.Unit'])),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='ptrts_created', null=True, to=orm['auth.User'])),
-            ('changed_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='ptrts_changed', null=True, to=orm['auth.User'])),
-            ('created_date', self.gf('django.db.models.fields.DateField')(auto_now_add=True, null=True, blank=True)),
-            ('changed_date', self.gf('django.db.models.fields.DateField')(auto_now=True, null=True, blank=True)),
-        ))
-        db.send_create_signal('valueaccounting', ['ProcessTypeResourceType'])
-
-        # Adding model 'Process'
-        db.create_table('valueaccounting_process', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('parent', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='sub_processes', null=True, to=orm['valueaccounting.Process'])),
-            ('process_pattern', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='processes', null=True, to=orm['valueaccounting.ProcessPattern'])),
-            ('process_type', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='processes', null=True, on_delete=models.SET_NULL, to=orm['valueaccounting.ProcessType'])),
-            ('project', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='processes', null=True, to=orm['valueaccounting.Project'])),
-            ('url', self.gf('django.db.models.fields.CharField')(max_length=255, blank=True)),
-            ('start_date', self.gf('django.db.models.fields.DateField')()),
-            ('end_date', self.gf('django.db.models.fields.DateField')(null=True, blank=True)),
-            ('started', self.gf('django.db.models.fields.DateField')(null=True, blank=True)),
-            ('finished', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('managed_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='managed_processes', null=True, to=orm['valueaccounting.EconomicAgent'])),
-            ('owner', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='owned_processes', null=True, to=orm['valueaccounting.EconomicAgent'])),
-            ('notes', self.gf('django.db.models.fields.TextField')(blank=True)),
-            ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='processes_created', null=True, to=orm['auth.User'])),
-            ('changed_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='processes_changed', null=True, to=orm['auth.User'])),
-            ('created_date', self.gf('django.db.models.fields.DateField')(auto_now_add=True, null=True, blank=True)),
-            ('changed_date', self.gf('django.db.models.fields.DateField')(auto_now=True, null=True, blank=True)),
-            ('slug', self.gf('django.db.models.fields.SlugField')(max_length=50)),
-        ))
-        db.send_create_signal('valueaccounting', ['Process'])
-
-        # Adding model 'Exchange'
-        db.create_table('valueaccounting_exchange', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('process_pattern', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='exchanges', null=True, to=orm['valueaccounting.ProcessPattern'])),
-            ('use_case', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='exchanges', null=True, to=orm['valueaccounting.UseCase'])),
-            ('project', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='exchanges', null=True, to=orm['valueaccounting.Project'])),
-            ('url', self.gf('django.db.models.fields.CharField')(max_length=255, blank=True)),
-            ('start_date', self.gf('django.db.models.fields.DateField')()),
-            ('end_date', self.gf('django.db.models.fields.DateField')(null=True, blank=True)),
-            ('notes', self.gf('django.db.models.fields.TextField')(blank=True)),
-            ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='exchanges_created', null=True, to=orm['auth.User'])),
-            ('changed_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='exchanges_changed', null=True, to=orm['auth.User'])),
-            ('created_date', self.gf('django.db.models.fields.DateField')(auto_now_add=True, null=True, blank=True)),
-            ('changed_date', self.gf('django.db.models.fields.DateField')(auto_now=True, null=True, blank=True)),
-            ('slug', self.gf('django.db.models.fields.SlugField')(max_length=50)),
-        ))
-        db.send_create_signal('valueaccounting', ['Exchange'])
-
-        # Adding model 'Feature'
-        db.create_table('valueaccounting_feature', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('product', self.gf('django.db.models.fields.related.ForeignKey')(related_name='features', to=orm['valueaccounting.EconomicResourceType'])),
-            ('process_type', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='features', null=True, to=orm['valueaccounting.ProcessType'])),
-            ('event_type', self.gf('django.db.models.fields.related.ForeignKey')(related_name='features', to=orm['valueaccounting.EventType'])),
-            ('quantity', self.gf('django.db.models.fields.DecimalField')(default='0.00', max_digits=8, decimal_places=2)),
-            ('unit_of_quantity', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='feature_units', null=True, to=orm['valueaccounting.Unit'])),
-            ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='features_created', null=True, to=orm['auth.User'])),
-            ('changed_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='features_changed', null=True, to=orm['auth.User'])),
-            ('created_date', self.gf('django.db.models.fields.DateField')(auto_now_add=True, null=True, blank=True)),
-            ('changed_date', self.gf('django.db.models.fields.DateField')(auto_now=True, null=True, blank=True)),
-        ))
-        db.send_create_signal('valueaccounting', ['Feature'])
-
-        # Adding model 'Option'
-        db.create_table('valueaccounting_option', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('feature', self.gf('django.db.models.fields.related.ForeignKey')(related_name='options', to=orm['valueaccounting.Feature'])),
-            ('component', self.gf('django.db.models.fields.related.ForeignKey')(related_name='options', to=orm['valueaccounting.EconomicResourceType'])),
-            ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='options_created', null=True, to=orm['auth.User'])),
-            ('changed_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='options_changed', null=True, to=orm['auth.User'])),
-            ('created_date', self.gf('django.db.models.fields.DateField')(auto_now_add=True, null=True, blank=True)),
-            ('changed_date', self.gf('django.db.models.fields.DateField')(auto_now=True, null=True, blank=True)),
-        ))
-        db.send_create_signal('valueaccounting', ['Option'])
-
-        # Adding model 'Order'
-        db.create_table('valueaccounting_order', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('order_type', self.gf('django.db.models.fields.CharField')(default='customer', max_length=12)),
-            ('receiver', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='purchase_orders', null=True, to=orm['valueaccounting.EconomicAgent'])),
-            ('provider', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='sales_orders', null=True, to=orm['valueaccounting.EconomicAgent'])),
-            ('order_date', self.gf('django.db.models.fields.DateField')(default=datetime.date.today)),
-            ('due_date', self.gf('django.db.models.fields.DateField')()),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='orders_created', null=True, to=orm['auth.User'])),
-            ('changed_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='orders_changed', null=True, to=orm['auth.User'])),
-            ('created_date', self.gf('django.db.models.fields.DateField')(auto_now_add=True, null=True, blank=True)),
-            ('changed_date', self.gf('django.db.models.fields.DateField')(auto_now=True, null=True, blank=True)),
-        ))
-        db.send_create_signal('valueaccounting', ['Order'])
-
-        # Adding model 'Commitment'
-        db.create_table('valueaccounting_commitment', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('order', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='commitments', null=True, to=orm['valueaccounting.Order'])),
-            ('independent_demand', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='dependent_commitments', null=True, to=orm['valueaccounting.Order'])),
-            ('event_type', self.gf('django.db.models.fields.related.ForeignKey')(related_name='commitments', to=orm['valueaccounting.EventType'])),
-            ('commitment_date', self.gf('django.db.models.fields.DateField')(default=datetime.date.today)),
-            ('start_date', self.gf('django.db.models.fields.DateField')(null=True, blank=True)),
-            ('due_date', self.gf('django.db.models.fields.DateField')()),
-            ('finished', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('from_agent_type', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='given_commitments', null=True, to=orm['valueaccounting.AgentType'])),
-            ('from_agent', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='given_commitments', null=True, to=orm['valueaccounting.EconomicAgent'])),
-            ('to_agent', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='taken_commitments', null=True, to=orm['valueaccounting.EconomicAgent'])),
-            ('resource_type', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='commitments', null=True, to=orm['valueaccounting.EconomicResourceType'])),
-            ('resource', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='commitments', null=True, to=orm['valueaccounting.EconomicResource'])),
-            ('process', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='commitments', null=True, to=orm['valueaccounting.Process'])),
-            ('exchange', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='commitments', null=True, to=orm['valueaccounting.Exchange'])),
-            ('project', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='commitments', null=True, to=orm['valueaccounting.Project'])),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('url', self.gf('django.db.models.fields.CharField')(max_length=255, blank=True)),
-            ('quantity', self.gf('django.db.models.fields.DecimalField')(max_digits=8, decimal_places=2)),
-            ('unit_of_quantity', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='commitment_qty_units', null=True, to=orm['valueaccounting.Unit'])),
-            ('quality', self.gf('django.db.models.fields.DecimalField')(default='0', max_digits=3, decimal_places=0)),
-            ('value', self.gf('django.db.models.fields.DecimalField')(default='0.0', max_digits=8, decimal_places=2)),
-            ('unit_of_value', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='commitment_value_units', null=True, to=orm['valueaccounting.Unit'])),
-            ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='commitments_created', null=True, to=orm['auth.User'])),
-            ('changed_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='commitments_changed', null=True, to=orm['auth.User'])),
-            ('created_date', self.gf('django.db.models.fields.DateField')(auto_now_add=True, null=True, blank=True)),
-            ('changed_date', self.gf('django.db.models.fields.DateField')(auto_now=True, null=True, blank=True)),
-            ('slug', self.gf('django.db.models.fields.SlugField')(max_length=50)),
-        ))
-        db.send_create_signal('valueaccounting', ['Commitment'])
-
-        # Adding model 'Reciprocity'
-        db.create_table('valueaccounting_reciprocity', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('initiating_commitment', self.gf('django.db.models.fields.related.ForeignKey')(related_name='initiated_commitments', to=orm['valueaccounting.Commitment'])),
-            ('reciprocal_commitment', self.gf('django.db.models.fields.related.ForeignKey')(related_name='reciprocal_commitments', to=orm['valueaccounting.Commitment'])),
-            ('reciprocity_date', self.gf('django.db.models.fields.DateField')(default=datetime.date.today)),
-        ))
-        db.send_create_signal('valueaccounting', ['Reciprocity'])
-
-        # Adding model 'SelectedOption'
-        db.create_table('valueaccounting_selectedoption', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('commitment', self.gf('django.db.models.fields.related.ForeignKey')(related_name='options', to=orm['valueaccounting.Commitment'])),
-            ('option', self.gf('django.db.models.fields.related.ForeignKey')(related_name='commitments', to=orm['valueaccounting.Option'])),
-        ))
-        db.send_create_signal('valueaccounting', ['SelectedOption'])
-
-        # Adding model 'EconomicEvent'
-        db.create_table('valueaccounting_economicevent', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('event_type', self.gf('django.db.models.fields.related.ForeignKey')(related_name='events', to=orm['valueaccounting.EventType'])),
-            ('event_date', self.gf('django.db.models.fields.DateField')()),
-            ('from_agent', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='given_events', null=True, to=orm['valueaccounting.EconomicAgent'])),
-            ('to_agent', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='taken_events', null=True, to=orm['valueaccounting.EconomicAgent'])),
-            ('resource_type', self.gf('django.db.models.fields.related.ForeignKey')(related_name='events', to=orm['valueaccounting.EconomicResourceType'])),
-            ('resource', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='events', null=True, to=orm['valueaccounting.EconomicResource'])),
-            ('process', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='events', null=True, on_delete=models.SET_NULL, to=orm['valueaccounting.Process'])),
-            ('exchange', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='events', null=True, on_delete=models.SET_NULL, to=orm['valueaccounting.Exchange'])),
-            ('project', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='events', null=True, on_delete=models.SET_NULL, to=orm['valueaccounting.Project'])),
-            ('url', self.gf('django.db.models.fields.CharField')(max_length=255, blank=True)),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('quantity', self.gf('django.db.models.fields.DecimalField')(max_digits=8, decimal_places=2)),
-            ('unit_of_quantity', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='event_qty_units', null=True, to=orm['valueaccounting.Unit'])),
-            ('quality', self.gf('django.db.models.fields.DecimalField')(default='0', max_digits=3, decimal_places=0)),
-            ('value', self.gf('django.db.models.fields.DecimalField')(default='0.0', max_digits=8, decimal_places=2)),
-            ('unit_of_value', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='event_value_units', null=True, to=orm['valueaccounting.Unit'])),
-            ('commitment', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='fulfillment_events', null=True, on_delete=models.SET_NULL, to=orm['valueaccounting.Commitment'])),
-            ('is_contribution', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='events_created', null=True, to=orm['auth.User'])),
-            ('changed_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='events_changed', null=True, to=orm['auth.User'])),
-            ('slug', self.gf('django.db.models.fields.SlugField')(max_length=50)),
-        ))
-        db.send_create_signal('valueaccounting', ['EconomicEvent'])
-
-        # Adding model 'Compensation'
-        db.create_table('valueaccounting_compensation', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('initiating_event', self.gf('django.db.models.fields.related.ForeignKey')(related_name='initiated_compensations', to=orm['valueaccounting.EconomicEvent'])),
-            ('compensating_event', self.gf('django.db.models.fields.related.ForeignKey')(related_name='compensations', to=orm['valueaccounting.EconomicEvent'])),
-            ('compensation_date', self.gf('django.db.models.fields.DateField')(default=datetime.date.today)),
-            ('compensating_value', self.gf('django.db.models.fields.DecimalField')(max_digits=8, decimal_places=2)),
-        ))
-        db.send_create_signal('valueaccounting', ['Compensation'])
-
-        # Adding model 'CachedEventSummary'
-        db.create_table('valueaccounting_cachedeventsummary', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('agent', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='cached_events', null=True, to=orm['valueaccounting.EconomicAgent'])),
-            ('project', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='cached_events', null=True, to=orm['valueaccounting.Project'])),
-            ('resource_type', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='cached_events', null=True, to=orm['valueaccounting.EconomicResourceType'])),
-            ('resource_type_rate', self.gf('django.db.models.fields.DecimalField')(default='1.0', max_digits=8, decimal_places=2)),
-            ('importance', self.gf('django.db.models.fields.DecimalField')(default='1', max_digits=3, decimal_places=0)),
-            ('reputation', self.gf('django.db.models.fields.DecimalField')(default='1.00', max_digits=8, decimal_places=2)),
-            ('quantity', self.gf('django.db.models.fields.DecimalField')(default='0.0', max_digits=8, decimal_places=2)),
-            ('value', self.gf('django.db.models.fields.DecimalField')(default='0.0', max_digits=8, decimal_places=2)),
-        ))
-        db.send_create_signal('valueaccounting', ['CachedEventSummary'])
-
-
-    def backwards(self, orm):
-        # Removing unique constraint on 'PatternFacetValue', fields ['pattern', 'facet_value', 'event_type']
-        db.delete_unique('valueaccounting_patternfacetvalue', ['pattern_id', 'facet_value_id', 'event_type_id'])
-
-        # Removing unique constraint on 'ResourceTypeFacetValue', fields ['resource_type', 'facet_value']
-        db.delete_unique('valueaccounting_resourcetypefacetvalue', ['resource_type_id', 'facet_value_id'])
-
-        # Removing unique constraint on 'FacetValue', fields ['facet', 'value']
-        db.delete_unique('valueaccounting_facetvalue', ['facet_id', 'value'])
-
-        # Deleting model 'Help'
-        db.delete_table('valueaccounting_help')
-
-        # Deleting model 'Facet'
-        db.delete_table('valueaccounting_facet')
-
-        # Deleting model 'FacetValue'
-        db.delete_table('valueaccounting_facetvalue')
-
-        # Deleting model 'Unit'
-        db.delete_table('valueaccounting_unit')
-
-        # Deleting model 'AgentType'
-        db.delete_table('valueaccounting_agenttype')
-
-        # Deleting model 'EconomicAgent'
-        db.delete_table('valueaccounting_economicagent')
-
-        # Deleting model 'AgentUser'
-        db.delete_table('valueaccounting_agentuser')
-
-        # Deleting model 'AssociationType'
-        db.delete_table('valueaccounting_associationtype')
-
-        # Deleting model 'AgentAssociation'
-        db.delete_table('valueaccounting_agentassociation')
-
-        # Deleting model 'EventType'
-        db.delete_table('valueaccounting_eventtype')
-
-        # Deleting model 'EconomicResourceType'
-        db.delete_table('valueaccounting_economicresourcetype')
-
-        # Deleting model 'ResourceTypeFacetValue'
-        db.delete_table('valueaccounting_resourcetypefacetvalue')
-
-        # Deleting model 'ProcessPattern'
-        db.delete_table('valueaccounting_processpattern')
-
-        # Deleting model 'PatternFacetValue'
-        db.delete_table('valueaccounting_patternfacetvalue')
-
-        # Deleting model 'UseCase'
-        db.delete_table('valueaccounting_usecase')
-
-        # Deleting model 'PatternUseCase'
-        db.delete_table('valueaccounting_patternusecase')
-
-        # Deleting model 'EconomicResource'
-        db.delete_table('valueaccounting_economicresource')
-
-        # Deleting model 'AgentResourceType'
-        db.delete_table('valueaccounting_agentresourcetype')
-
-        # Deleting model 'Project'
-        db.delete_table('valueaccounting_project')
-
-        # Deleting model 'ProcessType'
-        db.delete_table('valueaccounting_processtype')
-
-        # Deleting model 'ProcessTypeResourceType'
-        db.delete_table('valueaccounting_processtyperesourcetype')
-
-        # Deleting model 'Process'
-        db.delete_table('valueaccounting_process')
-
-        # Deleting model 'Exchange'
-        db.delete_table('valueaccounting_exchange')
-
-        # Deleting model 'Feature'
-        db.delete_table('valueaccounting_feature')
-
-        # Deleting model 'Option'
-        db.delete_table('valueaccounting_option')
-
-        # Deleting model 'Order'
-        db.delete_table('valueaccounting_order')
-
-        # Deleting model 'Commitment'
-        db.delete_table('valueaccounting_commitment')
-
-        # Deleting model 'Reciprocity'
-        db.delete_table('valueaccounting_reciprocity')
-
-        # Deleting model 'SelectedOption'
-        db.delete_table('valueaccounting_selectedoption')
-
-        # Deleting model 'EconomicEvent'
-        db.delete_table('valueaccounting_economicevent')
-
-        # Deleting model 'Compensation'
-        db.delete_table('valueaccounting_compensation')
-
-        # Deleting model 'CachedEventSummary'
-        db.delete_table('valueaccounting_cachedeventsummary')
-
-
-    models = {
-        'auth.group': {
-            'Meta': {'object_name': 'Group'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '80'}),
-            'permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'})
-        },
-        'auth.permission': {
-            'Meta': {'ordering': "('content_type__app_label', 'content_type__model', 'codename')", 'unique_together': "(('content_type', 'codename'),)", 'object_name': 'Permission'},
-            'codename': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'content_type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['contenttypes.ContentType']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50'})
-        },
-        'auth.user': {
-            'Meta': {'object_name': 'User'},
-            'date_joined': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'blank': 'True'}),
-            'first_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
-            'groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Group']", 'symmetrical': 'False', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'is_staff': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'is_superuser': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'last_login': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'last_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
-            'password': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'}),
-            'username': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'})
-        },
-        'contenttypes.contenttype': {
-            'Meta': {'ordering': "('name',)", 'unique_together': "(('app_label', 'model'),)", 'object_name': 'ContentType', 'db_table': "'django_content_type'"},
-            'app_label': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
-        },
-        'valueaccounting.agentassociation': {
-            'Meta': {'object_name': 'AgentAssociation'},
-            'association_type': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'associations'", 'to': "orm['valueaccounting.AssociationType']"}),
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'from_agent': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'associations_from'", 'to': "orm['valueaccounting.EconomicAgent']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'to_agent': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'associations_to'", 'to': "orm['valueaccounting.EconomicAgent']"})
-        },
-        'valueaccounting.agentresourcetype': {
-            'Meta': {'object_name': 'AgentResourceType'},
-            'agent': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'resource_types'", 'to': "orm['valueaccounting.EconomicAgent']"}),
-            'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'arts_changed'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'changed_date': ('django.db.models.fields.DateField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
-            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'arts_created'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'created_date': ('django.db.models.fields.DateField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'event_type': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'agent_resource_types'", 'to': "orm['valueaccounting.EventType']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'lead_time': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
-            'resource_type': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'agents'", 'to': "orm['valueaccounting.EconomicResourceType']"}),
-            'score': ('django.db.models.fields.DecimalField', [], {'default': "'0.0'", 'max_digits': '8', 'decimal_places': '2'}),
-            'unit_of_value': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'agent_resource_value_units'", 'null': 'True', 'to': "orm['valueaccounting.Unit']"}),
-            'value': ('django.db.models.fields.DecimalField', [], {'default': "'0.0'", 'max_digits': '8', 'decimal_places': '2'})
-        },
-        'valueaccounting.agenttype': {
-            'Meta': {'ordering': "('name',)", 'object_name': 'AgentType'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'member_type': ('django.db.models.fields.CharField', [], {'default': "'active'", 'max_length': '12'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'parent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'sub-agents'", 'null': 'True', 'to': "orm['valueaccounting.AgentType']"}),
-            'party_type': ('django.db.models.fields.CharField', [], {'default': "'individual'", 'max_length': '12'})
-        },
-        'valueaccounting.agentuser': {
-            'Meta': {'object_name': 'AgentUser'},
-            'agent': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'users'", 'to': "orm['valueaccounting.EconomicAgent']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'user': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "'agent'", 'unique': 'True', 'to': "orm['auth.User']"})
-        },
-        'valueaccounting.associationtype': {
-            'Meta': {'object_name': 'AssociationType'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '128'})
-        },
-        'valueaccounting.cachedeventsummary': {
-            'Meta': {'ordering': "('agent', 'project', 'resource_type')", 'object_name': 'CachedEventSummary'},
-            'agent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'cached_events'", 'null': 'True', 'to': "orm['valueaccounting.EconomicAgent']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'importance': ('django.db.models.fields.DecimalField', [], {'default': "'1'", 'max_digits': '3', 'decimal_places': '0'}),
-            'project': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'cached_events'", 'null': 'True', 'to': "orm['valueaccounting.Project']"}),
-            'quantity': ('django.db.models.fields.DecimalField', [], {'default': "'0.0'", 'max_digits': '8', 'decimal_places': '2'}),
-            'reputation': ('django.db.models.fields.DecimalField', [], {'default': "'1.00'", 'max_digits': '8', 'decimal_places': '2'}),
-            'resource_type': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'cached_events'", 'null': 'True', 'to': "orm['valueaccounting.EconomicResourceType']"}),
-            'resource_type_rate': ('django.db.models.fields.DecimalField', [], {'default': "'1.0'", 'max_digits': '8', 'decimal_places': '2'}),
-            'value': ('django.db.models.fields.DecimalField', [], {'default': "'0.0'", 'max_digits': '8', 'decimal_places': '2'})
-        },
-        'valueaccounting.commitment': {
-            'Meta': {'ordering': "('due_date',)", 'object_name': 'Commitment'},
-            'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'commitments_changed'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'changed_date': ('django.db.models.fields.DateField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
-            'commitment_date': ('django.db.models.fields.DateField', [], {'default': 'datetime.date.today'}),
-            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'commitments_created'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'created_date': ('django.db.models.fields.DateField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'due_date': ('django.db.models.fields.DateField', [], {}),
-            'event_type': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'commitments'", 'to': "orm['valueaccounting.EventType']"}),
-            'exchange': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'commitments'", 'null': 'True', 'to': "orm['valueaccounting.Exchange']"}),
-            'finished': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'from_agent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'given_commitments'", 'null': 'True', 'to': "orm['valueaccounting.EconomicAgent']"}),
-            'from_agent_type': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'given_commitments'", 'null': 'True', 'to': "orm['valueaccounting.AgentType']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'independent_demand': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'dependent_commitments'", 'null': 'True', 'to': "orm['valueaccounting.Order']"}),
-            'order': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'commitments'", 'null': 'True', 'to': "orm['valueaccounting.Order']"}),
-            'process': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'commitments'", 'null': 'True', 'to': "orm['valueaccounting.Process']"}),
-            'project': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'commitments'", 'null': 'True', 'to': "orm['valueaccounting.Project']"}),
-            'quality': ('django.db.models.fields.DecimalField', [], {'default': "'0'", 'max_digits': '3', 'decimal_places': '0'}),
-            'quantity': ('django.db.models.fields.DecimalField', [], {'max_digits': '8', 'decimal_places': '2'}),
-            'resource': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'commitments'", 'null': 'True', 'to': "orm['valueaccounting.EconomicResource']"}),
-            'resource_type': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'commitments'", 'null': 'True', 'to': "orm['valueaccounting.EconomicResourceType']"}),
-            'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50'}),
-            'start_date': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
-            'to_agent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'taken_commitments'", 'null': 'True', 'to': "orm['valueaccounting.EconomicAgent']"}),
-            'unit_of_quantity': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'commitment_qty_units'", 'null': 'True', 'to': "orm['valueaccounting.Unit']"}),
-            'unit_of_value': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'commitment_value_units'", 'null': 'True', 'to': "orm['valueaccounting.Unit']"}),
-            'url': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'}),
-            'value': ('django.db.models.fields.DecimalField', [], {'default': "'0.0'", 'max_digits': '8', 'decimal_places': '2'})
-        },
-        'valueaccounting.compensation': {
-            'Meta': {'ordering': "('compensation_date',)", 'object_name': 'Compensation'},
-            'compensating_event': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'compensations'", 'to': "orm['valueaccounting.EconomicEvent']"}),
-            'compensating_value': ('django.db.models.fields.DecimalField', [], {'max_digits': '8', 'decimal_places': '2'}),
-            'compensation_date': ('django.db.models.fields.DateField', [], {'default': 'datetime.date.today'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'initiating_event': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'initiated_compensations'", 'to': "orm['valueaccounting.EconomicEvent']"})
-        },
-        'valueaccounting.economicagent': {
-            'Meta': {'ordering': "('nick',)", 'object_name': 'EconomicAgent'},
-            'address': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'}),
-            'agent_type': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'agents'", 'to': "orm['valueaccounting.AgentType']"}),
-            'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'agents_changed'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'changed_date': ('django.db.models.fields.DateField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
-            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'agents_created'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'created_date': ('django.db.models.fields.DateField', [], {'default': 'datetime.date.today'}),
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'email': ('django.db.models.fields.EmailField', [], {'max_length': '96', 'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'latitude': ('django.db.models.fields.FloatField', [], {'default': '0.0', 'null': 'True', 'blank': 'True'}),
-            'longitude': ('django.db.models.fields.FloatField', [], {'default': '0.0', 'null': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'nick': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '32'}),
-            'photo': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'photo_url': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'}),
-            'reputation': ('django.db.models.fields.DecimalField', [], {'default': "'0.00'", 'max_digits': '8', 'decimal_places': '2'}),
-            'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50'}),
-            'url': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'})
-        },
-        'valueaccounting.economicevent': {
-            'Meta': {'ordering': "('-event_date',)", 'object_name': 'EconomicEvent'},
-            'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'events_changed'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'commitment': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'fulfillment_events'", 'null': 'True', 'on_delete': 'models.SET_NULL', 'to': "orm['valueaccounting.Commitment']"}),
-            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'events_created'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'event_date': ('django.db.models.fields.DateField', [], {}),
-            'event_type': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'events'", 'to': "orm['valueaccounting.EventType']"}),
-            'exchange': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'events'", 'null': 'True', 'on_delete': 'models.SET_NULL', 'to': "orm['valueaccounting.Exchange']"}),
-            'from_agent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'given_events'", 'null': 'True', 'to': "orm['valueaccounting.EconomicAgent']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'is_contribution': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'process': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'events'", 'null': 'True', 'on_delete': 'models.SET_NULL', 'to': "orm['valueaccounting.Process']"}),
-            'project': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'events'", 'null': 'True', 'on_delete': 'models.SET_NULL', 'to': "orm['valueaccounting.Project']"}),
-            'quality': ('django.db.models.fields.DecimalField', [], {'default': "'0'", 'max_digits': '3', 'decimal_places': '0'}),
-            'quantity': ('django.db.models.fields.DecimalField', [], {'max_digits': '8', 'decimal_places': '2'}),
-            'resource': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'events'", 'null': 'True', 'to': "orm['valueaccounting.EconomicResource']"}),
-            'resource_type': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'events'", 'to': "orm['valueaccounting.EconomicResourceType']"}),
-            'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50'}),
-            'to_agent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'taken_events'", 'null': 'True', 'to': "orm['valueaccounting.EconomicAgent']"}),
-            'unit_of_quantity': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'event_qty_units'", 'null': 'True', 'to': "orm['valueaccounting.Unit']"}),
-            'unit_of_value': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'event_value_units'", 'null': 'True', 'to': "orm['valueaccounting.Unit']"}),
-            'url': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'}),
-            'value': ('django.db.models.fields.DecimalField', [], {'default': "'0.0'", 'max_digits': '8', 'decimal_places': '2'})
-        },
-        'valueaccounting.economicresource': {
-            'Meta': {'ordering': "('resource_type', 'identifier')", 'object_name': 'EconomicResource'},
-            'author': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'authored_resources'", 'null': 'True', 'to': "orm['valueaccounting.EconomicAgent']"}),
-            'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'resources_changed'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'changed_date': ('django.db.models.fields.DateField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
-            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'resources_created'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'created_date': ('django.db.models.fields.DateField', [], {'default': 'datetime.date.today'}),
-            'custodian': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'custody_resources'", 'null': 'True', 'to': "orm['valueaccounting.EconomicAgent']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'identifier': ('django.db.models.fields.CharField', [], {'max_length': '128', 'blank': 'True'}),
-            'notes': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'owner': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'owned_resources'", 'null': 'True', 'to': "orm['valueaccounting.EconomicAgent']"}),
-            'photo': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'photo_url': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'}),
-            'quality': ('django.db.models.fields.DecimalField', [], {'default': "'0'", 'null': 'True', 'max_digits': '3', 'decimal_places': '0', 'blank': 'True'}),
-            'quantity': ('django.db.models.fields.DecimalField', [], {'default': "'1.00'", 'max_digits': '8', 'decimal_places': '2'}),
-            'resource_type': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'resources'", 'to': "orm['valueaccounting.EconomicResourceType']"}),
-            'unit_of_quantity': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'resource_qty_units'", 'null': 'True', 'to': "orm['valueaccounting.Unit']"}),
-            'url': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'})
-        },
-        'valueaccounting.economicresourcetype': {
-            'Meta': {'ordering': "('name',)", 'object_name': 'EconomicResourceType'},
-            'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'resource_types_changed'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'changed_date': ('django.db.models.fields.DateField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
-            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'resource_types_created'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'created_date': ('django.db.models.fields.DateField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '128'}),
-            'parent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'children'", 'null': 'True', 'to': "orm['valueaccounting.EconomicResourceType']"}),
-            'photo': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'photo_url': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'}),
-            'rate': ('django.db.models.fields.DecimalField', [], {'default': "'0.00'", 'max_digits': '6', 'decimal_places': '2'}),
-            'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50'}),
-            'unit': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'resource_units'", 'null': 'True', 'to': "orm['valueaccounting.Unit']"}),
-            'unit_of_use': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'units_of_use'", 'null': 'True', 'to': "orm['valueaccounting.Unit']"}),
-            'url': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'})
-        },
-        'valueaccounting.eventtype': {
-            'Meta': {'ordering': "('label',)", 'object_name': 'EventType'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'inverse_label': ('django.db.models.fields.CharField', [], {'max_length': '40', 'blank': 'True'}),
-            'label': ('django.db.models.fields.CharField', [], {'max_length': '32'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'related_to': ('django.db.models.fields.CharField', [], {'default': "'process'", 'max_length': '12'}),
-            'relationship': ('django.db.models.fields.CharField', [], {'default': "'in'", 'max_length': '12'}),
-            'resource_effect': ('django.db.models.fields.CharField', [], {'max_length': '12'}),
-            'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50'}),
-            'unit_type': ('django.db.models.fields.CharField', [], {'max_length': '12', 'blank': 'True'})
-        },
-        'valueaccounting.exchange': {
-            'Meta': {'object_name': 'Exchange'},
-            'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'exchanges_changed'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'changed_date': ('django.db.models.fields.DateField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
-            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'exchanges_created'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'created_date': ('django.db.models.fields.DateField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
-            'end_date': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'notes': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'process_pattern': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'exchanges'", 'null': 'True', 'to': "orm['valueaccounting.ProcessPattern']"}),
-            'project': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'exchanges'", 'null': 'True', 'to': "orm['valueaccounting.Project']"}),
-            'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50'}),
-            'start_date': ('django.db.models.fields.DateField', [], {}),
-            'url': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'}),
-            'use_case': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'exchanges'", 'null': 'True', 'to': "orm['valueaccounting.UseCase']"})
-        },
-        'valueaccounting.facet': {
-            'Meta': {'ordering': "('name',)", 'object_name': 'Facet'},
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '32'})
-        },
-        'valueaccounting.facetvalue': {
-            'Meta': {'ordering': "('facet', 'value')", 'unique_together': "(('facet', 'value'),)", 'object_name': 'FacetValue'},
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'facet': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'values'", 'to': "orm['valueaccounting.Facet']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'value': ('django.db.models.fields.CharField', [], {'max_length': '32'})
-        },
-        'valueaccounting.feature': {
-            'Meta': {'ordering': "('name',)", 'object_name': 'Feature'},
-            'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'features_changed'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'changed_date': ('django.db.models.fields.DateField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
-            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'features_created'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'created_date': ('django.db.models.fields.DateField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
-            'event_type': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'features'", 'to': "orm['valueaccounting.EventType']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'process_type': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'features'", 'null': 'True', 'to': "orm['valueaccounting.ProcessType']"}),
-            'product': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'features'", 'to': "orm['valueaccounting.EconomicResourceType']"}),
-            'quantity': ('django.db.models.fields.DecimalField', [], {'default': "'0.00'", 'max_digits': '8', 'decimal_places': '2'}),
-            'unit_of_quantity': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'feature_units'", 'null': 'True', 'to': "orm['valueaccounting.Unit']"})
-        },
-        'valueaccounting.help': {
-            'Meta': {'ordering': "('page',)", 'object_name': 'Help'},
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'page': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '16'})
-        },
-        'valueaccounting.option': {
-            'Meta': {'ordering': "('component',)", 'object_name': 'Option'},
-            'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'options_changed'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'changed_date': ('django.db.models.fields.DateField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
-            'component': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'options'", 'to': "orm['valueaccounting.EconomicResourceType']"}),
-            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'options_created'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'created_date': ('django.db.models.fields.DateField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
-            'feature': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'options'", 'to': "orm['valueaccounting.Feature']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'})
-        },
-        'valueaccounting.order': {
-            'Meta': {'ordering': "('due_date',)", 'object_name': 'Order'},
-            'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'orders_changed'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'changed_date': ('django.db.models.fields.DateField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
-            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'orders_created'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'created_date': ('django.db.models.fields.DateField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'due_date': ('django.db.models.fields.DateField', [], {}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'order_date': ('django.db.models.fields.DateField', [], {'default': 'datetime.date.today'}),
-            'order_type': ('django.db.models.fields.CharField', [], {'default': "'customer'", 'max_length': '12'}),
-            'provider': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'sales_orders'", 'null': 'True', 'to': "orm['valueaccounting.EconomicAgent']"}),
-            'receiver': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'purchase_orders'", 'null': 'True', 'to': "orm['valueaccounting.EconomicAgent']"})
-        },
-        'valueaccounting.patternfacetvalue': {
-            'Meta': {'ordering': "('pattern', 'event_type', 'facet_value')", 'unique_together': "(('pattern', 'facet_value', 'event_type'),)", 'object_name': 'PatternFacetValue'},
-            'event_type': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'patterns'", 'to': "orm['valueaccounting.EventType']"}),
-            'facet_value': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'patterns'", 'to': "orm['valueaccounting.FacetValue']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'pattern': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'facets'", 'to': "orm['valueaccounting.ProcessPattern']"})
-        },
-        'valueaccounting.patternusecase': {
-            'Meta': {'object_name': 'PatternUseCase'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'pattern': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'use_cases'", 'to': "orm['valueaccounting.ProcessPattern']"}),
-            'use_case': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'patterns'", 'null': 'True', 'to': "orm['valueaccounting.UseCase']"})
-        },
-        'valueaccounting.process': {
-            'Meta': {'ordering': "('end_date',)", 'object_name': 'Process'},
-            'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'processes_changed'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'changed_date': ('django.db.models.fields.DateField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
-            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'processes_created'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'created_date': ('django.db.models.fields.DateField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
-            'end_date': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
-            'finished': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'managed_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'managed_processes'", 'null': 'True', 'to': "orm['valueaccounting.EconomicAgent']"}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'notes': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'owner': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'owned_processes'", 'null': 'True', 'to': "orm['valueaccounting.EconomicAgent']"}),
-            'parent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'sub_processes'", 'null': 'True', 'to': "orm['valueaccounting.Process']"}),
-            'process_pattern': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'processes'", 'null': 'True', 'to': "orm['valueaccounting.ProcessPattern']"}),
-            'process_type': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'processes'", 'null': 'True', 'on_delete': 'models.SET_NULL', 'to': "orm['valueaccounting.ProcessType']"}),
-            'project': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'processes'", 'null': 'True', 'to': "orm['valueaccounting.Project']"}),
-            'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50'}),
-            'start_date': ('django.db.models.fields.DateField', [], {}),
-            'started': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
-            'url': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'})
-        },
-        'valueaccounting.processpattern': {
-            'Meta': {'ordering': "('name',)", 'object_name': 'ProcessPattern'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '32'})
-        },
-        'valueaccounting.processtype': {
-            'Meta': {'ordering': "('name',)", 'object_name': 'ProcessType'},
-            'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'process_types_changed'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'changed_date': ('django.db.models.fields.DateField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
-            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'process_types_created'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'created_date': ('django.db.models.fields.DateField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'estimated_duration': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'parent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'sub_process_types'", 'null': 'True', 'to': "orm['valueaccounting.ProcessType']"}),
-            'process_pattern': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'process_types'", 'null': 'True', 'to': "orm['valueaccounting.ProcessPattern']"}),
-            'project': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'process_types'", 'null': 'True', 'to': "orm['valueaccounting.Project']"}),
-            'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50'}),
-            'url': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'})
-        },
-        'valueaccounting.processtyperesourcetype': {
-            'Meta': {'ordering': "('resource_type',)", 'object_name': 'ProcessTypeResourceType'},
-            'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'ptrts_changed'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'changed_date': ('django.db.models.fields.DateField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
-            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'ptrts_created'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'created_date': ('django.db.models.fields.DateField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'event_type': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'process_resource_types'", 'to': "orm['valueaccounting.EventType']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'process_type': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'resource_types'", 'to': "orm['valueaccounting.ProcessType']"}),
-            'quantity': ('django.db.models.fields.DecimalField', [], {'default': "'0.00'", 'max_digits': '8', 'decimal_places': '2'}),
-            'resource_type': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'process_types'", 'to': "orm['valueaccounting.EconomicResourceType']"}),
-            'unit_of_quantity': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'process_resource_qty_units'", 'null': 'True', 'to': "orm['valueaccounting.Unit']"})
-        },
-        'valueaccounting.project': {
-            'Meta': {'ordering': "('name',)", 'object_name': 'Project'},
-            'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'projects_changed'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'changed_date': ('django.db.models.fields.DateField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
-            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'projects_created'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'created_date': ('django.db.models.fields.DateField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'importance': ('django.db.models.fields.DecimalField', [], {'default': "'0'", 'max_digits': '3', 'decimal_places': '0'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'parent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'sub_projects'", 'null': 'True', 'to': "orm['valueaccounting.Project']"}),
-            'project_team': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'project_team'", 'null': 'True', 'to': "orm['valueaccounting.EconomicAgent']"}),
-            'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50'})
-        },
-        'valueaccounting.reciprocity': {
-            'Meta': {'ordering': "('reciprocity_date',)", 'object_name': 'Reciprocity'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'initiating_commitment': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'initiated_commitments'", 'to': "orm['valueaccounting.Commitment']"}),
-            'reciprocal_commitment': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'reciprocal_commitments'", 'to': "orm['valueaccounting.Commitment']"}),
-            'reciprocity_date': ('django.db.models.fields.DateField', [], {'default': 'datetime.date.today'})
-        },
-        'valueaccounting.resourcetypefacetvalue': {
-            'Meta': {'ordering': "('resource_type', 'facet_value')", 'unique_together': "(('resource_type', 'facet_value'),)", 'object_name': 'ResourceTypeFacetValue'},
-            'facet_value': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'resource_types'", 'to': "orm['valueaccounting.FacetValue']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'resource_type': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'facets'", 'to': "orm['valueaccounting.EconomicResourceType']"})
-        },
-        'valueaccounting.selectedoption': {
-            'Meta': {'ordering': "('commitment', 'option')", 'object_name': 'SelectedOption'},
-            'commitment': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'options'", 'to': "orm['valueaccounting.Commitment']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'option': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'commitments'", 'to': "orm['valueaccounting.Option']"})
-        },
-        'valueaccounting.unit': {
-            'Meta': {'ordering': "('name',)", 'object_name': 'Unit'},
-            'abbrev': ('django.db.models.fields.CharField', [], {'max_length': '8'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '64'}),
-            'symbol': ('django.db.models.fields.CharField', [], {'max_length': '1', 'blank': 'True'}),
-            'unit_type': ('django.db.models.fields.CharField', [], {'max_length': '12'})
-        },
-        'valueaccounting.usecase': {
-            'Meta': {'object_name': 'UseCase'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'identifier': ('django.db.models.fields.CharField', [], {'max_length': '12'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'restrict_to_one_pattern': ('django.db.models.fields.BooleanField', [], {'default': 'False'})
-        }
-    }
-
-    complete_apps = ['valueaccounting']
+from decimal import Decimal
+import easy_thumbnails.fields
+import django.db.models.deletion
+from django.conf import settings
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+    ]
+
+    operations = [
+        migrations.CreateModel(
+            name='AccountingReference',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('code', models.CharField(unique=True, max_length=128, verbose_name='code')),
+                ('name', models.CharField(max_length=128, verbose_name='name')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='AgentAssociation',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('description', models.TextField(null=True, verbose_name='description', blank=True)),
+                ('state', models.CharField(default=b'active', max_length=12, verbose_name='state', choices=[(b'active', 'active'), (b'inactive', 'inactive'), (b'potential', 'potential')])),
+            ],
+            options={
+                'ordering': ('is_associate',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='AgentAssociationType',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('identifier', models.CharField(unique=True, max_length=12, verbose_name='identifier')),
+                ('name', models.CharField(max_length=128, verbose_name='name')),
+                ('plural_name', models.CharField(default=b'', max_length=128, verbose_name='plural name')),
+                ('association_behavior', models.CharField(blank=True, max_length=12, null=True, verbose_name='association behavior', choices=[(b'supplier', 'supplier'), (b'customer', 'customer'), (b'member', 'member'), (b'child', 'child'), (b'custodian', 'custodian'), (b'exchange', 'exchange firm'), (b'peer', 'peer')])),
+                ('description', models.TextField(null=True, verbose_name='description', blank=True)),
+                ('label', models.CharField(max_length=32, null=True, verbose_name='label')),
+                ('inverse_label', models.CharField(max_length=40, null=True, verbose_name='inverse label')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='AgentResourceRole',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('is_contact', models.BooleanField(default=False, verbose_name='is contact')),
+                ('owner_percentage', models.IntegerField(null=True, verbose_name='owner percentage')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='AgentResourceRoleType',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=128, verbose_name='name')),
+                ('description', models.TextField(null=True, verbose_name='description', blank=True)),
+                ('is_owner', models.BooleanField(default=False, verbose_name='is owner')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='AgentResourceType',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('score', models.DecimalField(default=Decimal('0.0'), help_text='the quantity of contributions of this resource type from this agent', verbose_name='score', max_digits=8, decimal_places=2)),
+                ('lead_time', models.IntegerField(default=0, help_text='in days', verbose_name='lead time')),
+                ('value', models.DecimalField(default=Decimal('0.0'), verbose_name='value', max_digits=8, decimal_places=2)),
+                ('value_per_unit', models.DecimalField(default=Decimal('0.0'), verbose_name='value per unit', max_digits=8, decimal_places=2)),
+                ('description', models.TextField(null=True, verbose_name='description', blank=True)),
+                ('created_date', models.DateField(auto_now_add=True, null=True)),
+                ('changed_date', models.DateField(auto_now=True, null=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='AgentType',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=128, verbose_name='name')),
+                ('party_type', models.CharField(default=b'individual', max_length=12, verbose_name='party type', choices=[(b'individual', 'individual'), (b'org', 'organization'), (b'network', 'network'), (b'team', 'project'), (b'community', 'community')])),
+                ('description', models.TextField(null=True, verbose_name='description', blank=True)),
+                ('is_context', models.BooleanField(default=False, verbose_name='is context')),
+                ('parent', models.ForeignKey(related_name='sub-agents', blank=True, editable=False, to='valueaccounting.AgentType', null=True, verbose_name='parent')),
+            ],
+            options={
+                'ordering': ('name',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='AgentUser',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='CachedEventSummary',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('resource_type_rate', models.DecimalField(default=Decimal('1.0'), verbose_name='resource type rate', max_digits=8, decimal_places=2)),
+                ('importance', models.DecimalField(default=Decimal('1'), verbose_name='importance', max_digits=3, decimal_places=0)),
+                ('reputation', models.DecimalField(default=Decimal('1.00'), verbose_name='reputation', max_digits=8, decimal_places=2)),
+                ('quantity', models.DecimalField(default=Decimal('0.0'), verbose_name='quantity', max_digits=8, decimal_places=2)),
+                ('value', models.DecimalField(default=Decimal('0.0'), verbose_name='value', max_digits=8, decimal_places=2)),
+            ],
+            options={
+                'ordering': ('agent', 'context_agent', 'resource_type'),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Claim',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('claim_date', models.DateField(verbose_name='claim date')),
+                ('value', models.DecimalField(default=Decimal('0.0'), verbose_name='value', max_digits=8, decimal_places=2)),
+                ('original_value', models.DecimalField(default=Decimal('0.0'), verbose_name='original value', max_digits=8, decimal_places=2)),
+                ('claim_creation_equation', models.TextField(null=True, verbose_name='creation equation', blank=True)),
+                ('slug', models.SlugField(verbose_name='Page name', editable=False)),
+            ],
+            options={
+                'ordering': ('claim_date',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ClaimEvent',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('claim_event_date', models.DateField(default=datetime.date.today, verbose_name='claim event date')),
+                ('value', models.DecimalField(verbose_name='value', max_digits=8, decimal_places=2)),
+                ('event_effect', models.CharField(max_length=12, verbose_name='event effect', choices=[(b'+', 'increase'), (b'-', 'decrease')])),
+                ('claim', models.ForeignKey(related_name='claim_events', verbose_name='claims', to='valueaccounting.Claim')),
+            ],
+            options={
+                'ordering': ('claim_event_date',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Commitment',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('commitment_date', models.DateField(default=datetime.date.today, verbose_name='commitment date')),
+                ('start_date', models.DateField(null=True, verbose_name='start date', blank=True)),
+                ('due_date', models.DateField(verbose_name='due date')),
+                ('finished', models.BooleanField(default=False, verbose_name='finished')),
+                ('description', models.TextField(null=True, verbose_name='description', blank=True)),
+                ('url', models.CharField(max_length=255, verbose_name='url', blank=True)),
+                ('quantity', models.DecimalField(verbose_name='quantity', max_digits=8, decimal_places=2)),
+                ('quality', models.DecimalField(default=Decimal('0'), verbose_name='quality', max_digits=3, decimal_places=0)),
+                ('value', models.DecimalField(default=Decimal('0.0'), verbose_name='value', max_digits=8, decimal_places=2)),
+                ('created_date', models.DateField(auto_now_add=True, null=True)),
+                ('changed_date', models.DateField(auto_now=True, null=True)),
+                ('slug', models.SlugField(verbose_name='Page name', editable=False)),
+                ('changed_by', models.ForeignKey(related_name='commitments_changed', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='changed by')),
+            ],
+            options={
+                'ordering': ('due_date',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Distribution',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=128, verbose_name='name', blank=True)),
+                ('url', models.CharField(max_length=255, null=True, verbose_name='url', blank=True)),
+                ('distribution_date', models.DateField(verbose_name='distribution date')),
+                ('notes', models.TextField(verbose_name='notes', blank=True)),
+                ('value_equation_content', models.TextField(null=True, verbose_name='value equation formulas used', blank=True)),
+                ('created_date', models.DateField(auto_now_add=True, null=True)),
+                ('changed_date', models.DateField(auto_now=True, null=True)),
+                ('slug', models.SlugField(verbose_name='Page name', editable=False)),
+                ('changed_by', models.ForeignKey(related_name='distributions_changed', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='changed by')),
+            ],
+            options={
+                'ordering': ('-distribution_date',),
+                'verbose_name_plural': 'distributions',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='DistributionValueEquation',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('distribution_date', models.DateField(verbose_name='distribution date')),
+                ('value_equation_content', models.TextField(null=True, verbose_name='value equation formulas used', blank=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='EconomicAgent',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=255, verbose_name='name')),
+                ('nick', models.CharField(help_text='Must be unique, and no more than 32 characters', unique=True, max_length=32, verbose_name='ID')),
+                ('url', models.CharField(max_length=255, verbose_name='url', blank=True)),
+                ('description', models.TextField(null=True, verbose_name='description', blank=True)),
+                ('address', models.CharField(max_length=255, verbose_name='address', blank=True)),
+                ('email', models.EmailField(max_length=96, null=True, verbose_name='email address', blank=True)),
+                ('phone_primary', models.CharField(max_length=32, null=True, verbose_name='primary phone', blank=True)),
+                ('phone_secondary', models.CharField(max_length=32, null=True, verbose_name='secondary phone', blank=True)),
+                ('latitude', models.FloatField(default=0.0, null=True, verbose_name='latitude', blank=True)),
+                ('longitude', models.FloatField(default=0.0, null=True, verbose_name='longitude', blank=True)),
+                ('reputation', models.DecimalField(default=Decimal('0.00'), verbose_name='reputation', max_digits=8, decimal_places=2)),
+                ('photo', easy_thumbnails.fields.ThumbnailerImageField(upload_to=b'photos', null=True, verbose_name='photo', blank=True)),
+                ('photo_url', models.CharField(max_length=255, verbose_name='photo url', blank=True)),
+                ('is_context', models.BooleanField(default=False, verbose_name='is context')),
+                ('slug', models.SlugField(verbose_name='Page name', editable=False)),
+                ('created_date', models.DateField(default=datetime.date.today, verbose_name='created date')),
+                ('changed_date', models.DateField(auto_now=True, null=True)),
+                ('agent_type', models.ForeignKey(related_name='agents', verbose_name='agent type', to='valueaccounting.AgentType')),
+                ('changed_by', models.ForeignKey(related_name='agents_changed', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='changed by')),
+                ('created_by', models.ForeignKey(related_name='agents_created', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='created by')),
+            ],
+            options={
+                'ordering': ('nick',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='EconomicEvent',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('event_date', models.DateField(verbose_name='event date')),
+                ('url', models.CharField(max_length=255, verbose_name='url', blank=True)),
+                ('description', models.TextField(null=True, verbose_name='description', blank=True)),
+                ('quantity', models.DecimalField(verbose_name='quantity', max_digits=8, decimal_places=2)),
+                ('quality', models.DecimalField(default=Decimal('0'), verbose_name='quality', max_digits=3, decimal_places=0)),
+                ('value', models.DecimalField(default=Decimal('0.0'), verbose_name='value', max_digits=8, decimal_places=2)),
+                ('price', models.DecimalField(default=Decimal('0.0'), verbose_name='price', max_digits=8, decimal_places=2)),
+                ('is_contribution', models.BooleanField(default=False, verbose_name='is contribution')),
+                ('is_to_distribute', models.BooleanField(default=False, verbose_name='is to distribute')),
+                ('event_reference', models.CharField(max_length=128, null=True, verbose_name='reference', blank=True)),
+                ('digital_currency_tx_hash', models.CharField(verbose_name='digital currency transaction hash', max_length=96, null=True, editable=False, blank=True)),
+                ('digital_currency_tx_state', models.CharField(editable=False, choices=[(b'new', 'New'), (b'pending', 'Pending'), (b'broadcast', 'Broadcast'), (b'confirmed', 'Confirmed')], max_length=12, blank=True, null=True, verbose_name='digital currency transaction hash')),
+                ('slug', models.SlugField(verbose_name='Page name', editable=False)),
+                ('accounting_reference', models.ForeignKey(related_name='events', blank=True, to='valueaccounting.AccountingReference', help_text='optional reference to an accounting grouping', null=True, verbose_name='accounting reference')),
+                ('changed_by', models.ForeignKey(related_name='events_changed', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='changed by')),
+                ('commitment', models.ForeignKey(related_name='fulfillment_events', on_delete=django.db.models.deletion.SET_NULL, verbose_name='fulfills commitment', blank=True, to='valueaccounting.Commitment', null=True)),
+                ('context_agent', models.ForeignKey(related_name='events', on_delete=django.db.models.deletion.SET_NULL, verbose_name='context agent', blank=True, to='valueaccounting.EconomicAgent', null=True)),
+                ('created_by', models.ForeignKey(related_name='events_created', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='created by')),
+                ('distribution', models.ForeignKey(related_name='events', on_delete=django.db.models.deletion.SET_NULL, verbose_name='distribution', blank=True, to='valueaccounting.Distribution', null=True)),
+            ],
+            options={
+                'ordering': ('-event_date', '-pk'),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='EconomicResource',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('identifier', models.CharField(max_length=128, verbose_name='identifier', blank=True)),
+                ('url', models.CharField(max_length=255, verbose_name='url', blank=True)),
+                ('quantity', models.DecimalField(default=Decimal('0.00'), verbose_name='quantity', editable=False, max_digits=8, decimal_places=2)),
+                ('quality', models.DecimalField(decimal_places=0, default=Decimal('0'), max_digits=3, blank=True, null=True, verbose_name='quality')),
+                ('notes', models.TextField(null=True, verbose_name='notes', blank=True)),
+                ('photo', easy_thumbnails.fields.ThumbnailerImageField(upload_to=b'photos', null=True, verbose_name='photo', blank=True)),
+                ('photo_url', models.CharField(max_length=255, verbose_name='photo url', blank=True)),
+                ('access_rules', models.TextField(null=True, verbose_name='access rules', blank=True)),
+                ('digital_currency_address', models.CharField(verbose_name='digital currency address', max_length=96, null=True, editable=False, blank=True)),
+                ('value_per_unit', models.DecimalField(default=Decimal('0.00'), verbose_name='value per unit', max_digits=8, decimal_places=2)),
+                ('value_per_unit_of_use', models.DecimalField(default=Decimal('0.00'), verbose_name='value per unit of use', max_digits=8, decimal_places=2)),
+                ('price_per_unit', models.DecimalField(default=Decimal('0.00'), verbose_name='price per unit', max_digits=8, decimal_places=2)),
+                ('created_date', models.DateField(default=datetime.date.today, verbose_name='created date')),
+                ('changed_date', models.DateField(auto_now=True, null=True)),
+                ('author', models.ForeignKey(related_name='authored_resources', verbose_name='author', blank=True, to='valueaccounting.EconomicAgent', null=True)),
+                ('changed_by', models.ForeignKey(related_name='resources_changed', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='changed by')),
+                ('created_by', models.ForeignKey(related_name='resources_created', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='created by')),
+            ],
+            options={
+                'ordering': ('resource_type', 'identifier'),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='EconomicResourceType',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(unique=True, max_length=128, verbose_name='name')),
+                ('value_per_unit', models.DecimalField(default=Decimal('0.00'), verbose_name='value per unit', editable=False, max_digits=8, decimal_places=2)),
+                ('value_per_unit_of_use', models.DecimalField(default=Decimal('0.00'), verbose_name='value per unit of use', editable=False, max_digits=8, decimal_places=2)),
+                ('price_per_unit', models.DecimalField(default=Decimal('0.00'), verbose_name='price per unit', max_digits=8, decimal_places=2)),
+                ('substitutable', models.BooleanField(default=True, help_text='Can any resource of this type be substituted for any other resource of this type?', verbose_name='substitutable')),
+                ('inventory_rule', models.CharField(default=b'yes', max_length=5, verbose_name='inventory rule', choices=[(b'yes', 'Keep inventory'), (b'no', 'Not worth it'), (b'never', 'Does not apply')])),
+                ('behavior', models.CharField(default=b'other', max_length=12, verbose_name='behavior', choices=[(b'work', 'Type of Work'), (b'account', 'Virtual Account'), (b'dig_curr', 'Digital Currency'), (b'dig_acct', 'Digital Currency Address'), (b'dig_wallet', 'Digital Currency Wallet'), (b'other', 'Other')])),
+                ('photo', easy_thumbnails.fields.ThumbnailerImageField(upload_to=b'photos', null=True, verbose_name='photo', blank=True)),
+                ('photo_url', models.CharField(max_length=255, verbose_name='photo url', blank=True)),
+                ('url', models.CharField(max_length=255, verbose_name='url', blank=True)),
+                ('description', models.TextField(null=True, verbose_name='description', blank=True)),
+                ('created_date', models.DateField(auto_now_add=True, null=True)),
+                ('changed_date', models.DateField(auto_now=True, null=True)),
+                ('slug', models.SlugField(verbose_name='Page name', editable=False)),
+                ('accounting_reference', models.ForeignKey(related_name='resource_types', blank=True, to='valueaccounting.AccountingReference', help_text='optional reference to an external account', null=True, verbose_name='accounting reference')),
+                ('changed_by', models.ForeignKey(related_name='resource_types_changed', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='changed by')),
+                ('created_by', models.ForeignKey(related_name='resource_types_created', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='created by')),
+                ('parent', models.ForeignKey(related_name='children', verbose_name='parent', blank=True, to='valueaccounting.EconomicResourceType', null=True)),
+            ],
+            options={
+                'ordering': ('name',),
+                'verbose_name': 'resource type',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='EventType',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=128, verbose_name='name')),
+                ('label', models.CharField(max_length=32, verbose_name='label')),
+                ('inverse_label', models.CharField(max_length=40, verbose_name='inverse label', blank=True)),
+                ('relationship', models.CharField(default=b'in', max_length=12, verbose_name='relationship', choices=[(b'in', 'input'), (b'consume', 'consume'), (b'use', 'use'), (b'out', 'output'), (b'cite', 'citation'), (b'work', 'work'), (b'todo', 'todo'), (b'pay', 'payment'), (b'receive', 'receipt'), (b'expense', 'expense'), (b'cash', 'cash input'), (b'resource', 'resource contribution'), (b'receivecash', 'cash receipt'), (b'shipment', 'shipment'), (b'distribute', 'distribution'), (b'adjust', 'adjust'), (b'disburse', 'disburses cash')])),
+                ('related_to', models.CharField(default=b'process', max_length=12, verbose_name='related to', choices=[(b'process', 'process'), (b'agent', 'agent'), (b'exchange', 'exchange'), (b'distribution', 'distribution')])),
+                ('resource_effect', models.CharField(max_length=12, verbose_name='resource effect', choices=[(b'+', 'increase'), (b'-', 'decrease'), (b'+-', 'adjust'), (b'x', 'transfer'), (b'=', 'no effect'), (b'<', 'failure'), (b'+~', 'create to change'), (b'>~', 'to be changed'), (b'~>', 'change')])),
+                ('unit_type', models.CharField(blank=True, max_length=12, verbose_name='unit type', choices=[(b'area', 'area'), (b'length', 'length'), (b'quantity', 'quantity'), (b'time', 'time'), (b'value', 'value'), (b'volume', 'volume'), (b'weight', 'weight'), (b'ip', 'ip'), (b'percent', 'percent')])),
+                ('slug', models.SlugField(verbose_name='Page name', editable=False)),
+            ],
+            options={
+                'ordering': ('label',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Exchange',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=128, verbose_name='name', blank=True)),
+                ('url', models.CharField(max_length=255, null=True, verbose_name='url', blank=True)),
+                ('start_date', models.DateField(verbose_name='start date')),
+                ('notes', models.TextField(verbose_name='notes', blank=True)),
+                ('created_date', models.DateField(auto_now_add=True, null=True)),
+                ('changed_date', models.DateField(auto_now=True, null=True)),
+                ('slug', models.SlugField(verbose_name='Page name', editable=False)),
+                ('changed_by', models.ForeignKey(related_name='exchanges_changed', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='changed by')),
+                ('context_agent', models.ForeignKey(related_name='exchanges', verbose_name='context agent', blank=True, to='valueaccounting.EconomicAgent', null=True)),
+                ('created_by', models.ForeignKey(related_name='exchanges_created', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='created by')),
+                ('customer', models.ForeignKey(related_name='exchanges_as_customer', verbose_name='customer', blank=True, to='valueaccounting.EconomicAgent', null=True)),
+            ],
+            options={
+                'ordering': ('-start_date',),
+                'verbose_name_plural': 'exchanges',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ExchangeType',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=128, verbose_name='name')),
+                ('description', models.TextField(null=True, verbose_name='description', blank=True)),
+                ('created_date', models.DateField(auto_now_add=True, null=True)),
+                ('changed_date', models.DateField(auto_now=True, null=True)),
+                ('slug', models.SlugField(verbose_name='Page name', editable=False)),
+                ('changed_by', models.ForeignKey(related_name='exchange_types_changed', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='changed by')),
+                ('created_by', models.ForeignKey(related_name='exchange_types_created', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='created by')),
+            ],
+            options={
+                'ordering': ('name',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Facet',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(unique=True, max_length=32, verbose_name='name')),
+                ('description', models.TextField(null=True, verbose_name='description', blank=True)),
+            ],
+            options={
+                'ordering': ('name',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='FacetValue',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('value', models.CharField(max_length=32, verbose_name='value')),
+                ('description', models.TextField(null=True, verbose_name='description', blank=True)),
+                ('facet', models.ForeignKey(related_name='values', verbose_name='facet', to='valueaccounting.Facet')),
+            ],
+            options={
+                'ordering': ('facet', 'value'),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Feature',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=128, verbose_name='name')),
+                ('quantity', models.DecimalField(default=Decimal('0.00'), verbose_name='quantity', max_digits=8, decimal_places=2)),
+                ('created_date', models.DateField(auto_now_add=True, null=True)),
+                ('changed_date', models.DateField(auto_now=True, null=True)),
+                ('changed_by', models.ForeignKey(related_name='features_changed', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='changed by')),
+                ('created_by', models.ForeignKey(related_name='features_created', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='created by')),
+                ('event_type', models.ForeignKey(related_name='features', verbose_name='event type', to='valueaccounting.EventType')),
+            ],
+            options={
+                'ordering': ('name',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Help',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('page', models.CharField(unique=True, max_length=16, verbose_name='page', choices=[(b'agent', 'Agent'), (b'agents', 'All Agents'), (b'all_work', 'All Work'), (b'create_distribution', 'Create Distribution'), (b'create_exchange', 'Create Exchange'), (b'create_sale', 'Create Sale'), (b'demand', 'Demand'), (b'ed_asmbly_recipe', 'Edit Assembly Recipes'), (b'ed_wf_recipe', 'Edit Workflow Recipes'), (b'exchange', 'Exchange'), (b'home', 'Home'), (b'inventory', 'Inventory'), (b'labnotes', 'Labnotes Form'), (b'locations', 'Locations'), (b'associations', 'Maintain Associations'), (b'my_work', 'My Work'), (b'non_production', 'Non-production time logging'), (b'projects', 'Organization'), (b'plan_from_recipe', 'Plan from recipe'), (b'plan_from_rt', 'Plan from Resource Type'), (b'plan_fr_rt_rcpe', 'Plan from Resource Type Recipe'), (b'process', 'Process'), (b'process_select', 'Process Selections'), (b'recipes', 'Recipes'), (b'resource_types', 'Resource Types'), (b'resource_type', 'Resource Type'), (b'supply', 'Supply'), (b'non_proc_log', 'Non-process Logging (Work)'), (b'proc_log', 'Process Logging (Work)'), (b'profile', 'My Profile (Work)'), (b'my_history', 'My History (Work)'), (b'work_map', 'Map (Work)'), (b'work_home', 'Home (Work)'), (b'process_work', 'Process (Work)'), (b'work_timer', 'Work Now (Work)')])),
+                ('description', models.TextField(null=True, verbose_name='description', blank=True)),
+            ],
+            options={
+                'ordering': ('page',),
+                'verbose_name_plural': 'help',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='HomePageLayout',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('banner', models.TextField(help_text='HTML text for top Banner', null=True, verbose_name='banner', blank=True)),
+                ('use_work_panel', models.BooleanField(default=False, help_text='Work panel, if used, will be Panel 1', verbose_name='use work panel')),
+                ('work_panel_headline', models.TextField(null=True, verbose_name='work panel headline', blank=True)),
+                ('use_needs_panel', models.BooleanField(default=False, help_text='Needs panel, if used, will be Panel 2', verbose_name='use needs panel')),
+                ('needs_panel_headline', models.TextField(null=True, verbose_name='needs panel headline', blank=True)),
+                ('use_creations_panel', models.BooleanField(default=False, help_text='Creations panel, if used, will be Panel 3', verbose_name='use creations panel')),
+                ('creations_panel_headline', models.TextField(null=True, verbose_name='creations panel headline', blank=True)),
+                ('panel_1', models.TextField(help_text='HTML text for Panel 1', null=True, verbose_name='panel 1', blank=True)),
+                ('panel_2', models.TextField(help_text='HTML text for Panel 2', null=True, verbose_name='panel 2', blank=True)),
+                ('panel_3', models.TextField(help_text='HTML text for Panel 3', null=True, verbose_name='panel 3', blank=True)),
+                ('footer', models.TextField(null=True, verbose_name='footer', blank=True)),
+            ],
+            options={
+                'verbose_name_plural': 'home page layout',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='IncomeEventDistribution',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('distribution_date', models.DateField(verbose_name='distribution date')),
+                ('quantity', models.DecimalField(default=Decimal('0.0'), verbose_name='quantity', max_digits=8, decimal_places=2)),
+                ('distribution', models.ForeignKey(related_name='cash_receipts', default=None, blank=True, to='valueaccounting.Exchange', null=True, verbose_name='distribution')),
+                ('distribution_ref', models.ForeignKey(related_name='income_events', verbose_name='distribution', blank=True, to='valueaccounting.Distribution', null=True)),
+                ('income_event', models.ForeignKey(related_name='distributions', verbose_name='income event', to='valueaccounting.EconomicEvent')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Location',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(unique=True, max_length=128, verbose_name='name')),
+                ('description', models.TextField(null=True, verbose_name='description', blank=True)),
+                ('address', models.CharField(max_length=255, blank=True)),
+                ('latitude', models.FloatField(default=0.0, null=True, blank=True)),
+                ('longitude', models.FloatField(default=0.0, null=True, blank=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Option',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('created_date', models.DateField(auto_now_add=True, null=True)),
+                ('changed_date', models.DateField(auto_now=True, null=True)),
+                ('changed_by', models.ForeignKey(related_name='options_changed', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='changed by')),
+                ('component', models.ForeignKey(related_name='options', verbose_name='component', to='valueaccounting.EconomicResourceType')),
+                ('created_by', models.ForeignKey(related_name='options_created', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='created by')),
+                ('feature', models.ForeignKey(related_name='options', verbose_name='feature', to='valueaccounting.Feature')),
+            ],
+            options={
+                'ordering': ('component',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Order',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('order_type', models.CharField(default=b'customer', max_length=12, verbose_name='order type', choices=[(b'customer', 'Customer order'), (b'rand', 'Work order'), (b'holder', 'Placeholder order')])),
+                ('name', models.CharField(help_text='appended to process labels for Work orders', max_length=255, verbose_name='name', blank=True)),
+                ('order_date', models.DateField(default=datetime.date.today, verbose_name='order date')),
+                ('due_date', models.DateField(verbose_name='due date')),
+                ('description', models.TextField(null=True, verbose_name='description', blank=True)),
+                ('created_date', models.DateField(auto_now_add=True, null=True)),
+                ('changed_date', models.DateField(auto_now=True, null=True)),
+                ('changed_by', models.ForeignKey(related_name='orders_changed', verbose_name='changed by', blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+                ('created_by', models.ForeignKey(related_name='orders_created', verbose_name='created by', blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+                ('provider', models.ForeignKey(related_name='sales_orders', verbose_name='provider', blank=True, to='valueaccounting.EconomicAgent', null=True)),
+                ('receiver', models.ForeignKey(related_name='purchase_orders', verbose_name='receiver', blank=True, to='valueaccounting.EconomicAgent', null=True)),
+            ],
+            options={
+                'ordering': ('due_date',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='PatternFacetValue',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('event_type', models.ForeignKey(related_name='patterns', verbose_name='event type', to='valueaccounting.EventType', help_text='consumed means gone, used means re-usable')),
+                ('facet_value', models.ForeignKey(related_name='patterns', verbose_name='facet value', to='valueaccounting.FacetValue')),
+            ],
+            options={
+                'ordering': ('pattern', 'event_type', 'facet_value'),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='PatternUseCase',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Process',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=128, verbose_name='name')),
+                ('url', models.CharField(max_length=255, verbose_name='url', blank=True)),
+                ('start_date', models.DateField(verbose_name='start date')),
+                ('end_date', models.DateField(null=True, verbose_name='end date', blank=True)),
+                ('started', models.DateField(null=True, verbose_name='started', blank=True)),
+                ('finished', models.BooleanField(default=False, verbose_name='finished')),
+                ('notes', models.TextField(verbose_name='notes', blank=True)),
+                ('created_date', models.DateField(auto_now_add=True, null=True)),
+                ('changed_date', models.DateField(auto_now=True, null=True)),
+                ('slug', models.SlugField(verbose_name='Page name', editable=False)),
+                ('changed_by', models.ForeignKey(related_name='processes_changed', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='changed by')),
+                ('context_agent', models.ForeignKey(related_name='processes', verbose_name='context agent', blank=True, to='valueaccounting.EconomicAgent', null=True)),
+                ('created_by', models.ForeignKey(related_name='processes_created', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='created by')),
+                ('parent', models.ForeignKey(related_name='sub_processes', blank=True, editable=False, to='valueaccounting.Process', null=True, verbose_name='parent')),
+            ],
+            options={
+                'ordering': ('-end_date',),
+                'verbose_name_plural': 'processes',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ProcessPattern',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=32, verbose_name='name')),
+            ],
+            options={
+                'ordering': ('name',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ProcessType',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=128, verbose_name='name')),
+                ('description', models.TextField(null=True, verbose_name='description', blank=True)),
+                ('url', models.CharField(max_length=255, verbose_name='url', blank=True)),
+                ('estimated_duration', models.IntegerField(default=0, help_text='in minutes, e.g. 3 hours = 180', verbose_name='estimated duration')),
+                ('created_date', models.DateField(auto_now_add=True, null=True)),
+                ('changed_date', models.DateField(auto_now=True, null=True)),
+                ('slug', models.SlugField(verbose_name='Page name', editable=False)),
+                ('changed_by', models.ForeignKey(related_name='process_types_changed', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='changed by')),
+                ('context_agent', models.ForeignKey(related_name='process_types', verbose_name='context agent', blank=True, to='valueaccounting.EconomicAgent', null=True)),
+                ('created_by', models.ForeignKey(related_name='process_types_created', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='created by')),
+                ('parent', models.ForeignKey(related_name='sub_process_types', blank=True, editable=False, to='valueaccounting.ProcessType', null=True, verbose_name='parent')),
+                ('process_pattern', models.ForeignKey(related_name='process_types', verbose_name='process pattern', blank=True, to='valueaccounting.ProcessPattern', null=True)),
+            ],
+            options={
+                'ordering': ('name',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ProcessTypeResourceType',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('quantity', models.DecimalField(default=Decimal('0.00'), verbose_name='quantity', max_digits=8, decimal_places=2)),
+                ('description', models.TextField(null=True, verbose_name='description', blank=True)),
+                ('created_date', models.DateField(auto_now_add=True, null=True)),
+                ('changed_date', models.DateField(auto_now=True, null=True)),
+                ('changed_by', models.ForeignKey(related_name='ptrts_changed', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='changed by')),
+                ('created_by', models.ForeignKey(related_name='ptrts_created', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='created by')),
+                ('event_type', models.ForeignKey(related_name='process_resource_types', verbose_name='event type', to='valueaccounting.EventType')),
+                ('process_type', models.ForeignKey(related_name='resource_types', verbose_name='process type', to='valueaccounting.ProcessType')),
+                ('resource_type', models.ForeignKey(related_name='process_types', verbose_name='resource type', to='valueaccounting.EconomicResourceType')),
+                ('stage', models.ForeignKey(related_name='commitmenttypes_at_stage', verbose_name='stage', blank=True, to='valueaccounting.ProcessType', null=True)),
+            ],
+            options={
+                'ordering': ('resource_type',),
+                'verbose_name': 'commitment type',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Reciprocity',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('reciprocity_date', models.DateField(default=datetime.date.today, verbose_name='reciprocity date')),
+                ('initiating_commitment', models.ForeignKey(related_name='initiated_commitments', verbose_name='initiating commitment', to='valueaccounting.Commitment')),
+                ('reciprocal_commitment', models.ForeignKey(related_name='reciprocal_commitments', verbose_name='reciprocal commitment', to='valueaccounting.Commitment')),
+            ],
+            options={
+                'ordering': ('reciprocity_date',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ResourceClass',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(unique=True, max_length=128, verbose_name='name')),
+                ('description', models.TextField(null=True, verbose_name='description', blank=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ResourceState',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(unique=True, max_length=128, verbose_name='name')),
+                ('description', models.TextField(null=True, verbose_name='description', blank=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ResourceTypeFacetValue',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('facet_value', models.ForeignKey(related_name='resource_types', verbose_name='facet value', to='valueaccounting.FacetValue')),
+                ('resource_type', models.ForeignKey(related_name='facets', verbose_name='resource type', to='valueaccounting.EconomicResourceType')),
+            ],
+            options={
+                'ordering': ('resource_type', 'facet_value'),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ResourceTypeList',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=128, verbose_name='name')),
+                ('description', models.TextField(null=True, verbose_name='description', blank=True)),
+                ('context_agent', models.ForeignKey(related_name='lists', verbose_name='context agent', blank=True, to='valueaccounting.EconomicAgent', null=True)),
+            ],
+            options={
+                'ordering': ('name',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ResourceTypeListElement',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('default_quantity', models.DecimalField(default=Decimal('1.0'), verbose_name='default quantity', max_digits=8, decimal_places=2)),
+                ('resource_type', models.ForeignKey(related_name='lists', verbose_name='resource type', to='valueaccounting.EconomicResourceType')),
+                ('resource_type_list', models.ForeignKey(related_name='list_elements', verbose_name='resource type list', to='valueaccounting.ResourceTypeList')),
+            ],
+            options={
+                'ordering': ('resource_type_list', 'resource_type'),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ResourceTypeSpecialPrice',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('identifier', models.CharField(max_length=128, verbose_name='identifier')),
+                ('description', models.TextField(null=True, verbose_name='description', blank=True)),
+                ('price_per_unit', models.DecimalField(default=Decimal('0.00'), verbose_name='price per unit', max_digits=8, decimal_places=2)),
+                ('resource_type', models.ForeignKey(related_name='prices', verbose_name='resource type', to='valueaccounting.EconomicResourceType')),
+                ('stage', models.ForeignKey(related_name='price_at_stage', verbose_name='stage', blank=True, to='valueaccounting.ProcessType', null=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='SelectedOption',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('commitment', models.ForeignKey(related_name='options', verbose_name='commitment', to='valueaccounting.Commitment')),
+                ('option', models.ForeignKey(related_name='commitments', verbose_name='option', to='valueaccounting.Option')),
+            ],
+            options={
+                'ordering': ('commitment', 'option'),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Transfer',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=128, verbose_name='name', blank=True)),
+                ('transfer_date', models.DateField(verbose_name='transfer date')),
+                ('notes', models.TextField(verbose_name='notes', blank=True)),
+                ('created_date', models.DateField(auto_now_add=True, null=True)),
+                ('changed_date', models.DateField(auto_now=True, null=True)),
+                ('slug', models.SlugField(verbose_name='Page name', editable=False)),
+                ('changed_by', models.ForeignKey(related_name='transfers_changed', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='changed by')),
+                ('context_agent', models.ForeignKey(related_name='transfers', verbose_name='context agent', blank=True, to='valueaccounting.EconomicAgent', null=True)),
+                ('created_by', models.ForeignKey(related_name='transfers_created', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='created by')),
+                ('exchange', models.ForeignKey(related_name='transfers', verbose_name='exchange', blank=True, to='valueaccounting.Exchange', null=True)),
+            ],
+            options={
+                'ordering': ('transfer_date',),
+                'verbose_name_plural': 'transfers',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='TransferType',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=128, verbose_name='name')),
+                ('sequence', models.IntegerField(default=0, verbose_name='sequence')),
+                ('description', models.TextField(null=True, verbose_name='description', blank=True)),
+                ('is_contribution', models.BooleanField(default=False, verbose_name='is contribution')),
+                ('is_to_distribute', models.BooleanField(default=False, verbose_name='is to distribute')),
+                ('is_reciprocal', models.BooleanField(default=False, verbose_name='is reciprocal')),
+                ('can_create_resource', models.BooleanField(default=False, verbose_name='can create resource')),
+                ('is_currency', models.BooleanField(default=False, verbose_name='is currency')),
+                ('give_agent_is_context', models.BooleanField(default=False, verbose_name='give agent is context')),
+                ('receive_agent_is_context', models.BooleanField(default=False, verbose_name='receive agent is context')),
+                ('created_date', models.DateField(auto_now_add=True, null=True)),
+                ('changed_date', models.DateField(auto_now=True, null=True)),
+                ('changed_by', models.ForeignKey(related_name='transfer_types_changed', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='changed by')),
+                ('created_by', models.ForeignKey(related_name='transfer_types_created', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='created by')),
+                ('exchange_type', models.ForeignKey(related_name='transfer_types', verbose_name='exchange type', to='valueaccounting.ExchangeType')),
+                ('give_agent_association_type', models.ForeignKey(related_name='transfer_types_give', verbose_name='give agent association type', blank=True, to='valueaccounting.AgentAssociationType', null=True)),
+                ('receive_agent_association_type', models.ForeignKey(related_name='transfer_types_receive', verbose_name='receive agent association type', blank=True, to='valueaccounting.AgentAssociationType', null=True)),
+            ],
+            options={
+                'ordering': ('sequence',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='TransferTypeFacetValue',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('facet_value', models.ForeignKey(related_name='transfer_types', verbose_name='facet value', to='valueaccounting.FacetValue')),
+                ('transfer_type', models.ForeignKey(related_name='facet_values', verbose_name='transfer type', to='valueaccounting.TransferType')),
+            ],
+            options={
+                'ordering': ('transfer_type', 'facet_value'),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Unit',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('unit_type', models.CharField(max_length=12, verbose_name='unit type', choices=[(b'area', 'area'), (b'length', 'length'), (b'quantity', 'quantity'), (b'time', 'time'), (b'value', 'value'), (b'volume', 'volume'), (b'weight', 'weight'), (b'ip', 'ip'), (b'percent', 'percent')])),
+                ('abbrev', models.CharField(max_length=8, verbose_name='abbreviation')),
+                ('name', models.CharField(max_length=64, verbose_name='name')),
+                ('symbol', models.CharField(max_length=1, verbose_name='symbol', blank=True)),
+            ],
+            options={
+                'ordering': ('name',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='UseCase',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('identifier', models.CharField(max_length=12, verbose_name='identifier')),
+                ('name', models.CharField(max_length=128, verbose_name='name')),
+                ('restrict_to_one_pattern', models.BooleanField(default=False, verbose_name='restrict_to_one_pattern')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='UseCaseEventType',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('event_type', models.ForeignKey(related_name='use_cases', verbose_name='event type', to='valueaccounting.EventType')),
+                ('use_case', models.ForeignKey(related_name='event_types', verbose_name='use case', to='valueaccounting.UseCase')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ValueEquation',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=255, verbose_name='name', blank=True)),
+                ('description', models.TextField(null=True, verbose_name='description', blank=True)),
+                ('percentage_behavior', models.CharField(default=b'straight', help_text='Remaining percentage uses the % of the remaining amount to be distributed.  Straight percentage uses the % of the total distribution amount.', max_length=12, verbose_name='percentage behavior', choices=[(b'remaining', 'Remaining percentage'), (b'straight', 'Straight percentage')])),
+                ('live', models.BooleanField(default=False, help_text='Make this value equation available for use in real distributions.', verbose_name='live')),
+                ('created_date', models.DateField(auto_now_add=True, null=True)),
+                ('context_agent', models.ForeignKey(related_name='value_equations', verbose_name='context agent', to='valueaccounting.EconomicAgent')),
+                ('created_by', models.ForeignKey(related_name='value_equations_created', verbose_name='created by', blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ValueEquationBucket',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=32, verbose_name='name')),
+                ('sequence', models.IntegerField(default=0, verbose_name='sequence')),
+                ('filter_method', models.CharField(blank=True, max_length=12, null=True, verbose_name='filter method', choices=[(b'order', 'Order'), (b'shipment', 'Shipment or Delivery'), (b'dates', 'Date range'), (b'process', 'Process')])),
+                ('percentage', models.DecimalField(default=Decimal('0.0'), verbose_name='bucket percentage', max_digits=8, decimal_places=2)),
+                ('created_date', models.DateField(auto_now_add=True, null=True)),
+                ('changed_date', models.DateField(auto_now=True, null=True)),
+                ('changed_by', models.ForeignKey(related_name='buckets_changed', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='changed by')),
+                ('created_by', models.ForeignKey(related_name='buckets_created', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='created by')),
+                ('distribution_agent', models.ForeignKey(related_name='value_equation_buckets', verbose_name='distribution agent', blank=True, to='valueaccounting.EconomicAgent', null=True)),
+                ('filter_agent', models.ForeignKey(related_name='value_equation_filter_buckets', verbose_name='filter agent', blank=True, to='valueaccounting.EconomicAgent', null=True)),
+                ('value_equation', models.ForeignKey(related_name='buckets', verbose_name='value equation', to='valueaccounting.ValueEquation')),
+            ],
+            options={
+                'ordering': ('sequence',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ValueEquationBucketRule',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('filter_rule', models.TextField(null=True, verbose_name='filter rule', blank=True)),
+                ('division_rule', models.CharField(max_length=12, verbose_name='division rule', choices=[(b'percentage', 'Percentage'), (b'fifo', 'Oldest first')])),
+                ('claim_rule_type', models.CharField(max_length=12, verbose_name='claim rule type', choices=[(b'debt-like', 'Until paid off'), (b'equity-like', 'Forever'), (b'once', 'One distribution')])),
+                ('claim_creation_equation', models.TextField(null=True, verbose_name='claim creation equation', blank=True)),
+                ('created_date', models.DateField(auto_now_add=True, null=True)),
+                ('changed_date', models.DateField(auto_now=True, null=True)),
+                ('changed_by', models.ForeignKey(related_name='rules_changed', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='changed by')),
+                ('created_by', models.ForeignKey(related_name='rules_created', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='created by')),
+                ('event_type', models.ForeignKey(related_name='bucket_rules', verbose_name='event type', to='valueaccounting.EventType')),
+                ('value_equation_bucket', models.ForeignKey(related_name='bucket_rules', verbose_name='value equation bucket', to='valueaccounting.ValueEquationBucket')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.AlterUniqueTogether(
+            name='transfertypefacetvalue',
+            unique_together=set([('transfer_type', 'facet_value')]),
+        ),
+        migrations.AddField(
+            model_name='transfer',
+            name='transfer_type',
+            field=models.ForeignKey(related_name='transfers', verbose_name='transfer type', blank=True, to='valueaccounting.TransferType', null=True),
+            preserve_default=True,
+        ),
+        migrations.AlterUniqueTogether(
+            name='resourcetypelistelement',
+            unique_together=set([('resource_type_list', 'resource_type')]),
+        ),
+        migrations.AlterUniqueTogether(
+            name='resourcetypefacetvalue',
+            unique_together=set([('resource_type', 'facet_value')]),
+        ),
+        migrations.AddField(
+            model_name='processtyperesourcetype',
+            name='state',
+            field=models.ForeignKey(related_name='commitmenttypes_at_state', verbose_name='state', blank=True, to='valueaccounting.ResourceState', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='processtyperesourcetype',
+            name='unit_of_quantity',
+            field=models.ForeignKey(related_name='process_resource_qty_units', verbose_name='unit', blank=True, to='valueaccounting.Unit', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='process',
+            name='process_pattern',
+            field=models.ForeignKey(related_name='processes', verbose_name='process pattern', blank=True, to='valueaccounting.ProcessPattern', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='process',
+            name='process_type',
+            field=models.ForeignKey(related_name='processes', on_delete=django.db.models.deletion.SET_NULL, verbose_name='process type', blank=True, to='valueaccounting.ProcessType', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='patternusecase',
+            name='pattern',
+            field=models.ForeignKey(related_name='use_cases', verbose_name='pattern', to='valueaccounting.ProcessPattern'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='patternusecase',
+            name='use_case',
+            field=models.ForeignKey(related_name='patterns', verbose_name='use case', blank=True, to='valueaccounting.UseCase', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='patternfacetvalue',
+            name='pattern',
+            field=models.ForeignKey(related_name='facets', verbose_name='pattern', to='valueaccounting.ProcessPattern'),
+            preserve_default=True,
+        ),
+        migrations.AlterUniqueTogether(
+            name='patternfacetvalue',
+            unique_together=set([('pattern', 'facet_value', 'event_type')]),
+        ),
+        migrations.AddField(
+            model_name='incomeeventdistribution',
+            name='unit_of_quantity',
+            field=models.ForeignKey(related_name='units', verbose_name='unit', blank=True, to='valueaccounting.Unit', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='feature',
+            name='process_type',
+            field=models.ForeignKey(related_name='features', verbose_name='process type', blank=True, to='valueaccounting.ProcessType', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='feature',
+            name='product',
+            field=models.ForeignKey(related_name='features', verbose_name='product', to='valueaccounting.EconomicResourceType'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='feature',
+            name='unit_of_quantity',
+            field=models.ForeignKey(related_name='feature_units', verbose_name='unit', blank=True, to='valueaccounting.Unit', null=True),
+            preserve_default=True,
+        ),
+        migrations.AlterUniqueTogether(
+            name='facetvalue',
+            unique_together=set([('facet', 'value')]),
+        ),
+        migrations.AddField(
+            model_name='exchangetype',
+            name='use_case',
+            field=models.ForeignKey(related_name='exchange_types', verbose_name='use case', blank=True, to='valueaccounting.UseCase', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='exchange',
+            name='exchange_type',
+            field=models.ForeignKey(related_name='exchanges', verbose_name='exchange type', blank=True, to='valueaccounting.ExchangeType', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='exchange',
+            name='order',
+            field=models.ForeignKey(related_name='exchanges', verbose_name='order', blank=True, to='valueaccounting.Order', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='exchange',
+            name='process_pattern',
+            field=models.ForeignKey(related_name='exchanges', verbose_name='pattern', blank=True, to='valueaccounting.ProcessPattern', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='exchange',
+            name='supplier',
+            field=models.ForeignKey(related_name='exchanges_as_supplier', verbose_name='supplier', blank=True, to='valueaccounting.EconomicAgent', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='exchange',
+            name='use_case',
+            field=models.ForeignKey(related_name='exchanges', verbose_name='use case', blank=True, to='valueaccounting.UseCase', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='economicresourcetype',
+            name='resource_class',
+            field=models.ForeignKey(related_name='resource_types', verbose_name='resource class', blank=True, to='valueaccounting.ResourceClass', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='economicresourcetype',
+            name='unit',
+            field=models.ForeignKey(related_name='resource_units', blank=True, to='valueaccounting.Unit', help_text='if this resource has different units of use and inventory, this is the unit of inventory', null=True, verbose_name='unit'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='economicresourcetype',
+            name='unit_of_price',
+            field=models.ForeignKey(related_name='resource_type_price_units', verbose_name='unit of price', blank=True, to='valueaccounting.Unit', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='economicresourcetype',
+            name='unit_of_use',
+            field=models.ForeignKey(related_name='units_of_use', blank=True, to='valueaccounting.Unit', help_text='if this resource has different units of use and inventory, this is the unit of use', null=True, verbose_name='unit of use'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='economicresourcetype',
+            name='unit_of_value',
+            field=models.ForeignKey(related_name='resource_type_value_units', blank=True, editable=False, to='valueaccounting.Unit', null=True, verbose_name='unit of value'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='economicresource',
+            name='current_location',
+            field=models.ForeignKey(related_name='resources_at_location', verbose_name='current location', blank=True, to='valueaccounting.Location', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='economicresource',
+            name='exchange_stage',
+            field=models.ForeignKey(related_name='resources_at_exchange_stage', verbose_name='exchange stage', blank=True, to='valueaccounting.ExchangeType', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='economicresource',
+            name='independent_demand',
+            field=models.ForeignKey(related_name='dependent_resources', verbose_name='independent demand', blank=True, to='valueaccounting.Order', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='economicresource',
+            name='order_item',
+            field=models.ForeignKey(related_name='stream_resources', verbose_name='order item', blank=True, to='valueaccounting.Commitment', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='economicresource',
+            name='resource_type',
+            field=models.ForeignKey(related_name='resources', verbose_name='resource type', to='valueaccounting.EconomicResourceType'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='economicresource',
+            name='stage',
+            field=models.ForeignKey(related_name='resources_at_stage', verbose_name='stage', blank=True, to='valueaccounting.ProcessType', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='economicresource',
+            name='state',
+            field=models.ForeignKey(related_name='resources_at_state', verbose_name='state', blank=True, to='valueaccounting.ResourceState', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='economicevent',
+            name='event_type',
+            field=models.ForeignKey(related_name='events', verbose_name='event type', to='valueaccounting.EventType'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='economicevent',
+            name='exchange',
+            field=models.ForeignKey(related_name='events', on_delete=django.db.models.deletion.SET_NULL, verbose_name='exchange', blank=True, to='valueaccounting.Exchange', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='economicevent',
+            name='exchange_stage',
+            field=models.ForeignKey(related_name='events_creating_exchange_stage', verbose_name='exchange stage', blank=True, to='valueaccounting.ExchangeType', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='economicevent',
+            name='from_agent',
+            field=models.ForeignKey(related_name='given_events', verbose_name='from', blank=True, to='valueaccounting.EconomicAgent', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='economicevent',
+            name='process',
+            field=models.ForeignKey(related_name='events', on_delete=django.db.models.deletion.SET_NULL, verbose_name='process', blank=True, to='valueaccounting.Process', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='economicevent',
+            name='resource',
+            field=models.ForeignKey(related_name='events', verbose_name='resource', blank=True, to='valueaccounting.EconomicResource', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='economicevent',
+            name='resource_type',
+            field=models.ForeignKey(related_name='events', verbose_name='resource type', to='valueaccounting.EconomicResourceType'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='economicevent',
+            name='to_agent',
+            field=models.ForeignKey(related_name='taken_events', verbose_name='to', blank=True, to='valueaccounting.EconomicAgent', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='economicevent',
+            name='transfer',
+            field=models.ForeignKey(related_name='events', on_delete=django.db.models.deletion.SET_NULL, verbose_name='transfer', blank=True, to='valueaccounting.Transfer', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='economicevent',
+            name='unit_of_price',
+            field=models.ForeignKey(related_name='event_price_units', verbose_name='unit of price', blank=True, to='valueaccounting.Unit', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='economicevent',
+            name='unit_of_quantity',
+            field=models.ForeignKey(related_name='event_qty_units', verbose_name='unit', blank=True, to='valueaccounting.Unit', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='economicevent',
+            name='unit_of_value',
+            field=models.ForeignKey(related_name='event_value_units', verbose_name='unit of value', blank=True, to='valueaccounting.Unit', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='economicagent',
+            name='primary_location',
+            field=models.ForeignKey(related_name='agents_at_location', on_delete=django.db.models.deletion.SET_NULL, verbose_name='current location', blank=True, to='valueaccounting.Location', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='economicagent',
+            name='unit_of_claim_value',
+            field=models.ForeignKey(related_name='agents', blank=True, to='valueaccounting.Unit', help_text='For a context agent, the unit of all claims', null=True, verbose_name='unit used in claims'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='distributionvalueequation',
+            name='exchange',
+            field=models.ForeignKey(related_name='value_equation', verbose_name='exchange', blank=True, to='valueaccounting.Exchange', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='distributionvalueequation',
+            name='value_equation_link',
+            field=models.ForeignKey(related_name='distributions_ve', verbose_name='value equation link', blank=True, to='valueaccounting.ValueEquation', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='distribution',
+            name='context_agent',
+            field=models.ForeignKey(related_name='distributions', verbose_name='context agent', blank=True, to='valueaccounting.EconomicAgent', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='distribution',
+            name='created_by',
+            field=models.ForeignKey(related_name='distributions_created', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='created by'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='distribution',
+            name='process_pattern',
+            field=models.ForeignKey(related_name='distributions', verbose_name='pattern', blank=True, to='valueaccounting.ProcessPattern', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='distribution',
+            name='value_equation',
+            field=models.ForeignKey(related_name='distributions', verbose_name='value equation link', blank=True, to='valueaccounting.ValueEquation', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='commitment',
+            name='context_agent',
+            field=models.ForeignKey(related_name='commitments', verbose_name='context agent', blank=True, to='valueaccounting.EconomicAgent', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='commitment',
+            name='created_by',
+            field=models.ForeignKey(related_name='commitments_created', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='created by'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='commitment',
+            name='event_type',
+            field=models.ForeignKey(related_name='commitments', verbose_name='event type', to='valueaccounting.EventType'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='commitment',
+            name='exchange',
+            field=models.ForeignKey(related_name='commitments', verbose_name='exchange', blank=True, to='valueaccounting.Exchange', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='commitment',
+            name='exchange_stage',
+            field=models.ForeignKey(related_name='commitments_at_exchange_stage', verbose_name='exchange stage', blank=True, to='valueaccounting.ExchangeType', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='commitment',
+            name='from_agent',
+            field=models.ForeignKey(related_name='given_commitments', verbose_name='from', blank=True, to='valueaccounting.EconomicAgent', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='commitment',
+            name='from_agent_type',
+            field=models.ForeignKey(related_name='given_commitments', verbose_name='from agent type', blank=True, to='valueaccounting.AgentType', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='commitment',
+            name='independent_demand',
+            field=models.ForeignKey(related_name='dependent_commitments', verbose_name='independent demand', blank=True, to='valueaccounting.Order', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='commitment',
+            name='order',
+            field=models.ForeignKey(related_name='commitments', verbose_name='order', blank=True, to='valueaccounting.Order', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='commitment',
+            name='order_item',
+            field=models.ForeignKey(related_name='stream_commitments', verbose_name='order item', blank=True, to='valueaccounting.Commitment', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='commitment',
+            name='process',
+            field=models.ForeignKey(related_name='commitments', verbose_name='process', blank=True, to='valueaccounting.Process', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='commitment',
+            name='resource',
+            field=models.ForeignKey(related_name='commitments', verbose_name='resource', blank=True, to='valueaccounting.EconomicResource', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='commitment',
+            name='resource_type',
+            field=models.ForeignKey(related_name='commitments', verbose_name='resource type', blank=True, to='valueaccounting.EconomicResourceType', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='commitment',
+            name='stage',
+            field=models.ForeignKey(related_name='commitments_at_stage', verbose_name='stage', blank=True, to='valueaccounting.ProcessType', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='commitment',
+            name='state',
+            field=models.ForeignKey(related_name='commitments_at_state', verbose_name='state', blank=True, to='valueaccounting.ResourceState', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='commitment',
+            name='to_agent',
+            field=models.ForeignKey(related_name='taken_commitments', verbose_name='to', blank=True, to='valueaccounting.EconomicAgent', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='commitment',
+            name='transfer',
+            field=models.ForeignKey(related_name='commitments', blank=True, to='valueaccounting.Transfer', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='commitment',
+            name='unit_of_quantity',
+            field=models.ForeignKey(related_name='commitment_qty_units', verbose_name='unit', blank=True, to='valueaccounting.Unit', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='commitment',
+            name='unit_of_value',
+            field=models.ForeignKey(related_name='commitment_value_units', verbose_name='unit of value', blank=True, to='valueaccounting.Unit', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='claimevent',
+            name='event',
+            field=models.ForeignKey(related_name='claim_events', verbose_name='claim event', blank=True, to='valueaccounting.EconomicEvent', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='claimevent',
+            name='unit_of_value',
+            field=models.ForeignKey(related_name='claim_event_value_units', verbose_name='unit of value', blank=True, to='valueaccounting.Unit', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='claim',
+            name='against_agent',
+            field=models.ForeignKey(related_name='claims_against', verbose_name='against', blank=True, to='valueaccounting.EconomicAgent', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='claim',
+            name='context_agent',
+            field=models.ForeignKey(related_name='claims', on_delete=django.db.models.deletion.SET_NULL, verbose_name='context agent', blank=True, to='valueaccounting.EconomicAgent', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='claim',
+            name='has_agent',
+            field=models.ForeignKey(related_name='has_claims', verbose_name='has', blank=True, to='valueaccounting.EconomicAgent', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='claim',
+            name='unit_of_value',
+            field=models.ForeignKey(related_name='claim_value_units', verbose_name='unit of value', blank=True, to='valueaccounting.Unit', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='claim',
+            name='value_equation_bucket_rule',
+            field=models.ForeignKey(related_name='claims', verbose_name='value equation bucket rule', blank=True, to='valueaccounting.ValueEquationBucketRule', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='cachedeventsummary',
+            name='agent',
+            field=models.ForeignKey(related_name='cached_events', verbose_name='agent', blank=True, to='valueaccounting.EconomicAgent', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='cachedeventsummary',
+            name='context_agent',
+            field=models.ForeignKey(related_name='context_cached_events', verbose_name='context agent', blank=True, to='valueaccounting.EconomicAgent', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='cachedeventsummary',
+            name='event_type',
+            field=models.ForeignKey(related_name='cached_events', verbose_name='event type', to='valueaccounting.EventType'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='cachedeventsummary',
+            name='resource_type',
+            field=models.ForeignKey(related_name='cached_events', verbose_name='resource type', blank=True, to='valueaccounting.EconomicResourceType', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='agentuser',
+            name='agent',
+            field=models.ForeignKey(related_name='users', verbose_name='agent', to='valueaccounting.EconomicAgent'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='agentuser',
+            name='user',
+            field=models.OneToOneField(related_name='agent', verbose_name='user', to=settings.AUTH_USER_MODEL),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='agentresourcetype',
+            name='agent',
+            field=models.ForeignKey(related_name='resource_types', verbose_name='agent', to='valueaccounting.EconomicAgent'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='agentresourcetype',
+            name='changed_by',
+            field=models.ForeignKey(related_name='arts_changed', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='changed by'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='agentresourcetype',
+            name='created_by',
+            field=models.ForeignKey(related_name='arts_created', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='created by'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='agentresourcetype',
+            name='event_type',
+            field=models.ForeignKey(related_name='agent_resource_types', verbose_name='event type', to='valueaccounting.EventType'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='agentresourcetype',
+            name='resource_type',
+            field=models.ForeignKey(related_name='agents', verbose_name='resource type', to='valueaccounting.EconomicResourceType'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='agentresourcetype',
+            name='unit_of_value',
+            field=models.ForeignKey(related_name='agent_resource_value_units', verbose_name='unit of value', blank=True, to='valueaccounting.Unit', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='agentresourcerole',
+            name='agent',
+            field=models.ForeignKey(related_name='agent_resource_roles', verbose_name='agent', to='valueaccounting.EconomicAgent'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='agentresourcerole',
+            name='resource',
+            field=models.ForeignKey(related_name='agent_resource_roles', verbose_name='resource', to='valueaccounting.EconomicResource'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='agentresourcerole',
+            name='role',
+            field=models.ForeignKey(related_name='agent_resource_roles', verbose_name='role', to='valueaccounting.AgentResourceRoleType'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='agentassociation',
+            name='association_type',
+            field=models.ForeignKey(related_name='associations', verbose_name='association type', to='valueaccounting.AgentAssociationType'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='agentassociation',
+            name='has_associate',
+            field=models.ForeignKey(related_name='has_associates', verbose_name='has associate', to='valueaccounting.EconomicAgent'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='agentassociation',
+            name='is_associate',
+            field=models.ForeignKey(related_name='is_associate_of', verbose_name='is associate of', to='valueaccounting.EconomicAgent'),
+            preserve_default=True,
+        ),
+    ]

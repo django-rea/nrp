@@ -563,7 +563,7 @@ class ValueEquationRecipe(Recipe):
             agent_type=agent_type,
             is_context=True,
             )
-        supplier.save()
+        supplier2.save()
         
         expense_rt = EconomicResourceType(
             name="expense type",

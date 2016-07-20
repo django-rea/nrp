@@ -19,6 +19,7 @@ This is a howto for installing ocp in a debian/ubuntu system.
     pip install --no-deps easy_thumbnails
     pip install Image
 
+If pip complains about *--trusted-host*, you need to update pip: `pip install --upgrade pip`
 
 - Create database, load some data, run tests and start with dev server: ::
 
@@ -28,6 +29,10 @@ This is a howto for installing ocp in a debian/ubuntu system.
     ./manage.py loaddata ./fixtures/help.json
     ./manage.py test valuenetwork.valueaccounting.tests
     ./manage.py runserver
+
+If ./manage.py doesn't work, you need to update shebang in manage.py with the absolute path to the virtualenv python: ::
+
+    #!/path/to/installation/env/bin/python 
 
 - Check everything is ok in http://127.0.0.1:8000 with web browser.
 
@@ -52,7 +57,7 @@ Comment or delete seed parameter.
 
 Add one task to the cron: ::
 
-    * * * * * /absolute/path/to/installation/valuenetwork/manage.py send_faircoin_requests > /dev/null 2>&1
+    * * * * * (cd /path/to/installation/valuenetwork; /path/to/installation/env/bin/python manage.py send_faircoin_requests > /dev/null 2>&1)
 
 Apache2 and wsgi configuration
 ==============================
@@ -141,6 +146,7 @@ Include absolute path to database, STATIC_ROOT constant and map settings in loca
     MAP_LATITUDE = 48.1293204
     MAP_LONGITUDE = 4.153537
     MAP_ZOOM = 4
+    DEFAULT_HTTP_PROTOCOL = "https"
 
 - Create the static directory: ::
 
@@ -148,7 +154,7 @@ Include absolute path to database, STATIC_ROOT constant and map settings in loca
 
 - Run collectstatic: ::
 
-    python manage.py collectstatic
+    ./manage.py collectstatic
 
 If static files are not visible in the site by a permissions error, you need to give access in apache2.conf: ::
 

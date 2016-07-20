@@ -119,6 +119,9 @@ def create_user(request, agent_id):
         if user_form.is_valid():
             user = user_form.save(commit=False)
             user.email = agent.email
+            is_staff = request.POST.get("is_staff")
+            if is_staff == 'on':
+                user.is_staff = True
             user.save()
             au = AgentUser(
                 agent = agent,
@@ -3457,9 +3460,13 @@ def create_order(request):
             rec_tt = None
             if rec_tts:
                 rec_tt = rec_tts[0]
+            from_name = "Unknown"
+            receiver = order.receiver
+            if receiver:
+                from_name = receiver.nick
             cr_xfer = Transfer(
                 exchange=exchange,
-                name=rec_tt.name + " from " + order.receiver.nick,
+                name=rec_tt.name + " from " + from_name,
                 transfer_type=rec_tt,
                 context_agent=exchange.context_agent,
                 transfer_date=commit.commitment_date,
@@ -8367,6 +8374,7 @@ def resource(request, resource_id, extra_context=None):
                     % ('accounting/resource', resource.id))
     if resource.is_digital_currency_resource():
         send_coins_form = None
+        is_owner=False
         limit = 0
         if agent:
             is_owner = agent.owns(resource)

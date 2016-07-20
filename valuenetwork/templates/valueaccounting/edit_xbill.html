@@ -1133,7 +1133,7 @@ ul {
 		        var selId = "#id_" + nodeId + "-resource_type";
 		        var modalId = "#createResourceForm" + nodeId;
 		        var modal = $(modalId);
-                var url = "{%url create_resource_type_ajax %}";
+                var url = "{% url 'create_resource_type_ajax' %}";
 		        var jqxhr = $.post( url, formData,
 			        function( data ) {
                         for(var i=0 ; i<data.length ; i++) //will be only one

@@ -245,7 +245,7 @@
 		        var selId = "#id_resource-resource_type";
 		        var modalId = "#createResourceForm";
 		        var modal = $(modalId);
-                var url = "{%url create_resource_type_simple_patterned_ajax %}";
+                var url = "{% url 'create_resource_type_simple_patterned_ajax' %}";
 		        var jqxhr = $.post( url, formData,
 			        function( data ) {
                         for(var i=0 ; i<data.length ; i++) //will be only one

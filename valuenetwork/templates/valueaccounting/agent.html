@@ -165,7 +165,7 @@ legend {
                 </div>
             {% endif %}
 
-            {% if user.is_superuser and user_form %}
+            {% if user.is_staff and user_form %}
                 <div class="modal hide fade" id="createUserForm" tabindex="-1" role="dialog" aria-labelledby="create-user-label" aria-hidden="true">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
@@ -175,6 +175,7 @@ legend {
                         <form id="userForm" enctype="multipart/form-data" action="{% url "create_user" agent_id=agent.id %}" method="POST" >
                             {% csrf_token %}
                             {{ user_form|as_bootstrap }}
+                            <input type="checkbox" id="staff" name="is_staff"> <label for="staff">Coop Admin user?</label>
 
                             <div class="modal-footer">
                             <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>

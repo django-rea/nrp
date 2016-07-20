@@ -1278,7 +1278,7 @@
 		        var selId = "#id_output-resource_type";
 		        var modalId = "#createResourceModal";
 		        var modal = $(modalId);
-                var url = "{%url create_resource_type_simple_patterned_ajax %}";
+                var url = "{% url 'create_resource_type_simple_patterned_ajax' %}";
 		        var jqxhr = $.post( url, formData,
 			        function( data ) {
                         for(var i=0 ; i<data.length ; i++) //will be only one
@@ -1328,7 +1328,7 @@
 
 		var formData = $form.serialize();
 
-		var url = "{%url save_labnotes commitment_id=commitment.id %}";
+		var url = "{% url 'save_labnotes commitment_id=commitment.id' %}";
 
 		notifySaving();
 

@@ -122,6 +122,7 @@ def create_user(request, agent_id):
             is_staff = request.POST.get("is_staff")
             if is_staff == 'on':
                 user.is_staff = True
+            user.last_login = datetime.datetime.now()
             user.save()
             au = AgentUser(
                 agent = agent,

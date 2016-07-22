@@ -52,7 +52,7 @@
                                 method="POST" >
                                 {% csrf_token %}
                                 <input type="hidden" id="next" name="next" value="demand" />
-                                <button style="display: inline;"  class="btn btn-warning" title="Delete Order" >Delete</button>
+                                <button style="display: inline;"  class="btn btn-warning" title="Delete Order" >{% trans "Delete" %}</button>
                             </form>
                         {% endif %}
                         <form 
@@ -60,7 +60,7 @@
                             id="sale{{ order.id }}" 
                             action="{% url "exchange_logging" exchange_type_id=0 exchange_id=order.exchange.id %}" 
                             method="GET" >
-                            <button style="display: inline;"  class="btn btn-info" title="Outgoing exchange for this order" >Fulfill this order</button>
+                            <button style="display: inline;"  class="btn btn-info" title="Outgoing exchange for this order" >{% trans "Fulfill this order" %}</button>
                         </form>
                         {% if order.description %}
                             <p>{{ order.description|urlize|linebreaks }}</p>
@@ -83,7 +83,7 @@
                                 {% csrf_token %}
                                 <input type="hidden" id="next" name="next" value="demand" />
                                 <input type="hidden" id="from" name="from" value="report" />
-                                <button style="display: inline;"  class="btn btn-info" title="Change Order" >Change</button>
+                                <button style="display: inline;"  class="btn btn-info" title="Change Order" >{% trans "Change" %}</button>
                             </form>
                             <form
                                 style="display: inline;"  
@@ -91,7 +91,7 @@
                                 method="POST" >
                                 {% csrf_token %}
                                 <input type="hidden" id="next" name="next" value="demand" />
-                                <button style="display: inline;"  class="btn btn-warning" title="Delete Order" >Delete</button>
+                                <button style="display: inline;"  class="btn btn-warning" title="Delete Order" >{% trans "Delete" %}</button>
                             </form>
                         {% else %}
                             {% if agent %}
@@ -102,7 +102,7 @@
                                         method="POST" >
                                         {% csrf_token %}
                                         <input type="hidden" id="next" name="next" value="demand" />
-                                        <button style="display: inline;"  class="btn btn-warning" title="Delete Order" >Delete</button>
+                                        <button style="display: inline;"  class="btn btn-warning" title="Delete Order" >{% trans "Delete" %}</button>
                                     </form>
                                 {% endif %}
                             {% endif %}

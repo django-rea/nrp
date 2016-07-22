@@ -78,7 +78,7 @@ body .modal {
 
 		{% if labnotes %}
 			<h4>
-				<a href="{% url "labnotes" process_id=process.id %}">Labnotes for this process</a>
+				<a href="{% url "labnotes" process_id=process.id %}">{% trans "Labnotes for this process" %}</a>
 			</h4>
 		{% endif %}
         <br />

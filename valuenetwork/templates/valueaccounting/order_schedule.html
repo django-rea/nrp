@@ -96,7 +96,9 @@ textarea {
 	<div>
 		<legend>{% trans "Schedule for " %}{{ order }}
             {% if order.exchange %}
-                <a href="{% url "exchange_logging" exchange_type_id=0 exchange_id=order.exchange.id %}" style="display: inline;"  class="btn btn-info indent" title="Exchange for this order" >Go to Exchange</a>
+                <a href="{% url "exchange_logging" exchange_type_id=0 exchange_id=order.exchange.id %}" style="display: inline;"  class="btn btn-info indent" title="Exchange for this order" >
+                    {% trans "Go to Exchange" %}
+                </a>
             {% endif %}
         </legend>
 		
@@ -210,9 +212,9 @@ textarea {
 					<h3 style="margin-bottom: 4px;" >
 					    {% trans "Production Schedule" %}:
 					    {% if order.all_processes %}
-                            <a class="indent" href="{% url "processes_graph" object_type='O' object_id=order.id %}">Process graph diagram</a>
+                            <a class="indent" href="{% url "processes_graph" object_type='O' object_id=order.id %}">{% trans "Process graph diagram" %}</a>
                             
-                            <a class="indent" href="{% url "order_timeline" order_id=order.id %}">Timeline</a>
+                            <a class="indent" href="{% url "order_timeline" order_id=order.id %}">{% trans "Timeline" %}</a>
 					    {% endif %}
 				    </h3> 
 					
@@ -345,7 +347,7 @@ textarea {
                                     method="POST" >
                                     {% csrf_token %}
                                     <input type="hidden" id="next" name="next" value="{% url "order_schedule" order_id=order.id %}" />
-                                    <button class="btn btn-warning btn-mini" title="Delete this process" >Delete process</button>
+                                    <button class="btn btn-warning btn-mini" title="Delete this process" >{% trans "Delete process" %}</button>
                                   </form>    
                                 {% endif %}
                                {% endif %}

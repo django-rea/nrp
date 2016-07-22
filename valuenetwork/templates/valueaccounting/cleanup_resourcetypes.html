@@ -19,11 +19,11 @@
         {% include "_messages.html" %}
 	<div>
 
-    <h2>Orphan Resource Types</h2>
+    <h2>{% trans "Orphan Resource Types" %}</h2>
     <ul>
         {% for orphan in orphans %}
             <li>
-                <a href="{{ orphan.get_absolute_url }}">{{ orphan }}</a> created by: {{ orphan.created_by }} created date: {{ orphan.created_date }}
+                <a href="{{ orphan.get_absolute_url }}">{{ orphan }}</a> {% trans "created by" %}: {{ orphan.created_by }} {% trans "created date" %}: {{ orphan.created_date }}
                 <form
                     style="display: inline;" 
                     class="delete-resourcetype-form" 

@@ -96,7 +96,7 @@ legend {
                 {% if agent.is_context_agent %}
                     <a class="indent smaller" href="{% url "distributions" agent_id=agent.id %}">{% trans "Distributions" %}</a>
                     <a class="indent smaller" href="{% url "orders" agent_id=agent.id %}">{% trans "Active Orders" %} </a>
-                    <a class="indent smaller" href="{% url "context_timeline" context_id=agent.id %}">Timeline</a>
+                    <a class="indent smaller" href="{% url "context_timeline" context_id=agent.id %}">{% trans "Timeline" %}</a>
                 {% endif %}
             <a class="indent smaller" href="{% url "radial_graph" agent_id=agent.id %}">{% trans "Association Graph" %}</a>
             <a class="indent smaller" href="{% url "agent_associations" agent_id=agent.id %}">{% trans "Maintain Associations" %}</a>
@@ -130,7 +130,7 @@ legend {
                     action="{% url "delete_agent" agent_id=agent.id %}" 
                     method="POST" >
                     {% csrf_token %}
-                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete Agent" >Delete</button>
+                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete Agent" >{% trans "Delete" %}</button>
                 </form>
             {% endif %}
 
@@ -189,18 +189,18 @@ legend {
             {% if agent.is_context_agent %}
                 <div class="row-fluid" tyle="margin-bottom:2em;">
                     <hr />
-                    <h3>Cumulative Time</h3>
+                    <h3>{% trans "Cumulative Time" %}</h3>
                     <div class="row-fluid">
                         <div class="span6">
-                            <h4 class="chart-heading">Last 2 months</h4>
+                            <h4 class="chart-heading">{% trans "Last 2 months" %}</h4>
                             <div id="chart_div1"></div>
                         </div>
                         <div class="span6">
-                            <h4 class="chart-heading">Forever</h4>
+                            <h4 class="chart-heading">{% trans "Forever" %}</h4>
                             <div id="chart_div2"></div>
                         </div>
                     </div>
-                    <h3>Roles</h3>
+                    <h3>{% trans "Roles" %}</h3>
                     <div id="chart_div3"></div>
 
                 </div>
@@ -224,7 +224,7 @@ legend {
                     {% endif %}
                     <tr>
                         <th style="text-align: right;">{% trans "Full Name" %}</th>
-                        <td>{{ agent.name }}</td>
+                        <td>{{ agent<!--.-->name }}</td<!-->-->
                     </tr>
                     <tr>
                         <th style="text-align: right;">{% trans "Type" %}</th>
@@ -239,7 +239,7 @@ legend {
 	                {% if agent.url %}
 	                    <tr>
 	                        <th style="text-align: right;">{% trans "URL" %}</th>
-	                        <td><a href="{{ agent.url }}">Open</a></td>
+	                        <td><a href="{{ agent.url }}">{% trans "Open" %}</a></td>
                         </tr>
                     {% endif %}
 	                {% if agent.description %}
@@ -337,16 +337,16 @@ legend {
 	        <div class="span4">
 	        
 {% comment %}
-                <h3 class="hdg">Virtual Account for {{ agent.name }}:</h3>
-                <span id="balance">Current balance: 1750.63</span> 
-                <a href="#">Details</a><br />
-                <button class="btn btn-primary down" title="Request a payout from your virtual account" >Request a Payout</button>
+                <h3 class="hdg">{% trans "Virtual Account for" %} {{ agent.name }}:</h3>
+                <span id="balance">{% trans "Current balance" %}: 1750.63</span> 
+                <a href="#">{% trans "Details</a><br />
+                <button class="btn btn-primary down" title="Request a payout from your virtual account" >{% trans "Request a Payout" %}</button>
 {% endcomment %}
             </div>
             
             {% if agent.is_individual %}
                 <div class="span8">
-                    <h4 class="hdg"> Cumulative Contributions</h4>
+                    <h4 class="hdg"> {% trans "Cumulative Contributions" %}</h4>
                     <div id="chart_div0"></div>
                 </div>
             {% endif %}
@@ -397,7 +397,7 @@ legend {
                     {% endfor %}
                 </ul>
               {% else %}
-                    <p>None</p>
+                    <p>{% trans "None" %}</p>
 
               {% endif %}
 

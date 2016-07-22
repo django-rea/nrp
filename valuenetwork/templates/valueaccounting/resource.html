@@ -51,7 +51,9 @@
 			{% trans "Resource" %}: {{ resource }} &nbsp;
             {% if agent %}
                 <a href="#resourceChangeForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>&nbsp;&nbsp;
-                <a href="#resourceOrderForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Plan Work Order" %}</a>&nbsp;&nbsp;
+                {% if order_form %}
+                    <a href="#resourceOrderForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Plan Work Order" %}</a>&nbsp;&nbsp;
+                {% endif %}
             {% endif %}
             <a href="{% url "event_history" resource_id=resource.id %}">{% trans "Event history" %}</a>&nbsp;&nbsp;
             <a href="{% url "incoming_value_flows" resource_id=resource.id %}">{% trans "Incoming Value Flow" %}</a>
@@ -70,10 +72,10 @@
                         {{ role_formset.management_form }}
                         <table>
                             <tr>
-                                <td>Resource access role</td>
-                                <td>Assignment</td>
-                                <td>Is contact &nbsp;</td>
-                                <td>Delete</td>
+                                <td>{% trans "Resource access role" %}</td>
+                                <td>{% trans "Assignment" %}</td>
+                                <td>{% trans "Is contact" %} &nbsp;</td>
+                                <td>{% trans "Delete" %}</td>
                             </tr>
 	                        {% for form in role_formset %}
                                 {{ form.id }}  

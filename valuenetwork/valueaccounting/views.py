@@ -122,7 +122,7 @@ def create_user(request, agent_id):
             is_staff = request.POST.get("is_staff")
             if is_staff == 'on':
                 user.is_staff = True
-            user.last_login = datetime.datetime.now()
+            #user.last_login = datetime.datetime.now()
             user.save()
             au = AgentUser(
                 agent = agent,
@@ -8344,8 +8344,9 @@ def resource(request, resource_id, extra_context=None):
             if agent:
                 form_data = {'name': 'Create ' + resource.identifier, 'start_date': resource.created_date, 'end_date': resource.created_date}
                 process_add_form = AddProcessFromResourceForm(form_data)
-                init={"start_date": datetime.date.today(),}
-                order_form = StartDateAndNameForm(initial=init)
+                if resource.resource_type.recipe_is_staged():
+                    init={"start_date": datetime.date.today(),}
+                    order_form = StartDateAndNameForm(initial=init)
                 
     if request.method == "POST":
         #import pdb; pdb.set_trace()
@@ -8433,6 +8434,9 @@ def plan_work_order_for_resource(request, resource_id):
             if order:
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/order-schedule', order.id))
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/resource', resource_id))
+    
     
 def incoming_value_flows(request, resource_id):
     resource = get_object_or_404(EconomicResource, id=resource_id)

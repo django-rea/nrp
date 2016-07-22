@@ -30,8 +30,8 @@
 	<div>
 		<legend>
 		    {% trans "Work in Process for " %} {{ project.agent_type }} {{ project }} &nbsp;&nbsp;&nbsp;
-		     <a href="{% url "finished_processes" agent_id=project.id %}">Finished processes</a>&nbsp;&nbsp;&nbsp;
-		    <a href="{% url "processes_graph" object_type='P' object_id=project.id %}">Process graph diagram</a>
+		     <a href="{% url "finished_processes" agent_id=project.id %}">{% trans "Finished processes" %}</a>&nbsp;&nbsp;&nbsp;
+		    <a href="{% url "processes_graph" object_type='P' object_id=project.id %}">{% trans "Process graph diagram" %}</a>
 	    </legend>
 
         <ul>

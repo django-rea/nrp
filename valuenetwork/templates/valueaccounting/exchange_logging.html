@@ -143,7 +143,7 @@ li {
                 id="order" 
                 action="{% url "order_schedule" order_id=exchange.order.id %}" 
                 method="GET" >
-                <button style="display: inline;"  class="btn btn-info" title="Order for this sale" >Go to Order</button>
+                <button style="display: inline;"  class="btn btn-info" title="Order for this sale" >{% trans 'Go to Order' %}</button>
             </form>
         {% endif %}
 	</legend>
@@ -235,9 +235,9 @@ li {
                                                 {{ slot.create_role_formset.management_form }}
                                                 <table>
                                                     <tr>
-                                                        <td>Resource access role</td>
-                                                        <td>Assignment</td>
-                                                        <td>Is contact &nbsp;</td>
+                                                        <td>{% trans "Resource access role" %}</td>
+                                                        <td>{% trans "Assignment" %}</td>
+                                                        <td>{% trans "Is contact" %} &nbsp;</td>
                                                     </tr>
                                                     {% for form in slot.create_role_formset %}
                                                         {{ form.id }}  
@@ -335,7 +335,7 @@ li {
                                                     <input type="hidden" id="next" name="next" value="exchange" />
                                                     <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete transfer" >X</button>
                                                 </form>
-                                                <a href="#xferModal{{ xfer.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" alt="Record transfer based on commitment">Transfer This</a>
+                                                <a href="#xferModal{{ xfer.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" alt="Record transfer based on commitment">{% trans "Transfer This" %}</a>
                                                 <div class="modal hide fade" id="xferModal{{ xfer.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer-label" aria-hidden="true">
                                                     <div class="modal-header">
                                                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
@@ -589,9 +589,9 @@ li {
                                                 {{ slot.create_role_formset.management_form }}
                                                 <table>
                                                     <tr>
-                                                        <td>Resource access role</td>
-                                                        <td>Assignment</td>
-                                                        <td>Is contact &nbsp;</td>
+                                                        <td>{% trans "Resource access role" %}</td>
+                                                        <td>{% trans "Assignment" %}</td>
+                                                        <td>{% trans "Is contact" %} &nbsp;</td>
                                                     </tr>
                                                     {% for form in slot.create_role_formset %}
                                                         {{ form.id }}  
@@ -689,7 +689,7 @@ li {
                                                     <input type="hidden" id="next" name="next" value="exchange" />
                                                     <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete transfer" >X</button>
                                                 </form>
-                                                <a href="#xferModal{{ xfer.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" alt="Record transfer based on commitment">Transfer This</a>
+                                                <a href="#xferModal{{ xfer.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" alt="Record transfer based on commitment">{% trans "Transfer This" %}</a>
                                                 <div class="modal hide fade" id="xferModal{{ xfer.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer-label" aria-hidden="true">
                                                     <div class="modal-header">
                                                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>

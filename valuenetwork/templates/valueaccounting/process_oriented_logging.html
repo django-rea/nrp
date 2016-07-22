@@ -1353,7 +1353,7 @@ hr {
 
 		    {% if labnotes %}
 			    <h4>
-				    <a href="{% url "labnotes" process_id=process.id %}">Notes for this process</a>
+				    <a href="{% url "labnotes" process_id=process.id %}">{% trans "Notes for this process" %}</a>
 			    </h4>
 		    {% endif %}
 
@@ -1596,9 +1596,9 @@ hr {
                 {{ role_formset.management_form }}
                 <table>
                     <tr>
-                        <td>Resource access role</td>
-                        <td>Assignment</td>
-                        <td>Is contact &nbsp;</td>
+                        <td>{% trans "Resource access role" %}</td>
+                        <td>{% trans "Assignment" %}</td>
+                        <td>{% trans "Is contact" %} &nbsp;</td>
                     </tr>
                     {% for form in role_formset %}
                         {{ form.id }}  

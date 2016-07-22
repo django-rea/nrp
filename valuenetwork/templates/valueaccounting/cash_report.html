@@ -76,8 +76,8 @@ ul {
         <div class="row-fluid">
         <div class="span9">
             <ul class="nav nav-tabs">
-                <li id="S"><a href="javascript:showSummary()">Summary Report</a></li>
-                <li id="D"><a href="javascript:showDetail()">Detail Report</a></li>
+                <li id="S"><a href="javascript:showSummary()">{% trans "Summary Report" %}</a></li>
+                <li id="D"><a href="javascript:showDetail()">{% trans "Detail Report" %}</a></li>
             </ul>
 
             <table id="summary-table" style="width: 100%;" class="table table-bordered table-hover table-condensed" >
@@ -94,15 +94,15 @@ ul {
                     {% endfor %}
 
                     <tr class="total first-total">
-                        <td>Total In</td>
+                        <td>{% trans "Total In" %}</td>
                         <td>{{ in_total }}</td>
                     </tr>
                     <tr class="total">
-                        <td>Total Out</td>
+                        <td>{% trans "Total Out" %}</td>
                         <td>{{ out_total }}</td>
                     </tr>
                     <tr class="bal">
-                        <td>Balance (starting = {{ starting_balance }})</td>
+                        <td>{% trans "Balance (starting" %} = {{ starting_balance }})</td>
                         <td>{{ balance }}</td>
                     </tr>
                 </tbody>    
@@ -155,7 +155,7 @@ ul {
                     {% endfor %}
 
                     <tr class="total first-total">
-                        <td>Totals</td>
+                        <td>{% trans "Totals" %}</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>{{ in_total }}</td>
@@ -165,7 +165,7 @@ ul {
                         <td>&nbsp;</td>
                     </tr>
                     <tr class="bal">
-                        <td>Balance (starting = {{ starting_balance }})</td>
+                        <td>{% trans "Balance (starting" %} = {{ starting_balance }})</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         {% if balance > 0 %}

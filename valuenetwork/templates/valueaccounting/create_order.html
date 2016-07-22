@@ -115,7 +115,8 @@
     </div>
 {% endblock %}
 {% block extra_script %}
-<script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+<script type="text/javascript" src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+<script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
 {% endblock %}
 
 {% block extra_body %}
@@ -130,6 +131,36 @@
     	});
 
         $("#id_provider").change(getCustomers);
+        
+        jQuery.validator.addMethod("quantity",
+            function(value, element) {
+                var isValidQuantity = /^\d{0,6}(\.\d{0,2})?$/.test(value);
+                return this.optional(element) || isValidQuantity;
+            },
+            "Please enter a number less than 1000000 with no more than 2 decimal places"
+        );
+
+        $.validator.addClassRules("quantity", { quantity: true });
+
+            
+        $('#orderForm').validate(
+        {
+            rules: {
+                provider: {
+                    required: true
+                },
+                receiver: {
+                    required: true
+                },
+                "due_date": {
+                    required: true
+                },
+            },
+            highlight: function(label) {
+                $(label).closest('.control-group').addClass('error');
+            }
+
+        });
 
 	}); // end document.ready
 

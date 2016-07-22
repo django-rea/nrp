@@ -60,7 +60,7 @@
                                     method="POST" >
                                     {% csrf_token %}
                                     <input type="hidden" id="next" name="next" value="exchanges" />
-                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete contribution" >Delete</button>
+                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete contribution" >{% trans "Delete" %}</button>
                                 </form>
                             {% endif %}
                         {% endif %}

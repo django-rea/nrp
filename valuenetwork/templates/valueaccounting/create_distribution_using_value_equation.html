@@ -108,18 +108,18 @@ th
 	<div>
 	{% if context_agent %}
         <legend>{% trans "Create Distribution for " %} {{ context_agent }}
-            <a class="indent" href="{% url "value_equation_sandbox" value_equation_id=ve.id %}">Value Equation Sandbox</a>
-            <a class="indent" href="{% url "edit_value_equation" value_equation_id=ve.id %}">Edit Value Equation</a> 
-            <a class="indent" href="{% url "value_equations" %}">Value Equations List</a>
+            <a class="indent" href="{% url "value_equation_sandbox" value_equation_id=ve.id %}">{% trans "Value Equation Sandbox" %}</a>
+            <a class="indent" href="{% url "edit_value_equation" value_equation_id=ve.id %}">{% trans "Edit Value Equation" %}</a> 
+            <a class="indent" href="{% url "value_equations" %}">{% trans "Value Equations List" %}</a>
         </legend>
 
-        <p class="hdg">Distribution:</p>
+        <p class="hdg">{% trans "Distribution" %}:</p>
         <form id="distForm" class="validateMe" action="." method="POST" >
             {% csrf_token %}
-            <p>Value Equation</p>
+            <p>{% trans "Value Equation" %}</p>
             <p>{{ header_form.value_equation }}</p>
             <table id="selection">
-              <tr><td>Select one or more sources to be distributed</td><td class="or">OR</td><td>Enter amount to distribute</td></tr>
+              <tr><td>{% trans "Select one or more sources to be distributed" %}</td><td class="or">{% trans "OR" %}</td><td>{% trans "Enter amount to distribute" %}</td></tr>
               <tr>
                 <td class="top">
                     <span id="cashRcpt">
@@ -127,7 +127,7 @@ th
                     </span>
                 </td>
                 <td>&nbsp;</td>
-                <td><span class="spc"> {{ header_form.money_to_distribute }}</span><br />and source Cash Resource Account<br />
+                <td><span class="spc"> {{ header_form.money_to_distribute }}</span><br />{% trans "and source Cash Resource Account" %}<br />
                 <span class="spc">{{ header_form.resource }}</span></td>
               </tr>
               <tr>
@@ -137,12 +137,12 @@ th
                     </td>
               </tr>
             </table>
-            <p>Distribution date</p>
+            <p>{% trans "Distribution date" %}</p>
             <p>{{ header_form.start_date }}</p>
-            <p>Comments</p>
+            <p>{% trans "Comments" %}</p>
             <p>{{ header_form.notes }}</p>
             <div id="filters">
-                <span class="hdg">Bucket filters:</span>
+                <span class="hdg">{% trans "Bucket filters" %}:</span>
                 {% for bucket in buckets %}
                     <div class="bucket"><span class="name">{{ bucket.name }}</span><span class="pct"> {{ bucket.percentage }}</span>%</div>
                     {% if bucket.distribution_agent %}<div class="to"> Distribute to <span class="dist-to">{{ bucket.distribution_agent.name }}</span></div> {% endif %}
@@ -177,15 +177,15 @@ th
                 {% endfor %}
             </div>
             <input id="calculate" type="submit" name="submit" class="btn btn-primary" style="display: inline; vertical-align: top;" value="{% trans 'Distribute Income' %}" />
-            <span class="warning"><b>WARNING</b>: This operation cannot be undone. Please test your data entry below first!</span>
-            <span id="loading" style="display: none;" >Calculating, please be patient... <img src="https://i.stack.imgur.com/FhHRx.gif"></img></span> 
+            <span class="warning"><b>{% trans "WARNING" %}</b>: {% trans "This operation cannot be undone. Please test your data entry below first!" %}</span>
+            <span id="loading" style="display: none;" >{% trans "Calculating, please be patient..." %} <img src="https://i.stack.imgur.com/FhHRx.gif"></img></span> 
             
             <div id="distributions">
                 <input id="test" type="submit" name="test-only" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'TEST Distribution Here First !' %}" />
-                <span id="loadingTest" style="display: none;" >Calculating, please be patient... <img src="https://i.stack.imgur.com/FhHRx.gif"></img></span> 
+                <span id="loadingTest" style="display: none;" >{% trans "Calculating, please be patient..." %} <img src="https://i.stack.imgur.com/FhHRx.gif"></img></span> 
    
                 {% if agent_totals %} 
-                    <div class="hdg">TEST ONLY - Agent Totals:</div>
+                    <div class="hdg">{% trans "TEST ONLY - Agent Totals" %}:</div>
                     <table class="table table-bordered table-condensed" >
                         <thead>
                             <th>{% trans "Agent" %}</th>

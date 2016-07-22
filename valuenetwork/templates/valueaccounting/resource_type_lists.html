@@ -77,7 +77,7 @@
                                 action="{% url "delete_resource_type_list" list_id=rtl.id %}" 
                                 method="POST" >
                                 {% csrf_token %}
-                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete List" >Delete</button>
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete List" >{% trans "Delete" %}</button>
                             </form>
                         </div>
                     {% endif %}

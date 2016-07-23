@@ -5,13 +5,13 @@ from logging.handlers import TimedRotatingFileHandler
 from django.conf import settings
 
 logger = logging.getLogger("faircoins")
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 fhpath = "/".join([settings.PROJECT_ROOT, "faircoins.log",])
 fh = TimedRotatingFileHandler(fhpath,
                             when="d",
                             interval=1,
                             backupCount=7)
-fh.setLevel(logging.DEBUG)
+fh.setLevel(logging.WARNING)
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 fh.setFormatter(formatter)
 logger.addHandler(fh)

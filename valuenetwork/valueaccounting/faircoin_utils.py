@@ -1,7 +1,6 @@
 import faircoin_nrp.electrum_fair_nrp as efn
 
 def init_electrum_fair():
-    #import pdb; pdb.set_trace()
     try:
         if not efn.network:
             efn.init()
@@ -9,7 +8,6 @@ def init_electrum_fair():
             if not efn.network.is_connected():
                 efn.init()
     except:
-        #handle failure better here
         msg = "Can not init Electrum Network. Exiting."
         assert False, msg
 

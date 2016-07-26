@@ -66,10 +66,10 @@
     <div class="row-fluid">  
         <div class="span3">    
             <div class="explain">
-                <p>{% blocktrans %}A Process takes inputs and transforms them into outputs, 
-                and may be connected to other Processes in process flows.
+                <p>{% trans "A Process takes inputs and transforms them into outputs, 
+                and may be connected to other Processes in process flows." %}
                 {% if commitment %}
-                    The work of <span class="this">{{ commitment.resource_type.name }}</span> 
+                    {% blocktrans %}The work of <span class="this">{{ commitment.resource_type.name }}</span> 
                     contributes to This Process. {% endblocktrans %} </p>
                 {% endif %}
             </div>

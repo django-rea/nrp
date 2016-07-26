@@ -4,10 +4,7 @@
 {% if layout.creations_panel_headline %}
     {{ layout.creations_panel_headline|safe|urlize|linebreaks }}
 {% else %}
-    <legend>Value being created</legend>
-    <p style="font-style: italic;" >
-        Our designs are open source. We seek partners in evolving our products.
-    </p>
+    <legend>{% trans "Value being created" %}</legend>
 {% endif %}
 
 <ul>

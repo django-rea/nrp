@@ -225,7 +225,7 @@ th, td {
                                     {% if work_now %}
                                         <a href="{% url "work_now" process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Work Now" %}</a>
                                     {% endif %}
-                                    <a href="{{ item.process.get_absolute_url }}" role="button" class="btn btn-info btn-mini">Log work on process</a>
+                                    <a href="{{ item.process.get_absolute_url }}" role="button" class="btn btn-info btn-mini">{% trans "Log work on process" %}</a>
                                     <form
                                         style="display: inline;" 
                                         class="finish-form" 
@@ -234,7 +234,7 @@ th, td {
                                         method="POST" >
                                         {% csrf_token %}
                                         <input type="hidden" id="next" name="next" value="start" />
-                                        <button style="display: inline;"  class="btn btn-primary btn-mini" title="Close" >Close task</button>
+                                        <button style="display: inline;"  class="btn btn-primary btn-mini" title="Close" >{% trans "Close task" %}</button>
                                     </form>
                                     <form
                                         style="display: inline;" 
@@ -244,7 +244,7 @@ th, td {
                                         method="POST" >
                                         {% csrf_token %}
                                         <input type="hidden" id="next" name="next" value="start" />
-                                        <button style="display: inline;"  class="btn btn-warning btn-mini" title="Uncommit" >Unassign</button>
+                                        <button style="display: inline;"  class="btn btn-warning btn-mini" title="Uncommit" >{% trans "Unassign" %}</button>
                                     </form>
 								</div>
 
@@ -575,7 +575,7 @@ th, td {
                                 {% endcomment %}
                                 <td>
                                     {% if todo.url %}
-                                        <a href="{{ todo.url }}" target="_blank">Open</a>
+                                        <a href="{{ todo.url }}" target="_blank">{% trans "Open" %}</a>
                                     {% endif %}
                                 </td>
                                 {% comment %}

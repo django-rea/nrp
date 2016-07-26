@@ -262,7 +262,7 @@ ul {
 						</div>
 
 						<div style="display: inline;" >
-							<a href="{% url "delete_process_type_confirmation" process_type_id=xbill_object.id resource_type_id=resource_type.id %}" role="button" class="btn btn-warning" >Delete</a>
+							<a href="{% url "delete_process_type_confirmation" process_type_id=xbill_object.id resource_type_id=resource_type.id %}" role="button" class="btn btn-warning" >{% trans "Delete" %}</a>
 						</div>
 
 					{% endif %}
@@ -708,7 +708,7 @@ ul {
 						{% if xb_type == "feature" %}
 
 						<div style="display: inline;" >
-							<a href="#changeFeatureForm{{ object_node_id }}" role="button" class="btn btn-primary" data-toggle="modal">Change</a>							
+							<a href="#changeFeatureForm{{ object_node_id }}" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>							
 						</div>
 
 						<div class="modal hide fade" id="changeFeatureForm{{ object_node_id }}" tabindex="-1" role="dialog" aria-labelledby="change-feature-label" aria-hidden="true">

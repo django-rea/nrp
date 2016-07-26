@@ -4,10 +4,8 @@
 {% if layout.needs_panel_headline %}
     {{ layout.needs_panel_headline|safe|urlize|linebreaks }}
 {% else %}
-    <legend>Resources we need</legend>
-    <p style="font-style: italic;" >
-        Your contributions will be eligible for income sharing.
-    </p>
+    <legend>{% trans "Resources we need" %}</legend>
+
 {% endif %}
 
 <ul>

@@ -98,7 +98,7 @@
                         </p>
                         {% if item.onhand_resources %}
                             <div id="resources-{{ item.id }}" class = "resources" >
-                            <p>This recipe needs a starting resource</p>
+                            <p>{% trans "This recipe needs a starting resource" %}</p>
                             {% for resource in item.onhand_resources %}
                                 <p>
                                     <input type="radio" id="resource-{{ resource.id }}" name="resourcesFor-{{ item.id }}" value="{{ resource.id }}" />
@@ -143,7 +143,7 @@
                     <table>
                         <tr>
                             <td style="text-align: right;" >
-                                <span id="dateLabel">Due date</span>
+                                <span id="dateLabel">{% trans "Due date" %}</span>
                             </td>
                             <td> {{ date_name_form.date }}</td>
                         </tr>

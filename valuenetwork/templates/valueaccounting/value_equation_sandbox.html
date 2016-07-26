@@ -357,7 +357,7 @@ img {
 
                     filters = filters + '<div class="bucket"><span class="name">' + name + '</span><span class="pct">' + pct + '</span>%</div>'
                     if (agent != 'null') {
-                        filters = filters + '<div class="to">Distribute to <span class="dist-to">' + agent + '</span></div>'
+                        filters = filters + '<div class="to">{% trans "Distribute to" %} <span class="dist-to">' + agent + '</span></div>'
                     } else {
                         filters = filters + '<div class="filt">'
                         if (filterMethod == 'dates') {

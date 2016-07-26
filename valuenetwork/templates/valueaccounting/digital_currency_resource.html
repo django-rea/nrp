@@ -76,10 +76,10 @@
                         {{ role_formset.management_form }}
                         <table>
                             <tr>
-                                <td>Resource access role</td>
-                                <td>Assignment</td>
-                                <td>Is contact &nbsp;</td>
-                                <td>Delete</td>
+                                <td>{% trans "Resource access role" %}</td>
+                                <td>{% trans "Assignment" %}</td>
+                                <td>{% trans "Is contact" %} &nbsp;</td>
+                                <td>{% trans "Delete" %}</td>
                             </tr>
 	                        {% for form in role_formset %}
                                 {{ form.id }}  

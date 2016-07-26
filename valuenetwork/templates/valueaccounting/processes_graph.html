@@ -1,9 +1,10 @@
 {% load staticfiles %}
 {% load bootstrap_tags %}
+{% load i18n %}
 <html>
 
 <head>
-	<title>Process Graph</title>
+	<title>{% trans "Process Graph" %}</title>
 
     <script src="https://code.jquery.com/jquery.min.js" type="text/javascript"></script>
     <script src="https://code.jquery.com/ui/1.10.4/jquery-ui.js" type="text/javascript"></script>
@@ -87,17 +88,17 @@
     <div>
         <div class="row-fluid" id="menu" >
 		    <div class="span4">
-	            <button id="ViewProjects">Projects</button>
-	            <button id="ViewAgents">Agents</button>
-	            <button id="ViewResources">Resource Types</button>
-	            <button id="ViewOrders">Orders</button>
-	            <button id="ViewProcesses">Processes</button>
+	            <button id="ViewProjects">{% trans "Projects" %}</button>
+	            <button id="ViewAgents">{% trans "Agents" %}</button>
+	            <button id="ViewResources">{% trans "Resource Types" %}</button>
+	            <button id="ViewOrders">{% trans "Orders" %}</button>
+	            <button id="ViewProcesses">{% trans "Processes" %}</button>
             </div>
             <div class="span8" id="help">
-                Zoom using mousewheel or touchpad scroll. Slide the whole graph like a map, or move a node. 
-                Click a node to freeze it, click again to unfreeze. 
-                Double-click a node to open its own page.
-                Processes horizontally positioned by date, width by duration.
+                {% trans "Zoom using mousewheel or touchpad scroll. Slide the whole graph like a map, or move a node." %} 
+                {% trans "Click a node to freeze it, click again to unfreeze." %} 
+                {% trans "Double-click a node to open its own page." %} 
+                {% trans "Processes horizontally positioned by date, width by duration." %}
             </div>
         </div>
     </div>

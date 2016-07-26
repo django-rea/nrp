@@ -36,7 +36,7 @@
                             {% csrf_token %}
                             <input type="hidden" id="next" name="next" value="closed_work_orders" />
                             <input type="hidden" id="from" name="from" value="report" />
-                            <button style="display: inline;"  class="btn btn-info" title="Change Order" >Change</button>
+                            <button style="display: inline;"  class="btn btn-info" title="Change Order" >{% trans "Change" %}</button>
                         </form> 
                         <form
                             style="display: inline;"  
@@ -44,7 +44,7 @@
                             method="POST" >
                             {% csrf_token %}
                             <input type="hidden" id="next" name="next" value="closed_work_orders" />
-                            <button style="display: inline;"  class="btn btn-warning" title="Delete Order" >Delete</button>
+                            <button style="display: inline;"  class="btn btn-warning" title="Delete Order" >{% trans "Delete" %}</button>
                         </form>                    
                     {% else %}
                         {% if agent %}
@@ -55,7 +55,7 @@
                                     method="POST" >
                                     {% csrf_token %}
                                     <input type="hidden" id="next" name="next" value="closed_work_orders" />
-                                    <button style="display: inline;"  class="btn btn-warning" title="Delete Order" >Delete</button>
+                                    <button style="display: inline;"  class="btn btn-warning" title="Delete Order" >{% trans "Delete" %}</button>
                                 </form>                            
                             {% endif %}
                         {% endif %}

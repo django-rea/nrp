@@ -128,9 +128,9 @@ container li {
                         {{ create_role_formset.management_form }}
                         <table>
                             <tr>
-                                <td>Resource access role</td>
-                                <td>Assignment</td>
-                                <td>Is contact &nbsp;</td>
+                                <td>{% trans "Resource access role" %}</td>
+                                <td>{% trans "Assignment" %}</td>
+                                <td>{% trans "Is contact" %} &nbsp;</td>
                             </tr>
                             {% for form in create_role_formset %}
                                 {{ form.id }}  

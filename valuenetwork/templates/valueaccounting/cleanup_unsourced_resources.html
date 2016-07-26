@@ -19,14 +19,14 @@
         {% include "_messages.html" %}
     <div>
 
-    <h2>Consumed but unsourced Resources</h2>
+    <h2>{% trans "Consumed but unsourced Resources" %}</h2>
     <p>
-        These resources have consumption events but no production, receipt or contribution events.
+        {% trans "These resources have consumption events but no production, receipt or contribution events." %}
     </p>
     <ul>
         {% for suspect in suspects %}
             <li>
-                <a href="{{ suspect.get_absolute_url }}">{{ suspect }}</a> created by: {{ suspect.created_by }} created date: {{ suspect.created_date }}
+                <a href="{{ suspect.get_absolute_url }}">{{ suspect }}</a> {% trans "created by" %}: {{ suspect.created_by }} {% trans "created date" %}: {{ suspect.created_date }}
             </li>
         {% endfor %}
     </ul>

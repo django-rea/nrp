@@ -221,7 +221,7 @@ textarea {
             <form style="display: inline;" action="{% url "delete_process_type_confirmation" process_type_id=process_type.id resource_type_id=resource_type.id %}" method="POST" >
                 {% csrf_token %}
                 <input type="hidden" name="next" value="{% url "edit_stream_recipe" resource_type_id=resource_type.id %}" />
-                <button class="btn btn-warning" title="Delete process type" >Delete</button>
+                <button class="btn btn-warning" title="Delete process type" >{% trans "Delete" %}</button>
             </form>
             
             {% if "Time Contribution" in process_type.process_pattern.non_change_event_type_names %}
@@ -379,7 +379,7 @@ textarea {
           <div class="row-fluid">
           
             <div class="span6 inputs">
-                <h5 class="align-center">Inputs</h5>
+                <h5 class="align-center">{% trans "Inputs" %}</h5>
                 
                 {% for ptrt in process_type.to_be_changed_resource_type_relationships %}                
                     <div class="change-resource-type">
@@ -423,7 +423,7 @@ textarea {
                     <div style="display: inline;" >
                       <form style="display: inline;" action="{% url "delete_process_type_input" process_input_id=ptrt.id resource_type_id=resource_type.id %}" method="POST" >
                         {% csrf_token %}
-                        <button class="btn btn-warning" title="Delete input item" >Delete</button>
+                        <button class="btn btn-warning" title="Delete input item" >{% trans "Delete" %}</button>
                         <input type="hidden" name="next" value="{% url "edit_stream_recipe" resource_type_id=resource_type.id %}" />
                       </form>
                     </div>
@@ -440,7 +440,7 @@ textarea {
             </div>
 
             <div class="span6 outputs">
-            <h5  class="align-center">Output</h5>
+            <h5  class="align-center">{% trans "Output" %}</h5>
                 {% for ptrt in process_type.produced_resource_type_relationships %}
                     <div class="change-resource-type">
                         {{ ptrt.stream_label }}

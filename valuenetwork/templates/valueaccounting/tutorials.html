@@ -3,7 +3,7 @@
 {% load i18n %}
 {% load bootstrap_tags %}
 
-{% block head_title %}{% trans "NRP Tutorials" %}{% endblock %}
+{% block head_title %}{% trans "OCP Tutorials" %}{% endblock %}
 
 {% block extra_head %}
 
@@ -22,10 +22,10 @@
     <div>
         <legend>{% trans "OCP Tutorials" %}</legend>
         <div style="text-align: center; margin-bottom: 1em;" >
-            These tutorials for NRP (Network Resource Planning) are for the software that is used for the OCP (Open Collaborative Platform) for Freedom Coop.<br />
-            Your first job is to create a model of your network, how it's organized, what it creates, and what it needs to do that. The first 5 slide decks below should help." </br>
+            {% trans "These tutorials for NRP (Network Resource Planning) are for the software that is used for the OCP (Open Collaborative Platform) for Freedom Coop." %}<br />
+            {% trans "Your first job is to create a model of your network, how it's organized, what it creates, and what it needs to do that. The first 5 slide decks below should help." %} </br>
             {% comment %}For extra awesomeness, try the 5th. {% endcomment %}
-            Or <a href="mailto:info@mikorizal.org">send an email</a> for even more help.
+            {% trans "Or" %} <a href="mailto:info@mikorizal.org">{% trans "send an email" %}</a> {% trans "for even more help" %}.
         </div>
         
         <div>

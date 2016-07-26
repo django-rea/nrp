@@ -57,7 +57,7 @@
         <legend>
             {% trans "Agents" %}  
             {% if user_agent %} 
-                <a href="#create-agent" role="button" class="btn btn-primary" data-toggle="modal">Create New Agent</a>
+                <a href="#create-agent" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Create New Agent" %}</a>
                 
                 <div class="modal hide fade" id="create-agent" tabindex="-1" role="dialog" aria-labelledby="agent-label" aria-hidden="true">
                     <div class="modal-header">
@@ -82,7 +82,7 @@
             {% for agent in agents %}
                 {% ifchanged agent.agent_type %} 
                     </ul>
-                    <div class="heading"> {{ agent.agent_type.name }}s <span class="showhide" id="sh-{{ agent.agent_type.id }}" >(Hide)</span></div>
+                    <div class="heading"> {{ agent.agent_type.name }}s <span class="showhide" id="sh-{{ agent.agent_type.id }}" >{% trans "(Hide)" %}</span></div>
                     <ul class="list" id="list-{{ agent.agent_type.id }}" >
                 {% endifchanged %}
 

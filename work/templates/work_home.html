@@ -21,18 +21,18 @@ h1, h2 {
 
 {% block body_base %}
     <div class="container">
-        <h1>Freedom COOP</h1>
-        <h2>Welcome to the Online Collaborative Platform</h2>
+        <h1>{% trans "Freedom COOP" %}</h1>
+        <h2>{% trans "Welcome to the Online Collaborative Platform" %}</h2>
         <br /><br />
-        <p><b>To start using the OCP:</b></p>
+        <p><b>{% trans "To start using the OCP:" %}</b></p>
         <ul>
-        <li>First, you need an account on the system. <a href="{% url 'membership_request' %}">{% trans "Request Membership here" %}</a></li>
-        <li>You should go to the My Profile page and update your information and register your skills.</li>  
-        <li>You can also add yourself to the Map page.</li>
-        <li>After you are set up, you can log your work in either the Non-process Logging or the Process Logging page, depending on the type of work or project you are involved with.</li>
+        <li>{% trans "First, you need an account on the system." %} <a href="{% url 'membership_request' %}">{% trans "Request Membership here" %}</a></li>
+        <li>{% trans "You should go to the My Profile page and update your information and register your skills." %}</li>  
+        <li>{% trans "You can also add yourself to the Map page." %}</li>
+        <li>{% trans "After you are set up, you can log your work in either the Non-process Logging or the Process Logging page, depending on the type of work or project you are involved with." %}</li>
         </ul>
         
-        <p>You can also find help on each page, in the upper right corner.</p>
+        <p>{% trans "You can also find help on each page, in the upper right corner." %}</p>
     </div>
 {% endblock %}
 

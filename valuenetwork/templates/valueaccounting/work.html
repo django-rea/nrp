@@ -243,7 +243,7 @@ th, td {
 
                 {% for context_agent, processes in context_agents.items %}
                     <div class="context-agent-line"> 
-                        {% trans "Project" %}: {% if context_agent %} {{ context_agent.name }} {% else %} No project {% endif %}
+                        {% trans "Project" %}: {% if context_agent %} {{ context_agent.name }} {% else %} {% trans "No project" %} {% endif %}
                     </div>
 
                     {% for process in processes %}
@@ -403,7 +403,7 @@ th, td {
 	                                </td>
 	                                <td>
 						                {% if todo.url %}
-							                <a href="{{ todo.url }}" target="_blank">Open</a>
+							                <a href="{{ todo.url }}" target="_blank">{% trans "Open" %}</a>
 						                {% endif %}
 					                </td>
                                         {% if agent and agent == todo.from_agent %}

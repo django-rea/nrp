@@ -121,7 +121,7 @@
 								<b>{{ item.from_agent }}</b> {% trans "doing" %} {{ item.resource_type }}
 {% comment %}
                                 {% if item.has_labnotes %}
-									<a href="{% url 'labnote' commitment_id=item.id %}" target="_blank" class="lablink">Work Now</a>
+									<a href="{% url 'labnote' commitment_id=item.id %}" target="_blank" class="lablink">{% trans "Work Now" %}</a>
 								{% endif %}
 {% endcomment %}
 							</li>

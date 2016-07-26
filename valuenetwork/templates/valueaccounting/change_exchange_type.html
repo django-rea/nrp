@@ -148,7 +148,7 @@ h3 {
 
             <div class="row-fluid">
                 <div class="span5">
-                    <h3>Exchange Type</h3>
+                    <h3>{% trans "Exchange Type" %}</h3>
                     <form id="extForm" name="extForm" action="." method="POST" >
                         {% csrf_token %}
                         {{ change_ext_form|as_bootstrap }}
@@ -181,7 +181,7 @@ h3 {
                     {% for slot in slots %}
                         <div class="tt">
                             ( {{ slot.sequence }} )
-                            {% if slot.is_reciprocal %} Reciprocal Transfer Type: {% else %} Transfer Type: {% endif %}
+                            {% if slot.is_reciprocal %} {% trans "Reciprocal Transfer Type" %}: {% else %} {% trans "Transfer Type" %}: {% endif %}
                             <span class="hdg">{{ slot.name }}</span>
                             
                             <a href="#ttModal{{ slot.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
@@ -225,7 +225,7 @@ h3 {
                 </div>
             </div>
             <hr />
-            <h3>Pattern for this exchange type</h3>                  
+            <h3>{% trans "Pattern for this exchange type" %}</h3>                  
             <form id="facetsForm" action="." method="POST" >
                 {% csrf_token %}
 
@@ -262,7 +262,7 @@ h3 {
                                 </div>
                             </div>
                         {% empty %}
-                            <p>None</p>
+                            <p>{% trans "None" %}</p>
                         {% endfor %}
                     </div>
                     <div class="span6">

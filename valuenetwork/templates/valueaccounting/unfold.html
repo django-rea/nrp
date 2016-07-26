@@ -66,17 +66,17 @@
     <div class="row-fluid">  
         <div class="span3">    
             <div class="explain">
-                <p>A Process takes inputs and transforms them into outputs, 
+                <p>{% blocktrans %}A Process takes inputs and transforms them into outputs, 
                 and may be connected to other Processes in process flows.
                 {% if commitment %}
                     The work of <span class="this">{{ commitment.resource_type.name }}</span> 
-                    contributes to This Process. </p>
+                    contributes to This Process. {% endblocktrans %} </p>
                 {% endif %}
             </div>
         </div>    
         <div class="span6">
             <div>
-                <span class="explain">A Process happens in an organizational Context.</span></br>
+                <span class="explain">{% trans "A Process happens in an organizational Context." %}</span></br>
                 <span class="emph" >{% trans "Context" %}:</span> The {{ process.context_agent.agent_type }} 
                 <a href="{{ process.context_agent.get_absolute_url }}">{{ process.context_agent.name }}</a> 
                 {% if process.context_agent.description %}
@@ -86,9 +86,9 @@
             {% if process.independent_demand %}
                 <div><span class="explain">
                     {% if process.next_processes or process.previous_processes %}
-                        This process is connected to other processes to fulfill a {{ process.independent_demand.get_order_type_display }}.</br>
+                        {% blocktrans %}This process is connected to other processes to fulfill a {{ process.independent_demand.get_order_type_display }}.{% endblocktrans %}</br>
                     {% else %}
-                        This process fulfills a {{ process.independent_demand.get_order_type_display }}.</br>
+                        {% blocktrans %}This process fulfills a {{ process.independent_demand.get_order_type_display }}.{% endblocktrans %}</br>
                     {% endif %}</span>
                     <span class="emph" >{% trans "Order" %}:</span> 
                     <a href="{% url "order_schedule" order_id=process.independent_demand.id %}">{{ process.independent_demand }}</a>
@@ -203,7 +203,7 @@
         nextLid = '"' + nextLid + '"';
         var nextBid = 'c' + nbr;
         nextBid = '"' + nextBid + '"';
-        var insert = '<ul><li id=' + nextLid + '>Something else <button id='+ nextBid + ' class="btn btn-info btn-mini" >Connections</button></li></ul>';
+        var insert = '<ul><li id=' + nextLid + '>{% trans "Something else" %} <button id='+ nextBid + ' class="btn btn-info btn-mini" >{% trans "Connections" %}</button></li></ul>';
         $(lid).after(insert);
         
     }

@@ -50,7 +50,7 @@
                     action="{% url "delete_agent" agent_id=agent.id %}" 
                     method="POST" >
                     {% csrf_token %}
-                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete Agent" >Delete</button>
+                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete Agent" >{% trans "Delete" %}</button>
                 </form>
 	        {% endif %}
 {% endcomment %}

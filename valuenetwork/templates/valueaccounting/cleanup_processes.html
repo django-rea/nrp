@@ -19,11 +19,11 @@
         {% include "_messages.html" %}
 	<div>
 
-    <h2>Orphan processes</h2>
+    <h2>{% trans "Orphan processes" %}</h2>
     <ul>
         {% for orphan in orphans %}
             <li>
-                <a href="{{ orphan.get_absolute_url }}">{{ orphan }}</a> created by: {{ orphan.created_by }} created date: {{ orphan.created_date }} Finished: {{ orphan.finished }}
+                <a href="{{ orphan.get_absolute_url }}">{{ orphan }}</a> {% trans "created by" %}: {{ orphan.created_by }} {% trans "created dat" %}: {{ orphan.created_date }} {% trans "Finished" %}: {{ orphan.finished }}
                 {% if not orphan.finished %}
                     <form
 	                    style="display: inline;" 
@@ -33,7 +33,7 @@
                         method="POST" >
                         {% csrf_token %}
                     	<input type="hidden" id="next" name="next" value="cleanup-processes" />
-                        <button style="display: inline;"  class="btn btn-info btn-mini" title="Finish process" >Finish</button>
+                        <button style="display: inline;"  class="btn btn-info btn-mini" title="Finish process" >{% trans "Finish" %}</button>
                     </form>
                 {% endif %}
                 {% if orphan.is_deletable %}

@@ -34,7 +34,7 @@
             
             {% if resource_required %}
                 <div id="resources" class = "resources" >
-                    <p>This recipe needs a starting resource</p>
+                    <p>{% trans "This recipe needs a starting resource" %}</p>
                     {% for resource in resource_type.onhand %}
                         <p>
                             <input type="radio" id="resource-{{ resource.id }}" name="resource" value="{{ resource.id }}" />

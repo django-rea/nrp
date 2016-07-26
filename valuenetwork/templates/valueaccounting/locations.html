@@ -153,8 +153,8 @@
             {% if agent %}
                 var addAgentUrl = target.addAgentUrl;
                 
-                var changeAnchor = '<a href="' + target.locationUrl + '" >Change this Location</a>';
-                var addAnchor = '&nbsp;&nbsp;&nbsp;<a href="' + target.addAgentUrl + '" >Add me, ' + '{{ agent.nick }}' +  ', to this Location</a>';
+                var changeAnchor = '<a href="' + target.locationUrl + '" >{% trans "Change this Location" %}</a>';
+                var addAnchor = '&nbsp;&nbsp;&nbsp;<a href="' + target.addAgentUrl + '" >{% trans "Add me," %} ' + '{{ agent.nick }}' +  '{% trans ", to this Location" %}</a>';
                 $("#changeLocation").append(changeAnchor);
                 $("#changeLocation").append(addAnchor);
                 $("#changeLocation").show();

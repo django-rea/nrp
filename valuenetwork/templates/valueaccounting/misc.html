@@ -18,25 +18,25 @@
     <div class="container">
         {% include "_messages.html" %}
     <div>
-        <h3>Miscellaneous pages</h3>
+        <h3>{% trans "Miscellaneous pages and pagelets" %}</h3>
         
-        <p><a href="{% url "cleanup" %}">Cleanup functions</a></p>
+        <p><a href="{% url "cleanup" %}">{% trans "Cleanup functions" %}</a></p>
         
-        <h3>Pagelets</h3>
-        <p>These pagelets display information about a context agent (e.g. a Project) without any site decorations.</p>
-        <p>They are presented for a representative context agent ({{ context_agent }}), but can be used for any context agent.</p>
-        <p>They require the context agent Page name, for example, {{ context_agent.slug }}, which can be found in Admin.</p>
+        <h3>{% trans "Pagelets" %}</h3>
+        <p>{% blocktrans %}These pagelets display information about a context agent (e.g. a Project) without any site decorations.{% endblocktrans %}</p>
+        <p>{% blocktrans %}They are presented for a representative context agent ({{ context_agent }}), but can be used for any context agent.{% endblocktrans %}</p>
+        <p>{% blocktrans %}They require the context agent Page name, for example, {{ context_agent.slug }}, which can be found in Admin.{% endblocktrans %}</p>
         
         {% if context_agent %}
-            <p><a href="{% url "schedule" context_agent_slug=context_agent.slug %}">Project schedule</a></p>
-            <p><a href="{% url "project_roles" context_agent_slug=context_agent.slug %}">Project roles</a></p>
-            <p><a href="{% url "project_stats" context_agent_slug=context_agent.slug %}">All-time project stats</a></p>
-            <p><a href="{% url "recent_stats" context_agent_slug=context_agent.slug %}">Last 2 months project stats</a></p>
+            <p><a href="{% url "schedule" context_agent_slug=context_agent.slug %}">{% trans "Project schedule" %}</a></p>
+            <p><a href="{% url "project_roles" context_agent_slug=context_agent.slug %}">{% trans "Project roles" %}</a></p>
+            <p><a href="{% url "project_stats" context_agent_slug=context_agent.slug %}">{% trans "All-time project stats" %}</a></p>
+            <p><a href="{% url "recent_stats" context_agent_slug=context_agent.slug %}">{% trans "Last 2 months project stats" %}</a></p>
         {% else %}
-            <p>Pagelets require a context agent.</p>
+            <p>{% trans "Pagelets require a context agent." %}</p>
         {% endif %}
 {% comment %}
-        <h3>Distribution without value equation</h3>
+        <h3>{% trans "Distribution without value equation" %}</h3>
         <form id="distForm" method="POST" action="">
             {% csrf_token %}
             {{ ca_form }}

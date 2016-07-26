@@ -2,16 +2,17 @@
 
 {% load url from future %}
 {% load bootstrap_tags %}
+{% load i18n %}
 
-{% block head_title %}Account{% endblock %}
+{% block head_title %}{% trans "Account" %}{% endblock %}
 
 {% block body %}
     <form method="POST" action="{% url "account_settings" %}">
-        <legend>Account</legend>
+        <legend>{% trans "Account" %}</legend>
         {% csrf_token %}
         {{ form|as_bootstrap }}
         <div class="form-actions">
-            <button class="btn btn-primary" type="submit">Save</button>
+            <button class="btn btn-primary" type="submit">{% trans "Save" %}</button>
         </div>
     </form>
 {% endblock %}

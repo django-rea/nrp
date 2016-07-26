@@ -52,7 +52,7 @@
 	    nextLid = '"' + nextLid + '"';
 	    var nextBid = 'c' + nbr;
 	    nextBid = '"' + nextBid + '"';
-	    var insert = '<ul><li id=' + nextLid + '>Something else <button id='+ nextBid + ' class="btn btn-info btn-mini" >Connections</button></li></ul>';
+	    var insert = '<ul><li id=' + nextLid + '>{% trans "Something else" %} <button id='+ nextBid + ' class="btn btn-info btn-mini" >{% trans "Connections" %}</button></li></ul>';
 	    $(lid).after(insert);
 	    
     }

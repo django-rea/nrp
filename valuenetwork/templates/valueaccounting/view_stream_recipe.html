@@ -154,7 +154,7 @@ textarea {
 
           <div class="row-fluid"> 
             <div class="span6 inputs">
-                <h5 class="align-center">Inputs</h5>
+                <h5 class="align-center">{% trans "Inputs" %}</h5>
                 
                 {% for ptrt in process_type.to_be_changed_resource_type_relationships %}                
                     <div class="change-resource-type">
@@ -186,7 +186,7 @@ textarea {
             </div>
 
             <div class="span6 outputs">
-            <h5  class="align-center">Output</h5>
+            <h5  class="align-center">{% trans "Output" %}</h5>
                 {% for ptrt in process_type.produced_resource_type_relationships %}
                     <div class="change-resource-type">
                         {{ ptrt.stream_label }}

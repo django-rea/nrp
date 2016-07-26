@@ -113,7 +113,7 @@ label {
                     {% if agent.faircoin_resource %}
                         <tr>
                             <th style="text-align: right; vertical-align: top; ">{% trans "FairCoin account" %}</th>
-                            <td><a href="{% url "manage_faircoin_account" resource_id=agent.faircoin_resource.id %}">Manage Account</a></td>
+                            <td><a href="{% url "manage_faircoin_account" resource_id=agent.faircoin_resource.id %}">{% trans "Manage Account" %}</a></td>
                         </tr>
                     {% endif %}
                     {% if agent.unit_of_claim_value %}
@@ -125,7 +125,7 @@ label {
 	                {% if agent.url %}
 	                    <tr>
 	                        <th style="text-align: right;">{% trans "URL" %}</th>
-	                        <td><a href="{{ agent.url }}">Open</a></td>
+	                        <td><a href="{{ agent.url }}">{% trans "Open" %}</a></td>
                         </tr>
                     {% endif %}
                     {% if agent %}

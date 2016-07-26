@@ -1,0 +1,103 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          faircoin_payment
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Check faircoin payments in odoo.
+# Description:       This daemon comunicates with the payment_electrum module in odoo and permits to manage payments and expired orders in odoo. Also makes the transfers to the seller and to the market wallet for the fee. 
+### END INIT INFO
+
+cmd="python /home/ocp/webapp/valuenetwork/faircoin_nrp/daemon/daemon.py"
+cmd_stop="python /home/ocp/webapp/valuenetwork/faircoin_nrp/daemon/daemon.py stop kljk540sbcnm903053209n"
+name=`basename $0`
+pid_file="/var/run/$name.pid"
+stdout_log="/home/ocp/webapp/valuenetwork/daemon/daemon.log"
+stderr_log="/home/ocp/webapp/valuenetwork/daemon/daemon.log"
+user=ocp
+dir="/home/ocp/webapp/valuenetwork/faircoin_nrp/daemon"
+
+get_pid() {
+    cat "$pid_file"
+}
+
+is_running() {
+    [ -f "$pid_file" ] && ps `get_pid` > /dev/null 2>&1
+}
+
+case "$1" in
+    start)
+    if is_running; then
+        echo "Already started"
+    else
+        echo "Starting $name"
+        cd "$dir"
+        if [ -z "$user" ]; then
+            sudo $cmd >> "$stdout_log" 2>> "$stderr_log" &
+        else
+            sudo -u "$user" $cmd >> "$stdout_log" 2>> "$stderr_log" &
+        fi
+        echo $! > "$pid_file"
+        if ! is_running; then
+            echo "Unable to start, see $stdout_log and $stderr_log"
+            exit 1
+        fi
+    fi
+    ;;
+    stop)
+    if is_running; then
+        echo -n "Stopping $name"
+        cd "$dir"
+        if [ -z "$user" ]; then
+            sudo $cmd_stop
+        else
+            sudo -u "$user" $cmd_stop
+        fi
+        #kill `get_pid`
+        sleep 10
+        for i in {1..20}
+        do
+            if is_running; then
+                echo -n "."
+                sleep 2
+            else
+              break
+            fi
+        done
+        echo
+    fi
+    if is_running; then
+            echo "Not stopped; may still be shutting down or shutdown may have failed"
+            sleep 10
+            echo "Stopped"
+            if [ -f "$pid_file" ]; then
+                rm "$pid_file"
+            fi
+    else
+        echo "Not running"
+    fi
+    ;;
+    restart)
+    $0 stop
+    if is_running; then
+        echo "Unable to stop, will not attempt to start"
+        exit 1
+    fi
+    $0 start
+    ;;
+    status)
+    if is_running; then
+        echo "Running"
+    else
+        echo "Stopped"
+        exit 1
+    fi
+    ;;
+    *)
+    echo "Usage: $0 {start|stop|restart|status}"
+    exit 1
+    ;;
+esac
+
+exit 0

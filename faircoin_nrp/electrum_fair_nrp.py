@@ -46,6 +46,11 @@ def send_command(cmd, params):
     #logging.debug("sending : %s" %json.dumps(out, indent=4))
     return out
 
+# Get the network fee
+def network_fee():
+    response = send_command('network_fee', '')
+    return response
+
 # Stop electrum
 def do_stop():
     response = send_command('do_stop', '')

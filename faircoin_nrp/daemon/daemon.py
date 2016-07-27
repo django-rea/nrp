@@ -53,6 +53,9 @@ stopping = False
 
 logging.basicConfig(level=logging.DEBUG,format='%(asctime)s %(levelname)s %(message)s')
 
+def network_fee():
+    return network_fee
+
 def do_stop(password):
     global stopping
     if password != my_password:
@@ -217,6 +220,7 @@ if __name__ == '__main__':
     # server thread
     from jsonrpclib.SimpleJSONRPCServer import SimpleJSONRPCServer
     server = SimpleJSONRPCServer(( my_host, my_port))
+    server.register_function(network_fee, 'network_fee')
     server.register_function(do_stop, 'stop')
     server.register_function(is_connected,'is_connected')
     server.register_function(get_confirmations,'get_confirmations')

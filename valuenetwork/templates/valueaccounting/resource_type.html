@@ -71,9 +71,11 @@ container li {
 			        </div>
 		        {% endif %}
 		        
-		        <div style="display: inline;" >
-			        <a href="#resourceModal" role="button" class="btn btn-info" data-toggle="modal">{% trans "Create Resource" %}</a>
-		        </div>
+		        {% if not resource_type.is_work %}
+                    <div style="display: inline;" >
+                        <a href="#resourceModal" role="button" class="btn btn-info" data-toggle="modal">{% trans "Create Resource" %}</a>
+                    </div>
+                {% endif %}
 
 		    {% endif %}
 	   
@@ -85,28 +87,30 @@ container li {
                 {% endif %}
             {% endif %}
             {% if agent %}
-                {% if resource_type.recipe_is_staged %}
-                    <a href="{% url "edit_stream_recipe" resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >
-                {% else %}
-                    <a href="{% url "edit_extended_bill" resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >
-                {% endif %}
-                
-                {% if resource_type.producing_process_type_relationships %}
-                    {% trans "Change Recipe" %}
-                {% else %}
-                    {% trans "Create Manufacturing Recipe" %}
-                {% endif %}
-                </a>
-                
-                {% if not resource_type.producing_process_type_relationships %}
-                    <a href="{% url "edit_stream_recipe" resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >
-                    {% trans "Create Workflow Recipe" %}
+                {% if not resource_type.is_work %}
+                    {% if resource_type.recipe_is_staged %}
+                        <a href="{% url "edit_stream_recipe" resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >
+                    {% else %}
+                        <a href="{% url "edit_extended_bill" resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >
+                    {% endif %}
+                    
+                    {% if resource_type.producing_process_type_relationships %}
+                        {% trans "Change Recipe" %}
+                    {% else %}
+                        {% trans "Create Manufacturing Recipe" %}
+                    {% endif %}
                     </a>
-                {% endif %}
-                
-		        <a href="{% url "plan_from_rt" resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "Plan" %}</a>
-                {% if resource_type.producing_process_type_relationships %} 
-                    <a href="{% url "plan_from_rt_recipe" resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "Plan using recipe" %}</a>
+                    
+                    {% if not resource_type.producing_process_type_relationships %}
+                        <a href="{% url "edit_stream_recipe" resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >
+                        {% trans "Create Workflow Recipe" %}
+                        </a>
+                    {% endif %}
+                    
+                    <a href="{% url "plan_from_rt" resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "Plan" %}</a>
+                    {% if resource_type.producing_process_type_relationships %} 
+                        <a href="{% url "plan_from_rt_recipe" resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "Plan using recipe" %}</a>
+                    {% endif %}
                 {% endif %}
 	        {% endif %}
 	        
@@ -116,40 +120,42 @@ container li {
 		
 
          {% if agent %}
-            <div class="modal hide fade resourceModal" id="resourceModal" tabindex="-1" role="dialog" aria-labelledby="resource-label" aria-hidden="true">
-	            <div class="modal-header">
-		            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-		            <h3 id="resource-label">{% trans "Create Resource of type" %} {{ resource_type.name }}</h3>
-	            </div>
-	            <div class="modal-body">
-		            <form class="resource-form" id="resourceForm" enctype="multipart/form-data" action="." method="POST" >
-			            {% csrf_token %}
-			            {{ create_form|as_bootstrap }}
-                        {{ create_role_formset.management_form }}
-                        <table>
-                            <tr>
-                                <td>{% trans "Resource access role" %}</td>
-                                <td>{% trans "Assignment" %}</td>
-                                <td>{% trans "Is contact" %} &nbsp;</td>
-                            </tr>
-                            {% for form in create_role_formset %}
-                                {{ form.id }}  
-                                <tr class="role-row">
-                                    <td class="td-role">{{ form.role }}</td>
-                                    <td class="td-agent">{{ form.agent }}</td>
-                                    <td class="text-center">{{ form.is_contact }}</td>
+            {% if not resource_type.is_work %}
+                <div class="modal hide fade resourceModal" id="resourceModal" tabindex="-1" role="dialog" aria-labelledby="resource-label" aria-hidden="true">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                        <h3 id="resource-label">{% trans "Create Resource of type" %} {{ resource_type.name }}</h3>
+                    </div>
+                    <div class="modal-body">
+                        <form class="resource-form" id="resourceForm" enctype="multipart/form-data" action="." method="POST" >
+                            {% csrf_token %}
+                            {{ create_form|as_bootstrap }}
+                            {{ create_role_formset.management_form }}
+                            <table>
+                                <tr>
+                                    <td>{% trans "Resource access role" %}</td>
+                                    <td>{% trans "Assignment" %}</td>
+                                    <td>{% trans "Is contact" %} &nbsp;</td>
                                 </tr>
-                            {% endfor %}
-                        </table>
-		              <div class="modal-footer">
-			            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-			            <button class="btn btn-primary">{% trans "Save" %}</button>
-		              </div>
+                                {% for form in create_role_formset %}
+                                    {{ form.id }}  
+                                    <tr class="role-row">
+                                        <td class="td-role">{{ form.role }}</td>
+                                        <td class="td-agent">{{ form.agent }}</td>
+                                        <td class="text-center">{{ form.is_contact }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </table>
+                        <div class="modal-footer">
+                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                            <button class="btn btn-primary">{% trans "Save" %}</button>
+                        </div>
 
 
-		            </form>
+                        </form>
+                    </div>
                 </div>
-            </div>
+            {% endif %}
         {% endif %}
         
         <div class="facets" >{{ resource_type.facet_list }}</div>

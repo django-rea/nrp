@@ -1622,6 +1622,12 @@ class EconomicResourceType(models.Model):
         else:
             return False
             
+    def is_work(self):
+        if self.behavior == "work":
+            return True
+        else:
+            return False
+            
     def direct_children(self):
         return self.children.all()
         

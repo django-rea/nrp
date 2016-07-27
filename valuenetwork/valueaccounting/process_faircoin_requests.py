@@ -18,11 +18,7 @@ FAIRCOIN_DIVISOR = Decimal("1000000.00")
 def init_electrum_fair():
     #import pdb; pdb.set_trace()
     try:
-        if not efn.network:
-            efn.init()
-        else:
-            if not efn.network.is_connected():
-                efn.init()
+        assert(efn.is_connected())
     except:
         #handle failure better here
         msg = "Can not init Electrum Network. Exiting."
@@ -45,7 +41,6 @@ def acquire_lock():
     
 def create_address_for_agent(agent):
     #import pdb; pdb.set_trace()
-    wallet = efn.wallet
     address = None
     try:
         address = efn.new_fair_address(

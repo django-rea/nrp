@@ -29,6 +29,9 @@ logger = logging.getLogger("faircoins")
 
 #logging.basicConfig(level=logging.INFO,format='%(asctime)s %(levelname)s %(message)s')
 
+my_host = "localhost"
+my_port = 8069
+
 # Send command to the daemon.
 def send_command(cmd, params):
     import jsonrpclib

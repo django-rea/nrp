@@ -5,11 +5,31 @@ This is a howto for installing ocp in a debian/ubuntu system.
     sudo apt-get install virtualenv git libjpeg-dev zlib1g-dev build-essential
     sudo apt-get install python-setuptools python2.7-dev python-imaging python-qt4 
 
+- Install electrum-fair and daemon dependencies in the system: ::
+
+    sudo pip install https://electrum.fair-coin.org/download/Electrum-fair-2.3.3.tar.gz
+    sudo pip install jsonrpclib
+
+- Create an electrum-fair wallet: ::
+
+    electrum-fair create
+
+(this gives you seed to keep in safe place, and ask for password to encript the wallet. All the electrum-fair data will be created in /home/user/.electrum-fair/ directory)
+
+- Download from github and setup the daemon: ::
+
+    cd [installation dir]
+    git clone https://github.com/FreedomCoop/valuenetwork.git
+    vim valuenetwork/faircoin_nrp/daemon/daemon.conf #Set config
+    sudo ./valuenetwork/faircoin_nrp/daemon/daemon_service.sh start
+    sudo ./valuenetwork/faircoin_nrp/daemon/daemon_service.sh status
+
+If daemon runs ok, *daemon_service.sh status* returns *Running*
+
 - Create virtual enviroment and download from github: ::
 
     cd [installation dir]
     virtualenv env
-    git clone https://github.com/FreedomCoop/valuenetwork.git
 
 - Install python dependencies: ::
 
@@ -37,19 +57,6 @@ If ./manage.py doesn't work, you need to update shebang in manage.py with the ab
 - Check everything is ok in http://127.0.0.1:8000 with web browser.
 
 - Stop the dev web server: ctrl+c
-
-- Create an electrum-fair wallet: ::
-
-    electrum-fair create
-
-(this gives you seed to keep in safe place, and ask for password to encript the wallet. All the electrum-fair data will be created in /home/user/.electrum-fair/ directory)
-
-- Configurate ocp to work with the wallet: ::
-
-    vim faircoin_nrp/electrum-fair-nrp.conf
-
-Write the path to your wallet (/home/user/.electrum-fair/wallets/default_wallet) and the password.
-Comment or delete seed parameter.
 
 - Set up a crontab like this: ::
 

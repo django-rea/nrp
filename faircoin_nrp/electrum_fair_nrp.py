@@ -65,40 +65,48 @@ def get_balance():
 # get the balance for a determined address
 # Returns a tupla with 3 values: Confirmed, Unmature, Unconfirmed
 def get_address_balance(address):
-    response = send_command('get_address_balance', address)
+    format_dict = {"address" : address}
+    response = send_command('get_address_balance', format_dict)
     return response
 
 #check if an address is valid
 def is_valid(address):
-    response = send_command('is_valid', address)
+    format_dict = {"address" : address}
+    response = send_command('is_valid', format_dict)
     return response
 
 #check if an address is from the wallet
 def is_mine(address):
-    response = send_command('is_mine', address)
+    format_dict = {"address" : address}
+    response = send_command('is_mine', format_dict)
     return response
 
 #read the history of an address
 def get_address_history(address):
-    response = send_command('get_address_history', address)
+    format_dict = {"address" : address}
+    response = send_command('get_address_history', format_dict)
     return response
 
 # make a transfer from an adress of the wallet 
 def make_transaction_from_address(address_origin, address_end, amount):
-    response = send_command('make_transaction_from_address', [address_origin, address_end, amount])
+    format_dict = {"address_origin" : address_origin, "address_end" : address_end, "amount" : amount}
+    response = send_command('make_transaction_from_address', format_dict)
     return response
          
 def address_history_info(address, page = 0, items = 20):
-    response = send_command('address_history_info', [address, page, items])
+    format_dict = {"address" : address, "page" : page, "items" : items}
+    response = send_command('address_history_info', format_dict)
     return response
 
 # create new address for users or any other entity
 def new_fair_address(entity_id, entity = 'generic'):
-    response = send_command('new_fair_address', [entity_id, entity])
+    format_dict = {"entity_id" : entity_id, "entity" : entity}
+    response = send_command('new_fair_address', format_dict)
     return response
 
 def get_confirmations(tx):
-    response = send_command('get_confirmations', tx)
+    format_dict = {"tx" : tx}
+    response = send_command('get_confirmations', format_dict)
     return response
 
 #Check if it is connected to the electum network

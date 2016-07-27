@@ -282,6 +282,9 @@ class Location(models.Model):
     address = models.CharField(max_length=255, blank=True)
     latitude = models.FloatField(default=0.0, blank=True, null=True)
     longitude = models.FloatField(default=0.0, blank=True, null=True)
+    
+    class Meta:
+        ordering = ('name',)
 
     def __unicode__(self):
         return self.name
@@ -1615,6 +1618,12 @@ class EconomicResourceType(models.Model):
 
     def is_virtual_account(self):
         if self.behavior == "account":
+            return True
+        else:
+            return False
+            
+    def is_work(self):
+        if self.behavior == "work":
             return True
         else:
             return False

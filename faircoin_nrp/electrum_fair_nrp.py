@@ -38,13 +38,11 @@ def send_command(cmd, params):
     except socket.error:
         logging.error("Can not connect to the server.")
         return 1
-        
     try:
         out = f(*params)
     except socket.error:
         logging.error("Can not send the command")
         return 1
-
     #logging.debug("sending : %s" %json.dumps(out, indent=4))
     return out
 

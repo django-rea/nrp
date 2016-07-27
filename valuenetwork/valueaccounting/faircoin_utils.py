@@ -2,7 +2,7 @@ import faircoin_nrp.electrum_fair_nrp as efn
 
 def init_electrum_fair():
     try:
-        assert(efn.is_connected())
+        assert(efn.daemon_is_up())
     except:
         msg = "Can not init Electrum Network. Exiting."
         assert False, msg

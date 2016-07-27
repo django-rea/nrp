@@ -176,8 +176,10 @@ def get_confirmations(tx):
 
 #Check if it is connected to the electum network
 def is_connected():
-        return network.is_connected()
-    
+    return network.is_connected()
+
+def daemon_is_up():
+    return True    
 
 if __name__ == '__main__':
     
@@ -223,6 +225,7 @@ if __name__ == '__main__':
     server.register_function(network_fee, 'network_fee')
     server.register_function(do_stop, 'stop')
     server.register_function(is_connected,'is_connected')
+    server.register_function(daemon_is_up,'daemon_is_up')
     server.register_function(get_confirmations,'get_confirmations')
     server.register_function(new_fair_address,'new_fair_address')
     server.register_function(address_history_info,'address_history_info')

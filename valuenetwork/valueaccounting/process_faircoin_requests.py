@@ -18,7 +18,7 @@ FAIRCOIN_DIVISOR = Decimal("1000000.00")
 def init_electrum_fair():
     #import pdb; pdb.set_trace()
     try:
-        assert(efn.is_connected())
+        assert(efn.daemon_is_up())
     except:
         #handle failure better here
         msg = "Can not init Electrum Network. Exiting."

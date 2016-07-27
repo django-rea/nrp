@@ -117,3 +117,8 @@ def is_connected():
     response = send_command('is_connected', '')
     return response
 
+#Check if daemon is up and connected.
+def daemon_is_up():
+    response = send_command('daemon_is_up', '')
+    return response
+

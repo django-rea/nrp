@@ -2,11 +2,7 @@ import faircoin_nrp.electrum_fair_nrp as efn
 
 def init_electrum_fair():
     try:
-        if not efn.network:
-            efn.init()
-        else:
-            if not efn.network.is_connected():
-                efn.init()
+        assert(efn.is_connected())
     except:
         msg = "Can not init Electrum Network. Exiting."
         assert False, msg
@@ -37,8 +33,7 @@ def send_fake_faircoins(address_origin, address_end, amount):
     
 def get_address_history(address):
     init_electrum_fair()
-    wallet = efn.wallet
-    return wallet.get_address_history(address)
+    return efn.get_address_history(address)
 
 def get_address_balance(address):
     init_electrum_fair()

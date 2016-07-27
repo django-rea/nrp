@@ -46,60 +46,60 @@ def send_command(cmd, params):
         return 1
 
     #logging.debug("sending : %s" %json.dumps(out, indent=4))
-return 0
+    return out
 
 # Stop electrum
 def do_stop():
-    return_daemon = send_command('do_stop', '')
-    return return_daemon
+    response = send_command('do_stop', '')
+    return response
 
 # get the total balance for the wallet
 # Returns a tupla with 3 values: Confirmed, Unmature, Unconfirmed
 def get_balance():
-    return_daemon = send_command('get_balance', '')
-    return return_daemon
+    response = send_command('get_balance', '')
+    return response
 
 # get the balance for a determined address
 # Returns a tupla with 3 values: Confirmed, Unmature, Unconfirmed
 def get_address_balance(address):
-    return_daemon = send_command('get_address_balance', address)
-    return return_daemon
+    response = send_command('get_address_balance', address)
+    return response
 
 #check if an address is valid
 def is_valid(address):
-    return_daemon = send_command('is_valid', address)
-    return return_daemon
+    response = send_command('is_valid', address)
+    return response
 
 #check if an address is from the wallet
 def is_mine(address):
-    return_daemon = send_command('is_mine', address)
-    return return_daemon
+    response = send_command('is_mine', address)
+    return response
 
 #read the history of an address
 def get_address_history(address):
-    return_daemon = send_command('get_address_history', address)
-    return return_daemon
+    response = send_command('get_address_history', address)
+    return response
 
 # make a transfer from an adress of the wallet 
 def make_transaction_from_address(address_origin, address_end, amount):
-    return_daemon = send_command('make_transaction_from_address', [address_origin, address_end, amount])
-    return return_daemon
+    response = send_command('make_transaction_from_address', [address_origin, address_end, amount])
+    return response
          
 def address_history_info(address, page = 0, items = 20):
-    return_daemon = send_command('address_history_info', [address, page, items])
-    return return_daemon
+    response = send_command('address_history_info', [address, page, items])
+    return response
 
 # create new address for users or any other entity
 def new_fair_address(entity_id, entity = 'generic'):
-    return_daemon = send_command('new_fair_address', [entity_id, entity])
-    return return_daemon
+    response = send_command('new_fair_address', [entity_id, entity])
+    return response
 
 def get_confirmations(tx):
-    return_daemon = send_command('get_confirmations', tx)
-    return return_daemon
+    response = send_command('get_confirmations', tx)
+    return response
 
 #Check if it is connected to the electum network
 def is_connected():
-    return_daemon = send_command('is_connected', '')
-    return return_daemon
+    response = send_command('is_connected', '')
+    return response
 

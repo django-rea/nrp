@@ -218,6 +218,7 @@ if __name__ == '__main__':
     wallet.change_gap_limit(100)  
     wallet.start_threads(network)
     #network.register_callback('updated', on_wallet_update)
+    cmd_wallet = electrum_fair.commands.Commands(c, wallet, network)
 
     # server thread
     from jsonrpclib.SimpleJSONRPCServer import SimpleJSONRPCServer

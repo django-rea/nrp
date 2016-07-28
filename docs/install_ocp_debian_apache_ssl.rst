@@ -20,12 +20,12 @@ This is a howto for installing ocp in a debian/ubuntu system.
 
     cd [installation dir]
     git clone https://github.com/FreedomCoop/valuenetwork.git
-    vim valuenetwork/faircoin_nrp/daemon/daemon_service.sh #Set paths and user for starting the daemon.
+    vim valuenetwork/faircoin_nrp/daemon/daemon_service #Set paths and user for starting the daemon.
     vim valuenetwork/faircoin_nrp/daemon/daemon.conf #Set wallet config
-    sudo ./valuenetwork/faircoin_nrp/daemon/daemon_service.sh start
-    sudo ./valuenetwork/faircoin_nrp/daemon/daemon_service.sh status
+    sudo ./valuenetwork/faircoin_nrp/daemon/daemon_service start
+    sudo ./valuenetwork/faircoin_nrp/daemon/daemon_service status
 
-If daemon runs ok, *daemon_service.sh status* returns *Running*
+If daemon runs ok, *daemon_service status* returns *Running*
 
 - Create virtual enviroment and install python dependencies: ::
 

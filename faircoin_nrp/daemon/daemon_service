@@ -9,14 +9,14 @@
 # Description:       This daemon comunicates with the payment_electrum module in odoo and permits to manage payments and expired orders in odoo. Also makes the transfers to the seller and to the market wallet for the fee. 
 ### END INIT INFO
 
-cmd="python /home/ocp/webapp/valuenetwork/faircoin_nrp/daemon/daemon.py"
-cmd_stop="python /home/ocp/webapp/valuenetwork/faircoin_nrp/daemon/daemon.py stop kljk540sbcnm903053209n"
+cmd="./daemon.py"
+cmd_stop="./daemon.py stop kljk540sbcnm903053209n"
 name=`basename $0`
 pid_file="/var/run/$name.pid"
-stdout_log="/home/ocp/webapp/valuenetwork/daemon/daemon.log"
-stderr_log="/home/ocp/webapp/valuenetwork/daemon/daemon.log"
+stdout_log="/home/user/webapp/valuenetwork/faircoin_nrp/daemon/daemon.log"
+stderr_log="/home/user/webapp/valuenetwork/faircoin_nrp/daemon/daemon.log"
 user=ocp
-dir="/home/ocp/webapp/valuenetwork/faircoin_nrp/daemon"
+dir="/home/user/webapp/valuenetwork/faircoin_nrp/daemon"
 
 get_pid() {
     cat "$pid_file"
@@ -54,7 +54,7 @@ case "$1" in
         else
             sudo -u "$user" $cmd_stop
         fi
-        #kill `get_pid`
+        kill `get_pid`
         sleep 10
         for i in {1..20}
         do

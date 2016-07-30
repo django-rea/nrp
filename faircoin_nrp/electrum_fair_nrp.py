@@ -27,7 +27,7 @@ import socket
 import logging
 logger = logging.getLogger("faircoins")
 
-#logging.basicConfig(level=logging.INFO,format='%(asctime)s %(levelname)s %(message)s')
+logging.basicConfig(level=logging.DEBUG,format='%(asctime)s %(levelname)s %(message)s')
 
 my_host = "localhost"
 my_port = 8069
@@ -46,7 +46,7 @@ def send_command(cmd, params):
     except socket.error:
         logging.error("Can not send the command")
         return 1
-    #logging.debug("sending : %s" %json.dumps(out, indent=4))
+    logging.debug('sending: %s --- response: %s'%(cmd, out))
     return out
 
 # Get the network fee
@@ -122,3 +122,7 @@ def daemon_is_up():
     response = send_command('daemon_is_up', '')
     return response
 
+#get wallet info.
+def get_wallet_info():
+     response = send_command('get_wallet_info', '')
+     return response

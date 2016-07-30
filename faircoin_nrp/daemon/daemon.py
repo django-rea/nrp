@@ -181,6 +181,9 @@ def is_connected():
 def daemon_is_up():
     return True    
 
+def get_wallet_info():
+    return {"name" : wallet.basename(), "version" : wallet.electrum_version}
+
 if __name__ == '__main__':
     
     if len(sys.argv) > 1:
@@ -227,6 +230,7 @@ if __name__ == '__main__':
     server.register_function(do_stop, 'stop')
     server.register_function(is_connected,'is_connected')
     server.register_function(daemon_is_up,'daemon_is_up')
+    server.register_function(get_wallet_info,'get_wallet_info')
     server.register_function(get_confirmations,'get_confirmations')
     server.register_function(new_fair_address,'new_fair_address')
     server.register_function(address_history_info,'address_history_info')

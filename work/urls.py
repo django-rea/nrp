@@ -23,6 +23,8 @@ urlpatterns = patterns("",
         name="transfer_faircoins"),
     url(r"^faircoin-history/(?P<resource_id>\d+)/$", 'work.views.faircoin_history', 
         name="faircoin_history"),
+    url(r"^change-faircoin-account/(?P<resource_id>\d+)/$", 'work.views.change_faircoin_account', 
+        name="change_faircoin_account"),
     url(r'^membership/$', 'work.views.membership_request', name="membership_request"),
     url(r'^membershipthanks/$', TemplateView.as_view(template_name='work/membership_thanks.html'), name='membership_thanks'),
 )

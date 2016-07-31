@@ -70,9 +70,10 @@
 				    <h3 id="resource-change-label">{% trans "Change" %} {{ resource }}</h3>
 			    </div>
 			    <div class="modal-body">
-				    <form id="resource-change-form" action="{% url "change_resource" resource_id=resource.id %}" method="POST" >
+				    <form id="resource-change-form" action="{% url "change_faircoin_account" resource_id=resource.id %}" method="POST" >
 					    {% csrf_token %}
 					    {{ resource.change_form|as_bootstrap }}
+					    {% comment %}
                         {{ role_formset.management_form }}
                         <table>
                             <tr>
@@ -91,6 +92,7 @@
 	                            </tr>
                            	{% endfor %}
                         </table>
+                        {% endcomment %}
 				        <div class="modal-footer">
 					      <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 					      <button class="btn btn-primary">{% trans "Save changes" %}</button>

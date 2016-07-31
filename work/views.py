@@ -710,6 +710,7 @@ def work_process_finished(request, process_id):
     return HttpResponseRedirect('/%s/%s/'
         % ('work/process-logging', process_id))
 
+@login_required
 def manage_faircoin_account(request, resource_id):
     #import pdb; pdb.set_trace()
     resource = get_object_or_404(EconomicResource, id=resource_id)
@@ -728,6 +729,40 @@ def manage_faircoin_account(request, resource_id):
         "send_coins_form": send_coins_form,
         "limit": limit,
     }, context_instance=RequestContext(request))
+    
+@login_required
+def change_faircoin_account(request, resource_id):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        resource = get_object_or_404(EconomicResource, pk=resource_id)
+        form = EconomicResourceForm(data=request.POST, instance=resource)
+        if form.is_valid():
+            data = form.cleaned_data
+            resource = form.save(commit=False)
+            resource.changed_by=request.user
+            resource.save()
+            """
+            RraFormSet = modelformset_factory(
+                AgentResourceRole,
+                form=ResourceRoleAgentForm,
+                can_delete=True,
+                extra=4,
+                )
+            role_formset = RraFormSet(
+                prefix="role", 
+                queryset=resource.agent_resource_roles.all(),
+                data=request.POST
+                )
+            if role_formset.is_valid():
+                saved_formset = role_formset.save(commit=False)
+                for role in saved_formset:
+                    role.resource = resource
+                    role.save()
+            """
+            return HttpResponseRedirect('/%s/%s/'
+                % ('work/manage-faircoin-account', resource_id))
+        else:
+            raise ValidationError(form.errors)
 
 @login_required
 def transfer_faircoins(request, resource_id):

@@ -6,4 +6,4 @@ Type: {{ type_of_membership }}
 Description: {{ description }}
 
 You can see all unfinished membership requests here:{% endblocktrans %}
-http://{{ current_site }}
+https://{{ current_site }}/accounting/membership-requests/

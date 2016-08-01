@@ -101,6 +101,14 @@ TEMPLATE_CONTEXT_PROCESSORS = [
     "account.context_processors.account",
 ]
 
+LOGIN_URL = '/account/login/'
+
+LOGIN_EXEMPT_URLS = (
+    r"^$",
+    r'^work/membership/',
+    r'^work/membershipthanks/',
+) 
+
 
 MIDDLEWARE_CLASSES = [
     "corsheaders.middleware.CorsMiddleware",
@@ -109,6 +117,7 @@ MIDDLEWARE_CLASSES = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
+    "valuenetwork.login_required_middleware.LoginRequiredMiddleware",
     #'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 

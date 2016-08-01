@@ -2,7 +2,7 @@ To install on Ubuntu for development:
 
 You need python 2.7+, but *not* python 3+
 
-1. install pip globally:
+1. install pip globally: (see below if you already have pip installed)
 http://www.pip-installer.org/en/latest/installing.html#prerequisites
 
 May need to install easy_install first: 
@@ -25,57 +25,42 @@ export WORKON_HOME=~/Envs
 mkdir -p $WORKON_HOME
 source /usr/local/bin/virtualenvwrapper.sh
 
-Step 6 assumes virtualenvwrapper
+Step 5 assumes virtualenvwrapper
+
+* If you already have pip, virtualenv and virtualenvwrapper, 
+you might want to upgrade them:
+sudo pip install -U pip
+sudo pip install -U virtualenv
+sudo pip install -U virtualenvwrapper
+
+You might also need to upgrade setuptools:
+sudo pip install -U setuptools
+
+(Rdflib, one of the requirements, needs
+setuptools version 18.5 or above.)
 
 4. unless you don't have it already: install git
 sudo apt-get install git
 
-5. We have had problems getting Pillow, one of the requirements, 
-to handle jpegs without installing some external libraries.
-
-It's gone from requirements.txt until we figure this out more.
-But you will need either Pillow or PIL, the Python Imaging Library.
-
-See 
-http://pillow.readthedocs.org/en/latest/installation.html#simple-installation
-for how to install Pillow on your operating system.
-
-Note: Apostolis Xekoukoulotakis reports that on Debian, Pillow requires
-libjpeg-dev and python2.7-dev.
-
-Here's PIL: https://pypi.python.org/pypi/PIL/
-http://askubuntu.com/questions/156484/how-do-i-install-python-imaging-library-pil
-
-6. create a virtualenv (assuming you installed virtualenvwrapper):
+5. create a virtualenv (assuming you installed virtualenvwrapper):
 mkvirtualenv vn --system-site-packages 
 workon vn
 cdvirtualenv
 
-7. clone the valuenetwork repo inside the vn virtualenv.
-git clone https://github.com/valnet/valuenetwork.git
+6. clone the valuenetwork repo inside the vn virtualenv.
+git clone https://github.com/FreedomCoop/valuenetwork.git
  
-8. cd valuenetwork
+7. cd valuenetwork
 
-9. pip install -r requirements.txt --trusted-host dist.pinaxproject.com
+8. pip install -r requirements.txt --trusted-host dist.pinaxproject.com
 
-Note: if you get the pip error message, no such option: --trusted-host
-do 
-pip install -U pip
+9. pip install --no-deps easy_thumbnails
 
-10. pip install --no-deps easy_thumbnails
-
-11. create the sqlite database
-./manage.py syncdb
-and then
+10. create the sqlite database
 ./manage.py migrate
 
-We've had some problems with easy_thumbnails migration.
-If you do, create a local_settings.py file
-in the same directory as settings.py and add:
-
-SOUTH_MIGRATION_MODULES = {
-    'easy_thumbnails': 'easy_thumbnails.south_migrations',
-}
+11. create a superuser for yourself so you can login:
+./manage.py createsuperuser
 
 12. do this to install some starter facets and patterns:
 ./manage.py loaddata ./fixtures/starters.json
@@ -107,7 +92,7 @@ You will be the only user who will need to do this.
 All other Agents and Users can be created from 
 the Organization page.
 
-18.  To be able to run scripts in shell_plus:
+18.  To be able to run scripts in ./manage.py shell_plus:
 
 pip install ipython
 

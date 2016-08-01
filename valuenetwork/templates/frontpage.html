@@ -1,0 +1,22 @@
+{% load i18n %}
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="https://www.w3.org/1999/xhtml" lang="en">
+
+<title>{% trans "New OCP front page" %}</title>
+
+<h1>{% trans "New OCP front page" %}</h1>
+
+<p>
+    {% if request.user.is_authenticated %}
+        <a href="{% url "start" %}">{% trans "My work" %}</a>
+    {% else %}
+        <a href="{% url "account_login" %}">{% trans "Login" %}</a>
+    {% endif %}
+</p>
+
+<p>
+    <a href="{% url 'membership_request' %}">{% trans "Request Membership" %}</a>
+</p>
+
+</html>

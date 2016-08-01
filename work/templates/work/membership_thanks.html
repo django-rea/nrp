@@ -1,16 +1,11 @@
-{% extends "work_base.html" %}
-
 {% load i18n %}
 {% load bootstrap_tags %}
 
-{% block head_title %}{% trans "Thank you for your membership request" %}{% endblock %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="https://www.w3.org/1999/xhtml" lang="en">
 
-{% block extra_head %}
-{% endblock %}
+<title>{% trans "Thank you for your membership request" %}</title>
 
-{% block body_class %}membership{% endblock %}
-
-{% block body_base %}
 <div class="container">
         {% include "_messages.html" %}
 
@@ -22,4 +17,5 @@
             {% trans "A Freedom Coop administrator will send you an email soon." %}
         </div>
 </div>
-{% endblock %}
+
+</html>

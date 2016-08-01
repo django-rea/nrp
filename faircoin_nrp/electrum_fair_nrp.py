@@ -25,8 +25,9 @@
 import time, sys, os
 import socket
 import logging
-logger = logging.getLogger("faircoins")
+import jsonrpclib
 
+logger = logging.getLogger("faircoins")
 logging.basicConfig(level=logging.DEBUG,format='%(asctime)s %(levelname)s %(message)s')
 
 my_host = "localhost"
@@ -34,19 +35,18 @@ my_port = 8069
 
 # Send command to the daemon.
 def send_command(cmd, params):
-    import jsonrpclib
     server = jsonrpclib.Server('http://%s:%d'%(my_host, my_port))
     try:
         f = getattr(server, cmd)
-    except socket.error:
-        logging.error("Can not connect to the server.")
-        return 1
+    except socket.error, (value, message):
+        logging.error("Can not connect to faircoin daemon. %d %s" %(value,message))
+        return "ERROR"
     try:
         out = f(*params)
-    except socket.error:
-        logging.error("Can not send the command")
-        return 1
-    logging.debug('sending: %s --- response: %s'%(cmd, out))
+    except socket.error, (value, message):
+        logging.error("Can not send the command %d %s" %(value,message))
+        return "ERROR"
+    logging.debug('sending: %s (%s) --- response: %s'%(cmd, params, out))
     return out
 
 # Get the network fee
@@ -68,47 +68,47 @@ def get_balance():
 # get the balance for a determined address
 # Returns a tupla with 3 values: Confirmed, Unmature, Unconfirmed
 def get_address_balance(address):
-    format_dict = {"address" : address}
+    format_dict = [address]
     response = send_command('get_address_balance', format_dict)
     return response
 
 #check if an address is valid
 def is_valid(address):
-    format_dict = {"address" : address}
+    format_dict = [address]
     response = send_command('is_valid', format_dict)
     return response
 
 #check if an address is from the wallet
 def is_mine(address):
-    format_dict = {"address" : address}
+    format_dict = [address]
     response = send_command('is_mine', format_dict)
     return response
 
 #read the history of an address
 def get_address_history(address):
-    format_dict = {"address" : address}
+    format_dict = [address]
     response = send_command('get_address_history', format_dict)
     return response
 
 # make a transfer from an adress of the wallet 
 def make_transaction_from_address(address_origin, address_end, amount):
-    format_dict = {"address_origin" : address_origin, "address_end" : address_end, "amount" : amount}
+    format_dict = [address_origin, address_end, amount]
     response = send_command('make_transaction_from_address', format_dict)
     return response
          
 def address_history_info(address, page = 0, items = 20):
-    format_dict = {"address" : address, "page" : page, "items" : items}
+    format_dict = [ address, page, items]
     response = send_command('address_history_info', format_dict)
     return response
 
 # create new address for users or any other entity
 def new_fair_address(entity_id, entity = 'generic'):
-    format_dict = {"entity_id" : entity_id, "entity" : entity}
+    format_dict = [entity_id, entity]
     response = send_command('new_fair_address', format_dict)
     return response
 
 def get_confirmations(tx):
-    format_dict = {"tx" : tx}
+    format_dict = [tx]
     response = send_command('get_confirmations', format_dict)
     return response
 

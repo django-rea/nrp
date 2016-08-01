@@ -45,7 +45,7 @@ wallet_path = config.get('electrum','wallet_path')
 
 seed = config.get('electrum','seed')
 password = config.get('electrum', 'password')
-network_fee = config.get('network','fee')
+net_fee = config.get('network','fee')
 
 num = 0
 
@@ -53,8 +53,9 @@ stopping = False
 
 logging.basicConfig(level=logging.DEBUG,format='%(asctime)s %(levelname)s %(message)s')
 
-def network_fee():
-    return network_fee
+def fee():
+    logging.debug("Network Fee %d" %net_fee)
+    return net_fee
 
 def do_stop(password):
     global stopping
@@ -85,11 +86,13 @@ def send_command(cmd, params):
 # get the total balance for the wallet
 # Returns a tupla with 3 values: Confirmed, Unmature, Unconfirmed
 def get_balance():
+    logging.debug("get_balance")
     return wallet.get_balance()
 
 # get the balance for a determined address
 # Returns a tupla with 3 values: Confirmed, Unmature, Unconfirmed
 def get_address_balance(address):
+    logging.debug("get_address_balance")
     return wallet.get_balance([address])
 
 #check if an address is valid
@@ -106,36 +109,37 @@ def get_address_history(address):
 
 # make a transfer from an adress of the wallet 
 def make_transaction_from_address(address_origin, address_end, amount):
+    logging.debug("starting transaction %s %s %s" %(address_origin, address_end, amount))
     if not is_mine(address_origin): 
-        logger.error("The address %s does not belong to this wallet" %address_origin)
+        logging.error("The address %s does not belong to this wallet" %address_origin)
         return False
     if not is_valid(address_end):
-        logger.error("The address %s is not a valid faircoin address" %address_end)
+        logging.error("The address %s is not a valid faircoin address" %address_end)
         return False
 
     inputs = [address_origin]
     coins = wallet.get_spendable_coins(domain = inputs)
     #print coins
-    amount_total = ( 1.e6 * float(amount) ) - float(network_fee)
+    amount_total = ( 1.e6 * float(amount) ) - float(net_fee)
     amount_total = int(amount_total)
 
     if amount_total > 0:
         output = [('address', address_end, int(amount_total))] 
     else:
-        logger.error("Amount negative: %s" %(amount_total) )
+        logging.error("Amount negative: %s" %(amount_total) )
         return False
     try:
         tx = wallet.make_unsigned_transaction(coins, output, change_addr=address_origin)
     except NotEnoughFunds:
-	        logger.error("Not enough funds confirmed to make the transaction. %s %s %s" %wallet.get_addr_balance(address_origin))
-                return False
+        logging.error("Not enough funds confirmed to make the transaction. %s %s %s" %wallet.get_addr_balance(address_origin))
+        return False
     wallet.sign_transaction(tx, password)
     rec_tx_state, rec_tx_out = wallet.sendtx(tx)
     if rec_tx_state:
-         logger.info("SUCCESS. The transaction has been broadcasted.")
+         logging.info("SUCCESS. The transaction %s has been broadcasted." %rec_tx_out)
          return rec_tx_out
     else:
-         logger.error("Sending %s fairs to the address %s" %(amount_total, address_end ) )
+         logging.error("Sending %s fairs to the address %s" %(amount_total, address_end ) )
          return False
          
 def address_history_info(address, page = 0, items = 20):
@@ -226,7 +230,7 @@ if __name__ == '__main__':
     # server thread
     from jsonrpclib.SimpleJSONRPCServer import SimpleJSONRPCServer
     server = SimpleJSONRPCServer(( my_host, my_port))
-    server.register_function(network_fee, 'network_fee')
+    server.register_function(fee, 'fee')
     server.register_function(do_stop, 'stop')
     server.register_function(is_connected,'is_connected')
     server.register_function(daemon_is_up,'daemon_is_up')

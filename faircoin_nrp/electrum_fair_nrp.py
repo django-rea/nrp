@@ -46,12 +46,16 @@ def send_command(cmd, params):
     except socket.error, (value, message):
         logging.error("Can not send the command %d %s" %(value,message))
         return "ERROR"
-    logging.debug('sending: %s (%s) --- response: %s'%(cmd, params, out))
+    logger.debug('send command: %s --- params: %s --- response: %s' %(cmd, params, out))
+    logging.debug('send command: %s --- params: %s --- response: %s' %(cmd, params, out))
     return out
 
 # Get the network fee
 def network_fee():
-    response = send_command('network_fee', '')
+    logger.critical('network_fee')
+    response = send_command('fee', '')
+    logger.debug('network_fee response: %s' %(response))
+    logging.debug('network_fee response: %s' %(response))
     return response
 
 # Stop electrum
@@ -97,7 +101,7 @@ def make_transaction_from_address(address_origin, address_end, amount):
     return response
          
 def address_history_info(address, page = 0, items = 20):
-    format_dict = [ address, page, items]
+    format_dict = [address, page, items]
     response = send_command('address_history_info', format_dict)
     return response
 

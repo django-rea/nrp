@@ -35,6 +35,7 @@ my_port = 8069
 
 # Send command to the daemon.
 def send_command(cmd, params):
+    logging.debug('send command: %s --- params: %s' %(cmd, params))
     server = jsonrpclib.Server('http://%s:%d'%(my_host, my_port))
     try:
         f = getattr(server, cmd)
@@ -46,16 +47,12 @@ def send_command(cmd, params):
     except socket.error, (value, message):
         logging.error("Can not send the command %d %s" %(value,message))
         return "ERROR"
-    logger.debug('send command: %s --- params: %s --- response: %s' %(cmd, params, out))
-    logging.debug('send command: %s --- params: %s --- response: %s' %(cmd, params, out))
+    logging.debug('response: %s' %(out))
     return out
 
 # Get the network fee
 def network_fee():
-    logger.critical('network_fee')
     response = send_command('fee', '')
-    logger.debug('network_fee response: %s' %(response))
-    logging.debug('network_fee response: %s' %(response))
     return response
 
 # Stop electrum

@@ -13,7 +13,7 @@ import faircoin_nrp.electrum_fair_nrp as efn
 from valuenetwork.valueaccounting.models import EconomicAgent, EconomicEvent, EconomicResource
 from valuenetwork.valueaccounting.lockfile import FileLock, AlreadyLocked, LockTimeout, LockFailed
 
-FAIRCOIN_DIVISOR = Decimal("1000000.00")
+#FAIRCOIN_DIVISOR = int(1000000)
 
 def init_electrum_fair():
     #import pdb; pdb.set_trace()
@@ -111,12 +111,12 @@ def broadcast_tx():
         failed_events = 0
         if events:
             init_electrum_fair()
-            logger.debug("broadcast_tx ready to process events")
+            logger.critical("broadcast_tx ready to process events")
         for event in events:
             #do we need to check for missing digital_currency_address here?
             #and create them?
-            fee = efn.network_fee
-            fee = Decimal(fee) / FAIRCOIN_DIVISOR
+            fee = efn.network_fee()
+            #fee = Decimal("%s" %fee) / FAIRCOIN_DIVISOR
             if event.resource:
                 if event.event_type.name=="Give":
                     address_origin = event.resource.digital_currency_address
@@ -124,14 +124,14 @@ def broadcast_tx():
                 elif event.event_type.name=="Distribution":
                     address_origin = event.from_agent.faircoin_address()
                     address_end = event.resource.digital_currency_address
-                
-                amount = event.quantity - fee
-                logger.debug("about to make_transaction_from_address")
+
+                amount = ( float(event.quantity) * 1.e6 ) - float(fee) # In satoshis
+                logger.critical("about to make_transaction_from_address.\n Quantity: %d \n Amount: %d \n Fee: %d" %(event.quantity,amount,fee))
                 
                 #import pdb; pdb.set_trace()
                 tx_hash = None
                 try:
-                    tx_hash = efn.make_transaction_from_address(address_origin, address_end, amount)
+                    tx_hash = efn.make_transaction_from_address(address_origin, address_end, int(amount))
                     if tx_hash:
                         successful_events += 1
                     else:

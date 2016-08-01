@@ -22,7 +22,7 @@ def create_address_for_agent(agent):
 """
 
 def network_fee():
-    return efn.network_fee
+    return efn.network_fee()
     
 def send_fake_faircoins(address_origin, address_end, amount):
     import time

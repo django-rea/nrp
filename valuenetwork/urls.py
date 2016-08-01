@@ -12,7 +12,8 @@ admin.autodiscover()
 
 
 urlpatterns = patterns("",
-    url(r"^$", 'valuenetwork.valueaccounting.views.home', name="home"),
+    url(r"^$", TemplateView.as_view(template_name='frontpage.html'), name='home'),
+    #url(r"^$", 'valuenetwork.valueaccounting.views.home', name="home"),
     url(r"^accounting/", include("valuenetwork.valueaccounting.urls")),
     url(r"^admin/", include(admin.site.urls)),
     url(r"^account/", include("account.urls")),

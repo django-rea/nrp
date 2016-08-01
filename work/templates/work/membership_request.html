@@ -1,26 +1,34 @@
-{% extends "work_base.html" %}
-
+{% load staticfiles %}
 {% load i18n %}
 {% load bootstrap_tags %}
 
-{% block head_title %}{% trans "Request membership in Freedom Coop" %}{% endblock %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="https://www.w3.org/1999/xhtml" lang="en">
 
-{% block extra_head %}
-{% endblock %}
+<link href="{% static "pinax/css/theme.css" %}" rel="stylesheet">
+<link href="{% static "bootstrap/css/bootstrap.css" %}" rel="stylesheet">
+<link href="{% static "bootstrap/css/bootstrap-responsive.css" %}" rel="stylesheet">
+<link href="{% static "css/buttons.css" %}" rel="stylesheet">
 
-{% block body_class %}membership{% endblock %}
+<style>
 
-{% block body_base %}
+.errorlist {
+    color: red;
+    list-style-type: none;
+}
+
+</style>
+<title>{% trans "Request membership in Freedom Coop" %}</title>
+
 <div class="container">
-        {% include "_messages.html" %}
 
-        <legend>
+        <h1>
             {% trans "Request membership in Freedom Coop" %}
-        </legend>
+        </h1>
 
-        <div class="row-fluid">
+        <div>
         
-            <div class="span12">
+            <div>
                 <form id="membershipForm" class="validateMe" action="." method="POST" >
                     {% csrf_token %}
                     {{ membership_form|as_bootstrap }}
@@ -29,4 +37,5 @@
             </div>
         </div>
 </div>
-{% endblock %}
+
+</html>

@@ -53,7 +53,7 @@ class ValueEquationModelChoiceField(forms.ModelChoiceField):
         
 
 class SendFairCoinsForm(forms.Form):
-    quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'faircoins input-small',}))
+    quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'faircoins input-small',}),min_value=Decimal('1.0'))
     to_address = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
 
         
@@ -4045,4 +4045,4 @@ class ProcessMultiSelectForm(forms.Form):
                 l.append(Process.objects.get(pk=pk))
             dict["processes"] = l
         return dict
-        
+

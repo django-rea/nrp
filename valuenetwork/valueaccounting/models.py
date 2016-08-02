@@ -9552,7 +9552,7 @@ class ValueEquation(models.Model):
     description = models.TextField(_('description'), null=True, blank=True)
     percentage_behavior = models.CharField(_('percentage behavior'), 
         max_length=12, choices=PERCENTAGE_BEHAVIOR_CHOICES, default='straight',
-        help_text=_('Remaining percentage uses the % of the remaining amount to be distributed.  Straight percentage uses the % of the total distribution amount.'))
+        help_text=_('Remaining percentage uses the %% of the remaining amount to be distributed.  Straight percentage uses the %% of the total distribution amount.'))
     live = models.BooleanField(_('live'), default=False,
         help_text=_("Make this value equation available for use in real distributions."))
     created_by = models.ForeignKey(User, verbose_name=_('created by'),

@@ -27,17 +27,20 @@ This is a howto for installing ocp in a debian/ubuntu system.
 
 If daemon runs ok, *daemon_service status* returns *Running*
 
-- Create virtual enviroment and install python dependencies: ::
+- Create virtual enviroment and update pip and setuptools: ::
 
     cd [installation dir]
     virtualenv env
     cd valuenetwork
     source ../env/bin/activate
+    pip install --upgrade pip
+    pip install --upgrade setuptools
+
+- Install ocp python dependencies: ::
+
     pip install -r requirements.txt --trusted-host dist.pinaxproject.com
     pip install --no-deps easy_thumbnails
     pip install Image
-
-If pip complains about *--trusted-host*, you need to update pip: `pip install --upgrade pip`
 
 - Create database, load some data, run tests and start with dev server: ::
 

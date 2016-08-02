@@ -106,6 +106,8 @@ def profile(request):
         if skill in agent_skills:
             skill.checked = True
     upload_form = UploadAgentForm(instance=agent)
+    has_associations = agent.all_has_associates()
+    is_associated_with = agent.all_is_associates()
           
     return render_to_response("work/profile.html", {
         "agent": agent,
@@ -113,6 +115,8 @@ def profile(request):
         "change_form": change_form,
         "upload_form": upload_form,
         "skills": skills,
+        "has_associations": has_associations,
+        "is_associated_with": is_associated_with,
         "help": get_help("profile"),
     }, context_instance=RequestContext(request))
 

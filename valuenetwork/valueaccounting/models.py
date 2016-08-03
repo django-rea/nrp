@@ -774,7 +774,7 @@ class EconomicAgent(models.Model):
                 if ga not in agents:
                     agents.append(ga)
         return agents
-        
+
     def child_tree(self):
         from valuenetwork.valueaccounting.utils import agent_dfs_by_association
         #todo: figure out why this failed when AAs were ordered by from_agent
@@ -7921,13 +7921,13 @@ class Transfer(models.Model):
             commits = self.commitments.all()
             if commits:
                 return commits[0].quantity
-        return None
+        return Decimal("0.0")
     
     def actual_quantity(self):
         events = self.events.all()
         if events:
             return events[0].quantity
-        return None
+        return Decimal("0.0")
     
     def unit_of_quantity(self):
         events = self.events.all()
@@ -7953,7 +7953,7 @@ class Transfer(models.Model):
         events = self.events.all()
         if events:
             return events[0].value
-        return None
+        return Decimal("0.0")
      
     def unit_of_value(self):
         events = self.events.all()

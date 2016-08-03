@@ -27,12 +27,15 @@
 .text-center {
     text-align: center;
 }
+.assoc {
+    margin-top: 1em;
+}
 .assoc li {
     margin-left: 3em;
 }
 .indent {
     margin-left: .9em;
-    }
+}
 .down {
     margin-top: 10px;
 }
@@ -225,7 +228,40 @@ label {
                     <img src="{{ agent.photo_url }}" width="128" height="96" />
                 {% endif %}
                 
-            </div>            
+                <div class="assoc">
+                    <h4 class="hdg"> {{ agent.name }} {% trans "is associated with " %}: </h4>
+                    <ul>
+                    {% for assoc in is_associated_with  %}
+                        {% ifchanged assoc.association_type %} 
+                            <h4> {{ assoc.association_type.label }}: </h4>
+                        {% endifchanged %}
+                        {% comment %}
+                        <li><a href="{{ assoc.has_associate.get_absolute_url }}">{{ assoc.has_associate.name }}</a>
+                        {% endcomment %}
+                        <li>{{ assoc.has_associate.name }}
+                            {% if assoc.state == "potential" %} (potential) {% endif %}
+                        </li>
+                    {% endfor %}
+                    </ul>
+                    {% if has_associations %}
+                        <h4 class="hdg">{{ agent.name }} {% trans "has these associates " %}: </h4>             
+                        <ul>
+                        {% for assoc in has_associations %}
+                            {% ifchanged assoc.association_type %} 
+                                <h4>{{ assoc.association_type.inverse_label }}: </h4>
+                            {% endifchanged %}   
+                            {% comment %}
+                            <li><a href="{{ assoc.is_associate.get_absolute_url }}">{{ assoc.is_associate.name }}</a></li>
+                            {% endcomment %}
+                            <li>{{ assoc.is_associate.name }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% endif %}
+                
+                </div>
+                
+            </div>  
+            
 
         </div>
 

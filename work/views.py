@@ -48,17 +48,24 @@ def my_dashboard(request):
     other_wip = []
     agent = get_agent(request)
     if agent:
+        context_ids = [c.id for c in agent.related_contexts()]
         my_work = Commitment.objects.unfinished().filter(
             event_type__relationship="work",
             from_agent=agent)
         skill_ids = agent.resource_types.values_list('resource_type__id', flat=True)
         my_skillz = Commitment.objects.unfinished().filter(
             from_agent=None, 
+            context_agent__id__in=context_ids,
             event_type__relationship="work",
             resource_type__id__in=skill_ids)
         other_unassigned = Commitment.objects.unfinished().filter(
             from_agent=None, 
-            event_type__relationship="work").exclude(resource_type__id__in=skill_ids)       
+            context_agent__id__in=context_ids,
+            event_type__relationship="work").exclude(resource_type__id__in=skill_ids)  
+        todos = Commitment.objects.unfinished().filter(
+            from_agent=None, 
+            context_agent__id__in=context_ids,
+            event_type__relationship="todo")  
     else:
         other_unassigned = Commitment.objects.unfinished().filter(
             from_agent=None, 
@@ -69,6 +76,7 @@ def my_dashboard(request):
         "my_work": my_work,
         "my_skillz": my_skillz,
         "other_unassigned": other_unassigned,
+        "todos": todos,
         "work_now": work_now,
         "help": get_help("proc_log"),
     }, context_instance=RequestContext(request))

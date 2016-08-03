@@ -13199,8 +13199,12 @@ ids = [x['@id'].split('/')[1] for x in graph]
 '''
 
 def membership_requests(request):
-    requests = MembershipRequest.objects.all()
+    requests =  MembershipRequest.objects.filter(agent__isnull=True)
+    agts = EconomicAgent.objects.all()
+    candidates = [agt for agt in agts if not agt.membership_requests.all()]
+
     return render_to_response("valueaccounting/membership_requests.html", {
         "help": get_help("membership_requests"),
         "requests": requests,
+        "candidates": candidates,
     }, context_instance=RequestContext(request))

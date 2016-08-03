@@ -6,7 +6,10 @@
 
 {% block extra_head %}
 <style>
-
+    .container div {
+        margin-left: -5em;
+    }
+    
     tr.even td 
     {
         color:#000000;
@@ -36,6 +39,7 @@
         
         <table style="width: 100%;" class="table table-bordered table-hover table-condensed" >
             <thead>
+                <th>{% trans "Created Agent" %}</th>
                 <th>{% trans "Date" %}</th>
                 <th>{% trans "Name" %}</th>
                 <th>{% trans "Requested username" %}</th>
@@ -54,11 +58,12 @@
                 <th>{% trans "Website" %}</th>
                 <th>{% trans "How known" %}</th>
                 <th>{% trans "Who known" %}</th>
-                <th>{% trans "Comments" %}</th>
+                <th>{% trans "Comments" %}</th>                
             </thead>
             <tbody> 
                 {% for req in requests %}
                     <tr class="{% cycle 'odd' 'even' %}">
+                        <td>{{ req.agent }}</td>
                         <td>{{ req.request_date }}</td>
                         <td>{{ req.name }} {{ req.surname }}  </td>
                         <td>{{ req.requested_username }}</td>
@@ -78,6 +83,7 @@
                         <td>{{ req.how_do_you_know_fc }}</td>
                         <td>{{ req.known_member }}</td>
                         <td>{{ req.comments_and_questions }}</td>
+                        <td>{{ req.agent }}</td>
                     </tr>
                 {% endfor %}
             </tbody>    

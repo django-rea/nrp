@@ -774,6 +774,11 @@ class EconomicAgent(models.Model):
                 if ga not in agents:
                     agents.append(ga)
         return agents
+        
+    def related_contexts(self):
+        agents = [ag.has_associate for ag in self.is_associate_of.all()]
+        agents.extend([ag.is_associate for ag in self.has_associates.all()])
+        return [a for a in agents if a.is_context]
 
     def child_tree(self):
         from valuenetwork.valueaccounting.utils import agent_dfs_by_association

@@ -23,170 +23,107 @@
 #
 
 import time, sys, os
+import socket
 import logging
+import jsonrpclib
+
 logger = logging.getLogger("faircoins")
+logging.basicConfig(level=logging.DEBUG,format='%(asctime)s %(levelname)s %(message)s')
 
-from django.conf import settings
+my_host = "localhost"
+my_port = 8069
 
-import electrum_fair
-from electrum_fair import util
-from electrum_fair.util import NotEnoughFunds
-electrum_fair.set_verbosity(True)
+# Send command to the daemon.
+def send_command(cmd, params):
+    logging.debug('send command: %s --- params: %s' %(cmd, params))
+    server = jsonrpclib.Server('http://%s:%d'%(my_host, my_port))
+    try:
+        f = getattr(server, cmd)
+    except socket.error, (value, message):
+        logging.error("Can not connect to faircoin daemon. %d %s" %(value,message))
+        return "ERROR"
+    try:
+        out = f(*params)
+    except socket.error, (value, message):
+        logging.error("Can not send the command %d %s" %(value,message))
+        return "ERROR"
+    logging.debug('response: %s' %(out))
+    return out
 
-import ConfigParser
-config = ConfigParser.ConfigParser()
-#this is because cron needs full paths
-conf_path = "/".join([settings.PROJECT_ROOT, "faircoin_nrp/electrum-fair-nrp.conf",])
-
-config.read(conf_path)
-
-wallet_path = config.get('electrum','wallet_path')
-
-seed = config.get('electrum','seed')
-password = config.get('electrum', 'password')
-network_fee = config.get('network','fee')
-
-#logging.basicConfig(level=logging.INFO,format='%(asctime)s %(levelname)s %(message)s')
-
-wallet = False
-network = False
-cmd_wallet = False
+# Get the network fee
+def network_fee():
+    response = send_command('fee', '')
+    return response
 
 # Stop electrum
 def do_stop():
-    network.stop_daemon()
-    if network.is_connected():
-        time.sleep(1) 
-    logger.debug("Stopping")    
-    return "ok"
+    response = send_command('do_stop', '')
+    return response
 
 # get the total balance for the wallet
 # Returns a tupla with 3 values: Confirmed, Unmature, Unconfirmed
 def get_balance():
-    return wallet.get_balance()
+    response = send_command('get_balance', '')
+    return response
 
 # get the balance for a determined address
 # Returns a tupla with 3 values: Confirmed, Unmature, Unconfirmed
 def get_address_balance(address):
-    return wallet.get_balance([address])
+    format_dict = [address]
+    response = send_command('get_address_balance', format_dict)
+    return response
 
 #check if an address is valid
 def is_valid(address):
-    return cmd_wallet.validateaddress(address)
+    format_dict = [address]
+    response = send_command('is_valid', format_dict)
+    return response
 
 #check if an address is from the wallet
 def is_mine(address):
-    return wallet.is_mine(address)
+    format_dict = [address]
+    response = send_command('is_mine', format_dict)
+    return response
 
 #read the history of an address
 def get_address_history(address):
-    return wallet.get_address_history(address)
+    format_dict = [address]
+    response = send_command('get_address_history', format_dict)
+    return response
 
 # make a transfer from an adress of the wallet 
 def make_transaction_from_address(address_origin, address_end, amount):
-    if not is_mine(address_origin): 
-        logger.error("The address %s does not belong to this wallet" %address_origin)
-        return False
-    if not is_valid(address_end):
-        logger.error("The address %s is not a valid faircoin address" %address_end)
-        return False
-
-    inputs = [address_origin]
-    coins = wallet.get_spendable_coins(domain = inputs)
-    #print coins
-    amount_total = ( 1.e6 * float(amount) ) - float(network_fee)
-    amount_total = int(amount_total)
-
-    if amount_total > 0:
-        output = [('address', address_end, int(amount_total))] 
-    else:
-        logger.error("Amount negative: %s" %(amount_total) )
-        return False
-    try:
-        tx = wallet.make_unsigned_transaction(coins, output, change_addr=address_origin)
-    except NotEnoughFunds:
-	        logger.error("Not enough funds confirmed to make the transaction. %s %s %s" %wallet.get_addr_balance(address_origin))
-                return False
-    wallet.sign_transaction(tx, password)
-    rec_tx_state, rec_tx_out = wallet.sendtx(tx)
-    if rec_tx_state:
-         logger.info("SUCCESS. The transaction has been broadcasted.")
-         return rec_tx_out
-    else:
-         logger.error("Sending %s fairs to the address %s" %(amount_total, address_end ) )
-         return False
+    format_dict = [address_origin, address_end, amount]
+    response = send_command('make_transaction_from_address', format_dict)
+    return response
          
 def address_history_info(address, page = 0, items = 20):
-    """Return list with info of last 20 transactions of the address history"""
-    return_history = []
-    history = cmd_wallet.getaddresshistory(address)
-    tx_num = 0
-    for i, one_transaction in enumerate(history, start = page * items):
-        tx_num += 1
-        if tx_num > items:
-            return return_history
-        raw_transaction = cmd_wallet.gettransaction(one_transaction['tx_hash'])
-        info_transaction = raw_transaction.deserialize()
-        return_history.append({'tx_hash': one_transaction['tx_hash'], 'tx_data': info_transaction})
-    return return_history
+    format_dict = [address, page, items]
+    response = send_command('address_history_info', format_dict)
+    return response
 
 # create new address for users or any other entity
 def new_fair_address(entity_id, entity = 'generic'):
-    """ Return a new address labeled or False if there's no network connection. 
-    The label is for debugging proposals. It's like 'entity: id'
-    We can label like "user: 213" or "user: pachamama" or "order: 67".
-    """
-    while network.is_connected():
-        new_address = wallet.create_new_address()
-        check_label = wallet.get_label(new_address)
-        check_history = cmd_wallet.getaddresshistory(new_address)
-        # It checks if address is labeled or has history yet, a gap limit protection. 
-        # This can be removed when we have good control of gap limit.     
-        if not check_label[0] and not check_history:
-            wallet.set_label(new_address, entity + ': ' + str(entity_id))
-            return new_address
-    return False
+    format_dict = [entity_id, entity]
+    response = send_command('new_fair_address', format_dict)
+    return response
 
 def get_confirmations(tx):
-    """Return the number of confirmations of a monitored transaction
-    and the timestamp of the last confirmation (or None if not confirmed)."""
-    return wallet.get_confirmations(tx)
+    format_dict = [tx]
+    response = send_command('get_confirmations', format_dict)
+    return response
 
 #Check if it is connected to the electum network
 def is_connected():
-        return network.is_connected()
+    response = send_command('is_connected', '')
+    return response
 
-# init the wallet
-def init():
-    global wallet
-    global network
-    global cmd_wallet
-    logger.debug("Starting electrum-fair-nrp")
-    # start network
-    c = electrum_fair.SimpleConfig({'wallet_path':wallet_path})
-    daemon_socket = electrum_fair.daemon.get_daemon(c, True)
-    network = electrum_fair.NetworkProxy(daemon_socket, config)
-    network.start()
-    n = 0
-    # wait until connected
-    while (network.is_connecting() and (n < 100)):
-        time.sleep(0.5)
-        n = n + 1
+#Check if daemon is up and connected.
+def daemon_is_up():
+    response = send_command('daemon_is_up', '')
+    return response
 
-    if not network.is_connected():
-        logger.error("Can not init Electrum Network. Exiting.")
-        sys.exit(1)
-
-    # create wallet
-    storage = electrum_fair.WalletStorage(wallet_path)
-    if not storage.file_exists:
-        logger.debug("creating wallet file")
-        wallet = electrum_fair.wallet.Wallet.from_seed(seed, password, storage)
-    else:
-        wallet = electrum_fair.wallet.Wallet(storage)
-    
-    wallet.synchronize = lambda: None # prevent address creation by the wallet
-    #wallet.change_gap_limit(100)  
-    wallet.start_threads(network)
-    cmd_wallet = electrum_fair.commands.Commands(c, wallet, network)  
-    
+#get wallet info.
+def get_wallet_info():
+     response = send_command('get_wallet_info', '')
+     return response

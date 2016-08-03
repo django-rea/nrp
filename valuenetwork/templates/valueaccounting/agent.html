@@ -316,7 +316,7 @@ legend {
                         <h4> {{ assoc.association_type.label }}: </h4>
                     {% endifchanged %}
                     <li><a href="{{ assoc.has_associate.get_absolute_url }}">{{ assoc.has_associate.name }}</a>
-                        {% if assoc.state == "potential" %} (potential) {% endif %}
+                        {% if assoc.state == "potential" %} ({{ assoc.get_state_display }}) {% endif %}
                     </li>
                 {% endfor %}
                 </ul>
@@ -327,7 +327,9 @@ legend {
                         {% ifchanged assoc.association_type %} 
                             <h4>{{ assoc.association_type.inverse_label }}: </h4>
                         {% endifchanged %}   
-                        <li><a href="{{ assoc.is_associate.get_absolute_url }}">{{ assoc.is_associate.name }}</a></li>
+                        <li><a href="{{ assoc.is_associate.get_absolute_url }}">{{ assoc.is_associate.name }}</a>
+                            {% if assoc.state == "potential" %} ({{ assoc.get_state_display }}) {% endif %}
+                        </li>
                     {% endfor %}
                     </ul>
                 {% endif %}

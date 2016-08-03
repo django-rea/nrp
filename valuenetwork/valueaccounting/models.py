@@ -779,7 +779,7 @@ class EconomicAgent(models.Model):
         agents = [ag.has_associate for ag in self.is_associate_of.all()]
         agents.extend([ag.is_associate for ag in self.has_associates.all()])
         return [a for a in agents if a.is_context]
-
+        
     def child_tree(self):
         from valuenetwork.valueaccounting.utils import agent_dfs_by_association
         #todo: figure out why this failed when AAs were ordered by from_agent
@@ -1193,8 +1193,8 @@ ASSOCIATION_BEHAVIOR_CHOICES = (
     ('member', _('member')),
     ('child', _('child')),
     ('custodian', _('custodian')),
-    ('exchange', _('exchange firm')),
-    ('peer', _('peer')),
+    ('manager', _('manager')),
+    ('peer', _('peer'))
 )
 
 class AgentAssociationType(models.Model):
@@ -1272,7 +1272,7 @@ post_migrate.connect(create_agent_association_types)
 RELATIONSHIP_STATE_CHOICES = (
     ('active', _('active')),
     ('inactive', _('inactive')),
-    ('potential', _('potential')),
+    ('potential', _('candidate')),
 )
 
 class AgentAssociation(models.Model):
@@ -1292,6 +1292,17 @@ class AgentAssociation(models.Model):
         
     def __unicode__(self):
         return self.is_associate.nick + " " + self.association_type.label + " " + self.has_associate.nick
+        
+    def representation(self):
+        state = ""
+        if self.state == "potential":
+            state = "".join(["(", self.get_state_display(), ")"])
+        return " ".join([
+            self.is_associate.nick,
+            self.association_type.label,
+            self.has_associate.nick,
+            state,
+            ])
         
 #todo exchange redesign fallout
 #many of these are obsolete
@@ -8640,6 +8651,19 @@ class Commitment(models.Model):
         from valuenetwork.valueaccounting.forms import TodoForm
         prefix=self.form_prefix()
         return TodoForm(instance=self, prefix=prefix)
+        
+    def work_todo_change_form(self):
+        #import pdb; pdb.set_trace()
+        from work.forms import WorkTodoForm
+        agent=self.from_agent
+        prefix=self.form_prefix()
+        patterns = PatternUseCase.objects.filter(use_case__identifier='todo')
+        if patterns:
+            pattern = patterns[0].pattern
+            todo_form = WorkTodoForm(agent=agent, pattern=pattern, instance=self, prefix=prefix)
+        else:
+            todo_form = WorkTodoForm(agent=agent, instance=self, prefix=prefix)
+        return todo_form
 
     #obsolete?
     """

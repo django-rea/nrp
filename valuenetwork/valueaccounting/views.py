@@ -431,7 +431,6 @@ def agents(request):
 def radial_graph(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     agents = agent.with_all_associations()
-    #import pdb; pdb.set_trace()
     connections = {}
     for agnt in agents:
         if agnt not in connections:
@@ -4374,6 +4373,9 @@ def todo_mine(request, todo_id):
             agent = get_agent(request)
             todo.from_agent = agent
             todo.save()
+    next = request.POST.get("next")
+    if next:
+        return HttpResponseRedirect(next)
     return HttpResponseRedirect('/%s/'
         % ('accounting/work'))
 

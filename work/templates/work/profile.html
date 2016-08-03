@@ -239,7 +239,7 @@ label {
                         <li><a href="{{ assoc.has_associate.get_absolute_url }}">{{ assoc.has_associate.name }}</a>
                         {% endcomment %}
                         <li>{{ assoc.has_associate.name }}
-                            {% if assoc.state == "potential" %} (potential) {% endif %}
+                            {% if assoc.state == "potential" %} ({{ assoc.get_state_display }}) {% endif %}
                         </li>
                     {% endfor %}
                     </ul>

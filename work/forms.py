@@ -7,6 +7,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from valuenetwork.valueaccounting.models import *
 from work.models import *
+from valuenetwork.valueaccounting.forms import WorkModelChoiceField
 
 class UploadAgentForm(forms.ModelForm):
     photo_url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
@@ -21,3 +22,50 @@ class MembershipRequestForm(forms.ModelForm):
     class Meta:
         model = MembershipRequest
         exclude = ('agent',)
+        
+        
+class WorkTodoForm(forms.ModelForm):
+    from_agent = forms.ModelChoiceField(
+        required=False,
+        queryset=EconomicAgent.objects.individuals(),
+        label="Assigned to",  
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
+    resource_type = WorkModelChoiceField(
+        queryset=EconomicResourceType.objects.all(), 
+        label="Type of work", 
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
+    context_agent = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.context_agents(), 
+        label=_("Context"),
+        empty_label=None, 
+        widget=forms.Select(attrs={'class': 'chzn-select'}))
+    due_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'todo-description input-xlarge',}))
+    url = forms.URLField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xlarge',}))
+
+    class Meta:
+        model = Commitment
+        fields = ('from_agent', 'context_agent', 'resource_type', 'due_date', 'description', 'url')
+
+    def __init__(self, agent, pattern=None, *args, **kwargs):
+        super(WorkTodoForm, self).__init__(*args, **kwargs)
+        contexts = agent.related_contexts()
+        self.fields["context_agent"].choices = [(ct.id, ct) for ct in contexts]
+        manager = False
+        from_agent_choices = [('', 'Unassigned'), (agent.id, agent),]
+        for context in contexts:
+            associations = agent.is_associate_of.filter(has_associate=context)
+            if associations:
+                association = associations[0]
+                if association.association_type.association_behavior == "manager":
+                    manager = True
+        
+        self.fields["from_agent"].choices = from_agent_choices
+        if pattern:
+            self.pattern = pattern
+            self.fields["resource_type"].choices = [(rt.id, rt) for rt in pattern.todo_resource_types()]

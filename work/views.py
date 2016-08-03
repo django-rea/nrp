@@ -50,13 +50,13 @@ def my_dashboard(request):
     if agent:
         context_ids = [c.id for c in agent.related_contexts()]
         my_work = Commitment.objects.unfinished().filter(
-            event_type__relationship="work",
+            event_type__relationship="todo",
             from_agent=agent)
         skill_ids = agent.resource_types.values_list('resource_type__id', flat=True)
         my_skillz = Commitment.objects.unfinished().filter(
             from_agent=None, 
             context_agent__id__in=context_ids,
-            event_type__relationship="work",
+            event_type__relationship="todo",
             resource_type__id__in=skill_ids)
         other_unassigned = Commitment.objects.unfinished().filter(
             from_agent=None, 
@@ -70,13 +70,23 @@ def my_dashboard(request):
         other_unassigned = Commitment.objects.unfinished().filter(
             from_agent=None, 
             event_type__relationship="work")
+    #import pdb; pdb.set_trace()
+    my_todos = Commitment.objects.todos().filter(from_agent=agent)
+    init = {"from_agent": agent,}
+    patterns = PatternUseCase.objects.filter(use_case__identifier='todo')
+    if patterns:
+        pattern = patterns[0].pattern
+        todo_form = WorkTodoForm(agent=agent, pattern=pattern, initial=init)
+    else:
+        todo_form = WorkTodoForm(agent=agent, initial=init)
     work_now = settings.USE_WORK_NOW
     return render_to_response("work/my_dashboard.html", {
         "agent": agent,
         "my_work": my_work,
         "my_skillz": my_skillz,
         "other_unassigned": other_unassigned,
-        "todos": todos,
+        "my_todos": my_todos,
+        "todo_form": todo_form,
         "work_now": work_now,
         "help": get_help("proc_log"),
     }, context_instance=RequestContext(request))
@@ -1050,5 +1060,46 @@ def membership_request(request):
         "membership_form": membership_form,
     }, context_instance=RequestContext(request))
 
-
-    
+@login_required
+def add_todo(request):
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        patterns = PatternUseCase.objects.filter(use_case__identifier='todo')
+        if patterns:
+            pattern = patterns[0].pattern
+            form = TodoForm(data=request.POST, pattern=pattern)
+        else:
+            form = TodoForm(request.POST)
+        next = request.POST.get("next")
+        agent = get_agent(request)
+        et = None
+        ets = EventType.objects.filter(
+            relationship='todo')
+        if ets:
+            et = ets[0]
+        if et:
+            if form.is_valid():
+                data = form.cleaned_data
+                todo = form.save(commit=False)
+                todo.to_agent=agent
+                todo.event_type=et
+                todo.quantity = Decimal("0")
+                todo.unit_of_quantity=todo.resource_type.unit
+                todo.save()
+                if notification:
+                    if todo.from_agent:
+                        if todo.from_agent != agent:
+                            site_name = get_site_name()
+                            user = todo.from_agent.user()
+                            if user:
+                                #import pdb; pdb.set_trace()
+                                notification.send(
+                                    [user.user,], 
+                                    "valnet_new_todo", 
+                                    {"description": todo.description,
+                                    "creator": agent,
+                                    "site_name": site_name,
+                                    }
+                                )
+            
+    return HttpResponseRedirect(next)

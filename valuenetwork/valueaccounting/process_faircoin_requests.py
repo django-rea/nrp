@@ -115,7 +115,7 @@ def broadcast_tx():
         for event in events:
             #do we need to check for missing digital_currency_address here?
             #and create them?
-            fee = efn.network_fee()
+            #fee = efn.network_fee() # In Satoshis
             #fee = Decimal("%s" %fee) / FAIRCOIN_DIVISOR
             if event.resource:
                 if event.event_type.name=="Give":
@@ -124,24 +124,27 @@ def broadcast_tx():
                 elif event.event_type.name=="Distribution":
                     address_origin = event.from_agent.faircoin_address()
                     address_end = event.resource.digital_currency_address
+                amount = float(event.quantity) * 1.e6 # In satoshis
+                if amount < 1001:
+                    event.digital_currency_tx_state = "broadcast"
+                    event.digital_currency_tx_hash = "Null"
+                    event.save()
+                    continue
 
-                amount = ( float(event.quantity) * 1.e6 ) - float(fee) # In satoshis
-                logger.critical("about to make_transaction_from_address.\n Quantity: %d \n Amount: %d \n Fee: %d" %(event.quantity,amount,fee))
-                
+                logger.critical("about to make_transaction_from_address. Amount: %d" %(int(amount)))
                 #import pdb; pdb.set_trace()
                 tx_hash = None
                 try:
                     tx_hash = efn.make_transaction_from_address(address_origin, address_end, int(amount))
-                    if tx_hash:
-                        successful_events += 1
-                    else:
-                        logger.warning("no tx_hash, make tx failed without raising Exception")
-                        failed_events += 1
                 except Exception:
                     _, e, _ = sys.exc_info()
                     logger.critical("an exception occurred in make_transaction_from_address: {0}".format(e))
                 
-                if tx_hash:
+                if (tx_hash == "ERROR") or (not tx_hash):
+                    logger.warning("ERROR tx_hash, make tx failed without raising Exception")
+                    failed_events += 1
+                elif tx_hash:
+                    successful_events += 1
                     event.digital_currency_tx_state = "broadcast"
                     event.digital_currency_tx_hash = tx_hash
                     event.save()

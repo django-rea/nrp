@@ -3,8 +3,10 @@
 # Electrum - lightweight Bitcoin client
 # Copyright (C) 2011 thomasv@gitorious
 #
-# Faircoin Payment For Odoo - module that permits faircoin payment in a odoo website 
-# Copyright (C) 2015-2016 santi@punto0.org -- FairCoop 
+# Faircoin Payment For OCP
+# copyright (C) 2015-2016 santi@punto0.org -- FairCoop
+#                         Xavip
+#              	          Bob Haugen
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -45,7 +47,7 @@ wallet_path = config.get('electrum','wallet_path')
 
 seed = config.get('electrum','seed')
 password = config.get('electrum', 'password')
-net_fee = config.get('network','fee')
+net_fee = config.getint('network','fee')
 
 num = 0
 
@@ -54,13 +56,12 @@ stopping = False
 logging.basicConfig(level=logging.DEBUG,format='%(asctime)s %(levelname)s %(message)s')
 
 def fee():
-    logging.debug("Network Fee %d" %net_fee)
     return net_fee
 
 def do_stop(password):
     global stopping
-    if password != my_password:
-        return "wrong password"
+    #if password != my_password:
+    #    return "wrong password"
     stopping = True
     logging.debug("Stopping")    
     return "ok"
@@ -86,14 +87,14 @@ def send_command(cmd, params):
 # get the total balance for the wallet
 # Returns a tupla with 3 values: Confirmed, Unmature, Unconfirmed
 def get_balance():
-    logging.debug("get_balance")
     return wallet.get_balance()
 
 # get the balance for a determined address
 # Returns a tupla with 3 values: Confirmed, Unmature, Unconfirmed
 def get_address_balance(address):
-    logging.debug("get_address_balance")
-    return wallet.get_balance([address])
+    bal = wallet.get_addr_balance(address)
+    #logging.debug("Address : %s Balance : %s " %(address, bal))
+    return bal
 
 #check if an address is valid
 def is_valid(address):
@@ -109,29 +110,34 @@ def get_address_history(address):
 
 # make a transfer from an adress of the wallet 
 def make_transaction_from_address(address_origin, address_end, amount):
-    logging.debug("starting transaction %s %s %s" %(address_origin, address_end, amount))
-    if not is_mine(address_origin): 
-        logging.error("The address %s does not belong to this wallet" %address_origin)
-        return False
+    logging.debug("Trying broadcast transaction\n       Origin : %s\n       End    : %s\n       Amount : %s" %(address_origin, address_end, amount))
     if not is_valid(address_end):
         logging.error("The address %s is not a valid faircoin address" %address_end)
         return False
-
+    if not is_mine(address_origin):
+        logging.error("The address %s does not belong to this wallet" %address_origin)
+        return False
+    # Fix old address generated, can be removed on new database
+    else:
+        wallet.add_address(address_origin)
+        wallet.synchronizer.subscribe_to_addresses([address_origin])
+        wallet.up_to_date = False
     inputs = [address_origin]
     coins = wallet.get_spendable_coins(domain = inputs)
-    #print coins
-    amount_total = ( 1.e6 * float(amount) ) - float(net_fee)
+    #logging.debug("Coins : %s" %coins)
+    amount_total = int(amount) - int(net_fee) #In Satoshis
     amount_total = int(amount_total)
 
     if amount_total > 0:
-        output = [('address', address_end, int(amount_total))] 
+        output = [('address', address_end, int(amount_total))]
     else:
-        logging.error("Amount negative: %s" %(amount_total) )
+        logging.error("Amount negative: %d" %(amount_total) )
         return False
     try:
         tx = wallet.make_unsigned_transaction(coins, output, change_addr=address_origin)
     except NotEnoughFunds:
-        logging.error("Not enough funds confirmed to make the transaction. %s %s %s" %wallet.get_addr_balance(address_origin))
+        logging.error("Not enough funds confirmed to make the transaction. Requested Amount : %s " %amount_total)
+        logging.error("Confirmed : %s -- Unconfirmed: %s -- Unmature : %s " %wallet.get_addr_balance(address_origin))
         return False
     wallet.sign_transaction(tx, password)
     rec_tx_state, rec_tx_out = wallet.sendtx(tx)
@@ -164,6 +170,9 @@ def new_fair_address(entity_id, entity = 'generic'):
     """
     while network.is_connected():
         new_address = wallet.create_new_address()
+        wallet.add_address(new_address)
+        wallet.synchronizer.subscribe_to_addresses([new_address])
+        wallet.up_to_date = False
         check_label = wallet.get_label(new_address)
         check_history = cmd_wallet.getaddresshistory(new_address)
         # It checks if address is labeled or has history yet, a gap limit protection. 

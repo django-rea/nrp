@@ -8,6 +8,7 @@ local_settings.py
 *.swp
 *.swo
 *.log
+faircoins.log.*
 .vagrant
 bin/
 cmd/create-user.sh
@@ -17,3 +18,5 @@ media/logos/*.jpg
 media/avatars/*.jpg
 media/logos/*.png
 media/avatars/*.png
+valuenetwork/site_media/media/photos/*.jpg
+valuenetwork/site_media/media/photos/*.png

@@ -139,6 +139,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.humanize",
+    "django_comments",
     
     # theme
     "pinax_theme_bootstrap_account",
@@ -271,3 +272,8 @@ USE_TZ = True
 
 # updating to prep for django 1.8
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'
+
+# Translations directory
+LOCALE_PATHS = [
+    os.path.join(PACKAGE_ROOT, "locale"),
+]

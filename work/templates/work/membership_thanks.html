@@ -1,5 +1,6 @@
 {% load i18n %}
 {% load bootstrap_tags %}
+{% load comments %}
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="https://www.w3.org/1999/xhtml" lang="en">
@@ -16,6 +17,20 @@
         <div class="row-fluid">
             {% trans "A Freedom Coop administrator will send you an email soon." %}
         </div>
+
+        {% get_comment_count for membership_request as num_comm  %}
+        {% if num_comm > 0 %}
+            <div class="row-fluid">
+                {% trans "These are your messages" %}
+                {% render_comment_list for membership_request %}
+            </div>
+        {% endif %}
+        <div class="row-fluid">
+            {% trans "Write a new message" %}
+            {% render_comment_form for membership_request %}
+        </div>
+
 </div>
 
 </html>
+

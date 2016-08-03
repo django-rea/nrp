@@ -1103,3 +1103,12 @@ def add_todo(request):
                                 )
             
     return HttpResponseRedirect(next)
+
+def membership_thanks(request, membership_request_id):
+    membership_request = get_object_or_404(MembershipRequest, id=membership_request_id)
+    return render_to_response("work/membership_thanks.html", {
+        "membership_request": membership_request,
+        "membership_request_id": membership_request_id
+    }, context_instance=RequestContext(request))
+
+

@@ -1054,7 +1054,7 @@ def membership_request(request):
                         }
                     )
             return HttpResponseRedirect('/%s/'
-                % ('work/membershipthanks'))
+                % ('membershipthanks'))
     return render_to_response("work/membership_request.html", {
         "help": get_help("work_membership_request"),
         "membership_form": membership_form,

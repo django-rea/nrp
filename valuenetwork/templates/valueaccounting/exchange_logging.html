@@ -128,8 +128,8 @@ li {
 {% block body_class %}exchange{% endblock %}
 
 {% block body_base %}
-    <div class="container">
-        {% include "_messages.html" %}
+<div class="container">
+    {% include "_messages.html" %}
 	<div>
 	<legend>
         {% if exchange %}
@@ -159,22 +159,27 @@ li {
                 {% csrf_token %}
                 {{ exchange_form|as_bootstrap }}
                 {% if agent %}
-                <div class="form-actions">
-                    <input type="submit" name="save" value="{% trans 'Save changes' %}" class="btn btn-primary" /> 
-                </div>
+                    <div class="form-actions">
+                        <input type="submit" name="save" value="{% trans 'Save changes' %}" class="btn btn-primary" /> 
+                    </div>
+                    {% if not exchange %}
+                    <p>Enter this information, click on Save changes, then you can enter the exchange detail.</p>
+                    {% endif %}
                 {% endif %}
             </form>
                
         </div>
         
         <div class="span7">
+          {% if exchange %}
             <div class="trt">
                 <h3 class="trtheading">Transfers
                 <span class="info"> <a href="#" id="xfer-info" data-toggle="popover" data-trigger='hover' title="Transfers" data-placement="left" 
                     data-content="Log the planned and actual transfers for this exchange.  The types of transfers are determined by the type of exchange,
                     as defined by your network.">
                     <img src="{% static 'img/information-icon.png' %}" /></a>
-                </span></h3>
+                </span>
+                </h3>
                 {% for slot in slots %}
                     {% if not slot.is_reciprocal %}
                         <div class="log-section">
@@ -522,6 +527,7 @@ li {
                     {% endif %}
                 {% endfor %}
             </div>
+            {% if exchange.can_have_reciprocal_transfers %}
             <div class="trt">    
                 <h3 CLASS="trtheading">Reciprocal Transfers
                 <span class="info"> <a href="#" id="rxfer-info" data-toggle="popover" data-trigger='hover' title="Reciprocal Transfers" data-placement="left" 
@@ -873,7 +879,8 @@ li {
                     {% endif %}
 
                 {% endfor %}        
-            </div>   
+            </div> 
+            {% endif %}
         
             <div class="log-section">
                 <h3 style="margin-bottom: 4px;" >
@@ -952,9 +959,10 @@ li {
                     </div>
                 {% endfor %}
             </div> 
+          {% endif %}
         </div>
     </div>
-
+</div>
 
 {% endblock %}
 {% block extra_script %}

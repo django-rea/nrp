@@ -45,6 +45,7 @@ sudo apt-get install git
 5. create a virtualenv (assuming you installed virtualenvwrapper):
 mkvirtualenv vn --system-site-packages 
 workon vn
+    (Or if you already have a vn, give it a different name.)
 cdvirtualenv
 
 6. clone the valuenetwork repo inside the vn virtualenv.

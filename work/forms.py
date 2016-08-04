@@ -1,6 +1,7 @@
 import sys
 import datetime
 from decimal import *
+from collections import OrderedDict
 from django import forms
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
@@ -56,14 +57,17 @@ class WorkTodoForm(forms.ModelForm):
         super(WorkTodoForm, self).__init__(*args, **kwargs)
         contexts = agent.related_contexts()
         self.fields["context_agent"].choices = [(ct.id, ct) for ct in contexts]
-        manager = False
+        peeps = [agent,]
         from_agent_choices = [('', 'Unassigned'), (agent.id, agent),]
         for context in contexts:
             associations = agent.is_associate_of.filter(has_associate=context)
             if associations:
                 association = associations[0]
                 if association.association_type.association_behavior == "manager":
-                    manager = True
+                    peeps.extend(context.task_assignment_candidates())
+        if len(peeps) > 1:
+            peeps = list(OrderedDict.fromkeys(peeps))
+        from_agent_choices = [('', 'Unassigned')] + [(peep.id, peep) for peep in peeps]
         
         self.fields["from_agent"].choices = from_agent_choices
         if pattern:

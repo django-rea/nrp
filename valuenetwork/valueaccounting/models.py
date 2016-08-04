@@ -780,6 +780,12 @@ class EconomicAgent(models.Model):
         agents.extend([ag.is_associate for ag in self.has_associates.all()])
         return [a for a in agents if a.is_context]
         
+    def task_assignment_candidates(self):
+        answer = []
+        if self.is_context:
+            answer = [a.is_associate for a in self.all_has_associates() if a.is_associate.is_individual()]
+        return answer          
+        
     def child_tree(self):
         from valuenetwork.valueaccounting.utils import agent_dfs_by_association
         #todo: figure out why this failed when AAs were ordered by from_agent

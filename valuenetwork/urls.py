@@ -23,6 +23,7 @@ urlpatterns = patterns("",
     url(r"^work/", include("work.urls")),
     url(r"^api/", include("valuenetwork.api.urls")),
     #url(r'^report_builder/', include('report_builder.urls')),
+    url(r'^comments/', include('django_comments.urls')),
 )
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

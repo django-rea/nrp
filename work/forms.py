@@ -2,6 +2,9 @@ import sys
 import datetime
 from decimal import *
 from collections import OrderedDict
+
+import bleach
+
 from django import forms
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
@@ -24,6 +27,10 @@ class MembershipRequestForm(forms.ModelForm):
         model = MembershipRequest
         exclude = ('agent',)
         
+    def _clean_fields(self):
+        super(MembershipRequestForm, self)._clean_fields()
+        for name, value in self.cleaned_data.items():
+            self.cleaned_data[name] = bleach.clean(value) 
         
 class WorkTodoForm(forms.ModelForm):
     from_agent = forms.ModelChoiceField(

@@ -16,7 +16,6 @@ import json as simplejson
 
 from easy_thumbnails.fields import ThumbnailerImageField
 
-
 """Models based on REA
 
 These models are based on the Bill McCarthy's Resource-Event-Agent accounting model:
@@ -380,6 +379,13 @@ class AgentManager(models.Manager):
             if agent.users.all():
                 ua_ids.append(agent.id)
         return all_agents.exclude(id__in=ua_ids)
+        
+    def without_membership_request(self):
+        from work.models import MembershipRequest
+        reqs = MembershipRequest.objects.all()
+        req_agts = [req.agent for req in reqs if req.agent]
+        rids = [agt.id for agt in req_agts]
+        return EconomicAgent.objects.exclude(id__in=rids).order_by("name")
     
     def projects(self):
         return EconomicAgent.objects.filter(agent_type__party_type="team")

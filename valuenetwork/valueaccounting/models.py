@@ -473,6 +473,12 @@ class EconomicAgent(models.Model):
         return ('agent', (),
         { 'agent_id': str(self.id),})
         
+    def membership_request(self):
+        reqs = self.membership_requests.all()
+        if reqs:
+            return reqs[0]
+        else:
+            return None
         
     def request_faircoin_address(self):
         #import pdb; pdb.set_trace()

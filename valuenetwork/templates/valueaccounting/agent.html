@@ -75,6 +75,10 @@
 legend {
     margin-bottom: 5px;;
 }
+.membership {
+    font-weight: bold;
+    color: firebrick;
+}
 
 </style>
 
@@ -303,6 +307,41 @@ legend {
                         <th style="text-align: right;">{% trans "Record created by" %}</th>
                         <td>{{ agent.created_by }}</td>
                     </tr>
+                    {% if membership_request %}
+                        <tr>
+                            <td colspan="2" class="membership">
+                                {% trans "Membership request information" %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th style="text-align: right; vertical-align: top; ">{% trans "Native language" %}</th>
+                            <td>{{ membership_request.native_language }}</td>
+                        </tr>
+                        <tr>
+                            <th style="text-align: right; vertical-align: top; ">{% trans "Type of membership" %}</th>
+                            <td>{{ membership_request.type_of_membership }}</td>
+                        </tr>
+                        <tr>
+                            <th style="text-align: right; vertical-align: top; ">{% trans "Description from membership request" %}</th>
+                            <td>{{ membership_request.description }}</td>
+                        </tr>
+                        <tr>
+                            <th style="text-align: right; vertical-align: top; ">{% trans "Website" %}</th>
+                            <td>{{ membership_request.website }}</td>
+                        </tr>
+                        <tr>
+                            <th style="text-align: right; vertical-align: top; ">{% trans "FairNetwork username" %}</th>
+                            <td>{{ membership_request.fairnetwork }}</td>
+                        </tr>
+                        <tr>
+                            <th style="text-align: right; vertical-align: top; ">{% trans "UseFaircoin profile" %}</th>
+                            <td>{{ membership_request.usefaircoin }}</td>
+                        </tr>
+                        <tr>
+                            <th style="text-align: right; vertical-align: top; ">{% trans "FairMarket shop" %}</th>
+                            <td>{{ membership_request.fairmarket }}</td>
+                        </tr>
+                    {% endif %}
 
 	            </table>
 	        

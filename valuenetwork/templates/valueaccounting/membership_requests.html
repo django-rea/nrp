@@ -44,20 +44,17 @@
                 <th>{% trans "Name" %}</th>
                 <th>{% trans "Requested username" %}</th>
                 <th>{% trans "Type" %}</th>
+		<th>{% trans "Shares" %}</th>
                 <th>{% trans "Description" %}</th>
                 <th>{% trans "Email" %}</th>
                 <th>{% trans "Phone" %}</th>
                 <th>{% trans "Address" %}</th>
-                <th>{% trans "Language" %}</th>
-                <th>{% trans "For services?" %}</th>
-                <th>{% trans "Autonomous?" %}</th>
-                <th>{% trans "OCP user?" %}</th>
-                <th>{% trans "Consumer?" %}</th>
-                <th>{% trans "Shares" %}</th>
-                <th>{% trans "Work for shares?" %}</th>
-                <th>{% trans "Website" %}</th>
-                <th>{% trans "How known" %}</th>
-                <th>{% trans "Who known" %}</th>
+		<th>{% trans "Website" %}</th>
+                <th>{% trans "Languages" %}</th>
+                <th>{% trans "FairNetwork" %}</th>
+                <th>{% trans "UseFaircoin" %}</th>
+                <th>{% trans "FairMarket" %}</th>
+                <th>{% trans "References" %}</th>
                 <th>{% trans "Comments" %}</th>                
             </thead>
             <tbody> 
@@ -68,22 +65,18 @@
                         <td>{{ req.name }} {{ req.surname }}  </td>
                         <td>{{ req.requested_username }}</td>
                         <td>{{ req.type_of_membership }}</td>
+			<td>{{ req.number_of_shares }}</td>
                         <td>{{ req.description }}</td>
                         <td>{{ req.email_address }}</td>
                         <td>{{ req.phone_number }}</td>
                         <td>{{ req.address }}</td>
+			<td>{{ req.website }}</td>
                         <td>{{ req.native_language }}</td>
-                        <td>{{ req.membership_for_services }}</td>
-                        <td>{{ req.autonomous_membership }}</td>
-                        <td>{{ req.ocp_user_membership }}</td>
-                        <td>{{ req.consumer_membership }}</td>
-                        <td>{{ req.number_of_shares }}</td>
-                        <td>{{ req.work_for_shares }}</td>
-                        <td>{{ req.website }}</td>
-                        <td>{{ req.how_do_you_know_fc }}</td>
+                        <td>{{ req.fairnetwork }}</td>
+                        <td>{{ req.usefaircoin }}</td>
+                        <td>{{ req.fairmarket }}</td>
                         <td>{{ req.known_member }}</td>
                         <td>{{ req.comments_and_questions }}</td>
-                        <td>{{ req.agent }}</td>
                     </tr>
                 {% endfor %}
             </tbody>    

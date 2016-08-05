@@ -26,6 +26,7 @@ urlpatterns = patterns("",
     url(r'^comments/', include('django_comments.urls')),
     url(r'^membership/$', 'work.views.membership_request', name="membership_request"),
     url(r'^membershipthanks/$', TemplateView.as_view(template_name='work/membership_thanks.html'), name='membership_thanks'),
+    url(r'^captcha/', include('captcha.urls')),
 )
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

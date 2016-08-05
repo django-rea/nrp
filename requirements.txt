@@ -16,3 +16,5 @@ rdflib-jsonld
 djangorestframework==2.4.8
 jsonrpclib
 django-contrib-comments
+bleach
+django-simple-captcha

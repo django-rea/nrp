@@ -2,6 +2,9 @@ import sys
 import datetime
 from decimal import *
 from collections import OrderedDict
+
+import bleach
+
 from django import forms
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
@@ -24,12 +27,17 @@ class MembershipRequestForm(forms.ModelForm):
         model = MembershipRequest
         exclude = ('agent',)
 
+    def _clean_fields(self):
+        super(MembershipRequestForm, self)._clean_fields()
+        for name, value in self.cleaned_data.items():
+            self.cleaned_data[name] = bleach.clean(value) 
+
 class WorkProjectSelectionFormOptional(forms.Form):
     context_agent = forms.ChoiceField()
 
     def __init__(self, context_agents, *args, **kwargs):
         super(WorkProjectSelectionFormOptional, self).__init__(*args, **kwargs)
-        self.fields["context_agent"].choices = [('', '--All My Projects--')] + [(proj.id, proj.name) for proj in context_agents]        
+        self.fields["context_agent"].choices = [('', '--All My Projects--')] + [(proj.id, proj.name) for proj in context_agents] 
         
 class WorkTodoForm(forms.ModelForm):
     from_agent = forms.ModelChoiceField(

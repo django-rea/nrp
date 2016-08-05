@@ -107,6 +107,8 @@ LOGIN_EXEMPT_URLS = (
     r"^$",
     r'^work/membership/',
     r'^work/membershipthanks/',
+    r'^account/password/reset/',
+    r'^account/password_reset_sent/',
 ) 
 
 
@@ -155,6 +157,7 @@ INSTALLED_APPS = [
     'corsheaders',
     #'django_filters',
     'rest_framework',
+    'captcha',
     
     # project
     'valuenetwork.valueaccounting',

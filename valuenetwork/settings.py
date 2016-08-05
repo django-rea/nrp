@@ -119,7 +119,10 @@ MIDDLEWARE_CLASSES = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.auth.middleware.SessionAuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django.middleware.security.SecurityMiddleware",
     "valuenetwork.login_required_middleware.LoginRequiredMiddleware",
     #'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
@@ -281,3 +284,9 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 LOCALE_PATHS = [
     os.path.join(PACKAGE_ROOT, "locale"),
 ]
+
+# Captcha settings
+CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.math_challenge'
+CAPTCHA_LETTER_ROTATION = (-15,15)
+CAPTCHA_MATH_CHALLENGE_OPERATOR = 'x'
+CAPTCHA_NOISE_FUNCTIONS = ('captcha.helpers.noise_dots','captcha.helpers.noise_dots',)

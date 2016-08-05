@@ -1,34 +1,46 @@
+{% load staticfiles %}
 {% load i18n %}
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="https://www.w3.org/1999/xhtml" lang="en">
   <head>
     <title>{% trans "OCP: Open Collaborative Platform" %}</title>
+
+    
+    <!-- <link href="{% static "bootstrap/css/bootstrap.css" %}" rel="stylesheet"> -->
+    <link href="{% static "bootstrap/css/bootstrap-responsive.css" %}" rel="stylesheet">
+    <!-- <link href="{% static "css/buttons.css" %}" rel="stylesheet"> -->
+
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" media="all">
+    <link rel="stylesheet" href="{% static 'css/coop.css' %}">
   </head>
-  <body style="background-image: url(/site_media/static/img/photo-OCP-verd-1600x900.jpg)">
-    <table width="100%" height="100%" border=0 style="text-align:center">
+  <body style="background-image: url({% static 'img/photo-OCP-verd-1600x900.jpg' %}); text-align:center;">
+	<p>&nbsp;</p>
+	<h3><img src="{% static 'img/logoFreedomCoop_terebum4_widealpha_white-.png' %}" title="{% trans "Freedom Coop's" %}"></h3>
+        <h1>{% trans "Open Collaborative Platform (OCP)" %}</h1>
+    <table class="landing" width="630px" border="0" align="center" style="text-align:center">
       <tr>
-        <td colspan="2" style="text-align: center">
-          <h1 style="font-family: 'Open Sans',sans-serif;color:#fff;">{% trans "FreedomCoop's<br>Open Collaborative Platform" %}</h1>
-        </td>
+	<td colspan="2"><p>
+	{% trans "<p>This is OCP, our Open Collaborative Platform. The OCP is the key organizational tool we offer to individuals, collectives, and management inside Freedom Coop.</p><p>Therefore, it can be used to:</p><ul><li>Boost open collaborative projects between people in different places.</li><li>Manage open collective projects and their team work by setting up task forces.</li><li>Account the time spent by every member to use it as a base of income distribution and a way of self-actualization for any project.</li><li>Execute a quarterly fee and tax distribution between Freedom Coop and their members.</li><li>Manage an online Faircoin wallet to accept and make payments.</li></ul><p>Freedom Coop, will use OCP for our collective organization as an open cooperative process.</p>" %}
+	</p></td>
       </tr>
       <tr>
-        <td width="50%">
+        <td width="50%" class="login-block">
           <h3>
           {% if request.user.is_authenticated %}
-            <a href="{% url "start" %}" style="font-family: 'Open Sans',sans-serif;color:#fff;">{% trans "My work" %}</a>
+            <a href="{% url "start" %}">{% trans "Enter the platform" %}</a>
           {% else %}
-            <a href="{% url "account_login" %}" style="font-family: 'Open Sans',sans-serif;color:#fff;">{% trans "Login" %}</a>
+            <a href="{% url "account_login" %}">{% trans "Login" %}</a>
           {% endif %}
           </h3>
         </td>
-        <td width="50%">
+        <td width="50%" class="register-block">
           <h3>
-            <a href="{% url 'membership_request' %}" style="font-family: 'Open Sans',sans-serif;color:#fff;">{% trans "Request Membership" %}</a>
+            <a href="{% url 'membership_request' %}">{% trans "Request Membership" %}</a>
           </h3>
         </td>
       </tr>
     </table>
+    <p>&nbsp;</p>
   </body>
 </html>

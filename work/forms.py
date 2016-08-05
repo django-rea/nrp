@@ -23,7 +23,13 @@ class MembershipRequestForm(forms.ModelForm):
     class Meta:
         model = MembershipRequest
         exclude = ('agent',)
-        
+
+class WorkProjectSelectionFormOptional(forms.Form):
+    context_agent = forms.ChoiceField()
+
+    def __init__(self, context_agents, *args, **kwargs):
+        super(WorkProjectSelectionFormOptional, self).__init__(*args, **kwargs)
+        self.fields["context_agent"].choices = [('', '--All My Projects--')] + [(proj.id, proj.name) for proj in context_agents]        
         
 class WorkTodoForm(forms.ModelForm):
     from_agent = forms.ModelChoiceField(

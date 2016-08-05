@@ -13202,11 +13202,27 @@ ids = [x['@id'].split('/')[1] for x in graph]
 
 def membership_requests(request):
     requests =  MembershipRequest.objects.filter(agent__isnull=True)
-    agts = EconomicAgent.objects.all()
-    candidates = [agt for agt in agts if not agt.membership_requests.all()]
+    #agts = EconomicAgent.objects.all()
+    #candidates = [agt for agt in agts if not agt.membership_requests.all()]
+    agent_form = MembershipAgentSelectionForm()
 
     return render_to_response("valueaccounting/membership_requests.html", {
         "help": get_help("membership_requests"),
         "requests": requests,
-        "candidates": candidates,
+        #"candidates": candidates,
+        "agent_form": agent_form,
     }, context_instance=RequestContext(request))
+
+def connect_agent_to_request(request, membership_request_id):
+    mbr_req = get_object_or_404(MembershipRequest, pk=membership_request_id)
+    if request.method == "POST":
+        agent_form = MembershipAgentSelectionForm(data=request.POST)
+        if agent_form.is_valid():
+            data = agent_form.cleaned_data
+            #import pdb; pdb.set_trace()
+            agent = data["created_agent"]
+            mbr_req.agent=agent
+            mbr_req.save()
+            
+    return HttpResponseRedirect('/%s/'
+        % ('accounting/membership-requests'))

@@ -1,6 +1,8 @@
 {% extends "site_base.html" %}
 
+{% load staticfiles %}
 {% load i18n %}
+{% load bootstrap_tags %}
 
 {% block head_title %}{% trans "Freedom Coop Membership Requests" %}{% endblock %}
 
@@ -35,8 +37,6 @@
             {% trans "Freedom Coop Membership Requests" %}
         </legend>
         
-       
-        
         <table style="width: 100%;" class="table table-bordered table-hover table-condensed" >
             <thead>
                 <th>{% trans "Created Agent" %}</th>
@@ -60,7 +60,26 @@
             <tbody> 
                 {% for req in requests %}
                     <tr class="{% cycle 'odd' 'even' %}">
+                        {% comment %}
                         <td>{{ req.agent }}</td>
+                         <td>
+                            {{ agent_form.created_agent }}
+                        </td>
+                        {% endcomment %}
+                        
+                        <td>
+                            <form
+                                style="display: inline;" 
+                                class="agent-form" 
+                                id="agent-form{{ req.id }}" 
+                                action="{% url "connect_agent_to_request" membership_request_id=req.id %}" 
+                                method="POST" >
+                                {% csrf_token %}
+                                {{ agent_form.created_agent }}
+                                <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Save" %}' />
+                            </form>
+                        </td>
+                        
                         <td>{{ req.request_date }}</td>
                         <td>{{ req.name }} {{ req.surname }}  </td>
                         <td>{{ req.requested_username }}</td>
@@ -112,6 +131,7 @@
     $(document).ready(function(){
 
         //$('#inventory').addClass('active');
+        //$("select").chosen();
 
     }); // end document.ready
 

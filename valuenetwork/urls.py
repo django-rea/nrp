@@ -13,7 +13,7 @@ admin.autodiscover()
 
 
 urlpatterns = patterns("",
-    url(r"^$", LoginView.as_view(template_name='account/login.html'), name='account_login'),
+    url(r"^$", LoginView.as_view(template_name='account/login.html'), name='home'),
     #url(r"^$", 'valuenetwork.valueaccounting.views.home', name="home"),
     url(r"^accounting/", include("valuenetwork.valueaccounting.urls")),
     url(r"^admin/", include(admin.site.urls)),

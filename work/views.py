@@ -1032,6 +1032,7 @@ def membership_request(request):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         if membership_form.is_valid():
+            human = True
             data = membership_form.cleaned_data
             name = data["name"]
             surname = data["surname"]

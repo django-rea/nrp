@@ -1,23 +1,29 @@
 {% load i18n %}
 {% load bootstrap_tags %}
+{% load staticfiles %}
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="https://www.w3.org/1999/xhtml" lang="en">
-
+<head>
 <title>{% trans "Thank you for your membership request" %}</title>
 
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" media="all">
+        <link rel="stylesheet" href="{% static 'css/coop.css' %}">
+
+</head>
+<body style="background-image: url({% static 'img/photo-OCP-verd-1600x900.jpg' %}); text-align:center;">
 <div class="container">
         {% include "_messages.html" %}
-
-        <legend>
+	<p>&nbsp;</p>
+        <h2>
             {% trans "Thank you for your membership request" %}
-        </legend>
+        </h2>
 
         <div class="row-fluid">
-            {% trans "A Freedom Coop administrator will send you an email soon." %}
+            <h5>{% trans "A Freedom Coop administrator will send you an email soon." %}</h5>
         </div>
-
+	<h4><a href="https://freedomcoop.eu"><img src="{% static 'img/logoFreedomCoop_terebum4_widealpha_white--.png' %}" title="{% trans "Freedom Coop" %}"></a></h4>
 </div>
-
+</body>
 </html>
 

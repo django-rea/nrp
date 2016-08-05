@@ -4,6 +4,7 @@ from django.conf.urls.static import static
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 from django.views.generic import TemplateView
+from account.views import LoginView
 
 from django.contrib import admin
 admin.autodiscover()
@@ -12,7 +13,7 @@ admin.autodiscover()
 
 
 urlpatterns = patterns("",
-    url(r"^$", TemplateView.as_view(template_name='frontpage.html'), name='home'),
+    url(r"^$", LoginView.as_view(template_name='account/login.html'), name='account_login'),
     #url(r"^$", 'valuenetwork.valueaccounting.views.home', name="home"),
     url(r"^accounting/", include("valuenetwork.valueaccounting.urls")),
     url(r"^admin/", include(admin.site.urls)),

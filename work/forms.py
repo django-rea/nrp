@@ -4,6 +4,7 @@ from decimal import *
 from collections import OrderedDict
 
 import bleach
+from captcha.fields import CaptchaField
 
 from django import forms
 from django.conf import settings
@@ -22,7 +23,8 @@ class UploadAgentForm(forms.ModelForm):
 
 
 class MembershipRequestForm(forms.ModelForm):
-    
+    captcha = CaptchaField()
+
     class Meta:
         model = MembershipRequest
         exclude = ('agent',)
@@ -80,3 +82,4 @@ class WorkTodoForm(forms.ModelForm):
         if pattern:
             self.pattern = pattern
             self.fields["resource_type"].choices = [(rt.id, rt) for rt in pattern.todo_resource_types()]
+

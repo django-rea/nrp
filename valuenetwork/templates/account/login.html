@@ -1,16 +1,20 @@
-
-
 {% load url from future %}
+{% load staticfiles %}
 {% load i18n %}
 {% load bootstrap_tags %}
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="https://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <title>{% trans "OCP: Open Collaborative Platform" %}</title>
 
 {% block extra_head %}
 
 <style>
 
 body {
-    font-family: Arial, sans-serif;
-    width: 600px;
+    /*font-family: Arial, sans-serif;
+    width: 600px;*/
     margin: 0 auto;
 }
 
@@ -20,24 +24,41 @@ body {
     font-weight: bold;
 }
 
-.log {
-    padding: 0;
-
-}
-legend {
-    font-size: 2em;
-    margin-top: 1em;
-    margin-bottom: 15px;
-}
 
 </style>
 
 {% endblock %}
 
-{% block body %}
-    <div class="row">
-        <legend>{% trans "Log in to the OCP" %}</legend>
-        <div class="log">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" media="all">
+    <link rel="stylesheet" href="{% static 'css/coop.css' %}">
+   <!-- <link href="{% static "css/buttons.css" %}" rel="stylesheet"> -->
+    <link href="{% static "bootstrap/css/bootstrap.css" %}" rel="stylesheet">
+   <!-- <link href="{% static "bootstrap/css/bootstrap-responsive.css" %}" rel="stylesheet"> -->
+
+  </head>
+
+
+  <body style="background-image: url({% static 'img/photo-OCP-verd-1600x900.jpg' %}); text-align:center;">
+        <p>&nbsp;</p>
+        <h4><img src="{% static 'img/logoFreedomCoop_terebum4_widealpha_white--.png' %}" title="{% trans "Freedom Coop's" %}"></h4>
+        <h1>{% trans "Open Collaborative Platform (OCP)" %}</h1>
+    <table class="landing" border="0" align="center" style="text-align:center">
+      <tr>
+        <td colspan="2"><p>
+        {% trans "<p>This is OCP, our Open Collaborative Platform. The OCP is the key organizational tool we offer to individuals, collectives, and management inside Freedom Coop.</p><p>Therefore, it can be used to:</p><ul><li>Boost open collaborative projects between people in different places.</li><li>Manage open collective projects and their team work by setting up task forces.</li><li>Account the time spent by every member to use it as a base of income distribution and a way of self-actualization for any project.</li><li>Execute a quarterly fee and tax distribution between Freedom Coop and their members.</li><li>Manage an online Faircoin wallet to accept and make payments.</li></ul><p>Freedom Coop, will use OCP for our collective organization as an open cooperative process.</p>" %}
+        </p></td>
+      </tr>
+      <tr>
+	<td width="50%" class="register-block">
+          <h3>{% trans "Request Membership" %}</h3>
+	  <p>{% trans "The first step to become a member of Freedom Coop and use OCP, is to fill the following membership form:" %}</p>
+	  <h4><a class="btn" href="{% url 'membership_request' %}">{% trans "Join FreedomCoop" %}</a></h4>
+          </h3>
+        </td>
+        <td width="50%" class="login-block">
+          <h3>{% trans "Log in to the OCP" %}</h3>
+	  <p>{% trans "If you already did it, and have user and password, login here." %}</p>
+          <div class="log">
             <form method="POST" action="{% url "account_login" %}" autocapitalize="off" class="form-horizontal"{% if form.is_multipart %} enctype="multipart/form-data"{% endif %}>
                 {% csrf_token %}
                 {{ form|as_bootstrap }}
@@ -45,7 +66,7 @@ legend {
                     <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
                 {% endif %}
                 <div class="form-actions">
-                    <a href="{% url "account_password_reset" %}" class="btn">{% trans "Forgot your password?" %}</a>
+                    <a href="{% url "account_password_reset" %}" class="forgot-pass">{% trans "Forgot your password?" %}</a>
                     <button type="submit" class="btn btn-primary">{% trans "Log in" %}</button>
                 </div>
             </form>
@@ -53,5 +74,10 @@ legend {
         <div class="span4">
             {% include "account/_login_sidebar.html" %}
         </div>
-    </div>
-{% endblock %}
+	</td>
+      </tr>
+    </table>
+    <p>&nbsp;</p>
+  </body>
+</html>
+

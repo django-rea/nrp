@@ -116,6 +116,13 @@ class AgentSelectionForm(forms.Form):
         label="Select an existing Agent",
         required=False)
 
+
+class MembershipAgentSelectionForm(forms.Form):
+    created_agent = AgentModelChoiceField(
+        queryset=EconomicAgent.objects.without_membership_request(), 
+        required=False)
+
+
 class ContextAgentSelectionForm(forms.Form):
     selected_agent = AgentModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 

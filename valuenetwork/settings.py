@@ -157,6 +157,7 @@ INSTALLED_APPS = [
     'corsheaders',
     #'django_filters',
     'rest_framework',
+    'captcha',
     
     # project
     'valuenetwork.valueaccounting',

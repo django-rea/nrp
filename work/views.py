@@ -154,9 +154,9 @@ def project_work(request):
     patterns = PatternUseCase.objects.filter(use_case__identifier='todo')
     if patterns:
         pattern = patterns[0].pattern
-        todo_form = TodoForm(pattern=pattern)
+        todo_form = TodoForm(pattern=pattern, agent=agent)
     else:
-        todo_form = TodoForm()
+        todo_form = TodoForm(agent=agent)
     #import pdb; pdb.set_trace()
     if request.method == "POST":
         if date_form.is_valid():

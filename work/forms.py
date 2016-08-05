@@ -67,9 +67,10 @@ class WorkTodoForm(forms.ModelForm):
         model = Commitment
         fields = ('from_agent', 'context_agent', 'resource_type', 'due_date', 'description', 'url')
 
-    def __init__(self, agent, pattern=None, *args, **kwargs):
+    def __init__(self, agent=None, pattern=None, *args, **kwargs):
         super(WorkTodoForm, self).__init__(*args, **kwargs)
-        contexts = agent.related_contexts()
+        if agent:
+            contexts = agent.related_contexts()
         self.fields["context_agent"].choices = [(ct.id, ct) for ct in contexts]
         peeps = [agent,]
         from_agent_choices = [('', 'Unassigned'), (agent.id, agent),]

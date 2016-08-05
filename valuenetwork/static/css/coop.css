@@ -5,10 +5,15 @@ body { /*p, a, h1, h2, h3, h4, h5 {*/
 	line-height: 20px !important;
 }
 
+table.landing {
+	max-width: 650px;
+	width: 90%;
+}
+
 div.base-form {
 	display: inline-block;
 	max-width: 650px;
-	width: 80%;
+	width: 90%;
 }
 form#membershipForm {
 	background-color: rgba(255,255,255,0.2);
@@ -69,6 +74,12 @@ input {
 input[type="checkbox"] {
 	width: 30px !important;
 }
+.landing .btn {
+	padding: 10px 20px 10px;
+}
+.landing h4 a.btn {
+	font-size: 1em;
+}
 .base-form input, .base-form textarea {
 	width: 98% !important;
 }
@@ -77,7 +88,7 @@ input[type="checkbox"] {
 	clear: both;
 }
 .base-form #div_id_captcha input {
-	width: 190px !important;
+	width: 130px !important;
 	margin-left: 20px;
 }
 

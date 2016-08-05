@@ -5,10 +5,14 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="https://www.w3.org/1999/xhtml" lang="en">
 
+<head>
+
 <link href="{% static "pinax/css/theme.css" %}" rel="stylesheet">
 <link href="{% static "bootstrap/css/bootstrap.css" %}" rel="stylesheet">
 <link href="{% static "bootstrap/css/bootstrap-responsive.css" %}" rel="stylesheet">
 <link href="{% static "css/buttons.css" %}" rel="stylesheet">
+
+<link href="{% static "css/coop.css" %}" rel="stylesheet">
 
 <style>
 
@@ -18,24 +22,26 @@
 }
 
 </style>
-<title>{% trans "Request membership in Freedom Coop" %}</title>
+<title>{% trans "Request Membership at FreedomCoop" %}</title>
 
-<div class="container">
+</head>
+<body style="background-image: url({% static 'img/photo-OCP-verd-1600x900.jpg' %}); text-align:center;">
 
-        <h1>
-            {% trans "Request membership in Freedom Coop" %}
-        </h1>
-
-        <div>
         
-            <div>
+        <div class="base-form">
+		<h1>
+            {% trans "Request Membership at FreedomCoop:" %}
+        </h1>
+        <p>
+        {% trans "The first step to become a member of Freedom Coop is to fill the following membership form:" %}
+        </p>
+<p>&nbsp;</p>
                 <form id="membershipForm" class="validateMe" action="." method="POST" >
                     {% csrf_token %}
                     {{ membership_form|as_bootstrap }}
                     <input type="submit" name="submit" value="{% trans 'Submit' %}" class="btn btn-primary" /> 
                 </form>
-            </div>
         </div>
-</div>
 
+</body>
 </html>

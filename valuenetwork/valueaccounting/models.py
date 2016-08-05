@@ -8511,13 +8511,13 @@ class Commitment(models.Model):
         else:
             return self.resource_type.resource_create_form(self.form_prefix())
 
-    #def todo_change_form(self):
-    #    #import pdb; pdb.set_trace()
-    #    from valuenetwork.valueaccounting.forms import TodoForm
-    #    prefix=self.form_prefix()
-    #    return TodoForm(instance=self, prefix=prefix)
-        
     def todo_change_form(self):
+        #import pdb; pdb.set_trace()
+        from valuenetwork.valueaccounting.forms import TodoForm
+        prefix=self.form_prefix()
+        return TodoForm(instance=self, prefix=prefix)
+        
+    def work_todo_change_form(self): #only works for assigned todo's
         #import pdb; pdb.set_trace()
         from work.forms import WorkTodoForm
         agent=self.from_agent
@@ -8525,15 +8525,9 @@ class Commitment(models.Model):
         patterns = PatternUseCase.objects.filter(use_case__identifier='todo')
         if patterns:
             pattern = patterns[0].pattern
-            if agent:
-                todo_form = WorkTodoForm(agent=agent, pattern=pattern, instance=self, prefix=prefix)
-            else:
-                todo_form = WorkTodoForm(pattern=pattern, instance=self, prefix=prefix)
+            todo_form = WorkTodoForm(agent=agent, pattern=pattern, instance=self, prefix=prefix)
         else:
-            if agent:
-                todo_form = WorkTodoForm(agent=agent, instance=self, prefix=prefix)
-            else:
-                todo_form = WorkTodoForm(instance=self, prefix=prefix)
+            todo_form = WorkTodoForm(agent=agent, instance=self, prefix=prefix)
         return todo_form
 
     #obsolete?

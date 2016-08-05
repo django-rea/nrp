@@ -574,7 +574,7 @@ th, td {
 
                                                     <form class="changeForm" id="changeForm-{{ todo.id }}" action="{% url "todo_change" todo_id=todo.id %}" method="POST" >
                                                         {% csrf_token %}
-                                                        {{ todo.todo_change_form|as_bootstrap }}
+                                                        {{ todo.work_todo_change_form|as_bootstrap }}
                                                         <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
                                                       <div class="modal-footer">
                                                         <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>

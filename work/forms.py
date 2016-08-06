@@ -72,9 +72,10 @@ class WorkTodoForm(forms.ModelForm):
     def __init__(self, agent, pattern=None, *args, **kwargs): #agent is posting agent
         super(WorkTodoForm, self).__init__(*args, **kwargs)
         contexts = agent.related_contexts()
-        self.fields["context_agent"].choices = [(ct.id, ct) for ct in contexts]
+        self.fields["context_agent"].choices = list(set([(ct.id, ct) for ct in contexts]))
         peeps = [agent,]
         from_agent_choices = [('', 'Unassigned'), (agent.id, agent),]
+        #import pdb; pdb.set_trace()
         for context in contexts:
             associations = agent.is_associate_of.filter(has_associate=context)
             if associations:

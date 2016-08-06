@@ -478,6 +478,8 @@ def agent(request, agent_id):
     member_hours_roles = []
     roles_height = 400
     
+    membership_request = agent.membership_request()
+    
     if agent.is_individual():
         contributions = agent.given_events.filter(is_contribution=True)
         agents_stats = {}
@@ -545,6 +547,7 @@ def agent(request, agent_id):
           
     return render_to_response("valueaccounting/agent.html", {
         "agent": agent,
+        "membership_request": membership_request,
         "photo_size": (128, 128),
         "change_form": change_form,
         "user_form": user_form,

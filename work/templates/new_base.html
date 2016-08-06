@@ -16,6 +16,14 @@
             <link href="{% static "bootstrap/css/bootstrap.css" %}" rel="stylesheet">
             <link href="{% static "bootstrap/css/bootstrap-responsive.css" %}" rel="stylesheet">
 			<link href="{% static "css/buttons.css" %}" rel="stylesheet">
+	    <style>
+		#site-menu {
+		    /*display: table;*/
+		}
+		.ui-menu {
+		    /*display: table;*/
+		}
+	    </style>
             {% block extra_style %}{% endblock %}
         {% endblock %}
 
@@ -23,6 +31,17 @@
         <!--[if lt IE 9]>
             <script src="https://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
         <![endif]-->
+
+        <script type="text/javascript">
+            //$(document).ready(function(){
+                //$('#site-menu').menu({
+		    //role: "listbox"
+		//});
+		//$('li#my-tasks a').click(function(){
+		    //$('#tasks-menu').toggle();
+		//});
+            //});
+        </script>
 
         {% block extra_head_base %}
             {% block extra_head %}{% endblock %}
@@ -43,23 +62,33 @@
                             {% block site_brand %}<a class="brand" href="{% url 'work_home' %}">{{ SITE_NAME }}</a>{% endblock %}
                             <div class="nav-collapse">
                                 {% block nav %}
-                                        <ul class="nav">
+                                        <ul class="nav" id="site-menu">
                                             {% if request.user.is_authenticated %}
-                                                <li id="non-process-logging" >
-                                                    <a href="{% url 'non_process_logging' %}"  
-                                                    title="{% trans 'Your non-process related work' %}"  
-                                                    >{% trans 'Non-process Logging' %}</a>
-                                                </li>
-                                                <li id="my-dashboard" >
-                                                    <a href="{% url 'my_dashboard' %}"  
-                                                    title="{% trans 'Your process related work and potential work' %}"  
-                                                    >{% trans 'My Dashboard' %}</a>
-                                                </li>
-                                                <li id="my-history" >
-                                                    <a href="{% url 'my_history' %}"  
-                                                    title="{% trans 'Your work history with payments' %}"  
-                                                    >{% trans 'My History' %}</a>
-                                                </li>
+						<li id="my-tasks" class="dropdown">
+						  <a href="#" class="dropdown-toggle" data-toggle="dropdown">{% trans 'My Tasks' %} <b class="caret"></b></a>
+						  <ul class="subnav dropdown-menu" id="tasks-menu">
+						    <li id="my-dashboard" >
+                                                      <a href="{% url 'my_dashboard' %}"
+                                                      title="{% trans 'Do your planned tasks' %}"
+                                                      >{% trans 'Do my tasks' %}</a>
+                                                    </li>
+						    <li id="my-dashboard" >
+                                                      <a href="{% url 'my_dashboard' %}"
+                                                      title="{% trans 'Take new tasks for your skills' %}"
+                                                      >{% trans 'Take new task' %}</a>
+                                                    </li>
+                                                    <li id="non-process-logging" >
+                                                      <a href="{% url 'non_process_logging' %}"  
+                                                      title="{% trans 'Register other unplanned tasks you did' %}"  
+                                                      >{% trans 'Log unplanned tasks' %}</a>
+                                                    </li>
+                                                    <li id="my-history" >
+                                                      <a href="{% url 'my_history' %}"  
+                                                      title="{% trans 'Your work history with payments' %}"  
+                                                      >{% trans 'Tasks history' %}</a>
+                                                    </li>
+						  </ul>
+						</li>
                                                 <li id="map" >
                                                     <a href="{% url 'map' %}"  
                                                     title="{% trans 'Map of worker locations' %}"  
@@ -70,6 +99,9 @@
                                                     title="{% trans 'My personal information and skills' %}"  
                                                     >{% trans 'My Profile' %}</a>
                                                 </li>
+						<li id="language" >
+						    <a href="#" >{% trans "Language" %}</a>
+						</li>
                                             {% endif %}
                                         </ul>
                                  {% endblock %}

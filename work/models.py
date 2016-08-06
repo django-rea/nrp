@@ -19,8 +19,8 @@ class MembershipRequest(models.Model):
     #    help_text=_("this field is optional, but we can't contact you via email without it"))
     phone_number = models.CharField(_('Phone number'), max_length=32, blank=True, null=True)
     address = models.CharField(_('Address (where do you live?)'), max_length=255, blank=True)
-    native_language = models.CharField(_('Native language'), max_length=255)
-    type_of_membership = models.CharField(_('Type of access requested'),
+    native_language = models.CharField(_('Languages'), max_length=255, blank=True)
+    type_of_membership = models.CharField(_('Type of membership'),
         max_length=12, choices=MEMBERSHIP_TYPE_CHOICES,
         default="individual")
     #membership_for_services = models.BooleanField(_('Membership for services'), default=False,
@@ -40,7 +40,7 @@ class MembershipRequest(models.Model):
         help_text=_("Describe your project or collective and the skills or abilities you can offer to the cooperative"))
     website = models.CharField(_('Website'), max_length=255, blank=True)
     fairnetwork = models.CharField(_('FairNetwork username'), max_length=255, blank=True,
-        help_text = _("The username you use at in the FairNetwork at <a href='https://fair.coop' target='_blank'>fair.coop</a>"))
+        help_text = _("The username you use in the FairNetwork at <a href='https://fair.coop' target='_blank'>fair.coop</a>"))
     usefaircoin = models.CharField(_('UseFaircoin profile'), max_length=255, blank=True,
         help_text = _("If you are in the directory at <a href='https://use.fair-coin.org' target='_blank'>use.fair-coin.org</a> please put the URL to your profile."))
     fairmarket = models.CharField(_('FairMarket shop'), max_length=255, blank=True,

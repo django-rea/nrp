@@ -10,4 +10,4 @@ for Process: {{ process }}
 This message has most likely been sent to other individuals. 
 
 You can see the process here:{% endblocktrans %}
-http://{{ current_site }}{{ process.get_absolute_url }}
+https://{{ current_site }}{{ process.get_absolute_url }}

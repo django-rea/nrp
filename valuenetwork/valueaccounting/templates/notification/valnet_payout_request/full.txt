@@ -2,4 +2,4 @@
 
 {{ payout.from_agent }} requests a payout of {{ payout.quantity_formatted }}.
 You can see and respond to the request here:{% endblocktrans %}
-http://{{ current_site }}{{ payout.get_absolute_url }}
+https://{{ current_site }}{{ payout.get_absolute_url }}

@@ -436,6 +436,7 @@ th, td {
                                             {% if not todo.from_agent %}
                                                 <form style="display: inline;" class="mineForm" id="mineForm-{{ todo.id }}" action="{% url "todo_mine" todo_id=todo.id %}" method="POST" >
 						                            {% csrf_token %}
+                                                    <input type="hidden" name="next" value="{% url "project_work" %}" />
                                                     <input type="submit" name="submit" class="btn btn-primary btn-mini"  title="Mine" value="{% trans 'Mine!' %}" />
                                                 </form>
                                             {% endif %}
@@ -450,7 +451,7 @@ th, td {
 
 					                                <form class="changeForm" id="changeForm-{{ todo.id }}" action="{% url "todo_change" todo_id=todo.id %}" method="POST" >
 						                                {% csrf_token %}
-						                                {{ todo.todo_change_form|as_bootstrap }}
+						                                {{ todo.work_todo_change_form|as_bootstrap }}
 						                                <input type="hidden" name="next" value="{% url "project_work" %}" />
 					                                  <div class="modal-footer">
 						                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>

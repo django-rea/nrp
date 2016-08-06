@@ -8523,10 +8523,10 @@ class Commitment(models.Model):
         prefix=self.form_prefix()
         return TodoForm(instance=self, prefix=prefix)
         
-    def work_todo_change_form(self): #only works for assigned todo's
+    def work_todo_change_form(self): 
         #import pdb; pdb.set_trace()
         from work.forms import WorkTodoForm
-        agent=self.from_agent
+        agent=self.to_agent #poster of todo
         prefix=self.form_prefix()
         patterns = PatternUseCase.objects.filter(use_case__identifier='todo')
         if patterns:

@@ -145,8 +145,8 @@ def project_work(request):
     projects = agent.related_contexts()
     next = "/work/project-work/"
     context_id = 0
-    start = datetime.date.today()
-    end = start + datetime.timedelta(days=90)
+    start = datetime.date.today() - datetime.timedelta(days=30)
+    end = datetime.date.today() + datetime.timedelta(days=90)
     init = {"start_date": start, "end_date": end}
     date_form = DateSelectionForm(initial=init, data=request.POST or None)
     ca_form = WorkProjectSelectionFormOptional(data=request.POST or None, context_agents=projects)
@@ -154,9 +154,9 @@ def project_work(request):
     patterns = PatternUseCase.objects.filter(use_case__identifier='todo')
     if patterns:
         pattern = patterns[0].pattern
-        todo_form = TodoForm(pattern=pattern, agent=agent)
+        todo_form = WorkTodoForm(pattern=pattern, agent=agent)
     else:
-        todo_form = TodoForm(agent=agent)
+        todo_form = WorkTodoForm(agent=agent)
     #import pdb; pdb.set_trace()
     if request.method == "POST":
         if date_form.is_valid():

@@ -49,7 +49,7 @@ class WorkTodoForm(forms.ModelForm):
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
     resource_type = WorkModelChoiceField(
-        queryset=EconomicResourceType.objects.all(), 
+        queryset=EconomicResourceType.objects.filter(behavior="work"), 
         label="Type of work", 
         empty_label=None,
         widget=forms.Select(

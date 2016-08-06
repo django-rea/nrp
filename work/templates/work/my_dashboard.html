@@ -225,7 +225,7 @@ th, td {
                     <thead>
                         <tr>
                             <th>{% trans "Due" %}</th>
-                            <th>{% trans "Who" %}</th>
+                            <th>{% trans "Poster" %}</th>
                             <th>&nbsp;</th>
                             <th>{% trans "What" %}</th>
                             <th>&nbsp;</th>
@@ -233,9 +233,6 @@ th, td {
                             <th>{% trans "Project" %}</th>
                             {% endcomment %}
                             <th>{% trans "Url" %}</th>
-                            {% comment %}
-                            <th>{% trans "Poster" %}</th>
-                            {% endcomment %}
                             <th>&nbsp;</th>
                         </tr>
                     </thead>
@@ -250,7 +247,7 @@ th, td {
                                     {{ todo.due_date|date:"Y-m-d"  }}
                                 </td>
                                 <td class="who">
-                                    Poster: {{ todo.to_agent }}
+                                    {{ todo.to_agent }}
                                 </td>
                                 <td colspan="3" class="description">
                                     {{ todo.description|urlize|linebreaks }}
@@ -265,11 +262,6 @@ th, td {
                                         <a href="{{ todo.url }}" target="_blank">{% trans "Open" %}</a>
                                     {% endif %}
                                 </td>
-                                {% comment %}
-                                <td>
-                                    {{ todo.to_agent }}
-                                </td>
-                                {% endcomment %}
                                 <td>
                                     
                                     {% if agent == todo.to_agent %}
@@ -295,7 +287,7 @@ th, td {
 
                                                 <form class="changeForm" id="changeForm-{{ todo.id }}" action="{% url "todo_change" todo_id=todo.id %}" method="POST" >
                                                     {% csrf_token %}
-                                                    {{ todo.todo_change_form|as_bootstrap }}
+                                                    {{ todo.work_todo_change_form|as_bootstrap }}
                                                     <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
                                                   <div class="modal-footer">
                                                     <input type="cancel" class="btn cancel" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
@@ -453,8 +445,7 @@ th, td {
                                 <th>{% trans "Due" %}</th>
                                 <th>{% trans "Project" %}</th>
                                 <th>{% trans "Poster" %}</th>
-                                <th>{% trans "Doer" %}</th>
-                                <th>{% trans "What to do" %}</th>
+                                <th>{% trans "What" %}</th>
                                 <th>{% trans "Url" %}</th>
                                 <th colspan="2">&nbsp;</th>
                             </tr>
@@ -474,13 +465,6 @@ th, td {
                                     </td>
                                     <td>
                                         {{ todo.to_agent }}
-                                    </td>
-                                    <td>
-                                        {% if todo.from_agent %}
-                                            {{ todo.from_agent }}
-                                        {% else %}
-                                            ?
-                                        {% endif %}
                                     </td>
                                     <td class="tddesc">
                                         {{ todo.description|urlize|linebreaks }}
@@ -540,14 +524,15 @@ th, td {
                                         
                                         {% if agent == todo.to_agent %}
  
-                                                <a href="#changeModal-{{ todo.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
-                                                    {% trans "Change" %}
+                                                <a href="#changeModal-{{ todo.id }}" role="button" class="btn btn-info btn-mini edit-button" data-toggle="modal">
+                                                    <i class="icon-edit"></i>
                                                 </a>
+                                            </a>
                                                 {% if todo.is_deletable %}
                                                     <form style="display: inline;" id="deleteForm-{{ todo.id }}" action="{% url "todo_delete" todo_id=todo.id %}" method="POST" >
                                                         {% csrf_token %}
                                                         <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
-                                                        <button class="btn btn-warning btn-mini" title="Delete" >{% trans "Delete" %}</button>
+                                                        <button class="btn btn-warning btn-mini" title="Delete" >X</button>
                                                     </form>
                                                 {% endif %}
 

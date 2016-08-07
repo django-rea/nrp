@@ -139,6 +139,68 @@ def profile(request):
     }, context_instance=RequestContext(request))
 
 @login_required
+def project_work(request):
+    #import pdb; pdb.set_trace()
+    agent = get_agent(request)
+    projects = agent.related_contexts()
+    next = "/work/project-work/"
+    context_id = 0
+    start = datetime.date.today() - datetime.timedelta(days=30)
+    end = datetime.date.today() + datetime.timedelta(days=90)
+    init = {"start_date": start, "end_date": end}
+    date_form = DateSelectionForm(initial=init, data=request.POST or None)
+    ca_form = WorkProjectSelectionFormOptional(data=request.POST or None, context_agents=projects)
+    chosen_context_agent = None
+    patterns = PatternUseCase.objects.filter(use_case__identifier='todo')
+    if patterns:
+        pattern = patterns[0].pattern
+        todo_form = WorkTodoForm(pattern=pattern, agent=agent)
+    else:
+        todo_form = WorkTodoForm(agent=agent)
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        if date_form.is_valid():
+            dates = date_form.cleaned_data
+            start = dates["start_date"]
+            end = dates["end_date"]
+            if ca_form.is_valid():
+                proj_data = ca_form.cleaned_data
+                proj_id = proj_data["context_agent"]
+                if proj_id.isdigit:
+                    context_id = proj_id
+                    chosen_context_agent = EconomicAgent.objects.get(id=proj_id)
+    
+    start_date = start.strftime('%Y_%m_%d')
+    end_date = end.strftime('%Y_%m_%d')
+    #processes, context_agents = assemble_schedule(start, end, chosen_context_agent)
+    #my_context_agents = []
+    #for ca in context_agents:
+    #    if ca in projects:
+    #        my_context_agents.append(ca)    
+    todos = Commitment.objects.todos().filter(due_date__range=(start, end))
+    if chosen_context_agent:
+        todos = todos.filter(context_agent=chosen_context_agent)
+    my_project_todos = []
+    for todo in todos:
+        if todo.context_agent in projects:
+            my_project_todos.append(todo)
+    return render_to_response("work/project_work.html", {
+        "agent": agent,
+        #"context_agents": my_context_agents,
+        "all_processes": projects,
+        "date_form": date_form,
+        "start_date": start_date,
+        "end_date": end_date,
+        "context_id": context_id,
+        "todo_form": todo_form,
+        "ca_form": ca_form,
+        "todos": my_project_todos,
+        "next": next,
+        "help": get_help("project_work"),
+    }, context_instance=RequestContext(request))
+    
+    
+@login_required
 def change_personal_info(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     user_agent = get_agent(request)

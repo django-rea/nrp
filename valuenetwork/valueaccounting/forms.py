@@ -1044,7 +1044,7 @@ class TodoForm(forms.ModelForm):
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
     resource_type = WorkModelChoiceField(
-        queryset=EconomicResourceType.objects.all(), 
+        queryset=EconomicResourceType.objects.filter(behavior="work"), 
         label="Type of work", 
         empty_label=None,
         widget=forms.Select(
@@ -1064,12 +1064,14 @@ class TodoForm(forms.ModelForm):
         model = Commitment
         fields = ('from_agent', 'context_agent', 'resource_type', 'due_date', 'description', 'url')
 
-    def __init__(self, pattern=None, *args, **kwargs):
+    def __init__(self, pattern=None, agent=None, *args, **kwargs):
         super(TodoForm, self).__init__(*args, **kwargs)
+        #import pdb; pdb.set_trace()    
         if pattern:
             self.pattern = pattern
             self.fields["resource_type"].choices = [(rt.id, rt) for rt in pattern.todo_resource_types()]
-
+        if agent:
+            self.fields["context_agent"].choices = [(agt.id, agt) for agt in agent.related_contexts()]
 
 #used in labnotes
 class OldProcessCitationForm(forms.Form):

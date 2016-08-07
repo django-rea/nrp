@@ -28,11 +28,18 @@ class MembershipRequestForm(forms.ModelForm):
     class Meta:
         model = MembershipRequest
         exclude = ('agent',)
-        
+
     def _clean_fields(self):
         super(MembershipRequestForm, self)._clean_fields()
         for name, value in self.cleaned_data.items():
             self.cleaned_data[name] = bleach.clean(value) 
+
+class WorkProjectSelectionFormOptional(forms.Form):
+    context_agent = forms.ChoiceField()
+
+    def __init__(self, context_agents, *args, **kwargs):
+        super(WorkProjectSelectionFormOptional, self).__init__(*args, **kwargs)
+        self.fields["context_agent"].choices = [('', '--All My Projects--')] + [(proj.id, proj.name) for proj in context_agents] 
         
 class WorkTodoForm(forms.ModelForm):
     from_agent = forms.ModelChoiceField(
@@ -42,7 +49,7 @@ class WorkTodoForm(forms.ModelForm):
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
     resource_type = WorkModelChoiceField(
-        queryset=EconomicResourceType.objects.all(), 
+        queryset=EconomicResourceType.objects.filter(behavior="work"), 
         label="Type of work", 
         empty_label=None,
         widget=forms.Select(
@@ -62,12 +69,13 @@ class WorkTodoForm(forms.ModelForm):
         model = Commitment
         fields = ('from_agent', 'context_agent', 'resource_type', 'due_date', 'description', 'url')
 
-    def __init__(self, agent, pattern=None, *args, **kwargs):
+    def __init__(self, agent, pattern=None, *args, **kwargs): #agent is posting agent
         super(WorkTodoForm, self).__init__(*args, **kwargs)
         contexts = agent.related_contexts()
-        self.fields["context_agent"].choices = [(ct.id, ct) for ct in contexts]
+        self.fields["context_agent"].choices = list(set([(ct.id, ct) for ct in contexts]))
         peeps = [agent,]
         from_agent_choices = [('', 'Unassigned'), (agent.id, agent),]
+        #import pdb; pdb.set_trace()
         for context in contexts:
             associations = agent.is_associate_of.filter(has_associate=context)
             if associations:

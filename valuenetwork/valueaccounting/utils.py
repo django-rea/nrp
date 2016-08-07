@@ -294,7 +294,7 @@ def get_project_id(p):
     return project_id
 
 def get_url_starter():
-    return "".join(["http://", Site.objects.get_current().domain])
+    return "".join(["https://", Site.objects.get_current().domain])
 
 def get_order_details(order, url_starter, processes):
     receiver_name = ""

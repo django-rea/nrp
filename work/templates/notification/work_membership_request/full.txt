@@ -5,5 +5,8 @@ Type: {{ type_of_membership }}
 
 Description: {{ description }}
 
+You can find this task in https://{{ current_site }}//accounting/work/#todos
+The new membership request is at {{ membership_url }}
+
 You can see all unfinished membership requests here:{% endblocktrans %}
 https://{{ current_site }}/accounting/membership-requests/

@@ -31,6 +31,9 @@ else:
     
 def get_site_name():
     return Site.objects.get_current().name
+    
+def get_url_starter():
+    return "".join(["https://", Site.objects.get_current().domain])
 
 def work_home(request):
 
@@ -1100,11 +1103,23 @@ def membership_request(request):
             surname = data["surname"]
             type_of_membership = data["type_of_membership"]
             description = data["description"]
-            membership_form.save()
+            mbr_req = membership_form.save()
             
             event_type = EventType.objects.get(relationship="todo")
             description = "Create an Agent and User for the Membership Request from "
             description += name
+            membership_url= get_url_starter() + "/accounting/membership-request/" + str(mbr_req.id) + "/"
+            context_agent=EconomicAgent.objects.get(nick="Freedom Coop")
+            
+            task = Commitment(
+                event_type=event_type,
+                description=description,
+                context_agent=context_agent,
+                url=membership_url,
+                due_date=datetime.date.today(),
+                quantity=Decimal("1")
+                )
+            task.save()
             
             
             if notification:
@@ -1119,6 +1134,7 @@ def membership_request(request):
                         "type_of_membership": type_of_membership,
                         "description": description,
                         "site_name": site_name,
+                        "membership_url": membership_url,
                         }
                     )
                

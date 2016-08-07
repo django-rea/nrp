@@ -1,0 +1,125 @@
+{% extends "site_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Freedom Coop Membership Request for " %} {{ mbr_req.name }}{% endblock %}
+
+{% block extra_head %}
+
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+
+<style>
+    
+.description {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-style: italic;
+}
+
+.heading {
+    margin: 1em .5em 0 .5em;
+    color: firebrick;
+    font-size: 1.5em;
+    font-weight: bold;
+}
+.showhide {
+    font-size: .6em;
+    color: gray;
+    margin-left: 4px;
+}
+
+.showhide:hover {
+    cursor: pointer;
+}
+
+.agents li {
+    margin-left: 3em;
+}
+.btn {
+    margin-left: 2em;
+}
+.modal {
+    width: 600px;
+}
+th
+{
+    background-color:#C8D6E8;
+}
+</style>
+
+{% endblock %}
+
+{% block body_class %}projects{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+    <div>
+        <legend>
+            {% trans "Freedom Coop Membership Request for " %} {{ mbr_req.name }}
+        </legend>
+        
+        <table style="width: 100%;" class="table table-bordered table-hover table-condensed" >
+            <thead>
+                <th>{% trans "Date" %}</th>
+                <th>{% trans "Name" %}</th>
+                <th>{% trans "Requested username" %}</th>
+                <th>{% trans "Type" %}</th>
+                <th>{% trans "Shares" %}</th>
+                <th>{% trans "Description" %}</th>
+                <th>{% trans "Email" %}</th>
+                <th>{% trans "Phone" %}</th>
+                <th>{% trans "Address" %}</th>
+                <th>{% trans "Website" %}</th>
+                <th>{% trans "Languages" %}</th>
+                <th>{% trans "FairNetwork" %}</th>
+                <th>{% trans "UseFaircoin" %}</th>
+                <th>{% trans "FairMarket" %}</th>
+                <th>{% trans "References" %}</th>
+                <th>{% trans "Comments" %}</th>                
+            </thead>
+            <tbody> 
+                {% with mbr_req as req %}
+                    <tr>  
+                        <td>{{ req.request_date }}</td>
+                        <td>{{ req.name }} {{ req.surname }}  </td>
+                        <td>{{ req.requested_username }}</td>
+                        <td>{{ req.type_of_membership }}</td>
+                        <td>{{ req.number_of_shares }}</td>
+                        <td>{{ req.description }}</td>
+                        <td>{{ req.email_address }}</td>
+                        <td>{{ req.phone_number }}</td>
+                        <td>{{ req.address }}</td>
+                        <td>{{ req.website }}</td>
+                        <td>{{ req.native_language }}</td>
+                        <td>{{ req.fairnetwork }}</td>
+                        <td>{{ req.usefaircoin }}</td>
+                        <td>{{ req.fairmarket }}</td>
+                        <td>{{ req.known_member }}</td>
+                        <td>{{ req.comments_and_questions }}</td>
+                    </tr>
+                {% endwith %}
+            </tbody>    
+        </table>
+
+    </div>
+    
+    </div>
+{% endblock %}
+
+{% block extra_script %}
+{% endblock %}
+
+{% block extra_body %}
+    {{ block.super }}
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+
+
+    }); // end document.ready
+
+    </script>
+{% endblock %}

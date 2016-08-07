@@ -1,0 +1,200 @@
+{% extends "site_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Freedom Coop Membership Request for " %} {{ mbr_req.name }}{% endblock %}
+
+{% block extra_head %}
+
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+
+<style>
+    
+.description {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-style: italic;
+}
+
+.heading {
+    margin: 1em .5em 0 .5em;
+    color: firebrick;
+    font-size: 1.5em;
+    font-weight: bold;
+}
+.showhide {
+    font-size: .6em;
+    color: gray;
+    margin-left: 4px;
+}
+
+.showhide:hover {
+    cursor: pointer;
+}
+
+.agents li {
+    margin-left: 3em;
+}
+.btn {
+    margin-left: 2em;
+}
+.modal {
+    width: 600px;
+}
+th
+{
+    background-color:#C8D6E8;
+}
+</style>
+
+{% endblock %}
+
+{% block body_class %}projects{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+    <div>
+        <legend>
+            {% trans "Freedom Coop Membership Request for " %} {{ mbr_req.name }}
+            {% if user_agent %} 
+                {% if not mbr_req.agent %}
+                    <a href="#create-agent" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Create New Agent" %}</a>
+                    
+                    <div class="modal hide fade" id="create-agent" tabindex="-1" role="dialog" aria-labelledby="agent-label" aria-hidden="true">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                            <h3 id="agent-label">{% trans "Create a New Agent" %}</h3>
+                        </div>
+                        <div class="modal-body">
+                            <form class="validateMe" id="agentForm" enctype="multipart/form-data" 
+                                action="{% url 'create_agent_for_request' membership_request_id=mbr_req.id %}" method="POST" >
+                                {% csrf_token %}
+                                {{ agent_form|as_bootstrap }}
+                                <div class="modal-footer">
+                                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                    <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </legend>
+        
+        <table style="width: 100%;" class="table table-bordered table-hover table-condensed" >
+            <thead>
+                <th>{% trans "Created Agent" %}</th>
+                <th>{% trans "Date" %}</th>
+                <th>{% trans "Name" %}</th>
+                <th>{% trans "Requested username" %}</th>
+                <th>{% trans "Type" %}</th>
+                <th>{% trans "Shares" %}</th>
+                <th>{% trans "Description" %}</th>
+                <th>{% trans "Email" %}</th>
+                <th>{% trans "Phone" %}</th>
+                <th>{% trans "Address" %}</th>
+                <th>{% trans "Website" %}</th>
+                <th>{% trans "Languages" %}</th>
+                <th>{% trans "FairNetwork" %}</th>
+                <th>{% trans "UseFaircoin" %}</th>
+                <th>{% trans "FairMarket" %}</th>
+                <th>{% trans "References" %}</th>
+                <th>{% trans "Comments" %}</th>                
+            </thead>
+            <tbody> 
+                {% with mbr_req as req %}
+                    <tr>
+                        <td>
+                            {% if req.agent %}
+                                <a href="{{ req.agent.get_absolute_url }}">{{ req.agent.name }}</a>
+                            {% else %}
+                                {% trans "Not yet" %}
+                            {% endif %}
+                        </td>
+
+                        
+                        <td>{{ req.request_date }}</td>
+                        <td>{{ req.name }} {{ req.surname }}  </td>
+                        <td>{{ req.requested_username }}</td>
+                        <td>{{ req.type_of_membership }}</td>
+                        <td>{{ req.number_of_shares }}</td>
+                        <td>{{ req.description }}</td>
+                        <td>{{ req.email_address }}</td>
+                        <td>{{ req.phone_number }}</td>
+                        <td>{{ req.address }}</td>
+                        <td>{{ req.website }}</td>
+                        <td>{{ req.native_language }}</td>
+                        <td>{{ req.fairnetwork }}</td>
+                        <td>{{ req.usefaircoin }}</td>
+                        <td>{{ req.fairmarket }}</td>
+                        <td>{{ req.known_member }}</td>
+                        <td>{{ req.comments_and_questions }}</td>
+                    </tr>
+                {% endwith %}
+            </tbody>    
+        </table>
+
+    </div>
+    
+    </div>
+{% endblock %}
+
+{% block extra_script %}
+    <script src="https://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+{% endblock %}
+
+{% block extra_body %}
+    {{ block.super }}
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+
+        $('#projects').addClass('active');
+
+        $( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
+        })
+        
+        function html_unescape(text) {
+            // Unescape a string that was escaped using django.utils.html.escape.
+            text = text.replace(/&lt;/g, '<');
+            text = text.replace(/&gt;/g, '>');
+            text = text.replace(/&quot;/g, '"');
+            text = text.replace(/&#39;/g, "'");
+            text = text.replace(/&amp;/g, '&');
+            return text;
+        }
+        
+        var nickArray = html_unescape("{{ nicks }}").split("~");
+        
+        jQuery.validator.addMethod("unique", function(value, element, param) {
+            return this.optional(element) || $.inArray(value, param) < 0; // <-- Check if the value is not in the array.
+        }, "ID is not unique.");
+
+        $('#agentForm').validate(
+        {
+            rules: {
+                nick: {
+                    required: true,
+                    maxlength: 32,
+                    unique: nickArray
+                }
+            },
+            highlight: function(label) {
+                $(label).closest('.control-group').addClass('error');
+            }
+
+        });
+
+    }); // end document.ready
+
+    </script>
+{% endblock %}

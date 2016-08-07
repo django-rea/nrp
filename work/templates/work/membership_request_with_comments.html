@@ -3,6 +3,7 @@
 {% load staticfiles %}
 {% load i18n %}
 {% load bootstrap_tags %}
+{% load comments %}
 
 {% block head_title %}{% trans "Freedom Coop Membership Request for " %} {{ mbr_req.name }}{% endblock %}
 
@@ -47,6 +48,7 @@ th
 {
     background-color:#C8D6E8;
 }
+#id_honeypot{display:none;}
 </style>
 
 {% endblock %}
@@ -104,6 +106,32 @@ th
             </tbody>    
         </table>
 
+    </div>
+
+    <div>
+      {% get_comment_count for mbr_req as num_comm  %}
+      {% if num_comm > 0 %}
+        <div class="row-fluid">
+          {% trans "You have " %} {{ num_comm }} {% trans " comments:" %}
+          {% render_comment_list for mbr_req %}
+        </div>
+      {% endif %}
+      <div class="row-fluid">
+        {% trans "Write a new comment:" %}
+        {% get_comment_form for mbr_req as form %}
+        <form action="{% comment_form_target %}" method="POST">
+          {% csrf_token %}
+          {{ form.comment }}
+          <br />
+          {{ form.honeypot }}
+          {{ form.content_type }}
+          {{ form.object_pk }}
+          {{ form.timestamp }}
+          {{ form.security_hash }}
+          <input type="hidden" name="next" value="{% url 'membership_discussion' mbr_req.id %}" />
+          <input type="submit" value="Add comment" id="id_submit" />
+        </form>
+      </div>
     </div>
     
     </div>

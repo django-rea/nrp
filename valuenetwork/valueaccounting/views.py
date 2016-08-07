@@ -13203,18 +13203,61 @@ rels = [x for x in graph if x['@type']=='Relationship']
 ids = [x['@id'].split('/')[1] for x in graph]
 '''
 
+@login_required
 def membership_requests(request):
     requests =  MembershipRequest.objects.filter(agent__isnull=True)
-    #agts = EconomicAgent.objects.all()
-    #candidates = [agt for agt in agts if not agt.membership_requests.all()]
     agent_form = MembershipAgentSelectionForm()
 
     return render_to_response("valueaccounting/membership_requests.html", {
         "help": get_help("membership_requests"),
         "requests": requests,
-        #"candidates": candidates,
         "agent_form": agent_form,
     }, context_instance=RequestContext(request))
+    
+@login_required    
+def membership_request(request, membership_request_id):
+    user_agent = get_agent(request)
+    if not user_agent:
+        return render_to_response('valueaccounting/no_permission.html')
+    mbr_req = get_object_or_404(MembershipRequest, pk=membership_request_id)
+    init = {
+        "name": " ".join([mbr_req.name, mbr_req.surname]),
+        "nick": mbr_req.requested_username,
+        "description": mbr_req.description,
+        "email": mbr_req.email_address,
+        "url": mbr_req.website,
+        }
+    if mbr_req.type_of_membership == "individual":
+        at = AgentType.objects.filter(party_type="individual")
+        if at:
+            at = at[0]
+            init["agent_type"] = at
+    agent_form = AgentCreateForm(initial=init)
+    nicks = '~'.join([
+        agt.nick for agt in EconomicAgent.objects.all()])
+    return render_to_response("valueaccounting/membership_request.html", {
+        "help": get_help("membership_request"),
+        "mbr_req": mbr_req,
+        "agent_form": agent_form,
+        "user_agent": user_agent,
+        "nicks": nicks,
+    }, context_instance=RequestContext(request))
+    
+@login_required
+def create_agent_for_request(request, membership_request_id):
+    if request.method == "POST":
+        mbr_req = get_object_or_404(MembershipRequest, pk=membership_request_id)
+        form = AgentCreateForm(request.POST)
+        if form.is_valid():
+            agent = form.save(commit=False)
+            agent.created_by=request.user
+            agent.save()
+            mbr_req.agent = agent
+            mbr_req.save()
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/agent', agent.id))  
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/membership-request', membership_request_id)) 
 
 def connect_agent_to_request(request, membership_request_id):
     mbr_req = get_object_or_404(MembershipRequest, pk=membership_request_id)

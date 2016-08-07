@@ -1102,6 +1102,11 @@ def membership_request(request):
             description = data["description"]
             membership_form.save()
             
+            event_type = EventType.objects.get(relationship="todo")
+            description = "Create an Agent and User for the Membership Request from "
+            description += name
+            
+            
             if notification:
                 users = User.objects.filter(is_staff=True)
                 if users:
@@ -1168,3 +1173,13 @@ def add_todo(request):
             
     return HttpResponseRedirect(next)
 
+def membership_discussion(request, membership_request_id):
+    user_agent = get_agent(request)
+    if not user_agent:
+        return render_to_response('valueaccounting/no_permission.html')
+    mbr_req = get_object_or_404(MembershipRequest, pk=membership_request_id)
+    return render_to_response("work/membership_request_with_comments.html", {
+        "help": get_help("membership_request"),
+        "mbr_req": mbr_req,
+        "user_agent": user_agent,
+    }, context_instance=RequestContext(request))

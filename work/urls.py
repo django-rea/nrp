@@ -26,4 +26,7 @@ urlpatterns = patterns("",
         name="faircoin_history"),
     url(r"^change-faircoin-account/(?P<resource_id>\d+)/$", 'work.views.change_faircoin_account', 
         name="change_faircoin_account"),
+    url(r'^membership-discussion/(?P<membership_request_id>\d+)/$', 'work.views.membership_discussion', 
+        name="membership_discussion"), 
+        
 )

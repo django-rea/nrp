@@ -528,7 +528,11 @@ urlpatterns += patterns("",
         name="send_faircoins"),
     url(r"^validate-faircoin-address/$", 'valuenetwork.valueaccounting.views.validate_faircoin_address', name="validate_faircoin_address"),
     url(r'^membership-requests/$', 'work.views.membership_requests', name="membership_requests"),
+    url(r'^membership-request/(?P<membership_request_id>\d+)/$', 'valuenetwork.valueaccounting.views.membership_request', 
+        name="membership_request"), 
     url(r'^connect-agent/(?P<membership_request_id>\d+)/$', 'valuenetwork.valueaccounting.views.connect_agent_to_request', 
         name="connect_agent_to_request"), 
+    url(r'^create-agent-for-request/(?P<membership_request_id>\d+)/$', 'valuenetwork.valueaccounting.views.create_agent_for_request', 
+        name="create_agent_for_request"),
 )
 

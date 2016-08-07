@@ -1039,7 +1039,7 @@ def membership_request(request):
             type_of_membership = data["type_of_membership"]
             description = data["description"]
             membership_form.save()
-            """
+            
             if notification:
                 users = User.objects.filter(is_staff=True)
                 if users:
@@ -1054,7 +1054,7 @@ def membership_request(request):
                         "site_name": site_name,
                         }
                     )
-            """        
+               
             return HttpResponseRedirect('/%s/'
                 % ('membershipthanks'))
     return render_to_response("work/membership_request.html", {

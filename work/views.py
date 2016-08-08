@@ -1110,10 +1110,20 @@ def membership_request(request):
             description += name
             membership_url= get_url_starter() + "/accounting/membership-request/" + str(mbr_req.id) + "/"
             context_agent=EconomicAgent.objects.get(nick="Freedom Coop")
+            resource_types = EconomicResourceType.objects.filter(behavior="work")
+            rts = resource_types.filter(
+                Q(name__icontains="Admin")|
+                Q(name__icontains="Coop")|
+                Q(name__icontains="Work"))
+            if rts:
+                rt = rts[0]
+            else:
+                rt = resource_types[0]
             
             task = Commitment(
                 event_type=event_type,
                 description=description,
+                resource_type=rt,
                 context_agent=context_agent,
                 url=membership_url,
                 due_date=datetime.date.today(),

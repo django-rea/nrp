@@ -280,6 +280,10 @@
         jQuery.validator.addMethod("notMoreThanLimit", function(value, element) {
             return this.optional(element) || (parseFloat(value) <= limit );
         }, "Cannot be more than balance - network fee, " + limit );
+        
+        jQuery.validator.addMethod("notLessThanMinimum", function(value, element) {
+            return this.optional(element) || (parseFloat(value) >= 1.0 );
+        }, "Must be at least 1 FairCoin");
 
             
         $('#resource-change-form').validate(
@@ -300,7 +304,8 @@
                 },
                 quantity: {
                     number: true,
-                    notMoreThanLimit: true
+                    notMoreThanLimit: true,
+                    notLessThanMinimum: true
                     
                 },               
             },

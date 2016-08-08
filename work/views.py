@@ -865,6 +865,7 @@ def change_faircoin_account(request, resource_id):
 @login_required
 def transfer_faircoins(request, resource_id):
     if request.method == "POST":
+        #import pdb; pdb.set_trace()
         resource = get_object_or_404(EconomicResource, id=resource_id)
         agent = get_agent(request)
         send_coins_form = SendFairCoinsForm(data=request.POST)
@@ -952,7 +953,7 @@ def transfer_faircoins(request, resource_id):
                         event_reference=address_end,
                         )
                     event.save()
-                    print "receive event:", event
+                    #print "receive event:", event
                         
                 return HttpResponseRedirect('/%s/%s/'
                     % ('work/faircoin-history', resource.id))

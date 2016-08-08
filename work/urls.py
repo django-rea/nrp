@@ -28,5 +28,6 @@ urlpatterns = patterns("",
         name="change_faircoin_account"),
     url(r'^membership-discussion/(?P<membership_request_id>\d+)/$', 'work.views.membership_discussion', 
         name="membership_discussion"), 
+    url(r"^validate-faircoin-address-for-worker/$", 'work.views.validate_faircoin_address_for_worker', name="validate_faircoin_address_for_worker"),
         
 )

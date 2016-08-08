@@ -4068,8 +4068,8 @@ def work(request):
         return HttpResponseRedirect(next)
     agent = get_agent(request)
     context_id = 0
-    start = datetime.date.today()
-    end = start + datetime.timedelta(days=90)
+    start = datetime.date.today() - datetime.timedelta(days=30)
+    end = start + datetime.timedelta(days=60)
     init = {"start_date": start, "end_date": end}
     date_form = DateSelectionForm(initial=init, data=request.POST or None)
     ca_form = ProjectSelectionFormOptional(data=request.POST or None)

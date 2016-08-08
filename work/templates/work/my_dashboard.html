@@ -273,7 +273,7 @@ th, td {
                                                 <form style="display: inline;" class="deleteForm" id="deleteForm-{{ todo.id }}" action="{% url "todo_delete" todo_id=todo.id %}" method="POST" >
                                                     {% csrf_token %}
                                                     <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
-                                                    <button style="display: inline;" class="btn btn-warning btn-mini del-button" title="Delete" ><i class="icon-remove icon-white"></button>
+                                                    <button style="display: inline;" class="btn btn-warning btn-mini del-button" title="Delete" >X</button>
                                                 </form>
                                             {% endif %}
                                         </div>
@@ -532,7 +532,7 @@ th, td {
                                                     <form style="display: inline;" id="deleteForm-{{ todo.id }}" action="{% url "todo_delete" todo_id=todo.id %}" method="POST" >
                                                         {% csrf_token %}
                                                         <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
-                                                        <button class="btn btn-warning btn-mini" title="Delete" ><i class="icon-remove icon-white"></button>
+                                                        <button class="btn btn-warning btn-mini" title="Delete" >X</button>
                                                     </form>
                                                 {% endif %}
 

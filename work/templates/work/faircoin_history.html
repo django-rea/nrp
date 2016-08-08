@@ -33,7 +33,8 @@
         </legend>
         
         <p>
-            {% trans "Current Balance" %}: {{ resource.digital_currency_balance }} {{ resource.unit_of_quantity }}
+            {% trans "Current Balance" %}: {{ resource.digital_currency_balance }} {{ resource.unit_of_quantity }}<br />
+            {% trans "This is a list of transactions inside OCP:" %}
         </p>
         
         
@@ -104,6 +105,12 @@
 </div>
 
     </div>
+
+    <div>
+      <p>{% trans "If you want a complete list of the transactions related to " %}{{ resource.identifier }} in the faircoin network, please visit:<br />
+        <a target="_blank" href="https://chain.fair-coin.org/address/{{ resource.digital_currency_address }}">Faircoin block explorer</a> (address: {{ resource.digital_currency_address}})<br />
+    </div>
+
     </div>
 {% endblock %}
 

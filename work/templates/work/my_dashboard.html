@@ -332,7 +332,7 @@ th, td {
                                         </form>
                                     </td>
                                     <td>
-                                        <form class="doneForm" id="timeForm-{{ todo.id }}" action="{% url "todo_done" todo_id=todo.id %}" method="POST" >
+                                        <form class="doneForm" id="timeForm-{{ todo.id }}" action="{% url "work_todo_done" todo_id=todo.id %}" method="POST" >
                                             {% csrf_token %}
                                             <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
                                             <input type="submit" name="submit" class="btn btn-info btn-mini"  title="Done" value="{% trans 'Done' %}" />
@@ -491,7 +491,7 @@ th, td {
                                                     </form>
                                                 </td>
                                                 <td>
-                                                    <form class="doneForm" id="timeForm-{{ todo.id }}" action="{% url "todo_done" todo_id=todo.id %}" method="POST" >
+                                                    <form class="doneForm" id="timeForm-{{ todo.id }}" action="{% url "work_todo_done" todo_id=todo.id %}" method="POST" >
                                                         {% csrf_token %}
                                                         <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
                                                         <input type="submit" name="submit" class="btn btn-primary btn-mini"  title="Done" value="{% trans 'Done' %}" />

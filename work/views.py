@@ -1221,3 +1221,21 @@ def membership_discussion(request, membership_request_id):
         "mbr_req": mbr_req,
         "user_agent": user_agent,
     }, context_instance=RequestContext(request))
+    
+@login_required
+def work_todo_done(request, todo_id):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        try:
+            todo = Commitment.objects.get(id=todo_id)
+        except Commitment.DoesNotExist:
+            todo = None
+        if todo:
+            todo.finished = True
+            todo.save()
+            event = todo.todo_event()
+            if not event:
+                event = create_event_from_todo(todo)
+                event.save()
+    next = request.POST.get("next")
+    return HttpResponseRedirect(next)

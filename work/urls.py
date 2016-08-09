@@ -29,5 +29,6 @@ urlpatterns = patterns("",
     url(r'^membership-discussion/(?P<membership_request_id>\d+)/$', 'work.views.membership_discussion', 
         name="membership_discussion"), 
     url(r"^validate-faircoin-address-for-worker/$", 'work.views.validate_faircoin_address_for_worker', name="validate_faircoin_address_for_worker"),
+    url(r"^work-todo-done/(?P<todo_id>\d+)/$", 'work.views.work_todo_done', name="work_todo_done"),
         
 )

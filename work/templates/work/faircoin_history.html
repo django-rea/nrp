@@ -76,7 +76,11 @@
                             {% endif %}
                         </td>
                         {% if resource.digital_currency_address %}
-                            <td>{{ event.event_reference }}</td>
+                            {% if event.event_reference == resource.digital_currency_address %}
+                              <td>{{ resource.identifier }}</td>
+                            {% else %}
+                              <td>{{ event.event_reference }}</td>
+                            {% endif %}
                             <td>{{ event.transaction_state }}</td>
                             <td>
                             {% if event.digital_currency_tx_hash %}

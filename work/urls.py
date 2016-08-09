@@ -39,5 +39,7 @@ urlpatterns = patterns("",
     url(r"^work-todo-delete/(?P<todo_id>\d+)/$", 'work.views.work_todo_delete', name="work_todo_delete"),
     url(r"^work-commit-to-task/(?P<commitment_id>\d+)/$", 'work.views.work_commit_to_task', 
         name="work_commit_to_task"),
+    url(r"^work-delete-event/(?P<event_id>\d+)/$", 'work.views.work_delete_event', 
+        name="work_delete_event"),
         
 )

@@ -1439,3 +1439,44 @@ def work_commit_to_task(request, commitment_id):
         return HttpResponseRedirect(next)
     return HttpResponseRedirect('/%s/'
         % ('work/my-dashboard'))
+
+@login_required        
+def work_delete_event(request, event_id):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        event = get_object_or_404(EconomicEvent, pk=event_id)
+        agent = event.from_agent
+        process = event.process
+        exchange = event.exchange
+        distribution = event.distribution
+        resource = event.resource
+        if resource:
+            if event.consumes_resources():
+                resource.quantity += event.quantity
+            if event.creates_resources():
+                resource.quantity -= event.quantity
+            if event.changes_stage():
+                tbcs = process.to_be_changed_requirements()
+                if tbcs:
+                    tbc = tbcs[0]
+                    tbc_evts = tbc.fulfilling_events()
+                    if tbc_evts:
+                        tbc_evt = tbc_evts[0]
+                        resource.quantity = tbc_evt.quantity
+                        tbc_evt.delete()
+                    resource.stage = tbc.stage
+                else:
+                    resource.revert_to_previous_stage()
+            event.delete()
+            if resource.is_deletable():
+                resource.delete()
+            else:
+                resource.save()
+        else:
+            event.delete()
+            
+    next = request.POST.get("next")
+    if next:
+        return HttpResponseRedirect(next)
+    return HttpResponseRedirect('/%s/'
+        % ('work/my-history'))

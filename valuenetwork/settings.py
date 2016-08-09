@@ -1,5 +1,5 @@
 import os
-
+from django.utils.translation import ugettext_lazy as _
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 PACKAGE_ROOT = os.path.abspath(os.path.dirname(__file__))
@@ -20,54 +20,20 @@ DATABASES = {
     }
 }
 
-# Local time zone for this installation. Choices can be found here:
-# http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
-# although not all choices may be available on all operating systems.
-# On Unix systems, a value of None will cause Django to use the same
-# timezone as the operating system.
-# If running in a Windows environment this must be set to the same as your
-# system time zone.
 TIME_ZONE = "UTC"
-
-# Language code for this installation. All choices can be found here:
-# http://www.i18nguy.com/unicode/language-identifiers.html
-LANGUAGE_CODE = "en-us"
 
 SITE_ID = 1
 
-# If you set this to False, Django will make some optimizations so as not
-# to load the internationalization machinery.
-USE_I18N = True
-
-# If you set this to False, Django will not format dates, numbers and
-# calendars according to the current locale.
-USE_L10N = True
-
-# If you set this to False, Django will not use timezone-aware datetimes.
 USE_TZ = True
 
-# Absolute filesystem path to the directory that will hold user-uploaded files.
-# Example: "/home/media/media.lawrence.com/media/"
 MEDIA_ROOT = os.path.join(PACKAGE_ROOT, "site_media", "media")
 
-# URL that handles the media served from MEDIA_ROOT. Make sure to use a
-# trailing slash.
-# Examples: "http://media.lawrence.com/media/", "http://example.com/media/"
 MEDIA_URL = "/site_media/media/"
 
-# Absolute path to the directory static files should be collected to.
-# Don"t put anything in this directory yourself; store your static files
-# in apps" "static/" subdirectories and in STATICFILES_DIRS.
-# Example: "/home/media/media.lawrence.com/static/"
 STATIC_ROOT = os.path.join(PACKAGE_ROOT, "site_media", "static")
-#STATIC_ROOT = os.path.join(PACKAGE_ROOT, "static")
 
-# URL prefix for static files.
-# Example: "http://media.lawrence.com/static/"
 STATIC_URL = "/site_media/static/"
-#STATIC_URL = "/static/"
 
-# Additional locations of static files
 STATICFILES_DIRS = [
     os.path.join(PACKAGE_ROOT, "static"),
 ]
@@ -114,16 +80,17 @@ LOGIN_EXEMPT_URLS = (
 
 
 MIDDLEWARE_CLASSES = [
-    "corsheaders.middleware.CorsMiddleware",
-    "django.middleware.common.CommonMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.auth.middleware.SessionAuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "django.middleware.security.SecurityMiddleware",
-    "valuenetwork.login_required_middleware.LoginRequiredMiddleware",
+    'corsheaders.middleware.CorsMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
+    'valuenetwork.login_required_middleware.LoginRequiredMiddleware',
     #'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
@@ -201,11 +168,6 @@ DEBUG_TOOLBAR_CONFIG = {
     'INTERCEPT_REDIRECTS': False,
 }
 
-# A sample logging configuration. The only tangible logging
-# performed by this configuration is to send an email to
-# the site admins on every HTTP 500 error when DEBUG=False.
-# See http://docs.djangoproject.com/en/dev/topics/logging for
-# more details on how to customize your logging configuration.
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -280,13 +242,24 @@ USE_TZ = True
 # updating to prep for django 1.8
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
-# Translations directory
+# Translations and localization settings
+USE_I18N = True
+USE_L10N = True
 LOCALE_PATHS = [
     os.path.join(PACKAGE_ROOT, "locale"),
 ]
+LANGUAGE_CODE = 'en'
+LANGUAGES = (
+  ('en',  _('English')),
+  ('es',  _('Spanish')),
+)
 
 # Captcha settings
 CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.math_challenge'
 CAPTCHA_LETTER_ROTATION = (-15,15)
 CAPTCHA_MATH_CHALLENGE_OPERATOR = 'x'
-CAPTCHA_NOISE_FUNCTIONS = ('captcha.helpers.noise_dots','captcha.helpers.noise_dots',)
+CAPTCHA_NOISE_FUNCTIONS = (
+  'captcha.helpers.noise_dots',
+  'captcha.helpers.noise_dots',
+)
+

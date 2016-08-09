@@ -93,11 +93,13 @@
                                                 </li>
                                                 {% endif %}
                                                 {% endwith %}
-                                                <!-- <li id="map" >
+                                                {% if request.user.agent.agent.is_staff %}
+                                                <li id="map" >
                                                     <a href="{% url 'map' %}"  
                                                     title="{% trans 'Map of worker locations' %}"  
                                                     >{% trans 'Map' %}</a>
-                                                </li> -->
+                                                </li>
+                                                {% endif %}
                                                 <li id="profile" >
                                                     <a href="{% url 'profile' %}"  
                                                     title="{% trans 'My personal information and skills' %}"  

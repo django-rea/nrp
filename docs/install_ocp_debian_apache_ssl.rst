@@ -46,8 +46,12 @@ If daemon runs ok, *daemon_service status* returns *Running*
 
     ./manage.py makemigrations
     ./manage.py migrate
+    
+***Note: these fixtures are broken now. Will be fixed,
+but in the meantime, get a test database from somebody.***
     ./manage.py loaddata ./fixtures/starters.json
     ./manage.py loaddata ./fixtures/help.json
+***
     ./manage.py test valuenetwork.valueaccounting.tests
     ./manage.py runserver
 

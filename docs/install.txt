@@ -63,6 +63,8 @@ git clone https://github.com/FreedomCoop/valuenetwork.git
 11. create a superuser for yourself so you can login:
 ./manage.py createsuperuser
 
+***Note: these fixtures are broken now. Will be fixed,
+but in the meantime, get a test database from somebody.***
 12. do this to install some starter facets and patterns:
 ./manage.py loaddata ./fixtures/starters.json
 And this to load some starter help:

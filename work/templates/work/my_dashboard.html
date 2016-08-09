@@ -202,7 +202,7 @@ th, td {
                                 </div>
                                 <div class="modal-body">
 
-                                    <form class="todoForm" id="todoForm" action="{% url "add_todo" %}" method="POST" >
+                                    <form class="todoForm" id="todoForm" action="{% url "work_add_todo" %}" method="POST" >
                                         {% csrf_token %}
                                         {{ todo_form|as_bootstrap }}
                                         <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
@@ -250,7 +250,11 @@ th, td {
                                     {{ todo.to_agent }}
                                 </td>
                                 <td colspan="3" class="description">
-                                    {{ todo.description|urlize|linebreaks }}
+                                    {% if todo.description %}
+                                        {{ todo.description|urlize|linebreaks }}
+                                    {% else %}
+                                        &nbsp;
+                                    {% endif %}
                                 </td>
                                 {% comment %}
                                 <td>
@@ -270,7 +274,7 @@ th, td {
                                                 <i class="icon-edit"></i>
                                             </a>
                                             {% if todo.is_deletable %}
-                                                <form style="display: inline;" class="deleteForm" id="deleteForm-{{ todo.id }}" action="{% url "todo_delete" todo_id=todo.id %}" method="POST" >
+                                                <form style="display: inline;" class="deleteForm" id="deleteForm-{{ todo.id }}" action="{% url "work_todo_delete" todo_id=todo.id %}" method="POST" >
                                                     {% csrf_token %}
                                                     <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
                                                     <button style="display: inline;" class="btn btn-warning btn-mini del-button" title="Delete" >X</button>
@@ -285,7 +289,7 @@ th, td {
                                             </div>
                                             <div class="modal-body">
 
-                                                <form class="changeForm" id="changeForm-{{ todo.id }}" action="{% url "todo_change" todo_id=todo.id %}" method="POST" >
+                                                <form class="changeForm" id="changeForm-{{ todo.id }}" action="{% url "work_todo_change" todo_id=todo.id %}" method="POST" >
                                                     {% csrf_token %}
                                                     {{ todo.work_todo_change_form|as_bootstrap }}
                                                     <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
@@ -300,7 +304,7 @@ th, td {
                                     {% else %}
                                         {% if todo.is_deletable %}
                                             <div class="entry-buttons">
-                                                <form class="declineForm" id="declineForm-{{ todo.id }}" action="{% url "todo_decline" todo_id=todo.id %}" method="POST" >
+                                                <form class="declineForm" id="declineForm-{{ todo.id }}" action="{% url "work_todo_decline" todo_id=todo.id %}" method="POST" >
                                                     {% csrf_token %}
                                                     <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
                                                     <input type="submit" name="submit" class="btn btn-warning btn-mini"  title="Decline" value="{% trans 'Decline' %}" />
@@ -324,7 +328,7 @@ th, td {
                                         {% trans "Hours" %}:
                                     </th>
                                     <td class="todo-input" >
-                                        <form class="timeForm"id="timeForm-{{ todo.id }}" action="{% url "todo_time" %}" method="POST" >
+                                        <form class="timeForm"id="timeForm-{{ todo.id }}" action="{% url "work_todo_time" %}" method="POST" >
                                             {% csrf_token %}
                                             <input class="input-mini optional-quantity" id="{{ todo.id }}-timeId" name="{{ todo.id }}-time" type="text" size="6" 
                                                 {% if event %} value="{{ event.quantity }}" {% else %} value="0" {% endif %}
@@ -467,7 +471,11 @@ th, td {
                                         {{ todo.to_agent }}
                                     </td>
                                     <td class="tddesc">
-                                        {{ todo.description|urlize|linebreaks }}
+                                        {% if todo.description %}
+                                            {{ todo.description|urlize|linebreaks }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
                                     </td>
                                     <td>
                                         {% if todo.url %}
@@ -483,7 +491,7 @@ th, td {
                                                 </td>
 
                                                 <td class="todo-input" >
-                                                    <form class="timeForm"id="timeForm-{{ todo.id }}" action="{% url "todo_time" %}" method="POST" >
+                                                    <form class="timeForm"id="timeForm-{{ todo.id }}" action="{% url "work_todo_time" %}" method="POST" >
                                                         {% csrf_token %}
                                                         <input class="input-mini optional-quantity" id="{{ todo.id }}-timeId" name="{{ todo.id }}-time" type="text" size="6" 
                                                             {% if event %} value="{{ event.quantity }}" {% else %} value="0" {% endif %}
@@ -491,7 +499,7 @@ th, td {
                                                     </form>
                                                 </td>
                                                 <td>
-                                                    <form class="doneForm" id="timeForm-{{ todo.id }}" action="{% url "work_todo_done" todo_id=todo.id %}" method="POST" >
+                                                    <form class="doneForm" id="timeForm-{{ todo.id }}" action="{% url 'work_todo_done' todo_id=todo.id %}" method="POST" >
                                                         {% csrf_token %}
                                                         <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
                                                         <input type="submit" name="submit" class="btn btn-primary btn-mini"  title="Done" value="{% trans 'Done' %}" />
@@ -512,7 +520,7 @@ th, td {
                                             {% if todo.is_deletable %}
                                                 {% if agent != todo.to_agent %}
 
-                                                        <form class="declineForm" id="declineForm-{{ todo.id }}" action="{% url "todo_decline" todo_id=todo.id %}" method="POST" >
+                                                        <form class="declineForm" id="declineForm-{{ todo.id }}" action="{% url "work_todo_decline" todo_id=todo.id %}" method="POST" >
                                                             {% csrf_token %}
                                                             <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
                                                             <input type="submit" name="submit" class="btn btn-warning btn-mini"  title="Decline" value="{% trans 'Decline' %}" />
@@ -529,7 +537,7 @@ th, td {
                                                 </a>
                                             </a>
                                                 {% if todo.is_deletable %}
-                                                    <form style="display: inline;" id="deleteForm-{{ todo.id }}" action="{% url "todo_delete" todo_id=todo.id %}" method="POST" >
+                                                    <form style="display: inline;" id="deleteForm-{{ todo.id }}" action="{% url "work_todo_delete" todo_id=todo.id %}" method="POST" >
                                                         {% csrf_token %}
                                                         <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
                                                         <button class="btn btn-warning btn-mini" title="Delete" >X</button>
@@ -542,7 +550,7 @@ th, td {
                                         
                                         {% if agent  %}
                                             {% if not todo.from_agent %}
-                                                <form style="display: inline;" class="mineForm" id="mineForm-{{ todo.id }}" action="{% url "todo_mine" todo_id=todo.id %}" method="POST" >
+                                                <form style="display: inline;" class="mineForm" id="mineForm-{{ todo.id }}" action="{% url "work_todo_mine" todo_id=todo.id %}" method="POST" >
                                                     {% csrf_token %}
                                                     <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
                                                     <input type="submit" name="submit" class="btn btn-primary btn-mini"  title="Mine" value="{% trans 'Mine!' %}" />
@@ -557,7 +565,7 @@ th, td {
                                                 </div>
                                                 <div class="modal-body">
 
-                                                    <form class="changeForm" id="changeForm-{{ todo.id }}" action="{% url "todo_change" todo_id=todo.id %}" method="POST" >
+                                                    <form class="changeForm" id="changeForm-{{ todo.id }}" action="{% url "work_todo_change" todo_id=todo.id %}" method="POST" >
                                                         {% csrf_token %}
                                                         {{ todo.work_todo_change_form|as_bootstrap }}
                                                         <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
@@ -699,7 +707,7 @@ th, td {
         {
             var hours = timeInput.value;
             notifySaving();
-		    var jqxhr = $.post("{% url "todo_time"  %}",  { todoId: id, hours: hours },
+		    var jqxhr = $.post("{% url "work_todo_time"  %}",  { todoId: id, hours: hours },
 			    function( data ) 
 			    {
 				    notifySaved();
@@ -718,7 +726,7 @@ th, td {
         var id = didInput.id.split('-')[0];;
         var did = didInput.value;
         notifySaving();
-	    var jqxhr = $.post("{% url "todo_description"  %}",  { todoId: id, did: did },
+	    var jqxhr = $.post("{% url "work_todo_description"  %}",  { todoId: id, did: did },
 		    function( data ) 
 		    {
 			    notifySaved();

@@ -1239,3 +1239,203 @@ def work_todo_done(request, todo_id):
                 event.save()
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
+    
+@login_required
+def work_add_todo(request):
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        patterns = PatternUseCase.objects.filter(use_case__identifier='todo')
+        if patterns:
+            pattern = patterns[0].pattern
+            form = TodoForm(data=request.POST, pattern=pattern)
+        else:
+            form = TodoForm(request.POST)
+        next = request.POST.get("next")
+        agent = get_agent(request)
+        et = None
+        ets = EventType.objects.filter(
+            relationship='todo')
+        if ets:
+            et = ets[0]
+        if et:
+            if form.is_valid():
+                data = form.cleaned_data
+                todo = form.save(commit=False)
+                todo.to_agent=agent
+                todo.event_type=et
+                todo.quantity = Decimal("0")
+                todo.unit_of_quantity=todo.resource_type.unit
+                todo.save()
+                if notification:
+                    if todo.from_agent:
+                        if todo.from_agent != agent:
+                            site_name = get_site_name()
+                            user = todo.from_agent.user()
+                            if user:
+                                #import pdb; pdb.set_trace()
+                                notification.send(
+                                    [user.user,], 
+                                    "valnet_new_todo", 
+                                    {"description": todo.description,
+                                    "creator": agent,
+                                    "site_name": site_name,
+                                    }
+                                )
+            
+    return HttpResponseRedirect(next)
+    
+@login_required
+def work_todo_delete(request, todo_id):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        try:
+            todo = Commitment.objects.get(id=todo_id)
+        except Commitment.DoesNotExist:
+            todo = None
+        if todo:
+            if notification:
+                if todo.from_agent:
+                    agent = get_agent(request)
+                    if todo.from_agent != agent:
+                        site_name = get_site_name()
+                        user = todo.from_agent.user()
+                        if user:
+                            #import pdb; pdb.set_trace()
+                            notification.send(
+                                [user.user,], 
+                                "valnet_deleted_todo", 
+                                {"description": todo.description,
+                                "creator": agent,
+                                "site_name": site_name,
+                                }
+                            )
+            todo.delete()
+    next = request.POST.get("next")
+    return HttpResponseRedirect(next)
+
+@login_required
+def work_todo_change(request, todo_id):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        try:
+            todo = Commitment.objects.get(id=todo_id)
+        except Commitment.DoesNotExist:
+            todo = None
+        if todo:
+            prefix = todo.form_prefix()
+            form = TodoForm(data=request.POST, instance=todo, prefix=prefix)
+            if form.is_valid():
+                todo = form.save()
+
+    next = request.POST.get("next")
+    return HttpResponseRedirect(next)
+    
+@login_required
+def work_todo_decline(request, todo_id):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        try:
+            todo = Commitment.objects.get(id=todo_id)
+        except Commitment.DoesNotExist:
+            todo = None
+        if todo:
+            todo.from_agent=None
+            todo.save()
+    next = request.POST.get("next")
+    return HttpResponseRedirect(next)
+
+@login_required
+def work_todo_time(request):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        todo_id = request.POST.get("todoId")
+        try:
+            todo = Commitment.objects.get(id=todo_id)
+        except Commitment.DoesNotExist:
+            todo = None
+        if todo:
+            hours = request.POST.get("hours")
+            if hours:
+                qty = Decimal(hours)
+            else:
+                qty = Decimal("0.0")
+            event = todo.todo_event()
+            if event:
+                event.quantity = qty
+                event.save()
+            else:
+                event = create_event_from_todo(todo)
+                event.quantity = qty
+                event.save()
+    return HttpResponse("Ok", content_type="text/plain")
+
+@login_required
+def work_todo_mine(request, todo_id):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        try:
+            todo = Commitment.objects.get(id=todo_id)
+        except Commitment.DoesNotExist:
+            todo = None
+        if todo:
+            agent = get_agent(request)
+            todo.from_agent = agent
+            todo.save()
+    next = request.POST.get("next")
+    if next:
+        return HttpResponseRedirect(next)
+    return HttpResponseRedirect('/%s/'
+        % ('work/my-dashboard'))
+        
+@login_required
+def work_todo_description(request):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        todo_id = request.POST.get("todoId")
+        try:
+            todo = Commitment.objects.get(id=todo_id)
+        except Commitment.DoesNotExist:
+            todo = None
+        if todo:
+            did = request.POST.get("did")
+            event = todo.todo_event()
+            if event:
+                event.description = did
+                event.save()
+            else:
+                event = create_event_from_todo(todo)
+                event.description = did
+                event.save()
+    return HttpResponse("Ok", content_type="text/plain")
+
+@login_required
+def work_commit_to_task(request, commitment_id):
+    if request.method == "POST":
+        ct = get_object_or_404(Commitment, id=commitment_id)
+        process = ct.process
+        agent = get_agent(request)
+        prefix = ct.form_prefix()
+        form = CommitmentForm(data=request.POST, prefix=prefix)
+        next = None
+        next = request.POST.get("next")
+        #import pdb; pdb.set_trace()
+        if form.is_valid():
+            data = form.cleaned_data
+            #todo: next line did not work, don't want to take time to figure out why right now
+            #probly form shd have ct as instance.
+            #ct = form.save(commit=False)
+            start_date = data["start_date"]
+            description = data["description"]
+            quantity = data["quantity"]
+            unit_of_quantity = data["unit_of_quantity"]
+            ct.start_date=start_date
+            ct.quantity=quantity
+            ct.unit_of_quantity=unit_of_quantity
+            ct.description=description
+            ct.from_agent = agent
+            ct.changed_by=request.user
+            ct.save()
+    if next:
+        return HttpResponseRedirect(next)
+    return HttpResponseRedirect('/%s/'
+        % ('work/my-dashboard'))

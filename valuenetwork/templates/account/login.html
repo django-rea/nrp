@@ -41,20 +41,20 @@ body {
   <body style="background-image: url({% static 'img/photo-OCP-verd-1600x900.jpg' %}); text-align:center;">
         <p>&nbsp;</p>
 
-<form action="{% url 'set_language' %}" method="post" id="lang-switch">{% csrf_token %}
-    <input name="next" type="hidden" value="{{ redirect_to }}" />
-    <select name="language">
-        {% get_current_language as LANGUAGE_CODE %}
-        {% get_available_languages as LANGUAGES %}
-        {% get_language_info_list for LANGUAGES as languages %}
-        {% for language in languages %}
-            <option value="{{ language.code }}"{% if language.code == LANGUAGE_CODE %} selected="selected"{% endif %}>
-                {{ language.name_local }} ({{ language.code }})
-            </option>
-        {% endfor %}
-    </select>
-    <input type="submit" value="Go" id="lang-submit" style="display:none;"/>
-</form>
+    <form action="{% url 'set_language' %}" method="post" id="lang-switch">{% csrf_token %}
+      <input name="next" type="hidden" value="{{ redirect_to }}" />
+      <select name="language" onchange="this.form.submit()">
+          {% get_current_language as LANGUAGE_CODE %}
+          {% get_available_languages as LANGUAGES %}
+          {% get_language_info_list for LANGUAGES as languages %}
+          {% for language in languages %}
+              <option value="{{ language.code }}"{% if language.code == LANGUAGE_CODE %} selected="selected"{% endif %}>
+                  {{ language.name_local }}
+              </option>
+          {% endfor %}
+      </select>
+      <!---<input type="submit" value="Go" id="lang-submit" style="display:none;"/>--!>
+    </form>
 
         <h4><img src="{% static 'img/logoFreedomCoop_terebum4_widealpha_white--.png' %}" title="{% trans "Freedom Coop's" %}"></h4>
         <h1>{% trans "Open Collaborative Platform (OCP)" %}</h1>

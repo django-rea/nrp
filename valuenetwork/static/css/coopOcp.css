@@ -1,9 +1,13 @@
 #member-request-block th {
 	text-align: right;
-	background-color: #eeefef;
+	background-color: #f5f7f7;
 }
 #member-request-block td {
 	padding: 3px 8px;
+}
+
+#member-request-block, #member-request-comments {
+	/*max-width: 1024px;*/
 }
 
 #member-request-comments > .row-fluid {
@@ -26,5 +30,7 @@
   background-color: #f8fafa;
 }
 textarea#id_comment {
-	width: 100%;
+	width: 99%;
+	margin-top: 8px;
+	font-weight: normal;
 }

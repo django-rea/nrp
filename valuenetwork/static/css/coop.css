@@ -10,6 +10,12 @@ table.landing {
 	width: 90%;
 }
 
+form#lang-switch {
+	position: absolute;
+	top: 0;
+	right: 0;
+}
+
 div.base-form {
 	display: inline-block;
 	max-width: 650px;

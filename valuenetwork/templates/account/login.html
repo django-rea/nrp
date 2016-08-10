@@ -41,7 +41,7 @@ body {
   <body style="background-image: url({% static 'img/photo-OCP-verd-1600x900.jpg' %}); text-align:center;">
         <p>&nbsp;</p>
 
-<!--<form action="{% url 'set_language' %}" method="post">{% csrf_token %}
+<form action="{% url 'set_language' %}" method="post" id="lang-switch">{% csrf_token %}
     <input name="next" type="hidden" value="{{ redirect_to }}" />
     <select name="language">
         {% get_current_language as LANGUAGE_CODE %}
@@ -53,8 +53,8 @@ body {
             </option>
         {% endfor %}
     </select>
-    <input type="submit" value="Go" />
-</form>--!>
+    <input type="submit" value="Go" id="lang-submit" style="display:none;"/>
+</form>
 
         <h4><img src="{% static 'img/logoFreedomCoop_terebum4_widealpha_white--.png' %}" title="{% trans "Freedom Coop's" %}"></h4>
         <h1>{% trans "Open Collaborative Platform (OCP)" %}</h1>
@@ -96,4 +96,3 @@ body {
     <p>&nbsp;</p>
   </body>
 </html>
-

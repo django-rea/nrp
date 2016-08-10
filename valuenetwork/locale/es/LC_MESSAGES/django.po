@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-08-09 09:43+0200\n"
+"POT-Creation-Date: 2016-08-10 21:39+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Damian Emil Piotraschke Borkowski <depb@mailchuck.com>, 2016\n"
+"Last-Translator: Pablo Gustavo Rodriguez <pablogrod@gmail.com>, 2016\n"
 "Language-Team: Spanish (https://www.transifex.com/freedomcoop/teams/65382/es/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -30,6 +30,14 @@ msgstr "Selecciona más de un lote para ser combinados"
 #: board/forms.py:209
 msgid "Receipt Date"
 msgstr "Fecha de la receta"
+
+#: settings.py:255
+msgid "English"
+msgstr ""
+
+#: settings.py:256
+msgid "Spanish"
+msgstr ""
 
 #: templates/404.html:5 templates/404.html.py:9
 msgid "Page not found"
@@ -159,6 +167,8 @@ msgstr "Propósito:"
 
 #: templates/account/base.html:10 templates/account/settings.html:7
 #: templates/account/settings.html.py:11
+#: templates/account/work_settings.html:7
+#: templates/account/work_settings.html:11
 msgid "Account"
 msgstr "Cuenta"
 
@@ -248,21 +258,21 @@ msgstr "Ha confirmado <b>%(email)s</b>"
 msgid "OCP: Open Collaborative Platform"
 msgstr ""
 
-#: templates/account/login.html:43 templates/frontpage.html:19
+#: templates/account/login.html:59 templates/frontpage.html:19
 msgid "Freedom Coop's"
 msgstr ""
 
-#: templates/account/login.html:44 templates/frontpage.html:20
+#: templates/account/login.html:60 templates/frontpage.html:20
 msgid "Open Collaborative Platform (OCP)"
 msgstr ""
 
-#: templates/account/login.html:48 templates/frontpage.html:24
+#: templates/account/login.html:64
 msgid ""
 "<p>This is OCP, our Open Collaborative Platform. The OCP is the key "
-"organizational tool we offer to individuals, collectives, and management "
-"inside Freedom Coop.</p><p>Therefore, it can be used to:</p><ul><li>Boost "
-"open collaborative projects between people in different "
-"places.</li><li>Manage open collective projects and their team work by "
+"organizational tool we offer to individuals, collectives, and project "
+"coordinators inside Freedom Coop.</p><p>Therefore, it can be used "
+"to:</p><ul><li>Boost open collaborative projects between people in different"
+" places.</li><li>Manage open collective projects and their team work by "
 "setting up task forces.</li><li>Account the time spent by every member to "
 "use it as a base of income distribution and a way of self-actualization for "
 "any project.</li><li>Execute a quarterly fee and tax distribution between "
@@ -270,12 +280,25 @@ msgid ""
 "accept and make payments.</li></ul><p>Freedom Coop, will use OCP for our "
 "collective organization as an open cooperative process.</p>"
 msgstr ""
+"<p>Esto es OCP, nuestra Plataforma Colaborativa Abierta. OCP is la "
+"herramienta organizativa clave que ofrecemos a individuos, colectivos y "
+"coordinadores de proyecto dentro de Freedom Coop.</p><p>Por lo tanto, puede "
+"ser usada para:</p><ul><li>Impulsar proyectos de colaboración abierta entre "
+"las personas de diferentes lugares.</li><li>Gestionar proyectos colectivos "
+"abiertos y su trabajo en equipo mediante la creación de grupos de "
+"trabajo.</li><li>Contabilizar el tiempo dedicado por cada miembro para "
+"utilizarlo como base de la distribución del ingreso y una forma de auto-"
+"actualización de cualquier proyecto.</li><li>Ejecutar una cuota trimestral y"
+" distribución fiscal entre Freedom Coop y sus miembros.</li><li>Gestionar un"
+" monedero Faircoin en línea para aceptar y realizar "
+"pagos.</li></ul><p>Freedom Coop, utilizaremos OCP para nuestra organización "
+"colectiva como un proceso cooperativo abierto.</p>"
 
-#: templates/account/login.html:53 templates/frontpage.html:39
+#: templates/account/login.html:69 templates/frontpage.html:39
 msgid "Request Membership"
 msgstr "Solicitud de Membresía"
 
-#: templates/account/login.html:54
+#: templates/account/login.html:70
 msgid ""
 "The first step to become a member of Freedom Coop and use OCP, is to fill "
 "the following membership form:"
@@ -283,23 +306,23 @@ msgstr ""
 "El primer paso para convertirse en miembro de Freedom Coop y usar OCP, es "
 "rellenar el siguiente formulario de inscripción:"
 
-#: templates/account/login.html:55
+#: templates/account/login.html:71
 msgid "Join FreedomCoop"
 msgstr "Unirse a FreedomCoop"
 
-#: templates/account/login.html:59
+#: templates/account/login.html:75
 msgid "Log in to the OCP"
 msgstr "Iniciar sesión en OCP"
 
-#: templates/account/login.html:60
+#: templates/account/login.html:76
 msgid "If you already did it, and have user and password, login here."
 msgstr "Si ya lo hizo, y tienen un usuario y contraseña, inicie sesión aquí."
 
-#: templates/account/login.html:69
+#: templates/account/login.html:85
 msgid "Forgot your password?"
-msgstr ""
+msgstr "¿Olvidó su contraseña?"
 
-#: templates/account/login.html:70
+#: templates/account/login.html:86
 msgid "Log in"
 msgstr "Iniciar sesión"
 
@@ -317,10 +340,10 @@ msgstr "Cerrar sesión"
 
 #: templates/account/password_change.html:16
 #: templates/account/password_reset_token.html:16
-#: templates/account/settings.html:15 templates/board/dhen_board.html:195
-#: templates/board/dhen_board.html:238 templates/board/dhen_board.html:278
-#: templates/board/dhen_board.html:328 templates/board/dhen_board.html:393
-#: templates/board/dhen_board.html:411
+#: templates/account/settings.html:15 templates/account/work_settings.html:15
+#: templates/board/dhen_board.html:195 templates/board/dhen_board.html:238
+#: templates/board/dhen_board.html:278 templates/board/dhen_board.html:328
+#: templates/board/dhen_board.html:393 templates/board/dhen_board.html:411
 #: templates/valueaccounting/agent_associations.html:52
 #: templates/valueaccounting/agent_associations.html:113
 #: templates/valueaccounting/agents.html:73
@@ -436,7 +459,7 @@ msgstr ""
 #: templates/account/password_reset_sent.html:7
 #: templates/account/password_reset_sent.html:10
 msgid "Password reset sent"
-msgstr ""
+msgstr "Reestablecimiento de contraseña eviado"
 
 #: templates/account/password_reset_sent.html:12
 #, python-format
@@ -460,6 +483,9 @@ msgid ""
 "minutes, contact us at <a "
 "href=\"mailto:%(THEME_ACCOUNT_CONTACT_EMAIL)s\">%(THEME_ACCOUNT_CONTACT_EMAIL)s</a>."
 msgstr ""
+"Hemos reenviado la contraseña de email. Si no la recibe dentro de unos pocos"
+" minutos, contáctse con nosotros a <a "
+"href=\"mailto:%(THEME_ACCOUNT_CONTACT_EMAIL)s\">%(THEME_ACCOUNT_CONTACT_EMAIL)s</a>."
 
 #: templates/account/password_reset_token.html:7
 #: templates/account/password_reset_token.html:11
@@ -469,7 +495,7 @@ msgstr "Establezca un nueva contraseña"
 #: templates/account/password_reset_token_fail.html:7
 #: templates/account/password_reset_token_fail.html:10
 msgid "Bad token"
-msgstr ""
+msgstr "Identificación errónea"
 
 #: templates/account/password_reset_token_fail.html:12
 #, python-format
@@ -477,11 +503,14 @@ msgid ""
 "The password reset link was invalid, possibly because it has already been "
 "used.  Please request a <a href=\"%(url)s\">new password reset</a>."
 msgstr ""
+"El vínculo de reestablecimiento de contraseña era no válido, posiblmente "
+"porque ya había sido usado. Por favor solicite un <a href=\"%(url)s\"> nuevo"
+" reestablecimiento de contraseña."
 
 #: templates/account/signup_closed.html:7
 #: templates/account/signup_closed.html:10
 msgid "Sign up closed"
-msgstr ""
+msgstr "Registración cerrada"
 
 #: templates/account/signup_closed.html:12
 msgid "The code you provided was not accepted."
@@ -493,11 +522,11 @@ msgstr "El registro está cerrado al público en general."
 
 #: templates/admin/base_site.html:4
 msgid "Value Network admin"
-msgstr ""
+msgstr "Admin de la Red de Valor"
 
 #: templates/admin/base_site.html:7
 msgid "Value Network administration"
-msgstr ""
+msgstr "Administración de la Red de Valor"
 
 #: templates/board/dhen_board.html:7
 #: templates/valueaccounting/exchange_logging.html:7
@@ -507,7 +536,7 @@ msgstr "Intercambiar"
 
 #: templates/board/dhen_board.html:115
 msgid "Resource Flow Report"
-msgstr ""
+msgstr "Informe de Flujo de Recursos"
 
 #: templates/board/dhen_board.html:122
 msgid "Add Available"
@@ -523,7 +552,7 @@ msgstr "Realiza una venta"
 
 #: templates/board/dhen_board.html:186
 msgid "Change Farm Availability"
-msgstr ""
+msgstr "Cambiar Disponibilidad de Granja"
 
 #: templates/board/dhen_board.html:194 templates/board/dhen_board.html:237
 #: templates/board/dhen_board.html:277 templates/board/dhen_board.html:327
@@ -674,23 +703,23 @@ msgstr "Cancelar"
 
 #: templates/board/dhen_board.html:311
 msgid "Combine Lots"
-msgstr ""
+msgstr "Combinar Lotes"
 
 #: templates/board/dhen_board.html:384
 msgid "Add availability"
-msgstr ""
+msgstr "Agregar Disponibilidad"
 
 #: templates/board/dhen_board.html:402
 msgid "Receive directly"
-msgstr ""
+msgstr "Recibir Directamente"
 
 #: templates/equipment/log_additional_inputs.html:6
 msgid "Log Additional Inputs"
-msgstr ""
+msgstr "Cargar entradas adicionales"
 
 #: templates/equipment/log_additional_inputs.html:85
 msgid "Log More Inputs"
-msgstr ""
+msgstr "Cargar más entradas"
 
 #: templates/equipment/log_additional_inputs.html:109
 msgid "Save Citation"
@@ -709,11 +738,11 @@ msgstr "Terminado"
 
 #: templates/equipment/log_equipment_use.html:6
 msgid "Log Equipment Use"
-msgstr ""
+msgstr "Cargar Uso de Equipamiento"
 
 #: templates/equipment/log_equipment_use.html:83
 msgid "Log Use of "
-msgstr ""
+msgstr "Cargar Uso de"
 
 #: templates/equipment/log_equipment_use.html:125
 msgid "Save and Continue"
@@ -730,6 +759,21 @@ msgstr "Pagar por el uso de"
 #: templates/equipment/pay_equipment_use.html:136
 msgid "I paid"
 msgstr "Pagué"
+
+#: templates/frontpage.html:24
+msgid ""
+"<p>This is OCP, our Open Collaborative Platform. The OCP is the key "
+"organizational tool we offer to individuals, collectives, and management "
+"inside Freedom Coop.</p><p>Therefore, it can be used to:</p><ul><li>Boost "
+"open collaborative projects between people in different "
+"places.</li><li>Manage open collective projects and their team work by "
+"setting up task forces.</li><li>Account the time spent by every member to "
+"use it as a base of income distribution and a way of self-actualization for "
+"any project.</li><li>Execute a quarterly fee and tax distribution between "
+"Freedom Coop and their members.</li><li>Manage an online Faircoin wallet to "
+"accept and make payments.</li></ul><p>Freedom Coop, will use OCP for our "
+"collective organization as an open cooperative process.</p>"
+msgstr ""
 
 #: templates/frontpage.html:31
 msgid "Enter the platform"
@@ -779,6 +823,11 @@ msgid ""
 "        </p>\n"
 "        "
 msgstr ""
+"\n"
+" <p class=\"alert alert-warning\">\n"
+" <span class=\"warning\">Note</span>:\n"
+" No tiene una dirección de email verificada a la cual poder enviar notificaciones.  <a href=\"%(email_url)s\">Add one</a> now.\n"
+" </p> "
 
 #: templates/notification/notice_settings.html:27
 msgid "Notification Type"
@@ -854,7 +903,7 @@ msgstr "Demanda"
 
 #: templates/theme_bootstrap/base.html:59
 msgid "Purchasing requirements now, purchasing forms to come"
-msgstr ""
+msgstr "Requerimientos de compra ahora, formularios de compra por venir"
 
 #: templates/theme_bootstrap/base.html:60
 #: templates/valueaccounting/supply.html:6
@@ -883,7 +932,7 @@ msgstr "Las ecuaciones de valor y las distribuciones de ingresos"
 #: templates/valueaccounting/distribution_logging.html:7
 #: templates/valueaccounting/distribution_logging.html:213
 #: templates/valueaccounting/value_equation_sandbox.html:100
-#: valueaccounting/models.py:2955
+#: valueaccounting/models.py:2962
 msgid "Distribution"
 msgstr "Distribución"
 
@@ -964,7 +1013,7 @@ msgstr "Filtro"
 #: templates/valueaccounting/start.html:223
 #: templates/valueaccounting/today.html:370
 #: templates/valueaccounting/work.html:255 valueaccounting/models.py:179
-#: valueaccounting/models.py:11061
+#: valueaccounting/models.py:11068
 msgid "Process"
 msgstr "Proceso"
 
@@ -1031,7 +1080,7 @@ msgstr "Trabaja ahora"
 #: templates/valueaccounting/_process_for_order.html:113
 #: templates/valueaccounting/_process_for_sked.html:152
 msgid "Consumable Requirements"
-msgstr ""
+msgstr "Requerimientos consumibles"
 
 #: templates/valueaccounting/_process_for_order.html:129
 #: templates/valueaccounting/_process_for_order.html:179
@@ -1399,7 +1448,7 @@ msgstr "Guardar cambios"
 
 #: templates/valueaccounting/agent.html:176
 msgid "Create login user for"
-msgstr ""
+msgstr "Crear login de usuario para"
 
 #: templates/valueaccounting/agent.html:186
 msgid "Save user"
@@ -1413,7 +1462,7 @@ msgstr "Tiempo acumulado"
 msgid "Last 2 months"
 msgstr "Últimos 2 meses"
 
-#: templates/valueaccounting/agent.html:203 valueaccounting/models.py:11416
+#: templates/valueaccounting/agent.html:203 valueaccounting/models.py:11423
 msgid "Forever"
 msgstr "Siempre"
 
@@ -1542,199 +1591,203 @@ msgstr "Grabar fecha de creación"
 #: templates/valueaccounting/digital_currency_resource.html:184
 #: templates/valueaccounting/resource.html:196
 msgid "Record created by"
-msgstr ""
+msgstr "Registro creado por"
 
 #: templates/valueaccounting/agent.html:313
 msgid "Membership request information"
-msgstr ""
+msgstr "Información de solicitud de membresía"
 
 #: templates/valueaccounting/agent.html:317
 msgid "Native language"
-msgstr ""
+msgstr "Lenguaje nativo"
 
 #: templates/valueaccounting/agent.html:321
 msgid "Type of membership"
-msgstr ""
+msgstr "Tipo de membresía"
 
 #: templates/valueaccounting/agent.html:325
 msgid "Description from membership request"
-msgstr ""
+msgstr "Descripción de la solicitud de membresía"
 
 #: templates/valueaccounting/agent.html:329
 #: templates/valueaccounting/membership_request.html:99
 #: templates/valueaccounting/membership_requests.html:52
 msgid "Website"
-msgstr ""
+msgstr "Sitio web"
 
 #: templates/valueaccounting/agent.html:333
 msgid "FairNetwork username"
-msgstr ""
+msgstr "Nombre de usuario de FairNetwork"
 
 #: templates/valueaccounting/agent.html:337
 msgid "UseFaircoin profile"
-msgstr ""
+msgstr "Perfil de UseFaircon"
 
 #: templates/valueaccounting/agent.html:341
 msgid "FairMarket shop"
-msgstr ""
+msgstr "Tienda de FairMarket"
 
 #: templates/valueaccounting/agent.html:351
 msgid "is associated with "
-msgstr ""
+msgstr "está asociado con"
 
 #: templates/valueaccounting/agent.html:363
 msgid "has these associates "
+msgstr "tiene estos socios"
+
+#: templates/valueaccounting/agent.html:374
+msgid "Membership discussion"
 msgstr ""
 
-#: templates/valueaccounting/agent.html:390
+#: templates/valueaccounting/agent.html:397
 msgid "Cumulative Contributions"
-msgstr ""
+msgstr "Contribuciones Acumulativas"
 
-#: templates/valueaccounting/agent.html:399
+#: templates/valueaccounting/agent.html:406
 #: templates/valueaccounting/resource_type.html:223
 msgid "Resources"
-msgstr ""
+msgstr "Recursos"
 
-#: templates/valueaccounting/agent.html:401
+#: templates/valueaccounting/agent.html:408
 msgid "Resources Created"
-msgstr ""
+msgstr "Recursos Creados"
 
-#: templates/valueaccounting/agent.html:412
+#: templates/valueaccounting/agent.html:419
 msgid "Resource Relationships"
-msgstr ""
+msgstr "Relaciones de Recursos"
 
-#: templates/valueaccounting/agent.html:429
+#: templates/valueaccounting/agent.html:436
 msgid "Active Processes"
-msgstr ""
+msgstr "Proceso Activo"
 
-#: templates/valueaccounting/agent.html:441
+#: templates/valueaccounting/agent.html:448
 #: templates/valueaccounting/change_exchange_type.html:265
 #: templates/valueaccounting/change_pattern.html:217
 #: templates/valueaccounting/test_patterns.html:197
 msgid "None"
-msgstr ""
+msgstr "Ninguno"
 
 #: templates/valueaccounting/agent_assoc_type.html:7
 msgid "Agent association type"
-msgstr ""
+msgstr "Tipo de asociación de Agente"
 
 #: templates/valueaccounting/agent_assoc_type.html:39
 msgid "Agent Association Type"
-msgstr ""
+msgstr "Tipo de asociación de Agente"
 
 #: templates/valueaccounting/agent_assoc_type.html:88
 msgid "Identifier"
-msgstr ""
+msgstr "Identificador"
 
 #: templates/valueaccounting/agent_assoc_type.html:92
 #: templates/valueaccounting/agent_type.html:89
 #: templates/valueaccounting/membership_request.html:91
 #: templates/valueaccounting/membership_requests.html:44
 msgid "Name"
-msgstr ""
+msgstr "Nombre"
 
 #: templates/valueaccounting/agent_assoc_type.html:96
 msgid "Plural Name"
-msgstr ""
+msgstr "Nombre en plural"
 
 #: templates/valueaccounting/agent_assoc_type.html:100
 msgid "Association Behavior"
-msgstr ""
+msgstr "Comportamiento de Asociación"
 
 #: templates/valueaccounting/agent_assoc_type.html:110
 msgid "Label"
-msgstr ""
+msgstr "Etiqueta"
 
 #: templates/valueaccounting/agent_assoc_type.html:114
 msgid "Inverse Label"
-msgstr ""
+msgstr "Etiqueta inversa"
 
 #: templates/valueaccounting/agent_association.html:7
 msgid "Agent relationship"
-msgstr ""
+msgstr "Relación de agente"
 
 #: templates/valueaccounting/agent_association.html:39
 msgid "Agent Relationship"
-msgstr ""
+msgstr "Relación de agente"
 
 #: templates/valueaccounting/agent_association.html:88
 msgid "Subject"
-msgstr ""
+msgstr "Sujeto"
 
 #: templates/valueaccounting/agent_association.html:92
 msgid "Relationship"
-msgstr ""
+msgstr "Relación"
 
 #: templates/valueaccounting/agent_association.html:96
 msgid "Object"
-msgstr ""
+msgstr "Objeto"
 
 #: templates/valueaccounting/agent_association.html:104
 msgid "State"
-msgstr ""
+msgstr "Estado"
 
 #: templates/valueaccounting/agent_associations.html:9
 #: templates/valueaccounting/agent_associations.html:42
 msgid "Maintain Associations for"
-msgstr ""
+msgstr "Mantener Asociaciones para"
 
 #: templates/valueaccounting/agent_associations.html:53
 #: templates/valueaccounting/agent_associations.html:114
 #: templates/valueaccounting/unscheduled_time_contributions.html:91
 msgid "Save and add more"
-msgstr ""
+msgstr "Guardar y agregar más"
 
 #: templates/valueaccounting/agent_associations.html:57
 msgid "has these associates"
-msgstr ""
+msgstr "tiene estos socios"
 
 #: templates/valueaccounting/agent_associations.html:62
 #: templates/valueaccounting/agent_associations.html:88
 msgid "Association Type"
-msgstr ""
+msgstr "Tipo de asociación"
 
 #: templates/valueaccounting/agent_associations.html:63
 #: templates/valueaccounting/agent_associations.html:89
 msgid "Associated Agent"
-msgstr ""
+msgstr "Agente asociado"
 
 #: templates/valueaccounting/agent_associations.html:64
 #: templates/valueaccounting/agent_associations.html:90
 msgid "Description of association"
-msgstr ""
+msgstr "Descripción de asociación"
 
 #: templates/valueaccounting/agent_associations.html:65
 #: templates/valueaccounting/agent_associations.html:91
 msgid "Active?"
-msgstr ""
+msgstr "¿Activo?"
 
 #: templates/valueaccounting/agent_associations.html:83
 msgid "is associated with"
-msgstr ""
+msgstr "está asociado con"
 
 #: templates/valueaccounting/agent_contributions.html:7
 #: templates/valueaccounting/agent_contributions.html:43
 msgid "Contributions from "
-msgstr ""
+msgstr "Contribuciones de"
 
 #: templates/valueaccounting/agent_contributions.html:44
 msgid "Value Accounting"
-msgstr ""
+msgstr "Valor Contable"
 
 #: templates/valueaccounting/agent_contributions.html:52
 #: templates/valueaccounting/project_contributions.html:45
 msgid "Show contributions from "
-msgstr ""
+msgstr "Mostrar contribuciones de"
 
 #: templates/valueaccounting/agent_contributions.html:60
 #: templates/valueaccounting/project_contributions.html:53
 #: templates/valueaccounting/work.html:220
 msgid " through "
-msgstr ""
+msgstr "a través de"
 
 #: templates/valueaccounting/agent_contributions.html:68
 msgid "Event Types"
-msgstr ""
+msgstr "Tipos de Evento"
 
 #: templates/valueaccounting/agent_contributions.html:83
 #: templates/valueaccounting/cash_report.html:193
@@ -1746,11 +1799,13 @@ msgstr ""
 #: templates/valueaccounting/project_contributions.html:76
 #: templates/valueaccounting/sales_and_distributions.html:85
 msgid "Export CSV File"
-msgstr ""
+msgstr "Exportar archivo CSV"
 
 #: templates/valueaccounting/agent_contributions.html:92
 msgid "You can change date or qty inline and it will be automatically saved."
 msgstr ""
+"Puede cambiar la fecha o la cantidad en línea y será guardado "
+"automáticamente."
 
 #: templates/valueaccounting/agent_contributions.html:97
 #: templates/valueaccounting/all_contributions.html:34
@@ -1767,7 +1822,7 @@ msgstr ""
 #: valueaccounting/forms.py:3299 valueaccounting/forms.py:3371
 #: valueaccounting/forms.py:3440
 msgid "Date"
-msgstr ""
+msgstr "Fecha"
 
 #: templates/valueaccounting/agent_contributions.html:99
 #: templates/valueaccounting/all_contributions.html:37
@@ -1783,7 +1838,7 @@ msgstr ""
 #: templates/valueaccounting/work.html:368
 #: templates/valueaccounting/workbook.html:105
 msgid "Project"
-msgstr ""
+msgstr "Proyecto"
 
 #: templates/valueaccounting/agent_contributions.html:100
 #: templates/valueaccounting/all_contributions.html:38
@@ -1813,7 +1868,7 @@ msgstr ""
 #: templates/valueaccounting/value_equation.html:86
 #: templates/valueaccounting/workbook.html:208 valueaccounting/models.py:183
 msgid "Resource Type"
-msgstr ""
+msgstr "Tipo de Recurso"
 
 #: templates/valueaccounting/agent_contributions.html:101
 #: templates/valueaccounting/all_contributions.html:39
@@ -1822,7 +1877,7 @@ msgstr ""
 #: templates/valueaccounting/project_contributions.html:87
 #: templates/valueaccounting/value_equation_sandbox.html:188
 msgid "Qty"
-msgstr ""
+msgstr "Cantidad"
 
 #: templates/valueaccounting/agent_contributions.html:193
 #: templates/valueaccounting/agent_value_accounting.html:134
@@ -1837,7 +1892,7 @@ msgstr ""
 #: templates/valueaccounting/todo_history.html:77
 #: templates/valueaccounting/value_equation.html:115
 msgid "previous"
-msgstr ""
+msgstr "previo"
 
 #: templates/valueaccounting/agent_contributions.html:197
 #: templates/valueaccounting/agent_value_accounting.html:138
@@ -1852,7 +1907,7 @@ msgstr ""
 #: templates/valueaccounting/todo_history.html:81
 #: templates/valueaccounting/value_equation.html:119
 msgid "Page"
-msgstr ""
+msgstr "Página"
 
 #: templates/valueaccounting/agent_contributions.html:197
 #: templates/valueaccounting/agent_value_accounting.html:138
@@ -1870,7 +1925,7 @@ msgstr ""
 #: templates/valueaccounting/todo_history.html:81
 #: templates/valueaccounting/value_equation.html:119
 msgid "of"
-msgstr ""
+msgstr "de"
 
 #: templates/valueaccounting/agent_contributions.html:201
 #: templates/valueaccounting/agent_value_accounting.html:142
@@ -1885,157 +1940,157 @@ msgstr ""
 #: templates/valueaccounting/todo_history.html:85
 #: templates/valueaccounting/value_equation.html:123
 msgid "next"
-msgstr ""
+msgstr "siguiente"
 
 #: templates/valueaccounting/agent_stats.html:6
 #: templates/valueaccounting/agent_stats.html:29
 msgid "Comparative stats for "
-msgstr ""
+msgstr "Estadísticas comparativas para"
 
 #: templates/valueaccounting/agent_stats.html:32
 msgid "Scores for my skills"
-msgstr ""
+msgstr "Puntaje para mis habilidades"
 
 #: templates/valueaccounting/agent_stats.html:37
 msgid "My score"
-msgstr ""
+msgstr "Mi puntaje"
 
 #: templates/valueaccounting/agent_stats.html:46
 msgid "Logged work hours"
-msgstr ""
+msgstr "Horas de trabajo cargadas"
 
 #: templates/valueaccounting/agent_type.html:7
 msgid "Agent type"
-msgstr ""
+msgstr "Tipo de Agente"
 
 #: templates/valueaccounting/agent_type.html:39
 msgid "Agent Type"
-msgstr ""
+msgstr "Tipo de Agente"
 
 #: templates/valueaccounting/agent_type.html:93
 msgid "Party Type"
-msgstr ""
+msgstr "Tipo de parte"
 
 #: templates/valueaccounting/agent_type.html:103
 msgid "Is Context"
-msgstr ""
+msgstr "Es Contexto"
 
 #: templates/valueaccounting/agent_value_accounting.html:7
 #: templates/valueaccounting/agent_value_accounting.html:45
 msgid "Value Accounting for "
-msgstr ""
+msgstr "Valor Contable para"
 
 #: templates/valueaccounting/agent_value_accounting.html:50
 msgid "Detailed Contributions and Distributions"
-msgstr ""
+msgstr "Contribuciones y Distribuciones detalladas"
 
 #: templates/valueaccounting/agent_value_accounting.html:56
-#: valueaccounting/models.py:8200 valueaccounting/models.py:9929
+#: valueaccounting/models.py:8207 valueaccounting/models.py:9936
 msgid "to"
-msgstr ""
+msgstr "a"
 
 #: templates/valueaccounting/agent_value_accounting.html:60
 #: templates/valueaccounting/create_distribution_using_value_equation.html:119
 #: templates/valueaccounting/edit_value_equation.html:7
 #: templates/valueaccounting/value_equation_sandbox.html:103
 #: valueaccounting/forms.py:3420 valueaccounting/forms.py:3825
-#: valueaccounting/models.py:2956
+#: valueaccounting/models.py:2963
 msgid "Value Equation"
-msgstr ""
+msgstr "Ecuación de valor"
 
 #: templates/valueaccounting/agent_value_accounting.html:63
 #: templates/valueaccounting/value_equation_sandbox.html:217
 msgid "Bucket"
-msgstr ""
+msgstr "Cubo"
 
 #: templates/valueaccounting/agent_value_accounting.html:64
 msgid "Claim duration"
-msgstr ""
+msgstr "Duración del reclamo"
 
 #: templates/valueaccounting/agent_value_accounting.html:65
 #: valueaccounting/forms.py:3259
 msgid "Equation"
-msgstr ""
+msgstr "Ecuación"
 
 #: templates/valueaccounting/agent_value_accounting.html:75
 msgid "Claim against"
-msgstr ""
+msgstr "Reclamo contra"
 
 #: templates/valueaccounting/agent_value_accounting.html:76
 #: templates/valueaccounting/change_process.html:60
 #: templates/valueaccounting/labnotes.html:18
 #: templates/valueaccounting/process.html:88
 msgid "for"
-msgstr ""
+msgstr "por"
 
 #: templates/valueaccounting/agent_value_accounting.html:77
 #: templates/valueaccounting/project_contributions.html:61
 #: templates/valueaccounting/resource.html:225
 #: templates/valueaccounting/resource.html:248
 #: templates/valueaccounting/resource.html:300
-#: templates/valueaccounting/resource.html:308 valueaccounting/models.py:8197
-#: valueaccounting/models.py:9926
+#: templates/valueaccounting/resource.html:308 valueaccounting/models.py:8204
+#: valueaccounting/models.py:9933
 msgid "from"
-msgstr ""
+msgstr "de"
 
 #: templates/valueaccounting/agent_value_accounting.html:78
 msgid "- outstanding"
-msgstr ""
+msgstr "- sobresaliente"
 
 #: templates/valueaccounting/agent_value_accounting.html:84
 msgid "Income distribution"
-msgstr ""
+msgstr "Distribución de ingreso"
 
 #: templates/valueaccounting/agent_value_accounting.html:102
 msgid "Contributions with no Value Equation"
-msgstr ""
+msgstr "Contribuciones sin Ecuación de Valor"
 
 #: templates/valueaccounting/agent_value_accounting.html:106
 msgid "Contributions with Value Equations"
-msgstr ""
+msgstr "Contribuciones con Ecuación de Valor"
 
 #: templates/valueaccounting/agent_value_accounting.html:110
 msgid "Total Value of Contribution Claims"
-msgstr ""
+msgstr "Valor Total de Reclamos de Contribución"
 
 #: templates/valueaccounting/agent_value_accounting.html:114
 msgid "Income Distributions to Claims"
-msgstr ""
+msgstr "Distribuciones de ingreso a Reclamos"
 
 #: templates/valueaccounting/agent_value_accounting.html:118
 msgid "Outstanding Claims"
-msgstr ""
+msgstr "Reclamos destacados"
 
 #: templates/valueaccounting/agent_value_accounting.html:122
 msgid "Other Distributions"
-msgstr ""
+msgstr "Otras distribuciones"
 
 #: templates/valueaccounting/agents.html:6
 #: templates/valueaccounting/agents.html:58
 #: templates/valueaccounting/processes_graph.html:92
 msgid "Agents"
-msgstr ""
+msgstr "Agentes"
 
 #: templates/valueaccounting/agents.html:60
 #: templates/valueaccounting/membership_request.html:64
 #: templates/valueaccounting/projects.html:52
 msgid "Create New Agent"
-msgstr ""
+msgstr "Crear Nuevo Agente"
 
 #: templates/valueaccounting/agents.html:65
 #: templates/valueaccounting/membership_request.html:69
 #: templates/valueaccounting/projects.html:57
 msgid "Create a New Agent"
-msgstr ""
+msgstr "Crear un Nuevo Agente"
 
 #: templates/valueaccounting/agents.html:85
 msgid "(Hide)"
-msgstr ""
+msgstr "(Ocultar)"
 
 #: templates/valueaccounting/all_contributions.html:5
 #: templates/valueaccounting/all_contributions.html:31
 msgid "All Contributions"
-msgstr ""
+msgstr "Todas las Contribuciones"
 
 #: templates/valueaccounting/all_contributions.html:36
 #: templates/valueaccounting/bucket_filter.html:53
@@ -2043,11 +2098,11 @@ msgstr ""
 #: templates/valueaccounting/labnotes.html:47
 #: templates/valueaccounting/project_contributions.html:85
 msgid "From"
-msgstr ""
+msgstr "De"
 
 #: templates/valueaccounting/bucket_filter.html:7
 msgid "Filter demo"
-msgstr ""
+msgstr "Filtrar Demo"
 
 #: templates/valueaccounting/bucket_filter.html:33
 msgid "Value Equation Bucket Filter demo"
@@ -2055,107 +2110,107 @@ msgstr ""
 
 #: templates/valueaccounting/bucket_filter.html:34
 msgid "Start over"
-msgstr ""
+msgstr "Comenzar de nuevo"
 
 #: templates/valueaccounting/bucket_filter.html:43
 #: templates/valueaccounting/bucket_filter_header.html:35
 msgid "Submit"
-msgstr ""
+msgstr "Enviar"
 
 #: templates/valueaccounting/bucket_filter.html:47
 msgid "Events"
-msgstr ""
+msgstr "Eventos"
 
 #: templates/valueaccounting/bucket_filter.html:52
 #: templates/valueaccounting/value_equation.html:87
 msgid "Event Type"
-msgstr ""
+msgstr "Tipo de Evento"
 
 #: templates/valueaccounting/bucket_filter.html:54
 msgid "To"
-msgstr ""
+msgstr "A"
 
 #: templates/valueaccounting/bucket_filter.html:55
 #: templates/valueaccounting/start.html:545
 #: templates/valueaccounting/today.html:211
 msgid "What"
-msgstr ""
+msgstr "Qué"
 
 #: templates/valueaccounting/bucket_filter_header.html:7
 msgid "Filter demo - header"
-msgstr ""
+msgstr "Filtrar encabezado del demo"
 
 #: templates/valueaccounting/bucket_filter_header.html:29
 msgid "Value Equation Bucket Filter demo - header"
-msgstr ""
+msgstr "Filtrar encabezado del demo"
 
 #: templates/valueaccounting/cash_report.html:5
 msgid "Cash Report"
-msgstr ""
+msgstr "Informe de Efectivo"
 
 #: templates/valueaccounting/cash_report.html:74
 #: templates/valueaccounting/projects.html:83
 msgid "Cash Flow Report"
-msgstr ""
+msgstr "Informe de Flujo de Efectivo"
 
 #: templates/valueaccounting/cash_report.html:79
 msgid "Summary Report"
-msgstr ""
+msgstr "Informe Resumido"
 
 #: templates/valueaccounting/cash_report.html:80
 msgid "Detail Report"
-msgstr ""
+msgstr "Informe Detallado"
 
 #: templates/valueaccounting/cash_report.html:85
 #: templates/valueaccounting/cash_report.html:114
 msgid "Category"
-msgstr ""
+msgstr "Categoría"
 
 #: templates/valueaccounting/cash_report.html:86
 msgid "Amount"
-msgstr ""
+msgstr "Monto"
 
 #: templates/valueaccounting/cash_report.html:97
 msgid "Total In"
-msgstr ""
+msgstr "Total entrante"
 
 #: templates/valueaccounting/cash_report.html:101
 msgid "Total Out"
-msgstr ""
+msgstr "Total saliente"
 
 #: templates/valueaccounting/cash_report.html:105
 #: templates/valueaccounting/cash_report.html:168
 msgid "Balance (starting"
-msgstr ""
+msgstr "Balance (comenzando"
 
 #: templates/valueaccounting/cash_report.html:115
-#: valueaccounting/models.py:1580
+#: valueaccounting/models.py:1587
 msgid "Virtual Account"
-msgstr ""
+msgstr "Cuenta Virtual"
 
 #: templates/valueaccounting/cash_report.html:116
 msgid "Cash In"
-msgstr ""
+msgstr "Efectivo Entrante"
 
 #: templates/valueaccounting/cash_report.html:117
 msgid "Cash Out"
-msgstr ""
+msgstr "Efectivo Saliente"
 
 #: templates/valueaccounting/cash_report.html:119
 msgid "To or From"
-msgstr ""
+msgstr "A o De"
 
 #: templates/valueaccounting/cash_report.html:120
 msgid "Reference"
-msgstr ""
+msgstr "Referencia"
 
 #: templates/valueaccounting/cash_report.html:158
 msgid "Totals"
-msgstr ""
+msgstr "Totales"
 
 #: templates/valueaccounting/cash_report.html:199
 msgid "Starting balance "
-msgstr ""
+msgstr "Balance inicial"
 
 #: templates/valueaccounting/cash_report.html:207
 #: templates/valueaccounting/demand_exchanges.html:99
@@ -2165,7 +2220,7 @@ msgstr ""
 #: templates/valueaccounting/material_contributions.html:83
 #: templates/valueaccounting/sales_and_distributions.html:93
 msgid "Start date "
-msgstr ""
+msgstr "Fecha de inicio"
 
 #: templates/valueaccounting/cash_report.html:215
 #: templates/valueaccounting/demand_exchanges.html:107
@@ -2175,7 +2230,7 @@ msgstr ""
 #: templates/valueaccounting/material_contributions.html:91
 #: templates/valueaccounting/sales_and_distributions.html:101
 msgid "End date  "
-msgstr ""
+msgstr "Fecha de finalización"
 
 #: templates/valueaccounting/cash_report.html:222
 #: templates/valueaccounting/demand_exchanges.html:113
@@ -2183,27 +2238,27 @@ msgstr ""
 #: templates/valueaccounting/internal_exchanges.html:112
 #: templates/valueaccounting/sales_and_distributions.html:107
 msgid "All in the date range"
-msgstr ""
+msgstr "Todo en el intervalo de fecha"
 
 #: templates/valueaccounting/cash_report.html:229
 #: templates/valueaccounting/value_equations.html:63
 #: templates/valueaccounting/virtual_accounts.html:7
 #: templates/valueaccounting/virtual_accounts.html:25
 msgid "Virtual Accounts"
-msgstr ""
+msgstr "Cuentas Virtuales"
 
 #: templates/valueaccounting/change_event.html:8
 #: templates/valueaccounting/change_event.html:28
 msgid "Change Contribution"
-msgstr ""
+msgstr "Cambiar Contribución"
 
 #: templates/valueaccounting/change_exchange_type.html:7
 msgid "Change Exchange Type and Pattern"
-msgstr ""
+msgstr "Cambiar Tipo de Cambio y Patrón"
 
 #: templates/valueaccounting/change_exchange_type.html:143
 msgid "Exchange Type with Pattern"
-msgstr ""
+msgstr "Tipo de Cambio con Patrón"
 
 #: templates/valueaccounting/change_exchange_type.html:145
 #: templates/valueaccounting/change_pattern.html:177
@@ -2211,47 +2266,47 @@ msgstr ""
 #: templates/valueaccounting/maintain_patterns.html:160
 #: templates/valueaccounting/test_patterns.html:160
 msgid "Change Resource Type Facets"
-msgstr ""
+msgstr "Cambiar Facetas de Tipo de Recurso"
 
 #: templates/valueaccounting/change_exchange_type.html:151
 #: templates/valueaccounting/demand_exchanges.html:114
 #: templates/valueaccounting/exchanges.html:112
 #: templates/valueaccounting/internal_exchanges.html:113
 msgid "Exchange Type"
-msgstr ""
+msgstr "Tipo de Cambio"
 
 #: templates/valueaccounting/change_exchange_type.html:155
 msgid "Save exchange type"
-msgstr ""
+msgstr "Guardar tipo de cambio"
 
 #: templates/valueaccounting/change_exchange_type.html:161
 msgid "New Transfer Type"
-msgstr ""
+msgstr "Nuevo Tipo de Transferencia"
 
 #: templates/valueaccounting/change_exchange_type.html:167
 msgid "Add a Transfer Type"
-msgstr ""
+msgstr "Agregar un Tipo de Transferencia"
 
 #: templates/valueaccounting/change_exchange_type.html:184
 msgid "Reciprocal Transfer Type"
-msgstr ""
+msgstr "Tipo de Transferencia Recíproca"
 
 #: templates/valueaccounting/change_exchange_type.html:184
 msgid "Transfer Type"
-msgstr ""
+msgstr "Tipo de Transferencia"
 
 #: templates/valueaccounting/change_exchange_type.html:194
 msgid "Change Transfer Type"
-msgstr ""
+msgstr "Cambiar el Tipo de Transferencia"
 
 #: templates/valueaccounting/change_exchange_type.html:228
 msgid "Pattern for this exchange type"
-msgstr ""
+msgstr "Patrón para este tipo de transferencia"
 
 #: templates/valueaccounting/change_exchange_type.html:240
 #: templates/valueaccounting/change_pattern.html:192
 msgid "Selections you will see in forms"
-msgstr ""
+msgstr "Selecciones que verá en los formularios"
 
 #: templates/valueaccounting/change_exchange_type.html:246
 #: templates/valueaccounting/change_pattern.html:198
@@ -2264,7 +2319,7 @@ msgstr ""
 #: templates/valueaccounting/test_patterns.html:178
 #: valueaccounting/models.py:182
 msgid "Resource Types"
-msgstr ""
+msgstr "Tipos de Recursos"
 
 #: templates/valueaccounting/change_exchange_type.html:249
 #: templates/valueaccounting/change_pattern.html:201
@@ -2272,75 +2327,75 @@ msgstr ""
 #: templates/valueaccounting/resource_facets.html:21
 #: templates/valueaccounting/test_patterns.html:181
 msgid "Resource Type Facets"
-msgstr ""
+msgstr "Facetas de Tipos de Recursos"
 
 #: templates/valueaccounting/change_exchange_type.html:273
 #: templates/valueaccounting/change_pattern.html:225
 #: templates/valueaccounting/test_patterns.html:201
 msgid "Pattern Facets"
-msgstr ""
+msgstr "Facetas de Patrón"
 
 #: templates/valueaccounting/change_exchange_type.html:274
 #: templates/valueaccounting/change_pattern.html:226
 msgid "Del"
-msgstr ""
+msgstr "Del"
 
 #: templates/valueaccounting/change_exchange_type.html:294
 #: templates/valueaccounting/change_pattern.html:246
 msgid "Save all changes and see results"
-msgstr ""
+msgstr "Guardar todos los cambios y ver los resultados"
 
 #: templates/valueaccounting/change_location.html:7
 #: templates/valueaccounting/change_location.html:32
 msgid "Change Location"
-msgstr ""
+msgstr "Cambiar Ubicación"
 
 #: templates/valueaccounting/change_location.html:35
 msgid "Agents at this Location"
-msgstr ""
+msgstr "Agentes en esta Ubicación"
 
 #: templates/valueaccounting/change_order.html:8
 #: templates/valueaccounting/change_order.html:28
 msgid "Change Order"
-msgstr ""
+msgstr "Cambiar Orden"
 
 #: templates/valueaccounting/change_pattern.html:7
 #: templates/valueaccounting/change_pattern.html:175
 msgid "Change Pattern"
-msgstr ""
+msgstr "Camiar Patrón"
 
 #: templates/valueaccounting/change_process.html:7
 #: templates/valueaccounting/labnote.html:33
 msgid "Change Process"
-msgstr ""
+msgstr "Cambiar Proceso"
 
 #: templates/valueaccounting/change_process.html:58
 msgid "Change Process Plan for "
-msgstr ""
+msgstr "Cambiar Plan de Proceso para"
 
 #: templates/valueaccounting/change_process.html:67
 #: templates/valueaccounting/process_oriented_logging.html:1388
 #: templates/valueaccounting/start.html:222
 #: templates/valueaccounting/unfold.html:93
-#: templates/valueaccounting/work.html:318 valueaccounting/models.py:11058
+#: templates/valueaccounting/work.html:318 valueaccounting/models.py:11065
 msgid "Order"
-msgstr ""
+msgstr "Orden"
 
 #: templates/valueaccounting/change_process.html:70
 #: templates/valueaccounting/tutorials.html:29
 msgid "Or"
-msgstr ""
+msgstr "O"
 
 #: templates/valueaccounting/change_process.html:77
 #: templates/valueaccounting/change_rand.html:66
 #: templates/valueaccounting/create_process.html:65
 #: templates/valueaccounting/create_rand.html:66
 msgid "Save and continue editing"
-msgstr ""
+msgstr "Guardar y continuar editando"
 
 #: templates/valueaccounting/change_process.html:81
 msgid "Planned Outputs"
-msgstr ""
+msgstr "Resultados previstos"
 
 #: templates/valueaccounting/change_process.html:89
 #: templates/valueaccounting/change_process.html:132
@@ -2360,22 +2415,22 @@ msgstr ""
 #: valueaccounting/forms.py:3054 valueaccounting/forms.py:3102
 #: valueaccounting/forms.py:3213 valueaccounting/forms.py:3503
 msgid "Unit"
-msgstr ""
+msgstr "Unidad"
 
 #: templates/valueaccounting/change_process.html:96
 msgid "Planned Citables"
-msgstr ""
+msgstr "Citables previstos"
 
 #: templates/valueaccounting/change_process.html:102
 #: templates/valueaccounting/log_past_work.html:474
 #: templates/valueaccounting/workbook.html:495
 msgid "Cite"
-msgstr ""
+msgstr "Citar"
 
 #: templates/valueaccounting/change_process.html:109
 #: templates/valueaccounting/process_oriented_logging.html:464
 msgid "Planned Work"
-msgstr ""
+msgstr "Trabajo previsto"
 
 #: templates/valueaccounting/change_process.html:117
 #: templates/valueaccounting/start.html:651
@@ -2383,20 +2438,20 @@ msgstr ""
 #: templates/valueaccounting/value_equation.html:89
 #: templates/valueaccounting/work.html:374
 msgid "Hours"
-msgstr ""
+msgstr "Horas"
 
 #: templates/valueaccounting/change_process.html:124
 msgid "Planned Consumables"
-msgstr ""
+msgstr "Consumibles previstos"
 
 #: templates/valueaccounting/change_process.html:139
 msgid "Planned Usables"
-msgstr ""
+msgstr "Usables previstos"
 
 #: templates/valueaccounting/change_rand.html:7
 #: templates/valueaccounting/change_rand.html:56
 msgid "Change R&amp;D Project"
-msgstr ""
+msgstr "Cambiar Proyecto R&amp;D "
 
 #: templates/valueaccounting/change_rand.html:71
 #: templates/valueaccounting/create_process.html:69
@@ -2404,7 +2459,7 @@ msgstr ""
 #: templates/valueaccounting/process.html:120
 #: templates/valueaccounting/process_oriented_logging.html:204
 msgid "Outputs"
-msgstr ""
+msgstr "Salidas"
 
 #: templates/valueaccounting/change_rand.html:90
 #: templates/valueaccounting/create_process.html:87
@@ -2412,29 +2467,29 @@ msgstr ""
 #: templates/valueaccounting/edit_stream_recipe.html:385
 #: templates/valueaccounting/view_stream_recipe.html:157
 msgid "Inputs"
-msgstr ""
+msgstr "Entradas"
 
 #: templates/valueaccounting/cleanup.html:6
 msgid "Cleanup"
-msgstr ""
+msgstr "Limpieza"
 
 #: templates/valueaccounting/cleanup.html:21
 msgid "Orphan Processes"
-msgstr ""
+msgstr "Proceso huérfano"
 
 #: templates/valueaccounting/cleanup.html:22
 msgid "Old Unfinished Processes"
-msgstr ""
+msgstr "Proceso viejo sin terminar"
 
 #: templates/valueaccounting/cleanup.html:23
 #: templates/valueaccounting/cleanup_resourcetypes.html:22
 msgid "Orphan Resource Types"
-msgstr ""
+msgstr "Tipos de Recurso huérfanos"
 
 #: templates/valueaccounting/cleanup.html:24
 #: templates/valueaccounting/cleanup_resources.html:22
 msgid "Orphan Resources"
-msgstr ""
+msgstr "Recursos huérfanos"
 
 #: templates/valueaccounting/cleanup.html:25
 msgid "Work Resource Types without value"
@@ -2473,16 +2528,16 @@ msgstr ""
 #: templates/valueaccounting/internal_exchanges.html:52
 #: templates/valueaccounting/material_contributions.html:44
 #: templates/valueaccounting/sales_and_distributions.html:54
-#: valueaccounting/models.py:445 valueaccounting/models.py:1626
-#: valueaccounting/models.py:3170 valueaccounting/models.py:3524
-#: valueaccounting/models.py:3886 valueaccounting/models.py:3995
-#: valueaccounting/models.py:5468 valueaccounting/models.py:5576
-#: valueaccounting/models.py:5811 valueaccounting/models.py:6830
-#: valueaccounting/models.py:6985 valueaccounting/models.py:7567
-#: valueaccounting/models.py:8028 valueaccounting/models.py:8095
-#: valueaccounting/models.py:8230 valueaccounting/models.py:9464
-#: valueaccounting/models.py:9786 valueaccounting/models.py:9986
-#: valueaccounting/models.py:11078 valueaccounting/models.py:11433
+#: valueaccounting/models.py:445 valueaccounting/models.py:1633
+#: valueaccounting/models.py:3177 valueaccounting/models.py:3531
+#: valueaccounting/models.py:3893 valueaccounting/models.py:4002
+#: valueaccounting/models.py:5475 valueaccounting/models.py:5583
+#: valueaccounting/models.py:5818 valueaccounting/models.py:6837
+#: valueaccounting/models.py:6992 valueaccounting/models.py:7574
+#: valueaccounting/models.py:8035 valueaccounting/models.py:8102
+#: valueaccounting/models.py:8237 valueaccounting/models.py:9471
+#: valueaccounting/models.py:9793 valueaccounting/models.py:9993
+#: valueaccounting/models.py:11085 valueaccounting/models.py:11440
 msgid "created by"
 msgstr ""
 
@@ -2492,7 +2547,7 @@ msgstr ""
 #: templates/valueaccounting/cleanup_unsourced_resources.html:29
 #: templates/valueaccounting/cleanup_unvalued_resources.html:29
 #: templates/valueaccounting/cleanup_work_resourcetypes.html:29
-#: valueaccounting/models.py:444 valueaccounting/models.py:3994
+#: valueaccounting/models.py:444 valueaccounting/models.py:4001
 msgid "created date"
 msgstr ""
 
@@ -4829,10 +4884,10 @@ msgid "Used in these recipes"
 msgstr ""
 
 #: templates/valueaccounting/resource_type.html:227
-#: valueaccounting/models.py:238 valueaccounting/models.py:3974
-#: valueaccounting/models.py:5572 valueaccounting/models.py:8025
-#: valueaccounting/models.py:8222 valueaccounting/models.py:9960
-#: valueaccounting/models.py:11579 valueaccounting/models.py:11768
+#: valueaccounting/models.py:238 valueaccounting/models.py:3981
+#: valueaccounting/models.py:5579 valueaccounting/models.py:8032
+#: valueaccounting/models.py:8229 valueaccounting/models.py:9967
+#: valueaccounting/models.py:11586 valueaccounting/models.py:11775
 msgid "quantity"
 msgstr ""
 
@@ -5306,7 +5361,7 @@ msgid "Total Value"
 msgstr ""
 
 #: templates/valueaccounting/value_equation.html:134
-#: valueaccounting/models.py:11410
+#: valueaccounting/models.py:11417
 msgid "Percentage"
 msgstr ""
 
@@ -5507,7 +5562,7 @@ msgid ""
 "transfer)"
 msgstr ""
 
-#: valueaccounting/forms.py:2800 valueaccounting/models.py:1613
+#: valueaccounting/forms.py:2800 valueaccounting/models.py:1620
 msgid ""
 "Can any resource of this type be substituted for any other resource of this "
 "type?"
@@ -5792,15 +5847,15 @@ msgstr ""
 #: valueaccounting/models.py:197 valueaccounting/models.py:209
 #: valueaccounting/models.py:225 valueaccounting/models.py:280
 #: valueaccounting/models.py:316 valueaccounting/models.py:423
-#: valueaccounting/models.py:1225 valueaccounting/models.py:1303
-#: valueaccounting/models.py:1550 valueaccounting/models.py:1567
-#: valueaccounting/models.py:1622 valueaccounting/models.py:2433
-#: valueaccounting/models.py:3169 valueaccounting/models.py:3520
-#: valueaccounting/models.py:3858 valueaccounting/models.py:3885
-#: valueaccounting/models.py:5467 valueaccounting/models.py:5539
-#: valueaccounting/models.py:5575 valueaccounting/models.py:6816
-#: valueaccounting/models.py:8220 valueaccounting/models.py:9458
-#: valueaccounting/models.py:9959
+#: valueaccounting/models.py:1232 valueaccounting/models.py:1310
+#: valueaccounting/models.py:1557 valueaccounting/models.py:1574
+#: valueaccounting/models.py:1629 valueaccounting/models.py:2440
+#: valueaccounting/models.py:3176 valueaccounting/models.py:3527
+#: valueaccounting/models.py:3865 valueaccounting/models.py:3892
+#: valueaccounting/models.py:5474 valueaccounting/models.py:5546
+#: valueaccounting/models.py:5582 valueaccounting/models.py:6823
+#: valueaccounting/models.py:8227 valueaccounting/models.py:9465
+#: valueaccounting/models.py:9966
 msgid "description"
 msgstr ""
 
@@ -5810,17 +5865,17 @@ msgstr ""
 
 #: valueaccounting/models.py:208 valueaccounting/models.py:250
 #: valueaccounting/models.py:279 valueaccounting/models.py:310
-#: valueaccounting/models.py:417 valueaccounting/models.py:1220
-#: valueaccounting/models.py:1385 valueaccounting/models.py:1531
-#: valueaccounting/models.py:1549 valueaccounting/models.py:1566
-#: valueaccounting/models.py:1588 valueaccounting/models.py:2432
-#: valueaccounting/models.py:2540 valueaccounting/models.py:2875
-#: valueaccounting/models.py:3159 valueaccounting/models.py:3510
-#: valueaccounting/models.py:3881 valueaccounting/models.py:5538
-#: valueaccounting/models.py:5791 valueaccounting/models.py:6812
-#: valueaccounting/models.py:6959 valueaccounting/models.py:7554
-#: valueaccounting/models.py:8011 valueaccounting/models.py:9454
-#: valueaccounting/models.py:9771 valueaccounting/models.py:11065
+#: valueaccounting/models.py:417 valueaccounting/models.py:1227
+#: valueaccounting/models.py:1392 valueaccounting/models.py:1538
+#: valueaccounting/models.py:1556 valueaccounting/models.py:1573
+#: valueaccounting/models.py:1595 valueaccounting/models.py:2439
+#: valueaccounting/models.py:2547 valueaccounting/models.py:2882
+#: valueaccounting/models.py:3166 valueaccounting/models.py:3517
+#: valueaccounting/models.py:3888 valueaccounting/models.py:5545
+#: valueaccounting/models.py:5798 valueaccounting/models.py:6819
+#: valueaccounting/models.py:6966 valueaccounting/models.py:7561
+#: valueaccounting/models.py:8018 valueaccounting/models.py:9461
+#: valueaccounting/models.py:9778 valueaccounting/models.py:11072
 msgid "name"
 msgstr ""
 
@@ -5829,9 +5884,9 @@ msgid "facet"
 msgstr ""
 
 #: valueaccounting/models.py:224 valueaccounting/models.py:240
-#: valueaccounting/models.py:5460 valueaccounting/models.py:8226
-#: valueaccounting/models.py:9964 valueaccounting/models.py:11601
-#: valueaccounting/models.py:11682 valueaccounting/models.py:11770
+#: valueaccounting/models.py:5467 valueaccounting/models.py:8233
+#: valueaccounting/models.py:9971 valueaccounting/models.py:11608
+#: valueaccounting/models.py:11689 valueaccounting/models.py:11777
 msgid "value"
 msgstr ""
 
@@ -5863,7 +5918,7 @@ msgstr ""
 msgid "percent"
 msgstr ""
 
-#: valueaccounting/models.py:248 valueaccounting/models.py:1394
+#: valueaccounting/models.py:248 valueaccounting/models.py:1401
 msgid "unit type"
 msgstr ""
 
@@ -5915,8 +5970,8 @@ msgstr ""
 msgid "community"
 msgstr ""
 
-#: valueaccounting/models.py:312 valueaccounting/models.py:1591
-#: valueaccounting/models.py:3512 valueaccounting/models.py:5793
+#: valueaccounting/models.py:312 valueaccounting/models.py:1598
+#: valueaccounting/models.py:3519 valueaccounting/models.py:5800
 msgid "parent"
 msgstr ""
 
@@ -5932,11 +5987,11 @@ msgstr ""
 msgid "Must be unique, and no more than 32 characters"
 msgstr ""
 
-#: valueaccounting/models.py:420 valueaccounting/models.py:1621
-#: valueaccounting/models.py:3521 valueaccounting/models.py:3970
-#: valueaccounting/models.py:5805 valueaccounting/models.py:6973
-#: valueaccounting/models.py:8221 valueaccounting/models.py:9779
-#: valueaccounting/models.py:9958
+#: valueaccounting/models.py:420 valueaccounting/models.py:1628
+#: valueaccounting/models.py:3528 valueaccounting/models.py:3977
+#: valueaccounting/models.py:5812 valueaccounting/models.py:6980
+#: valueaccounting/models.py:8228 valueaccounting/models.py:9786
+#: valueaccounting/models.py:9965
 msgid "url"
 msgstr ""
 
@@ -5968,21 +6023,21 @@ msgstr ""
 msgid "longitude"
 msgstr ""
 
-#: valueaccounting/models.py:431 valueaccounting/models.py:3984
+#: valueaccounting/models.py:431 valueaccounting/models.py:3991
 msgid "current location"
 msgstr ""
 
-#: valueaccounting/models.py:434 valueaccounting/models.py:11766
+#: valueaccounting/models.py:434 valueaccounting/models.py:11773
 msgid "reputation"
 msgstr ""
 
-#: valueaccounting/models.py:436 valueaccounting/models.py:1618
-#: valueaccounting/models.py:3979
+#: valueaccounting/models.py:436 valueaccounting/models.py:1625
+#: valueaccounting/models.py:3986
 msgid "photo"
 msgstr ""
 
-#: valueaccounting/models.py:438 valueaccounting/models.py:1620
-#: valueaccounting/models.py:3981
+#: valueaccounting/models.py:438 valueaccounting/models.py:1627
+#: valueaccounting/models.py:3988
 msgid "photo url"
 msgstr ""
 
@@ -5994,1016 +6049,1016 @@ msgstr ""
 msgid "For a context agent, the unit of all claims"
 msgstr ""
 
-#: valueaccounting/models.py:443 valueaccounting/models.py:1397
-#: valueaccounting/models.py:1632 valueaccounting/models.py:3530
-#: valueaccounting/models.py:3892 valueaccounting/models.py:5817
-#: valueaccounting/models.py:6991 valueaccounting/models.py:7573
-#: valueaccounting/models.py:8236 valueaccounting/models.py:9792
-#: valueaccounting/models.py:9991 valueaccounting/models.py:11609
+#: valueaccounting/models.py:443 valueaccounting/models.py:1404
+#: valueaccounting/models.py:1639 valueaccounting/models.py:3537
+#: valueaccounting/models.py:3899 valueaccounting/models.py:5824
+#: valueaccounting/models.py:6998 valueaccounting/models.py:7580
+#: valueaccounting/models.py:8243 valueaccounting/models.py:9799
+#: valueaccounting/models.py:9998 valueaccounting/models.py:11616
 msgid "Page name"
 msgstr ""
 
-#: valueaccounting/models.py:447 valueaccounting/models.py:1628
-#: valueaccounting/models.py:3172 valueaccounting/models.py:3526
-#: valueaccounting/models.py:3888 valueaccounting/models.py:3997
-#: valueaccounting/models.py:5470 valueaccounting/models.py:5578
-#: valueaccounting/models.py:5813 valueaccounting/models.py:6832
-#: valueaccounting/models.py:6987 valueaccounting/models.py:7569
-#: valueaccounting/models.py:8030 valueaccounting/models.py:8097
-#: valueaccounting/models.py:8232 valueaccounting/models.py:9788
-#: valueaccounting/models.py:9988 valueaccounting/models.py:11080
-#: valueaccounting/models.py:11435
+#: valueaccounting/models.py:447 valueaccounting/models.py:1635
+#: valueaccounting/models.py:3179 valueaccounting/models.py:3533
+#: valueaccounting/models.py:3895 valueaccounting/models.py:4004
+#: valueaccounting/models.py:5477 valueaccounting/models.py:5585
+#: valueaccounting/models.py:5820 valueaccounting/models.py:6839
+#: valueaccounting/models.py:6994 valueaccounting/models.py:7576
+#: valueaccounting/models.py:8037 valueaccounting/models.py:8104
+#: valueaccounting/models.py:8239 valueaccounting/models.py:9795
+#: valueaccounting/models.py:9995 valueaccounting/models.py:11087
+#: valueaccounting/models.py:11442
 msgid "changed by"
 msgstr ""
 
-#: valueaccounting/models.py:1203 valueaccounting/models.py:1350
-#: valueaccounting/models.py:5450 valueaccounting/models.py:5548
-#: valueaccounting/models.py:11755
+#: valueaccounting/models.py:1210 valueaccounting/models.py:1357
+#: valueaccounting/models.py:5457 valueaccounting/models.py:5555
+#: valueaccounting/models.py:11762
 msgid "agent"
 msgstr ""
 
-#: valueaccounting/models.py:1205
+#: valueaccounting/models.py:1212
 msgid "user"
 msgstr ""
 
-#: valueaccounting/models.py:1209 valueaccounting/models.py:6978
+#: valueaccounting/models.py:1216 valueaccounting/models.py:6985
 msgid "supplier"
 msgstr ""
 
-#: valueaccounting/models.py:1210 valueaccounting/models.py:6981
+#: valueaccounting/models.py:1217 valueaccounting/models.py:6988
 msgid "customer"
 msgstr ""
 
-#: valueaccounting/models.py:1211
+#: valueaccounting/models.py:1218
 msgid "member"
 msgstr ""
 
-#: valueaccounting/models.py:1212
+#: valueaccounting/models.py:1219
 msgid "child"
 msgstr ""
 
-#: valueaccounting/models.py:1213
+#: valueaccounting/models.py:1220
 msgid "custodian"
 msgstr ""
 
-#: valueaccounting/models.py:1214
+#: valueaccounting/models.py:1221
 msgid "manager"
 msgstr ""
 
-#: valueaccounting/models.py:1215
+#: valueaccounting/models.py:1222
 msgid "peer"
 msgstr ""
 
-#: valueaccounting/models.py:1219 valueaccounting/models.py:2874
-#: valueaccounting/models.py:3857 valueaccounting/models.py:3957
+#: valueaccounting/models.py:1226 valueaccounting/models.py:2881
+#: valueaccounting/models.py:3864 valueaccounting/models.py:3964
 msgid "identifier"
 msgstr ""
 
-#: valueaccounting/models.py:1221
+#: valueaccounting/models.py:1228
 msgid "plural name"
 msgstr ""
 
-#: valueaccounting/models.py:1222
+#: valueaccounting/models.py:1229
 msgid "association behavior"
 msgstr ""
 
-#: valueaccounting/models.py:1226 valueaccounting/models.py:1386
+#: valueaccounting/models.py:1233 valueaccounting/models.py:1393
 msgid "label"
 msgstr ""
 
-#: valueaccounting/models.py:1227 valueaccounting/models.py:1387
+#: valueaccounting/models.py:1234 valueaccounting/models.py:1394
 msgid "inverse label"
 msgstr ""
 
-#: valueaccounting/models.py:1291
+#: valueaccounting/models.py:1298
 msgid "active"
 msgstr ""
 
-#: valueaccounting/models.py:1292
+#: valueaccounting/models.py:1299
 msgid "inactive"
 msgstr ""
 
-#: valueaccounting/models.py:1293
+#: valueaccounting/models.py:1300
 msgid "candidate"
 msgstr ""
 
-#: valueaccounting/models.py:1298
+#: valueaccounting/models.py:1305
 msgid "is associate of"
 msgstr ""
 
-#: valueaccounting/models.py:1300
+#: valueaccounting/models.py:1307
 msgid "has associate"
 msgstr ""
 
-#: valueaccounting/models.py:1302
+#: valueaccounting/models.py:1309
 msgid "association type"
 msgstr ""
 
-#: valueaccounting/models.py:1304 valueaccounting/models.py:3969
-#: valueaccounting/models.py:5571 valueaccounting/models.py:8187
+#: valueaccounting/models.py:1311 valueaccounting/models.py:3976
+#: valueaccounting/models.py:5578 valueaccounting/models.py:8194
 msgid "state"
 msgstr ""
 
-#: valueaccounting/models.py:1328
+#: valueaccounting/models.py:1335
 msgid "input"
 msgstr ""
 
-#: valueaccounting/models.py:1329
+#: valueaccounting/models.py:1336
 msgid "consume"
 msgstr ""
 
-#: valueaccounting/models.py:1330
+#: valueaccounting/models.py:1337
 msgid "use"
 msgstr ""
 
-#: valueaccounting/models.py:1331
+#: valueaccounting/models.py:1338
 msgid "output"
 msgstr ""
 
-#: valueaccounting/models.py:1332
+#: valueaccounting/models.py:1339
 msgid "citation"
 msgstr ""
 
-#: valueaccounting/models.py:1333 valueaccounting/models.py:2989
+#: valueaccounting/models.py:1340 valueaccounting/models.py:2996
 msgid "work"
 msgstr ""
 
-#: valueaccounting/models.py:1334 valueaccounting/models.py:2987
+#: valueaccounting/models.py:1341 valueaccounting/models.py:2994
 msgid "todo"
 msgstr ""
 
-#: valueaccounting/models.py:1335
+#: valueaccounting/models.py:1342
 msgid "payment"
 msgstr ""
 
-#: valueaccounting/models.py:1336
+#: valueaccounting/models.py:1343
 msgid "receipt"
 msgstr ""
 
-#: valueaccounting/models.py:1337
+#: valueaccounting/models.py:1344
 msgid "expense"
 msgstr ""
 
-#: valueaccounting/models.py:1338
+#: valueaccounting/models.py:1345
 msgid "cash input"
 msgstr ""
 
-#: valueaccounting/models.py:1339
+#: valueaccounting/models.py:1346
 msgid "resource contribution"
 msgstr ""
 
-#: valueaccounting/models.py:1340
+#: valueaccounting/models.py:1347
 msgid "cash receipt"
 msgstr ""
 
-#: valueaccounting/models.py:1341
+#: valueaccounting/models.py:1348
 msgid "shipment"
 msgstr ""
 
-#: valueaccounting/models.py:1342 valueaccounting/models.py:1352
-#: valueaccounting/models.py:9951 valueaccounting/models.py:11573
-#: valueaccounting/models.py:11576
+#: valueaccounting/models.py:1349 valueaccounting/models.py:1359
+#: valueaccounting/models.py:9958 valueaccounting/models.py:11580
+#: valueaccounting/models.py:11583
 msgid "distribution"
 msgstr ""
 
-#: valueaccounting/models.py:1343 valueaccounting/models.py:1358
+#: valueaccounting/models.py:1350 valueaccounting/models.py:1365
 msgid "adjust"
 msgstr ""
 
-#: valueaccounting/models.py:1345 valueaccounting/models.py:2996
+#: valueaccounting/models.py:1352 valueaccounting/models.py:3003
 msgid "disburses cash"
 msgstr ""
 
-#: valueaccounting/models.py:1349 valueaccounting/models.py:8209
-#: valueaccounting/models.py:9939
+#: valueaccounting/models.py:1356 valueaccounting/models.py:8216
+#: valueaccounting/models.py:9946
 msgid "process"
 msgstr ""
 
-#: valueaccounting/models.py:1351 valueaccounting/models.py:7560
-#: valueaccounting/models.py:8212 valueaccounting/models.py:9943
-#: valueaccounting/models.py:10997
+#: valueaccounting/models.py:1358 valueaccounting/models.py:7567
+#: valueaccounting/models.py:8219 valueaccounting/models.py:9950
+#: valueaccounting/models.py:11004
 msgid "exchange"
 msgstr ""
 
-#: valueaccounting/models.py:1356 valueaccounting/models.py:11671
+#: valueaccounting/models.py:1363 valueaccounting/models.py:11678
 msgid "increase"
 msgstr ""
 
-#: valueaccounting/models.py:1357 valueaccounting/models.py:11672
+#: valueaccounting/models.py:1364 valueaccounting/models.py:11679
 msgid "decrease"
 msgstr ""
 
-#: valueaccounting/models.py:1359 valueaccounting/models.py:9947
+#: valueaccounting/models.py:1366 valueaccounting/models.py:9954
 msgid "transfer"
 msgstr ""
 
-#: valueaccounting/models.py:1360
+#: valueaccounting/models.py:1367
 msgid "no effect"
 msgstr ""
 
-#: valueaccounting/models.py:1361
+#: valueaccounting/models.py:1368
 msgid "failure"
 msgstr ""
 
-#: valueaccounting/models.py:1362
+#: valueaccounting/models.py:1369
 msgid "create to change"
 msgstr ""
 
-#: valueaccounting/models.py:1363 valueaccounting/models.py:2991
+#: valueaccounting/models.py:1370 valueaccounting/models.py:2998
 msgid "to be changed"
 msgstr ""
 
-#: valueaccounting/models.py:1364
+#: valueaccounting/models.py:1371
 msgid "change"
 msgstr ""
 
-#: valueaccounting/models.py:1388
+#: valueaccounting/models.py:1395
 msgid "relationship"
 msgstr ""
 
-#: valueaccounting/models.py:1390
+#: valueaccounting/models.py:1397
 msgid "related to"
 msgstr ""
 
-#: valueaccounting/models.py:1392
+#: valueaccounting/models.py:1399
 msgid "resource effect"
 msgstr ""
 
-#: valueaccounting/models.py:1530
+#: valueaccounting/models.py:1537
 msgid "code"
 msgstr ""
 
-#: valueaccounting/models.py:1573
+#: valueaccounting/models.py:1580
 msgid "Keep inventory"
 msgstr ""
 
-#: valueaccounting/models.py:1574
+#: valueaccounting/models.py:1581
 msgid "Not worth it"
 msgstr ""
 
-#: valueaccounting/models.py:1575
+#: valueaccounting/models.py:1582
 msgid "Does not apply"
 msgstr ""
 
-#: valueaccounting/models.py:1579
+#: valueaccounting/models.py:1586
 msgid "Type of Work"
 msgstr ""
 
-#: valueaccounting/models.py:1581
+#: valueaccounting/models.py:1588
 msgid "Digital Currency"
 msgstr ""
 
-#: valueaccounting/models.py:1582
+#: valueaccounting/models.py:1589
 msgid "Digital Currency Address"
 msgstr ""
 
-#: valueaccounting/models.py:1583
+#: valueaccounting/models.py:1590
 msgid "Digital Currency Wallet"
 msgstr ""
 
-#: valueaccounting/models.py:1584
+#: valueaccounting/models.py:1591
 msgid "Other"
 msgstr ""
 
-#: valueaccounting/models.py:1593
+#: valueaccounting/models.py:1600
 msgid "resource class"
 msgstr ""
 
-#: valueaccounting/models.py:1595 valueaccounting/models.py:5574
-#: valueaccounting/models.py:8027 valueaccounting/models.py:8224
-#: valueaccounting/models.py:9962 valueaccounting/models.py:11582
+#: valueaccounting/models.py:1602 valueaccounting/models.py:5581
+#: valueaccounting/models.py:8034 valueaccounting/models.py:8231
+#: valueaccounting/models.py:9969 valueaccounting/models.py:11589
 msgid "unit"
 msgstr ""
 
-#: valueaccounting/models.py:1596
+#: valueaccounting/models.py:1603
 msgid ""
 "if this resource has different units of use and inventory, this is the unit "
 "of inventory"
 msgstr ""
 
-#: valueaccounting/models.py:1598
+#: valueaccounting/models.py:1605
 msgid "unit of use"
 msgstr ""
 
-#: valueaccounting/models.py:1599
+#: valueaccounting/models.py:1606
 msgid ""
 "if this resource has different units of use and inventory, this is the unit "
 "of use"
 msgstr ""
 
-#: valueaccounting/models.py:1602 valueaccounting/models.py:5464
-#: valueaccounting/models.py:8229 valueaccounting/models.py:9967
-#: valueaccounting/models.py:11604 valueaccounting/models.py:11684
+#: valueaccounting/models.py:1609 valueaccounting/models.py:5471
+#: valueaccounting/models.py:8236 valueaccounting/models.py:9974
+#: valueaccounting/models.py:11611 valueaccounting/models.py:11691
 msgid "unit of value"
 msgstr ""
 
-#: valueaccounting/models.py:1603 valueaccounting/models.py:3988
-#: valueaccounting/models.py:5465
+#: valueaccounting/models.py:1610 valueaccounting/models.py:3995
+#: valueaccounting/models.py:5472
 msgid "value per unit"
 msgstr ""
 
-#: valueaccounting/models.py:1605 valueaccounting/models.py:3990
+#: valueaccounting/models.py:1612 valueaccounting/models.py:3997
 msgid "value per unit of use"
 msgstr ""
 
-#: valueaccounting/models.py:1607 valueaccounting/models.py:3859
-#: valueaccounting/models.py:3992
+#: valueaccounting/models.py:1614 valueaccounting/models.py:3866
+#: valueaccounting/models.py:3999
 msgid "price per unit"
 msgstr ""
 
-#: valueaccounting/models.py:1611 valueaccounting/models.py:9971
+#: valueaccounting/models.py:1618 valueaccounting/models.py:9978
 msgid "unit of price"
 msgstr ""
 
-#: valueaccounting/models.py:1612
+#: valueaccounting/models.py:1619
 msgid "substitutable"
 msgstr ""
 
-#: valueaccounting/models.py:1614
+#: valueaccounting/models.py:1621
 msgid "inventory rule"
 msgstr ""
 
-#: valueaccounting/models.py:1616
+#: valueaccounting/models.py:1623
 msgid "behavior"
 msgstr ""
 
-#: valueaccounting/models.py:1624 valueaccounting/models.py:9978
+#: valueaccounting/models.py:1631 valueaccounting/models.py:9985
 msgid "accounting reference"
 msgstr ""
 
-#: valueaccounting/models.py:1625
+#: valueaccounting/models.py:1632
 msgid "optional reference to an external account"
 msgstr ""
 
-#: valueaccounting/models.py:1636 valueaccounting/models.py:2470
-#: valueaccounting/models.py:2484 valueaccounting/models.py:3856
-#: valueaccounting/models.py:3956 valueaccounting/models.py:5452
-#: valueaccounting/models.py:5565 valueaccounting/models.py:8203
-#: valueaccounting/models.py:9931 valueaccounting/models.py:11761
+#: valueaccounting/models.py:1643 valueaccounting/models.py:2477
+#: valueaccounting/models.py:2491 valueaccounting/models.py:3863
+#: valueaccounting/models.py:3963 valueaccounting/models.py:5459
+#: valueaccounting/models.py:5572 valueaccounting/models.py:8210
+#: valueaccounting/models.py:9938 valueaccounting/models.py:11768
 msgid "resource type"
 msgstr ""
 
-#: valueaccounting/models.py:2437 valueaccounting/models.py:3519
-#: valueaccounting/models.py:5804 valueaccounting/models.py:6972
-#: valueaccounting/models.py:7564 valueaccounting/models.py:8219
-#: valueaccounting/models.py:9457 valueaccounting/models.py:9778
-#: valueaccounting/models.py:9956 valueaccounting/models.py:11599
-#: valueaccounting/models.py:11758
+#: valueaccounting/models.py:2444 valueaccounting/models.py:3526
+#: valueaccounting/models.py:5811 valueaccounting/models.py:6979
+#: valueaccounting/models.py:7571 valueaccounting/models.py:8226
+#: valueaccounting/models.py:9464 valueaccounting/models.py:9785
+#: valueaccounting/models.py:9963 valueaccounting/models.py:11606
+#: valueaccounting/models.py:11765
 msgid "context agent"
 msgstr ""
 
-#: valueaccounting/models.py:2468
+#: valueaccounting/models.py:2475
 msgid "resource type list"
 msgstr ""
 
-#: valueaccounting/models.py:2471
+#: valueaccounting/models.py:2478
 msgid "default quantity"
 msgstr ""
 
-#: valueaccounting/models.py:2486 valueaccounting/models.py:2851
-#: valueaccounting/models.py:6918
+#: valueaccounting/models.py:2493 valueaccounting/models.py:2858
+#: valueaccounting/models.py:6925
 msgid "facet value"
 msgstr ""
 
-#: valueaccounting/models.py:2849 valueaccounting/models.py:3109
-#: valueaccounting/models.py:6962 valueaccounting/models.py:9774
+#: valueaccounting/models.py:2856 valueaccounting/models.py:3116
+#: valueaccounting/models.py:6969 valueaccounting/models.py:9781
 msgid "pattern"
 msgstr ""
 
-#: valueaccounting/models.py:2853 valueaccounting/models.py:3014
-#: valueaccounting/models.py:5457 valueaccounting/models.py:5567
-#: valueaccounting/models.py:8024 valueaccounting/models.py:8181
-#: valueaccounting/models.py:9922 valueaccounting/models.py:11424
-#: valueaccounting/models.py:11763
+#: valueaccounting/models.py:2860 valueaccounting/models.py:3021
+#: valueaccounting/models.py:5464 valueaccounting/models.py:5574
+#: valueaccounting/models.py:8031 valueaccounting/models.py:8188
+#: valueaccounting/models.py:9929 valueaccounting/models.py:11431
+#: valueaccounting/models.py:11770
 msgid "event type"
 msgstr ""
 
-#: valueaccounting/models.py:2854
+#: valueaccounting/models.py:2861
 msgid "consumed means gone, used means re-usable"
 msgstr ""
 
-#: valueaccounting/models.py:2876
+#: valueaccounting/models.py:2883
 msgid "restrict_to_one_pattern"
 msgstr ""
 
-#: valueaccounting/models.py:2945
+#: valueaccounting/models.py:2952
 msgid "Non-production Logging"
 msgstr ""
 
-#: valueaccounting/models.py:2946
+#: valueaccounting/models.py:2953
 msgid "Manufacturing Recipes/Logging"
 msgstr ""
 
-#: valueaccounting/models.py:2947
+#: valueaccounting/models.py:2954
 msgid "Workflow Recipes/Logging"
 msgstr ""
 
-#: valueaccounting/models.py:2948
+#: valueaccounting/models.py:2955
 msgid "Todos"
 msgstr ""
 
-#: valueaccounting/models.py:2949
+#: valueaccounting/models.py:2956
 msgid "Customer Orders"
 msgstr ""
 
-#: valueaccounting/models.py:2950
+#: valueaccounting/models.py:2957
 msgid "Purchasing"
 msgstr ""
 
-#: valueaccounting/models.py:2957
+#: valueaccounting/models.py:2964
 msgid "Payout"
 msgstr ""
 
-#: valueaccounting/models.py:2959
+#: valueaccounting/models.py:2966
 msgid "Make Available"
 msgstr ""
 
-#: valueaccounting/models.py:2960
+#: valueaccounting/models.py:2967
 msgid "Internal Exchange"
 msgstr ""
 
-#: valueaccounting/models.py:2961
+#: valueaccounting/models.py:2968
 msgid "Incoming Exchange"
 msgstr ""
 
-#: valueaccounting/models.py:2962
+#: valueaccounting/models.py:2969
 msgid "Outgoing Exchange"
 msgstr ""
 
-#: valueaccounting/models.py:2972
+#: valueaccounting/models.py:2979
 msgid "cites"
 msgstr ""
 
-#: valueaccounting/models.py:2972
+#: valueaccounting/models.py:2979
 msgid "cited by"
 msgstr ""
 
-#: valueaccounting/models.py:2973
+#: valueaccounting/models.py:2980
 msgid "consumes"
 msgstr ""
 
-#: valueaccounting/models.py:2973
+#: valueaccounting/models.py:2980
 msgid "consumed by"
 msgstr ""
 
-#: valueaccounting/models.py:2977
+#: valueaccounting/models.py:2984
 msgid "damages"
 msgstr ""
 
-#: valueaccounting/models.py:2977
+#: valueaccounting/models.py:2984
 msgid "damaged by"
 msgstr ""
 
-#: valueaccounting/models.py:2979
+#: valueaccounting/models.py:2986
 msgid "fails"
 msgstr ""
 
-#: valueaccounting/models.py:2981
+#: valueaccounting/models.py:2988
 msgid "produces"
 msgstr ""
 
-#: valueaccounting/models.py:2981
+#: valueaccounting/models.py:2988
 msgid "produced by"
 msgstr ""
 
-#: valueaccounting/models.py:2982
+#: valueaccounting/models.py:2989
 msgid "provides"
 msgstr ""
 
-#: valueaccounting/models.py:2982
+#: valueaccounting/models.py:2989
 msgid "provided by"
 msgstr ""
 
-#: valueaccounting/models.py:2984
+#: valueaccounting/models.py:2991
 msgid "sells"
 msgstr ""
 
-#: valueaccounting/models.py:2984
+#: valueaccounting/models.py:2991
 msgid "sold by"
 msgstr ""
 
-#: valueaccounting/models.py:2986
+#: valueaccounting/models.py:2993
 msgid "supplies"
 msgstr ""
 
-#: valueaccounting/models.py:2986
+#: valueaccounting/models.py:2993
 msgid "supplied by"
 msgstr ""
 
-#: valueaccounting/models.py:2988
+#: valueaccounting/models.py:2995
 msgid "uses"
 msgstr ""
 
-#: valueaccounting/models.py:2988
+#: valueaccounting/models.py:2995
 msgid "used by"
 msgstr ""
 
-#: valueaccounting/models.py:2990
+#: valueaccounting/models.py:2997
 msgid "creates changeable"
 msgstr ""
 
-#: valueaccounting/models.py:2992
+#: valueaccounting/models.py:2999
 msgid "changes"
 msgstr ""
 
-#: valueaccounting/models.py:2993
+#: valueaccounting/models.py:3000
 msgid "adjusts"
 msgstr ""
 
-#: valueaccounting/models.py:2995
+#: valueaccounting/models.py:3002
 msgid "distributes"
 msgstr ""
 
-#: valueaccounting/models.py:2995
+#: valueaccounting/models.py:3002
 msgid "distributed by"
 msgstr ""
 
-#: valueaccounting/models.py:2996
+#: valueaccounting/models.py:3003
 msgid "disbursed by"
 msgstr ""
 
-#: valueaccounting/models.py:2997
+#: valueaccounting/models.py:3004
 msgid "pays out"
 msgstr ""
 
-#: valueaccounting/models.py:2997
+#: valueaccounting/models.py:3004
 msgid "paid by"
 msgstr ""
 
-#: valueaccounting/models.py:3002
+#: valueaccounting/models.py:3009
 msgid "gives"
 msgstr ""
 
-#: valueaccounting/models.py:3002
+#: valueaccounting/models.py:3009
 msgid "given by"
 msgstr ""
 
-#: valueaccounting/models.py:3003
+#: valueaccounting/models.py:3010
 msgid "receives"
 msgstr ""
 
-#: valueaccounting/models.py:3003
+#: valueaccounting/models.py:3010
 msgid "received by"
 msgstr ""
 
-#: valueaccounting/models.py:3012 valueaccounting/models.py:3112
-#: valueaccounting/models.py:3884 valueaccounting/models.py:6965
+#: valueaccounting/models.py:3019 valueaccounting/models.py:3119
+#: valueaccounting/models.py:3891 valueaccounting/models.py:6972
 msgid "use case"
 msgstr ""
 
-#: valueaccounting/models.py:3122
+#: valueaccounting/models.py:3129
 msgid "Customer order"
 msgstr ""
 
-#: valueaccounting/models.py:3123
+#: valueaccounting/models.py:3130
 msgid "Work order"
 msgstr ""
 
-#: valueaccounting/models.py:3124
+#: valueaccounting/models.py:3131
 msgid "Placeholder order"
 msgstr ""
 
-#: valueaccounting/models.py:3157
+#: valueaccounting/models.py:3164
 msgid "order type"
 msgstr ""
 
-#: valueaccounting/models.py:3160
+#: valueaccounting/models.py:3167
 msgid "appended to process labels for Work orders"
 msgstr ""
 
-#: valueaccounting/models.py:3163
+#: valueaccounting/models.py:3170
 msgid "receiver"
 msgstr ""
 
-#: valueaccounting/models.py:3166
+#: valueaccounting/models.py:3173
 msgid "provider"
 msgstr ""
 
-#: valueaccounting/models.py:3167
+#: valueaccounting/models.py:3174
 msgid "order date"
 msgstr ""
 
-#: valueaccounting/models.py:3168 valueaccounting/models.py:8190
+#: valueaccounting/models.py:3175 valueaccounting/models.py:8197
 msgid "due date"
 msgstr ""
 
-#: valueaccounting/models.py:3515 valueaccounting/models.py:5796
+#: valueaccounting/models.py:3522 valueaccounting/models.py:5803
 msgid "process pattern"
 msgstr ""
 
-#: valueaccounting/models.py:3522
+#: valueaccounting/models.py:3529
 msgid "estimated duration"
 msgstr ""
 
-#: valueaccounting/models.py:3523
+#: valueaccounting/models.py:3530
 msgid "in minutes, e.g. 3 hours = 180"
 msgstr ""
 
-#: valueaccounting/models.py:3862 valueaccounting/models.py:3965
-#: valueaccounting/models.py:5569 valueaccounting/models.py:8183
+#: valueaccounting/models.py:3869 valueaccounting/models.py:3972
+#: valueaccounting/models.py:5576 valueaccounting/models.py:8190
 msgid "stage"
 msgstr ""
 
-#: valueaccounting/models.py:3960 valueaccounting/models.py:8176
+#: valueaccounting/models.py:3967 valueaccounting/models.py:8183
 msgid "independent demand"
 msgstr ""
 
-#: valueaccounting/models.py:3963 valueaccounting/models.py:8179
+#: valueaccounting/models.py:3970 valueaccounting/models.py:8186
 msgid "order item"
 msgstr ""
 
-#: valueaccounting/models.py:3967 valueaccounting/models.py:8185
-#: valueaccounting/models.py:9936
+#: valueaccounting/models.py:3974 valueaccounting/models.py:8192
+#: valueaccounting/models.py:9943
 msgid "exchange stage"
 msgstr ""
 
-#: valueaccounting/models.py:3973
+#: valueaccounting/models.py:3980
 msgid "author"
 msgstr ""
 
-#: valueaccounting/models.py:3976 valueaccounting/models.py:8225
-#: valueaccounting/models.py:9963
+#: valueaccounting/models.py:3983 valueaccounting/models.py:8232
+#: valueaccounting/models.py:9970
 msgid "quality"
 msgstr ""
 
-#: valueaccounting/models.py:3978 valueaccounting/models.py:5810
-#: valueaccounting/models.py:6975 valueaccounting/models.py:7566
-#: valueaccounting/models.py:9781
+#: valueaccounting/models.py:3985 valueaccounting/models.py:5817
+#: valueaccounting/models.py:6982 valueaccounting/models.py:7573
+#: valueaccounting/models.py:9788
 msgid "notes"
 msgstr ""
 
-#: valueaccounting/models.py:3982
+#: valueaccounting/models.py:3989
 msgid "access rules"
 msgstr ""
 
-#: valueaccounting/models.py:3986
+#: valueaccounting/models.py:3993
 msgid "digital currency address"
 msgstr ""
 
-#: valueaccounting/models.py:5453
+#: valueaccounting/models.py:5460
 msgid "score"
 msgstr ""
 
-#: valueaccounting/models.py:5455
+#: valueaccounting/models.py:5462
 msgid "the quantity of contributions of this resource type from this agent"
 msgstr ""
 
-#: valueaccounting/models.py:5458
+#: valueaccounting/models.py:5465
 msgid "lead time"
 msgstr ""
 
-#: valueaccounting/models.py:5459
+#: valueaccounting/models.py:5466
 msgid "in days"
 msgstr ""
 
-#: valueaccounting/models.py:5540
+#: valueaccounting/models.py:5547
 msgid "is owner"
 msgstr ""
 
-#: valueaccounting/models.py:5550 valueaccounting/models.py:8206
-#: valueaccounting/models.py:9934
+#: valueaccounting/models.py:5557 valueaccounting/models.py:8213
+#: valueaccounting/models.py:9941
 msgid "resource"
 msgstr ""
 
-#: valueaccounting/models.py:5552
+#: valueaccounting/models.py:5559
 msgid "role"
 msgstr ""
 
-#: valueaccounting/models.py:5553
+#: valueaccounting/models.py:5560
 msgid "is contact"
 msgstr ""
 
-#: valueaccounting/models.py:5554
+#: valueaccounting/models.py:5561
 msgid "owner percentage"
 msgstr ""
 
-#: valueaccounting/models.py:5563 valueaccounting/models.py:5799
-#: valueaccounting/models.py:8022
+#: valueaccounting/models.py:5570 valueaccounting/models.py:5806
+#: valueaccounting/models.py:8029
 msgid "process type"
 msgstr ""
 
-#: valueaccounting/models.py:5585
+#: valueaccounting/models.py:5592
 msgid "commitment type"
 msgstr ""
 
-#: valueaccounting/models.py:5806 valueaccounting/models.py:6974
-#: valueaccounting/models.py:8189
+#: valueaccounting/models.py:5813 valueaccounting/models.py:6981
+#: valueaccounting/models.py:8196
 msgid "start date"
 msgstr ""
 
-#: valueaccounting/models.py:5807
+#: valueaccounting/models.py:5814
 msgid "end date"
 msgstr ""
 
-#: valueaccounting/models.py:5808
+#: valueaccounting/models.py:5815
 msgid "started"
 msgstr ""
 
-#: valueaccounting/models.py:5809 valueaccounting/models.py:8191
+#: valueaccounting/models.py:5816 valueaccounting/models.py:8198
 msgid "finished"
 msgstr ""
 
-#: valueaccounting/models.py:5823
+#: valueaccounting/models.py:5830
 msgid "processes"
 msgstr ""
 
-#: valueaccounting/models.py:6813 valueaccounting/models.py:11066
+#: valueaccounting/models.py:6820 valueaccounting/models.py:11073
 msgid "sequence"
 msgstr ""
 
-#: valueaccounting/models.py:6815 valueaccounting/models.py:6968
+#: valueaccounting/models.py:6822 valueaccounting/models.py:6975
 msgid "exchange type"
 msgstr ""
 
-#: valueaccounting/models.py:6817 valueaccounting/models.py:9975
+#: valueaccounting/models.py:6824 valueaccounting/models.py:9982
 msgid "is contribution"
 msgstr ""
 
-#: valueaccounting/models.py:6818 valueaccounting/models.py:9976
+#: valueaccounting/models.py:6825 valueaccounting/models.py:9983
 msgid "is to distribute"
 msgstr ""
 
-#: valueaccounting/models.py:6819
+#: valueaccounting/models.py:6826
 msgid "is reciprocal"
 msgstr ""
 
-#: valueaccounting/models.py:6820
+#: valueaccounting/models.py:6827
 msgid "can create resource"
 msgstr ""
 
-#: valueaccounting/models.py:6821
+#: valueaccounting/models.py:6828
 msgid "is currency"
 msgstr ""
 
-#: valueaccounting/models.py:6822
+#: valueaccounting/models.py:6829
 msgid "give agent is context"
 msgstr ""
 
-#: valueaccounting/models.py:6823
+#: valueaccounting/models.py:6830
 msgid "receive agent is context"
 msgstr ""
 
-#: valueaccounting/models.py:6826
+#: valueaccounting/models.py:6833
 msgid "give agent association type"
 msgstr ""
 
-#: valueaccounting/models.py:6829
+#: valueaccounting/models.py:6836
 msgid "receive agent association type"
 msgstr ""
 
-#: valueaccounting/models.py:6916 valueaccounting/models.py:7557
+#: valueaccounting/models.py:6923 valueaccounting/models.py:7564
 msgid "transfer type"
 msgstr ""
 
-#: valueaccounting/models.py:6984 valueaccounting/models.py:8173
+#: valueaccounting/models.py:6991 valueaccounting/models.py:8180
 msgid "order"
 msgstr ""
 
-#: valueaccounting/models.py:6997
+#: valueaccounting/models.py:7004
 msgid "exchanges"
 msgstr ""
 
-#: valueaccounting/models.py:7565
+#: valueaccounting/models.py:7572
 msgid "transfer date"
 msgstr ""
 
-#: valueaccounting/models.py:7579
+#: valueaccounting/models.py:7586
 msgid "transfers"
 msgstr ""
 
-#: valueaccounting/models.py:8019
+#: valueaccounting/models.py:8026
 msgid "product"
 msgstr ""
 
-#: valueaccounting/models.py:8092
+#: valueaccounting/models.py:8099
 msgid "feature"
 msgstr ""
 
-#: valueaccounting/models.py:8094
+#: valueaccounting/models.py:8101
 msgid "component"
 msgstr ""
 
-#: valueaccounting/models.py:8188
+#: valueaccounting/models.py:8195
 msgid "commitment date"
 msgstr ""
 
-#: valueaccounting/models.py:8194
+#: valueaccounting/models.py:8201
 msgid "from agent type"
 msgstr ""
 
-#: valueaccounting/models.py:9307
+#: valueaccounting/models.py:9314
 msgid "initiating commitment"
 msgstr ""
 
-#: valueaccounting/models.py:9309
+#: valueaccounting/models.py:9316
 msgid "reciprocal commitment"
 msgstr ""
 
-#: valueaccounting/models.py:9310
+#: valueaccounting/models.py:9317
 msgid "reciprocity date"
 msgstr ""
 
-#: valueaccounting/models.py:9334
+#: valueaccounting/models.py:9341
 msgid "commitment"
 msgstr ""
 
-#: valueaccounting/models.py:9336
+#: valueaccounting/models.py:9343
 msgid "option"
 msgstr ""
 
-#: valueaccounting/models.py:9449
+#: valueaccounting/models.py:9456
 msgid "Remaining percentage"
 msgstr ""
 
-#: valueaccounting/models.py:9450
+#: valueaccounting/models.py:9457
 msgid "Straight percentage"
 msgstr ""
 
-#: valueaccounting/models.py:9459
+#: valueaccounting/models.py:9466
 msgid "percentage behavior"
 msgstr ""
 
-#: valueaccounting/models.py:9461
+#: valueaccounting/models.py:9468
 #, python-format
 msgid ""
 "Remaining percentage uses the %% of the remaining amount to be distributed."
 "  Straight percentage uses the %% of the total distribution amount."
 msgstr ""
 
-#: valueaccounting/models.py:9462
+#: valueaccounting/models.py:9469
 msgid "live"
 msgstr ""
 
-#: valueaccounting/models.py:9463
+#: valueaccounting/models.py:9470
 msgid "Make this value equation available for use in real distributions."
 msgstr ""
 
-#: valueaccounting/models.py:9780 valueaccounting/models.py:10994
-#: valueaccounting/models.py:11569
+#: valueaccounting/models.py:9787 valueaccounting/models.py:11001
+#: valueaccounting/models.py:11576
 msgid "distribution date"
 msgstr ""
 
-#: valueaccounting/models.py:9784 valueaccounting/models.py:11000
+#: valueaccounting/models.py:9791 valueaccounting/models.py:11007
 msgid "value equation link"
 msgstr ""
 
-#: valueaccounting/models.py:9785 valueaccounting/models.py:11001
+#: valueaccounting/models.py:9792 valueaccounting/models.py:11008
 msgid "value equation formulas used"
 msgstr ""
 
-#: valueaccounting/models.py:9798
+#: valueaccounting/models.py:9805
 msgid "distributions"
 msgstr ""
 
-#: valueaccounting/models.py:9914
+#: valueaccounting/models.py:9921
 msgid "New"
 msgstr ""
 
-#: valueaccounting/models.py:9915
+#: valueaccounting/models.py:9922
 msgid "Pending"
 msgstr ""
 
-#: valueaccounting/models.py:9916
+#: valueaccounting/models.py:9923
 msgid "Broadcast"
 msgstr ""
 
-#: valueaccounting/models.py:9917
+#: valueaccounting/models.py:9924
 msgid "Confirmed"
 msgstr ""
 
-#: valueaccounting/models.py:9923
+#: valueaccounting/models.py:9930
 msgid "event date"
 msgstr ""
 
-#: valueaccounting/models.py:9968
+#: valueaccounting/models.py:9975
 msgid "price"
 msgstr ""
 
-#: valueaccounting/models.py:9973
+#: valueaccounting/models.py:9980
 msgid "fulfills commitment"
 msgstr ""
 
-#: valueaccounting/models.py:9979
+#: valueaccounting/models.py:9986
 msgid "optional reference to an accounting grouping"
 msgstr ""
 
-#: valueaccounting/models.py:9980
+#: valueaccounting/models.py:9987
 msgid "reference"
 msgstr ""
 
-#: valueaccounting/models.py:9981 valueaccounting/models.py:9983
+#: valueaccounting/models.py:9988 valueaccounting/models.py:9990
 msgid "digital currency transaction hash"
 msgstr ""
 
-#: valueaccounting/models.py:11059
+#: valueaccounting/models.py:11066
 msgid "Shipment or Delivery"
 msgstr ""
 
-#: valueaccounting/models.py:11060
+#: valueaccounting/models.py:11067
 msgid "Date range"
 msgstr ""
 
-#: valueaccounting/models.py:11068
+#: valueaccounting/models.py:11075
 msgid "value equation"
 msgstr ""
 
-#: valueaccounting/models.py:11069
+#: valueaccounting/models.py:11076
 msgid "filter method"
 msgstr ""
 
-#: valueaccounting/models.py:11071
+#: valueaccounting/models.py:11078
 msgid "bucket percentage"
 msgstr ""
 
-#: valueaccounting/models.py:11074
+#: valueaccounting/models.py:11081
 msgid "distribution agent"
 msgstr ""
 
-#: valueaccounting/models.py:11077
+#: valueaccounting/models.py:11084
 msgid "filter agent"
 msgstr ""
 
-#: valueaccounting/models.py:11411
+#: valueaccounting/models.py:11418
 msgid "Oldest first"
 msgstr ""
 
-#: valueaccounting/models.py:11415
+#: valueaccounting/models.py:11422
 msgid "Until paid off"
 msgstr ""
 
-#: valueaccounting/models.py:11417
+#: valueaccounting/models.py:11424
 msgid "One distribution"
 msgstr ""
 
-#: valueaccounting/models.py:11422
+#: valueaccounting/models.py:11429
 msgid "value equation bucket"
 msgstr ""
 
-#: valueaccounting/models.py:11425
+#: valueaccounting/models.py:11432
 msgid "filter rule"
 msgstr ""
 
-#: valueaccounting/models.py:11427
+#: valueaccounting/models.py:11434
 msgid "division rule"
 msgstr ""
 
-#: valueaccounting/models.py:11429
+#: valueaccounting/models.py:11436
 msgid "claim rule type"
 msgstr ""
 
-#: valueaccounting/models.py:11431
+#: valueaccounting/models.py:11438
 msgid "claim creation equation"
 msgstr ""
 
-#: valueaccounting/models.py:11578
+#: valueaccounting/models.py:11585
 msgid "income event"
 msgstr ""
 
-#: valueaccounting/models.py:11588
+#: valueaccounting/models.py:11595
 msgid "value equation bucket rule"
 msgstr ""
 
-#: valueaccounting/models.py:11589
+#: valueaccounting/models.py:11596
 msgid "claim date"
 msgstr ""
 
-#: valueaccounting/models.py:11592
+#: valueaccounting/models.py:11599
 msgid "has"
 msgstr ""
 
-#: valueaccounting/models.py:11595
+#: valueaccounting/models.py:11602
 msgid "against"
 msgstr ""
 
-#: valueaccounting/models.py:11605
+#: valueaccounting/models.py:11612
 msgid "original value"
 msgstr ""
 
-#: valueaccounting/models.py:11607
+#: valueaccounting/models.py:11614
 msgid "creation equation"
 msgstr ""
 
-#: valueaccounting/models.py:11678
+#: valueaccounting/models.py:11685
 msgid "claim event"
 msgstr ""
 
-#: valueaccounting/models.py:11680
+#: valueaccounting/models.py:11687
 msgid "claims"
 msgstr ""
 
-#: valueaccounting/models.py:11681
+#: valueaccounting/models.py:11688
 msgid "claim event date"
 msgstr ""
 
-#: valueaccounting/models.py:11685
+#: valueaccounting/models.py:11692
 msgid "event effect"
 msgstr ""
 
-#: valueaccounting/models.py:11764
+#: valueaccounting/models.py:11771
 msgid "resource type rate"
 msgstr ""
 
-#: valueaccounting/models.py:11765
+#: valueaccounting/models.py:11772
 msgid "importance"
 msgstr ""
 

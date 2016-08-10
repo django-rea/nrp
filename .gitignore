@@ -20,3 +20,5 @@ media/logos/*.png
 media/avatars/*.png
 valuenetwork/site_media/media/photos/*.jpg
 valuenetwork/site_media/media/photos/*.png
+faircoin_nrp/daemon/daemon.conf
+faircoin_nrp/daemon/daemon_service

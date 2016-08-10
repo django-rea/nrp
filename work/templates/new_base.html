@@ -34,12 +34,7 @@
 
         <script type="text/javascript">
             //$(document).ready(function(){
-                //$('#site-menu').menu({
-		    //role: "listbox"
-		//});
-		//$('li#my-tasks a').click(function(){
-		    //$('#tasks-menu').toggle();
-		//});
+                
             //});
         </script>
 
@@ -79,8 +74,8 @@
                                                     </li>
                                                     <li id="non-process-logging" >
                                                       <a href="{% url 'non_process_logging' %}"  
-                                                      title="{% trans 'Register other unplanned tasks you did' %}"  
-                                                      >{% trans 'Log unplanned tasks' %}</a>
+                                                      title="{% trans 'Register other extra tasks you did' %}"  
+                                                      >{% trans 'Log extra tasks' %}</a>
                                                     </li>
                                                     <li id="my-history" >
                                                       <a href="{% url 'my_history' %}"  
@@ -89,11 +84,22 @@
                                                     </li>
 						  </ul>
 						</li>
+						{% with request.user.agent.agent.membership_request.id as id %}
+                				{% if id %}
+                				<li id="membership" >
+                                                    <a href="{% url 'membership_discussion' membership_request_id=id %}"
+                                                    title="{% trans 'Membership process' %}"
+                                                    >{% trans 'Membership' %}</a>
+                                                </li>
+                                                {% endif %}
+                                                {% endwith %}
+                                                {% if request.user.agent.agent.is_staff %}
                                                 <li id="map" >
                                                     <a href="{% url 'map' %}"  
                                                     title="{% trans 'Map of worker locations' %}"  
                                                     >{% trans 'Map' %}</a>
                                                 </li>
+                                                {% endif %}
                                                 <li id="profile" >
                                                     <a href="{% url 'profile' %}"  
                                                     title="{% trans 'My personal information and skills' %}"  

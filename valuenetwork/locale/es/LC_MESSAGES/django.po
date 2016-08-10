@@ -2,7 +2,7 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# 
 #, fuzzy
 msgid ""
 msgstr ""
@@ -10,119 +10,121 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-08-09 09:43+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"Last-Translator: Damian Emil Piotraschke Borkowski <depb@mailchuck.com>, 2016\n"
+"Language-Team: Spanish (https://www.transifex.com/freedomcoop/teams/65382/es/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: es\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: board/forms.py:36 board/forms.py:68 board/forms.py:187
 #: valueaccounting/forms.py:3318
 msgid "Transfer Date"
-msgstr ""
+msgstr "Fecha de transferencia"
 
 #: board/forms.py:192
 msgid "Select more than one lot to be combined"
-msgstr ""
+msgstr "Selecciona más de un lote para ser combinados"
 
 #: board/forms.py:209
 msgid "Receipt Date"
-msgstr ""
+msgstr "Fecha de la receta"
 
 #: templates/404.html:5 templates/404.html.py:9
 msgid "Page not found"
-msgstr ""
+msgstr "Página no encontrada"
 
 #: templates/404.html:11
 msgid "We're sorry, but the requested page could not be found."
-msgstr ""
+msgstr "Lo sentimos pero la página solicitada no se puede encontrar."
 
 #: templates/500.html:5
 msgid "Server error (500)"
-msgstr ""
+msgstr "Error de servidor (500)"
 
 #: templates/500.html:8
 msgid "Server Error"
-msgstr ""
+msgstr "Error de servidor"
 
 #: templates/500.html:9
 msgid ""
-"There's been an error. It's been reported to the site administrators via e-"
-"mail and will be fixed. Thanks for your patience."
+"There's been an error. It's been reported to the site administrators via "
+"e-mail and will be fixed. Thanks for your patience."
 msgstr ""
+"Ha habido un error. Ha sido reportado a los administradores del sitio vía "
+"correo electrónico y será arreglado. Gracias por tu paciencia."
 
 #: templates/_account_bar.html:13
 msgid "Settings"
-msgstr ""
+msgstr "Ajustes"
 
 #: templates/_account_bar.html:14 templates/_account_bar.html.py:42
 #: templates/valueaccounting/tutorials.html:6
 #: templates/valueaccounting/tutorials.html:23
 msgid "OCP Tutorials"
-msgstr ""
+msgstr "Tutoriales de OCP"
 
 #: templates/_account_bar.html:16
 msgid "Admin"
-msgstr ""
+msgstr "Gestión"
 
 #: templates/_account_bar.html:17
 msgid "Patterns"
-msgstr ""
+msgstr "Patrones"
 
 #: templates/_account_bar.html:18
 #: templates/valueaccounting/change_exchange_type.html:144
 msgid "Exchange Types"
-msgstr ""
+msgstr "Tipos de intercambio"
 
 #: templates/_account_bar.html:24
 msgid "Miscellaneous Pages"
-msgstr ""
+msgstr "Páginas diversas"
 
 #: templates/_account_bar.html:27
 msgid "Coop Work App"
-msgstr ""
+msgstr "Aplicación para trabajo cooperativo"
 
 #: templates/_account_bar.html:30
 msgid "Log Out"
-msgstr ""
+msgstr "Cerrar sesión"
 
 #: templates/_account_bar.html:44
 msgid "or"
-msgstr ""
+msgstr "o"
 
 #: templates/_account_bar.html:45 templates/account/signup.html:7
 #: templates/account/signup.html.py:13 templates/account/signup.html:21
 msgid "Sign up"
-msgstr ""
+msgstr "Registrarse"
 
 #: templates/_creations_panel.html:7
 msgid "Value being created"
-msgstr ""
+msgstr "El valor que se está creando"
 
 #: templates/_creations_panel.html:13
 msgid "created"
-msgstr ""
+msgstr "creado"
 
 #: templates/_creations_panel.html:21
 msgid "use this?"
-msgstr ""
+msgstr "¿usar esto?"
 
 #: templates/_needs_panel.html:7
 msgid "Resources we need"
-msgstr ""
+msgstr "Recursos que necesitamos"
 
 #: templates/_needs_panel.html:18
 msgid "get this for us?"
-msgstr ""
+msgstr "conseguir esto para nosotros?"
 
 #: templates/_work_panel.html:16
 #: templates/valueaccounting/change_process.html:114
 #: templates/valueaccounting/unscheduled_time_contributions.html:56
 #: valueaccounting/forms.py:3205
 msgid "Type of work"
-msgstr ""
+msgstr "Tipo de trabajo"
 
 #: templates/_work_panel.html:16
 #: templates/valueaccounting/_process_for_order.html:57
@@ -149,39 +151,39 @@ msgstr ""
 #: templates/valueaccounting/work_now.html:102
 #: templates/valueaccounting/workbook.html:103
 msgid "due"
-msgstr ""
+msgstr "debido a"
 
 #: templates/_work_panel.html:18
 msgid "Purpose:"
-msgstr ""
+msgstr "Propósito:"
 
 #: templates/account/base.html:10 templates/account/settings.html:7
 #: templates/account/settings.html.py:11
 msgid "Account"
-msgstr ""
+msgstr "Cuenta"
 
 #: templates/account/base.html:11
 msgid "Account Settings"
-msgstr ""
+msgstr "Configuración de cuenta"
 
 #: templates/account/base.html:12
 #: templates/notification/notice_settings.html:8
 #: templates/notification/notice_settings.html:11
 msgid "Notification Settings"
-msgstr ""
+msgstr "Configuración de notificaciones"
 
 #: templates/account/base.html:13 templates/account/password_change.html:7
 #: templates/account/password_change.html:11
 msgid "Change password"
-msgstr ""
+msgstr "Cambiar contraseña"
 
 #: templates/account/base.html:14
 msgid "Delete account"
-msgstr ""
+msgstr "Borrar cuenta"
 
 #: templates/account/delete.html:6 templates/account/delete.html.py:9
 msgid "Delete Account"
-msgstr ""
+msgstr "Borrar cuenta"
 
 #: templates/account/delete.html:11
 #, python-format
@@ -189,52 +191,58 @@ msgid ""
 "If you go ahead and delete your account, your information will be "
 "<b>expunged within %(ACCOUNT_DELETION_EXPUNGE_HOURS)s hours</b>."
 msgstr ""
+"Si sigues adelante y borras tu cuenta, tu información será <b>purgada de "
+"%(ACCOUNT_DELETION_EXPUNGE_HOURS)s horas</b>."
 
 #: templates/account/delete.html:15
 msgid "Delete My Account"
-msgstr ""
+msgstr "Borrar Mi Cuenta"
 
 #: templates/account/email_confirm.html:6
 #: templates/account/email_confirm.html:12
 msgid "Confirm Email"
-msgstr ""
+msgstr "Confirmar correo electrónico"
 
 #: templates/account/email_confirm.html:15
 #, python-format
 msgid "Confirm email address <b>%(email)s</b>?"
-msgstr ""
+msgstr "¿Confirmar la dirección de correo electrónico <b>%(email)s</b>?"
 
 #: templates/account/email_confirm.html:17
 msgid "Confirm"
-msgstr ""
+msgstr "Confirmar"
 
 #: templates/account/email_confirmation_sent.html:6
 #: templates/account/email_confirmation_sent.html:9
 msgid "Confirm your email address"
-msgstr ""
+msgstr "Confirmar tu dirección de correo electrónico"
 
 #: templates/account/email_confirmation_sent.html:11
 #, python-format
 msgid ""
 "We have sent you an email to <b>%(email)s</b> for verification. Follow the "
 "link provided to finalize the signup process. If you do not receive it "
-"within a few minutes, contact us at <a href=\"mailto:"
-"%(THEME_ACCOUNT_CONTACT_EMAIL)s\">%(THEME_ACCOUNT_CONTACT_EMAIL)s</a>."
+"within a few minutes, contact us at <a "
+"href=\"mailto:%(THEME_ACCOUNT_CONTACT_EMAIL)s\">%(THEME_ACCOUNT_CONTACT_EMAIL)s</a>."
 msgstr ""
+"Te hemos enviado un correo electrónico a <b>%(email)s</b> para verificarlo. "
+"Sigue el enlace facilitado para finalizar el proceso de registro. Si no lo "
+"recibieras en pocos minutos, contacta con nosotros en <a "
+"href=\"mailto:%(THEME_ACCOUNT_CONTACT_EMAIL)s\">%(THEME_ACCOUNT_CONTACT_EMAIL)s</a>."
 
 #: templates/account/email_confirmation_sent.html:12
 msgid "Go back"
-msgstr ""
+msgstr "Regresa"
 
 #: templates/account/email_confirmed.html:6
 #: templates/account/email_confirmed.html:9
 msgid "Email confirmed"
-msgstr ""
+msgstr "Correo electrónico confirmado"
 
 #: templates/account/email_confirmed.html:10
 #, python-format
 msgid "You have confirmed <b>%(email)s</b>"
-msgstr ""
+msgstr "Ha confirmado <b>%(email)s</b>"
 
 #: templates/account/login.html:9 templates/frontpage.html:7
 msgid "OCP: Open Collaborative Platform"
@@ -253,37 +261,39 @@ msgid ""
 "<p>This is OCP, our Open Collaborative Platform. The OCP is the key "
 "organizational tool we offer to individuals, collectives, and management "
 "inside Freedom Coop.</p><p>Therefore, it can be used to:</p><ul><li>Boost "
-"open collaborative projects between people in different places.</"
-"li><li>Manage open collective projects and their team work by setting up "
-"task forces.</li><li>Account the time spent by every member to use it as a "
-"base of income distribution and a way of self-actualization for any project."
-"</li><li>Execute a quarterly fee and tax distribution between Freedom Coop "
-"and their members.</li><li>Manage an online Faircoin wallet to accept and "
-"make payments.</li></ul><p>Freedom Coop, will use OCP for our collective "
-"organization as an open cooperative process.</p>"
+"open collaborative projects between people in different "
+"places.</li><li>Manage open collective projects and their team work by "
+"setting up task forces.</li><li>Account the time spent by every member to "
+"use it as a base of income distribution and a way of self-actualization for "
+"any project.</li><li>Execute a quarterly fee and tax distribution between "
+"Freedom Coop and their members.</li><li>Manage an online Faircoin wallet to "
+"accept and make payments.</li></ul><p>Freedom Coop, will use OCP for our "
+"collective organization as an open cooperative process.</p>"
 msgstr ""
 
 #: templates/account/login.html:53 templates/frontpage.html:39
 msgid "Request Membership"
-msgstr ""
+msgstr "Solicitud de Membresía"
 
 #: templates/account/login.html:54
 msgid ""
 "The first step to become a member of Freedom Coop and use OCP, is to fill "
 "the following membership form:"
 msgstr ""
+"El primer paso para convertirse en miembro de Freedom Coop y usar OCP, es "
+"rellenar el siguiente formulario de inscripción:"
 
 #: templates/account/login.html:55
 msgid "Join FreedomCoop"
-msgstr ""
+msgstr "Unirse a FreedomCoop"
 
 #: templates/account/login.html:59
 msgid "Log in to the OCP"
-msgstr ""
+msgstr "Iniciar sesión en OCP"
 
 #: templates/account/login.html:60
 msgid "If you already did it, and have user and password, login here."
-msgstr ""
+msgstr "Si ya lo hizo, y tienen un usuario y contraseña, inicie sesión aquí."
 
 #: templates/account/login.html:69
 msgid "Forgot your password?"
@@ -291,19 +301,19 @@ msgstr ""
 
 #: templates/account/login.html:70
 msgid "Log in"
-msgstr ""
+msgstr "Iniciar sesión"
 
 #: templates/account/logout.html:40
 msgid "Log out of OCP"
-msgstr ""
+msgstr "Cerrar sesión en OCP"
 
 #: templates/account/logout.html:43
 msgid "Are you sure you want to log out?"
-msgstr ""
+msgstr "¿Seguro que desea finalizar la sesión?"
 
 #: templates/account/logout.html:45
 msgid "Log out"
-msgstr ""
+msgstr "Cerrar sesión"
 
 #: templates/account/password_change.html:16
 #: templates/account/password_reset_token.html:16
@@ -394,30 +404,34 @@ msgstr ""
 #: templates/valueaccounting/workflow_board_demo.html:225
 #: templates/valueaccounting/workflow_board_demo.html:242
 msgid "Save"
-msgstr ""
+msgstr "Guardar"
 
 #: templates/account/password_reset.html:8
 #: templates/account/password_reset.html:14
 msgid "Password reset"
-msgstr ""
+msgstr "Restablecimiento de la contraseña"
 
 #: templates/account/password_reset.html:15
 msgid ""
 "Forgotten your password? Enter your email address below, and we'll send you "
 "an email allowing you to reset it."
 msgstr ""
+"¿Olvidaste tu contraseña? Introduzca su dirección de correo electrónico, y "
+"le enviaremos un correo que le permitirá restablecerla."
 
 #: templates/account/password_reset.html:20
 msgid "Reset my password"
-msgstr ""
+msgstr "Restablecer mi contraseña"
 
 #: templates/account/password_reset.html:25
 #, python-format
 msgid ""
-"If you have any trouble resetting your password, contact us at <a href="
-"\"mailto:%(THEME_ACCOUNT_CONTACT_EMAIL)s\">%(THEME_ACCOUNT_CONTACT_EMAIL)s</"
-"a>."
+"If you have any trouble resetting your password, contact us at <a "
+"href=\"mailto:%(THEME_ACCOUNT_CONTACT_EMAIL)s\">%(THEME_ACCOUNT_CONTACT_EMAIL)s</a>."
 msgstr ""
+"Si tiene algún problema al restablecer su contraseña, póngase en contacto "
+"con nosotros mediante <a "
+"href=\"mailto:%(THEME_ACCOUNT_CONTACT_EMAIL)s\">%(THEME_ACCOUNT_CONTACT_EMAIL)s</a>."
 
 #: templates/account/password_reset_sent.html:7
 #: templates/account/password_reset_sent.html:10
@@ -428,26 +442,29 @@ msgstr ""
 #, python-format
 msgid ""
 "We have sent you an email. If you do not receive it within a few minutes, "
-"try resending or contact us at <a href=\"mailto:"
-"%(THEME_ACCOUNT_CONTACT_EMAIL)s\">%(THEME_ACCOUNT_CONTACT_EMAIL)s</a>."
+"try resending or contact us at <a "
+"href=\"mailto:%(THEME_ACCOUNT_CONTACT_EMAIL)s\">%(THEME_ACCOUNT_CONTACT_EMAIL)s</a>."
 msgstr ""
+"Te hemos enviado un correo electrónico. Si no lo recibe dentro de unos pocos"
+" minutos, intente reenviar o póngase en contacto con nosotros mediante <a "
+"href=\"mailto:%(THEME_ACCOUNT_CONTACT_EMAIL)s\">%(THEME_ACCOUNT_CONTACT_EMAIL)s</a>."
 
 #: templates/account/password_reset_sent.html:18
 msgid "Resend"
-msgstr ""
+msgstr "Reenviar"
 
 #: templates/account/password_reset_sent.html:21
 #, python-format
 msgid ""
 "We have resent the password email. If you do not receive it within a few "
-"minutes, contact us at <a href=\"mailto:%(THEME_ACCOUNT_CONTACT_EMAIL)s\">"
-"%(THEME_ACCOUNT_CONTACT_EMAIL)s</a>."
+"minutes, contact us at <a "
+"href=\"mailto:%(THEME_ACCOUNT_CONTACT_EMAIL)s\">%(THEME_ACCOUNT_CONTACT_EMAIL)s</a>."
 msgstr ""
 
 #: templates/account/password_reset_token.html:7
 #: templates/account/password_reset_token.html:11
 msgid "Set your new password"
-msgstr ""
+msgstr "Establezca un nueva contraseña"
 
 #: templates/account/password_reset_token_fail.html:7
 #: templates/account/password_reset_token_fail.html:10
@@ -468,11 +485,11 @@ msgstr ""
 
 #: templates/account/signup_closed.html:12
 msgid "The code you provided was not accepted."
-msgstr ""
+msgstr "El código que ha proporcionado no fue aceptado."
 
 #: templates/account/signup_closed.html:14
 msgid "Sign up is closed to the general public."
-msgstr ""
+msgstr "El registro está cerrado al público en general."
 
 #: templates/admin/base_site.html:4
 msgid "Value Network admin"
@@ -486,7 +503,7 @@ msgstr ""
 #: templates/valueaccounting/exchange_logging.html:7
 #: templates/valueaccounting/resource.html:237 valueaccounting/models.py:167
 msgid "Exchange"
-msgstr ""
+msgstr "Intercambiar"
 
 #: templates/board/dhen_board.html:115
 msgid "Resource Flow Report"
@@ -498,11 +515,11 @@ msgstr ""
 
 #: templates/board/dhen_board.html:128
 msgid "Receive"
-msgstr ""
+msgstr "Cobrar"
 
 #: templates/board/dhen_board.html:134
 msgid "Make Sale"
-msgstr ""
+msgstr "Realiza una venta"
 
 #: templates/board/dhen_board.html:186
 msgid "Change Farm Availability"
@@ -653,7 +670,7 @@ msgstr ""
 #: templates/valueaccounting/workflow_board_demo.html:224
 #: templates/valueaccounting/workflow_board_demo.html:241
 msgid "Cancel"
-msgstr ""
+msgstr "Cancelar"
 
 #: templates/board/dhen_board.html:311
 msgid "Combine Lots"
@@ -677,18 +694,18 @@ msgstr ""
 
 #: templates/equipment/log_additional_inputs.html:109
 msgid "Save Citation"
-msgstr ""
+msgstr "Guardar cita"
 
 #: templates/equipment/log_additional_inputs.html:124
 msgid "Save Work"
-msgstr ""
+msgstr "Guardar trabajo"
 
 #: templates/equipment/log_additional_inputs.html:126
 #: templates/valueaccounting/start.html:665
 #: templates/valueaccounting/today.html:340
 #: templates/valueaccounting/work.html:428
 msgid "Done"
-msgstr ""
+msgstr "Terminado"
 
 #: templates/equipment/log_equipment_use.html:6
 msgid "Log Equipment Use"
@@ -700,31 +717,31 @@ msgstr ""
 
 #: templates/equipment/log_equipment_use.html:125
 msgid "Save and Continue"
-msgstr ""
+msgstr "Guardar y continuar"
 
 #: templates/equipment/pay_equipment_use.html:6
 msgid "Pay for Equipment Use"
-msgstr ""
+msgstr "Pagar los gastos por el uso del equipo"
 
 #: templates/equipment/pay_equipment_use.html:85
 msgid "Pay for Use of "
-msgstr ""
+msgstr "Pagar por el uso de"
 
 #: templates/equipment/pay_equipment_use.html:136
 msgid "I paid"
-msgstr ""
+msgstr "Pagué"
 
 #: templates/frontpage.html:31
 msgid "Enter the platform"
-msgstr ""
+msgstr "Ingresar a la plataforma"
 
 #: templates/frontpage.html:33
 msgid "Login"
-msgstr ""
+msgstr "Iniciar sesión"
 
 #: templates/homepage.html:6
 msgid "Welcome"
-msgstr ""
+msgstr "Bienvenido"
 
 #: templates/notification/email_body.txt:1
 #, python-format
@@ -735,6 +752,11 @@ msgid ""
 "\n"
 "To change how you receive notifications, please go to "
 msgstr ""
+"Has recibido el siguiente aviso de %(current_site.name)s:\n"
+"\n"
+" %(message)s\n"
+"\n"
+"Para cambiar la forma en la que recibe las notificaciones, por favor vaya a"
 
 #: templates/notification/email_subject.txt:1
 #, python-format
@@ -753,15 +775,14 @@ msgid ""
 "\n"
 "        <p class=\"alert alert-warning\">\n"
 "            <span class=\"warning\">Note</span>:\n"
-"            You do not have a verified email address to which notices can be "
-"sent. <a href=\"%(email_url)s\">Add one</a> now.\n"
+"            You do not have a verified email address to which notices can be sent. <a href=\"%(email_url)s\">Add one</a> now.\n"
 "        </p>\n"
 "        "
 msgstr ""
 
 #: templates/notification/notice_settings.html:27
 msgid "Notification Type"
-msgstr ""
+msgstr "Tipo de notificación"
 
 #: templates/notification/notice_settings.html:52
 #: templates/valueaccounting/agent.html:113
@@ -809,27 +830,27 @@ msgstr ""
 #: templates/valueaccounting/work.html:458
 #: templates/valueaccounting/work.html:494
 msgid "Change"
-msgstr ""
+msgstr "Cambio"
 
 #: templates/theme_bootstrap/base.html:49
 msgid "Networks and Projects"
-msgstr ""
+msgstr "Redes y Proyectos"
 
 #: templates/theme_bootstrap/base.html:50
 #: templates/valueaccounting/projects.html:6
 #: templates/valueaccounting/projects.html:48 valueaccounting/models.py:175
 msgid "Organization"
-msgstr ""
+msgstr "Organización"
 
 #: templates/theme_bootstrap/base.html:54
 msgid "Customer and R&amp;D Orders"
-msgstr ""
+msgstr "Cliente y R&amp;D Pedidos"
 
 #: templates/theme_bootstrap/base.html:55
 #: templates/valueaccounting/demand.html:5
 #: templates/valueaccounting/demand.html:26 valueaccounting/models.py:164
 msgid "Demand"
-msgstr ""
+msgstr "Demanda"
 
 #: templates/theme_bootstrap/base.html:59
 msgid "Purchasing requirements now, purchasing forms to come"
@@ -839,21 +860,21 @@ msgstr ""
 #: templates/valueaccounting/supply.html:6
 #: templates/valueaccounting/supply.html:54 valueaccounting/models.py:184
 msgid "Supply"
-msgstr ""
+msgstr "Oferta"
 
 #: templates/theme_bootstrap/base.html:64
 msgid "Available resources with their histories"
-msgstr ""
+msgstr "Recursos disponibles con sus historiales"
 
 #: templates/theme_bootstrap/base.html:65
 #: templates/valueaccounting/inventory.html:7
 #: templates/valueaccounting/inventory.html:47 valueaccounting/models.py:169
 msgid "Inventory"
-msgstr ""
+msgstr "Inventario"
 
 #: templates/theme_bootstrap/base.html:69
 msgid "Value Equations and income distributions"
-msgstr ""
+msgstr "Las ecuaciones de valor y las distribuciones de ingresos"
 
 #: templates/theme_bootstrap/base.html:70
 #: templates/valueaccounting/create_distribution.html:7
@@ -864,33 +885,35 @@ msgstr ""
 #: templates/valueaccounting/value_equation_sandbox.html:100
 #: valueaccounting/models.py:2955
 msgid "Distribution"
-msgstr ""
+msgstr "Distribución"
 
 #: templates/theme_bootstrap/base.html:76
 msgid "Your work and comparative stats"
-msgstr ""
+msgstr "Su trabajo y las estadísticas comparativas"
 
 #: templates/theme_bootstrap/base.html:77
 #: templates/valueaccounting/start.html:7
 #: templates/valueaccounting/start.html:176 valueaccounting/models.py:173
 msgid "My Work"
-msgstr ""
+msgstr "Mi trabajo"
 
 #: templates/theme_bootstrap/base.html:82
 msgid "All the work in the network for a date range"
-msgstr ""
+msgstr "Todo el trabajo en la red durante un intervalo de tiempo"
 
 #: templates/theme_bootstrap/base.html:83 valueaccounting/models.py:160
 msgid "All Work"
-msgstr ""
+msgstr "Todo el trabajo"
 
 #: templates/theme_bootstrap/base.html:95
 msgid "Show Help"
-msgstr ""
+msgstr "Mostrar ayuda"
 
 #: templates/theme_bootstrap/base.html:104
 msgid "This page has no help yet.  Ask an Admin to create some."
 msgstr ""
+"Esta página todavía no tiene ninguna ayuda. Pregunte a un administrador para"
+" crear algo."
 
 #: templates/valueaccounting/_facet_filter.html:3
 #: templates/valueaccounting/cash_report.html:204
@@ -901,12 +924,12 @@ msgstr ""
 #: templates/valueaccounting/material_contributions.html:78
 #: templates/valueaccounting/sales_and_distributions.html:88
 msgid "Filter the List"
-msgstr ""
+msgstr "Filtrar la lista"
 
 #: templates/valueaccounting/_facet_filter.html:6
 #: templates/valueaccounting/extended_bill.html:204
 msgid "All"
-msgstr ""
+msgstr "Todo"
 
 #: templates/valueaccounting/_facet_filter.html:14
 #: templates/valueaccounting/agent_contributions.html:74
@@ -922,7 +945,7 @@ msgstr ""
 #: templates/valueaccounting/value_equation_sandbox.html:187
 #: templates/valueaccounting/value_equation_sandbox.html:218
 msgid "Filter"
-msgstr ""
+msgstr "Filtro"
 
 #: templates/valueaccounting/_process_for_order.html:4
 #: templates/valueaccounting/agent_contributions.html:104
@@ -943,38 +966,38 @@ msgstr ""
 #: templates/valueaccounting/work.html:255 valueaccounting/models.py:179
 #: valueaccounting/models.py:11061
 msgid "Process"
-msgstr ""
+msgstr "Proceso"
 
 #: templates/valueaccounting/_process_for_order.html:6
 msgid "Scheduled start date"
-msgstr ""
+msgstr "Fecha de comienzo programada"
 
 #: templates/valueaccounting/_process_for_order.html:8
 msgid "Actual start date"
-msgstr ""
+msgstr "Fecha de comienzo actual"
 
 #: templates/valueaccounting/_process_for_order.html:10
 msgid "Scheduled end date"
-msgstr ""
+msgstr "Fecha de finalización programada"
 
 #: templates/valueaccounting/_process_for_order.html:22
 msgid "Should have finished"
-msgstr ""
+msgstr "Debería de finalizar"
 
 #: templates/valueaccounting/_process_for_order.html:22
 #: templates/valueaccounting/_process_for_order.html:25
 #: templates/valueaccounting/_process_for_order.html:146
 msgid "ago"
-msgstr ""
+msgstr "hace"
 
 #: templates/valueaccounting/_process_for_order.html:25
 msgid "Should have started"
-msgstr ""
+msgstr "Debería de comenzar"
 
 #: templates/valueaccounting/_process_for_order.html:28
 #: templates/valueaccounting/_process_for_order.html:147
 msgid "Reschedule forward"
-msgstr ""
+msgstr "Reprogramar hacia delante"
 
 #: templates/valueaccounting/_process_for_order.html:47
 #: templates/valueaccounting/_process_for_sked.html:7
@@ -983,19 +1006,19 @@ msgstr ""
 #: templates/valueaccounting/order_schedule.html:116
 #: templates/valueaccounting/project_contributions.html:91
 msgid "Deliverables"
-msgstr ""
+msgstr "A entregar"
 
 #: templates/valueaccounting/_process_for_order.html:84
 #: templates/valueaccounting/_process_for_sked.html:64
 msgid "Work requirements"
-msgstr ""
+msgstr "Requisitos laborales"
 
 #: templates/valueaccounting/_process_for_order.html:92
 #: templates/valueaccounting/_process_for_sked.html:71
 #: templates/valueaccounting/process.html:321
 #: templates/valueaccounting/process_oriented_logging.html:512
 msgid "Taken by"
-msgstr ""
+msgstr "Tomada por"
 
 #: templates/valueaccounting/_process_for_order.html:94
 #: templates/valueaccounting/_process_for_sked.html:73
@@ -1003,7 +1026,7 @@ msgstr ""
 #: templates/valueaccounting/start.html:226
 #: templates/valueaccounting/workbook.html:124
 msgid "Work Now"
-msgstr ""
+msgstr "Trabaja ahora"
 
 #: templates/valueaccounting/_process_for_order.html:113
 #: templates/valueaccounting/_process_for_sked.html:152
@@ -1031,7 +1054,7 @@ msgstr ""
 #: templates/valueaccounting/workbook.html:494
 #: templates/valueaccounting/workbook.html:539
 msgid "Onhand"
-msgstr ""
+msgstr "En mano"
 
 #: templates/valueaccounting/_process_for_order.html:139
 #: templates/valueaccounting/_process_for_order.html:198
@@ -1041,7 +1064,7 @@ msgstr ""
 #: templates/valueaccounting/process_oriented_logging.html:1316
 #: templates/valueaccounting/start.html:494
 msgid "Possible source"
-msgstr ""
+msgstr "Posible fuente"
 
 #: templates/valueaccounting/_process_for_order.html:140
 #: templates/valueaccounting/_process_for_order.html:199
@@ -1059,7 +1082,7 @@ msgstr ""
 #: templates/valueaccounting/workbook.html:558
 #: templates/valueaccounting/workbook.html:615
 msgid "Lead time"
-msgstr ""
+msgstr "Tiempo de espera"
 
 #: templates/valueaccounting/_process_for_order.html:140
 #: templates/valueaccounting/_process_for_order.html:199
@@ -1077,20 +1100,20 @@ msgstr ""
 #: templates/valueaccounting/workbook.html:558
 #: templates/valueaccounting/workbook.html:615
 msgid "days"
-msgstr ""
+msgstr "días"
 
 #: templates/valueaccounting/_process_for_order.html:146
 msgid "Should have purchased"
-msgstr ""
+msgstr "Debería haber adquirido"
 
 #: templates/valueaccounting/_process_for_order.html:150
 msgid "Purchase by:"
-msgstr ""
+msgstr "Compra por:"
 
 #: templates/valueaccounting/_process_for_order.html:162
 #: templates/valueaccounting/_process_for_sked.html:200
 msgid "Usable Requirements"
-msgstr ""
+msgstr "Requisitos de uso"
 
 #: templates/valueaccounting/_process_for_order.html:189
 #: templates/valueaccounting/log_past_work.html:481
@@ -1106,11 +1129,11 @@ msgstr ""
 #: templates/valueaccounting/workbook.html:547
 #: templates/valueaccounting/workbook.html:604
 msgid "Scheduled"
-msgstr ""
+msgstr "Programado"
 
 #: templates/valueaccounting/_process_for_sked.html:46
 msgid "Wanted by"
-msgstr ""
+msgstr "Buscado por"
 
 #: templates/valueaccounting/_process_for_sked.html:80
 #: templates/valueaccounting/_process_for_sked.html:87
@@ -1123,7 +1146,7 @@ msgstr ""
 #: templates/valueaccounting/start.html:392
 #: templates/valueaccounting/start.html:399
 msgid "Take this task"
-msgstr ""
+msgstr "Asume esta tarea"
 
 #: templates/valueaccounting/_process_for_sked.html:97
 #: templates/valueaccounting/process.html:345
@@ -1132,7 +1155,7 @@ msgstr ""
 #: templates/valueaccounting/start.html:291
 #: templates/valueaccounting/start.html:411
 msgid "Commit to this task"
-msgstr ""
+msgstr "Comprometerse con esta tarea"
 
 #: templates/valueaccounting/_process_for_sked.html:99
 #: templates/valueaccounting/process.html:346
@@ -1140,21 +1163,21 @@ msgstr ""
 #: templates/valueaccounting/start.html:293
 #: templates/valueaccounting/start.html:413
 msgid "Start now"
-msgstr ""
+msgstr "Comienza ahora"
 
 #: templates/valueaccounting/_process_for_sked.html:122
 msgid "Citation requirements"
-msgstr ""
+msgstr "Citación de requerimientos"
 
 #: templates/valueaccounting/_process_for_sked.html:178
 #: templates/valueaccounting/_process_for_sked.html:227
 msgid "Promised"
-msgstr ""
+msgstr "Prometido"
 
 #: templates/valueaccounting/_process_for_sked.html:180
 #: templates/valueaccounting/_process_for_sked.html:229
 msgid "by Process"
-msgstr ""
+msgstr "mediante el Procedimiento"
 
 #: templates/valueaccounting/_resource_type.html:14
 #: templates/valueaccounting/resource_type.html:84
@@ -1164,22 +1187,22 @@ msgstr ""
 #: templates/valueaccounting/resource_types.html:116
 #: templates/valueaccounting/resource_types.html:119
 msgid "View Recipe"
-msgstr ""
+msgstr "Ver Receta"
 
 #: templates/valueaccounting/_resource_type.html:24
 #: templates/valueaccounting/extended_bill.html:112
 #: templates/valueaccounting/resource_type.html:98
 #: templates/valueaccounting/view_stream_recipe.html:116
 msgid "Change Recipe"
-msgstr ""
+msgstr "Cambiar Receta"
 
 #: templates/valueaccounting/_resource_type.html:26
 msgid "Create Recipe"
-msgstr ""
+msgstr "Crear Receta"
 
 #: templates/valueaccounting/accounting.html:7
 msgid "Accounting for"
-msgstr ""
+msgstr "Contabilidad para"
 
 #: templates/valueaccounting/accounting.html:66
 #: templates/valueaccounting/agent.html:234
@@ -1192,11 +1215,11 @@ msgstr ""
 #: templates/valueaccounting/project_contributions.html:84
 #: templates/valueaccounting/resource_flow_report.html:63
 msgid "Type"
-msgstr ""
+msgstr "Tipo"
 
 #: templates/valueaccounting/accounting.html:67
 msgid "Count"
-msgstr ""
+msgstr "Contar"
 
 #: templates/valueaccounting/accounting.html:68
 #: templates/valueaccounting/change_process.html:89
@@ -1221,11 +1244,11 @@ msgstr ""
 #: templates/valueaccounting/resource_flow.html:148
 #: templates/valueaccounting/workbook.html:213
 msgid "Quantity"
-msgstr ""
+msgstr "Cantidad"
 
 #: templates/valueaccounting/accounting.html:69
 msgid "Example"
-msgstr ""
+msgstr "Ejemplo"
 
 #: templates/valueaccounting/agent.html:7
 #: templates/valueaccounting/create_distribution_using_value_equation.html:191
@@ -1233,7 +1256,7 @@ msgstr ""
 #: templates/valueaccounting/value_equation_sandbox.html:186
 #: valueaccounting/models.py:158
 msgid "Agent"
-msgstr ""
+msgstr "Agente"
 
 #: templates/valueaccounting/agent.html:96
 #: templates/valueaccounting/agent.html:98
@@ -1241,7 +1264,7 @@ msgstr ""
 #: templates/valueaccounting/agents.html:96
 #: templates/valueaccounting/projects.html:103
 msgid "Contributions"
-msgstr ""
+msgstr "Contribuciones"
 
 #: templates/valueaccounting/agent.html:101
 #: templates/valueaccounting/distributions.html:5
@@ -1249,11 +1272,11 @@ msgstr ""
 #: templates/valueaccounting/projects.html:117
 #: templates/valueaccounting/value_equations.html:65
 msgid "Distributions"
-msgstr ""
+msgstr "Distribuciones"
 
 #: templates/valueaccounting/agent.html:102
 msgid "Active Orders"
-msgstr ""
+msgstr "Pedidos activos"
 
 #: templates/valueaccounting/agent.html:103
 #: templates/valueaccounting/order_schedule.html:217
@@ -1261,24 +1284,24 @@ msgstr ""
 #: templates/valueaccounting/timeline.html:35
 #: templates/valueaccounting/work.html:195
 msgid "Timeline"
-msgstr ""
+msgstr "Linea temporal"
 
 #: templates/valueaccounting/agent.html:105
 msgid "Association Graph"
-msgstr ""
+msgstr "Gráfico asociado"
 
 #: templates/valueaccounting/agent.html:106 valueaccounting/models.py:172
 msgid "Maintain Associations"
-msgstr ""
+msgstr "Mantener Asociaciones"
 
 #: templates/valueaccounting/agent.html:107
 #: templates/valueaccounting/projects.html:74 valueaccounting/models.py:159
 msgid "All Agents"
-msgstr ""
+msgstr "Todos los agentes"
 
 #: templates/valueaccounting/agent.html:123
 msgid "Request FairCoin Address"
-msgstr ""
+msgstr "Solicitud de una dirección FairCoin"
 
 #: templates/valueaccounting/agent.html:137
 #: templates/valueaccounting/agent_associations.html:66
@@ -1314,18 +1337,18 @@ msgstr ""
 #: templates/valueaccounting/value_equations.html:86
 #: templates/valueaccounting/work.html:464
 msgid "Delete"
-msgstr ""
+msgstr "Borrar"
 
 #: templates/valueaccounting/agent.html:142
 msgid "Create User"
-msgstr ""
+msgstr "Crear usuario"
 
 #: templates/valueaccounting/agent.html:149
 #: templates/valueaccounting/create_exchange.html:7
 #: templates/valueaccounting/create_exchange.html:39
 #: templates/valueaccounting/supply.html:86 valueaccounting/models.py:162
 msgid "Create Exchange"
-msgstr ""
+msgstr "Crear intercambio"
 
 #: templates/valueaccounting/agent.html:165
 #: templates/valueaccounting/change_exchange_type.html:294
@@ -1372,7 +1395,7 @@ msgstr ""
 #: templates/valueaccounting/workbook.html:436
 #: templates/valueaccounting/workbook.html:457
 msgid "Save changes"
-msgstr ""
+msgstr "Guardar cambios"
 
 #: templates/valueaccounting/agent.html:176
 msgid "Create login user for"
@@ -1380,39 +1403,39 @@ msgstr ""
 
 #: templates/valueaccounting/agent.html:186
 msgid "Save user"
-msgstr ""
+msgstr "Guardar usuario"
 
 #: templates/valueaccounting/agent.html:196
 msgid "Cumulative Time"
-msgstr ""
+msgstr "Tiempo acumulado"
 
 #: templates/valueaccounting/agent.html:199
 msgid "Last 2 months"
-msgstr ""
+msgstr "Últimos 2 meses"
 
 #: templates/valueaccounting/agent.html:203 valueaccounting/models.py:11416
 msgid "Forever"
-msgstr ""
+msgstr "Siempre"
 
 #: templates/valueaccounting/agent.html:207
 msgid "Roles"
-msgstr ""
+msgstr "Roles"
 
 #: templates/valueaccounting/agent.html:220 valueaccounting/models.py:418
 msgid "ID"
-msgstr ""
+msgstr "Identificación"
 
 #: templates/valueaccounting/agent.html:225
 msgid "Username"
-msgstr ""
+msgstr "Nombre de usuario"
 
 #: templates/valueaccounting/agent.html:230
 msgid "Full Name"
-msgstr ""
+msgstr "Nombre completo"
 
 #: templates/valueaccounting/agent.html:239
 msgid "Unit of claim value"
-msgstr ""
+msgstr "Unidad de valor de la demanda"
 
 #: templates/valueaccounting/agent.html:245
 #: templates/valueaccounting/agent_contributions.html:102
@@ -1424,7 +1447,7 @@ msgstr ""
 #: templates/valueaccounting/unscheduled_time_contributions.html:61
 #: valueaccounting/forms.py:3250
 msgid "URL"
-msgstr ""
+msgstr "dirección URL"
 
 #: templates/valueaccounting/agent.html:246
 #: templates/valueaccounting/agent_contributions.html:148
@@ -1437,7 +1460,7 @@ msgstr ""
 #: templates/valueaccounting/today.html:254
 #: templates/valueaccounting/work.html:406
 msgid "Open"
-msgstr ""
+msgstr "Abierto"
 
 #: templates/valueaccounting/agent.html:251
 #: templates/valueaccounting/agent_assoc_type.html:105
@@ -1471,29 +1494,29 @@ msgstr ""
 #: templates/valueaccounting/unscheduled_time_contributions.html:60
 #: templates/valueaccounting/workbook.html:217 valueaccounting/forms.py:3245
 msgid "Description"
-msgstr ""
+msgstr "Descripción"
 
 #: templates/valueaccounting/agent.html:258
 #: templates/valueaccounting/membership_request.html:96
 #: templates/valueaccounting/membership_requests.html:49
 msgid "Email"
-msgstr ""
+msgstr "Correo electrónico"
 
 #: templates/valueaccounting/agent.html:264
 msgid "Work Location"
-msgstr ""
+msgstr "Lugar de trabajo"
 
 #: templates/valueaccounting/agent.html:269
 msgid "Change on map"
-msgstr ""
+msgstr "Cambiar en el mapa"
 
 #: templates/valueaccounting/agent.html:271
 msgid "Add on map"
-msgstr ""
+msgstr "Añadir al mapa"
 
 #: templates/valueaccounting/agent.html:281
 msgid "FairCoin address"
-msgstr ""
+msgstr "Dirección FairCoin"
 
 #: templates/valueaccounting/agent.html:287
 #: templates/valueaccounting/agent.html:292
@@ -1502,18 +1525,18 @@ msgstr ""
 #: templates/valueaccounting/resource.html:171
 #: templates/valueaccounting/resource.html:176
 msgid "Photo"
-msgstr ""
+msgstr "Foto"
 
 #: templates/valueaccounting/agent.html:298
 #: templates/valueaccounting/value_equation.html:90
 msgid "Reputation"
-msgstr ""
+msgstr "Reputación"
 
 #: templates/valueaccounting/agent.html:303
 #: templates/valueaccounting/digital_currency_resource.html:180
 #: templates/valueaccounting/resource.html:192
 msgid "Record created date"
-msgstr ""
+msgstr "Grabar fecha de creación"
 
 #: templates/valueaccounting/agent.html:307
 #: templates/valueaccounting/digital_currency_resource.html:184
@@ -4825,16 +4848,15 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"\t\t\t\t\t\t<b>%(resource_type)s</b> will be removed as an input to the "
-"Process Type <b>%(proc_type)s</b>\n"
+"\t\t\t\t\t\t<b>%(resource_type)s</b> will be removed as an input to the Process Type <b>%(proc_type)s</b>\n"
 "\t\t\t\t\t\t"
 msgstr ""
 
 #: templates/valueaccounting/resource_type_delete_confirmation.html:27
 #, python-format
 msgid ""
-"The Process Type <b>%(pt)s</b> for making <b>%(resource_type)s</b> will also "
-"be deleted"
+"The Process Type <b>%(pt)s</b> for making <b>%(resource_type)s</b> will also"
+" be deleted"
 msgstr ""
 
 #: templates/valueaccounting/resource_type_delete_confirmation.html:29
@@ -5157,8 +5179,8 @@ msgstr ""
 #: templates/valueaccounting/tutorials.html:26
 msgid ""
 "Your first job is to create a model of your network, how it's organized, "
-"what it creates, and what it needs to do that. The first 5 slide decks below "
-"should help."
+"what it creates, and what it needs to do that. The first 5 slide decks below"
+" should help."
 msgstr ""
 
 #: templates/valueaccounting/tutorials.html:29
@@ -5481,7 +5503,8 @@ msgstr ""
 
 #: valueaccounting/forms.py:2545
 msgid ""
-"Transfer To (optional - this will limit the choices when creating a transfer)"
+"Transfer To (optional - this will limit the choices when creating a "
+"transfer)"
 msgstr ""
 
 #: valueaccounting/forms.py:2800 valueaccounting/models.py:1613
@@ -6803,8 +6826,8 @@ msgstr ""
 #: valueaccounting/models.py:9461
 #, python-format
 msgid ""
-"Remaining percentage uses the %% of the remaining amount to be distributed.  "
-"Straight percentage uses the %% of the total distribution amount."
+"Remaining percentage uses the %% of the remaining amount to be distributed."
+"  Straight percentage uses the %% of the total distribution amount."
 msgstr ""
 
 #: valueaccounting/models.py:9462
@@ -6996,8 +7019,7 @@ msgstr ""
 #: valueaccounting/templates/notification/valnet_distribution/full.txt:1
 #, python-format
 msgid ""
-"You got a %(distribution.distribution_quantity_formatted)s distribution from "
-"%(distribution.from_agent)s\n"
+"You got a %(distribution.distribution_quantity_formatted)s distribution from %(distribution.from_agent)s\n"
 "\n"
 "You can see it here:"
 msgstr ""
@@ -7039,8 +7061,7 @@ msgid ""
 "\n"
 "for Process: %(process)s\n"
 "\n"
-"This message has been sent to you because you are working on this task or "
-"have assigned yourself to this task.\n"
+"This message has been sent to you because you are working on this task or have assigned yourself to this task.\n"
 "\n"
 "You can see the process here:"
 msgstr ""

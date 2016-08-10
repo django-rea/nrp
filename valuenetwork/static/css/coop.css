@@ -10,6 +10,12 @@ table.landing {
 	width: 90%;
 }
 
+form#lang-switch {
+	position: absolute;
+	top: 0;
+	right: 0;
+}
+
 div.base-form {
 	display: inline-block;
 	max-width: 650px;
@@ -124,9 +130,14 @@ td.login-block div.log {
 	/*padding: 10px 0;
 	font-size: 0.8em;*/
 }
+.login-block #div_id_username label {
+	width: 80px !important;
+  text-align: left;
+}
 .login-block div.control-group {
 	padding: 20px 0;
 	margin-bottom: 0;
+	margin-top: 10px;
 }
 .login-block .controls {
 	float: right;

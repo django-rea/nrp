@@ -270,14 +270,17 @@ class EmailAddress(models.Model):
         """
         Given a new email address, change self and re-confirm.
         """
-        with transaction.commit_on_success():
-            self.user.email = new_email
-            self.user.save()
-            self.email = new_email
-            self.verified = False
-            self.save()
-            if confirm:
-                self.send_confirmation()
+        #with transaction.commit_on_success():
+        #todo: no longer exists as of django 1.6
+        #commented out for now
+        #fix later, see https://docs.djangoproject.com/en/1.8/topics/db/transactions/
+        self.user.email = new_email
+        self.user.save()
+        self.email = new_email
+        self.verified = False
+        self.save()
+        if confirm:
+            self.send_confirmation()
 
 
 class EmailConfirmation(models.Model):

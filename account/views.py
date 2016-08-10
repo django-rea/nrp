@@ -645,6 +645,77 @@ class SettingsView(LoginRequiredMixin, FormView):
         if fallback_url is None:
             fallback_url = settings.ACCOUNT_SETTINGS_REDIRECT_URL
         return default_redirect(self.request, fallback_url, **kwargs)
+        
+class WorkSettingsView(LoginRequiredMixin, FormView):
+    
+    template_name = "account/work_settings.html"
+    form_class = SettingsForm
+    messages = {
+        "settings_updated": {
+            "level": messages.SUCCESS,
+            "text": _("Account settings updated.")
+        },
+    }
+    
+    def get_form_class(self):
+        # @@@ django: this is a workaround to not having a dedicated method
+        # to initialize self with a request in a known good state (of course
+        # this only works with a FormView)
+        self.primary_email_address = EmailAddress.objects.get_primary(self.request.user)
+        return super(WorkSettingsView, self).get_form_class()
+    
+    def get_initial(self):
+        initial = super(WorkSettingsView, self).get_initial()
+        if self.primary_email_address:
+            initial["email"] = self.primary_email_address.email
+        initial["timezone"] = self.request.user.account.timezone
+        initial["language"] = self.request.user.account.language
+        return initial
+    
+    def form_valid(self, form):
+        self.update_settings(form)
+        if self.messages.get("settings_updated"):
+            messages.add_message(
+                self.request,
+                self.messages["settings_updated"]["level"],
+                self.messages["settings_updated"]["text"]
+            )
+        return redirect(self.get_success_url())
+    
+    def update_settings(self, form):
+        self.update_email(form)
+        self.update_account(form)
+    
+    def update_email(self, form, confirm=None):
+        user = self.request.user
+        if confirm is None:
+            confirm = settings.ACCOUNT_EMAIL_CONFIRMATION_EMAIL
+        # @@@ handle multiple emails per user
+        email = form.cleaned_data["email"].strip()
+        if not self.primary_email_address:
+            user.email = email
+            EmailAddress.objects.add_email(self.request.user, email, primary=True, confirm=confirm)
+            user.save()
+        else:
+            if email != self.primary_email_address.email:
+                self.primary_email_address.change(email, confirm=confirm)
+    
+    def update_account(self, form):
+        fields = {}
+        if "timezone" in form.cleaned_data:
+            fields["timezone"] = form.cleaned_data["timezone"]
+        if "language" in form.cleaned_data:
+            fields["language"] = form.cleaned_data["language"]
+        if fields:
+            account = self.request.user.account
+            for k, v in fields.iteritems():
+                setattr(account, k, v)
+            account.save()
+    
+    def get_success_url(self, fallback_url=None, **kwargs):
+        if fallback_url is None:
+            fallback_url = settings.ACCOUNT_SETTINGS_REDIRECT_URL
+        return default_redirect(self.request, fallback_url, **kwargs)
 
 
 class DeleteView(LogoutView):

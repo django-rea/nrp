@@ -13,6 +13,7 @@
                     <li><a href="{% url "start" %}"><i class="icon-tasks"></i> {% trans 'Coop Node App' %}</a></li>
                 {% endif %}
                 <li class="divider"></li>
+                <li><a href="{% url "work_account_settings" %}"><i class="icon-user"></i> {% trans "Settings" %}</a></li>
                 <li><a href="{% url "account_logout" %}?next={% firstof request.path '/' %}"><i class="icon-off"></i> {% trans 'Log Out' %}</a></li>
             </ul>
         </li>

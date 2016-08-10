@@ -10,6 +10,7 @@
 
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 <link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
+<link rel="stylesheet" href="{% static "css/coopOcp.css" %}" />
 
 <style>
 
@@ -60,10 +61,10 @@ h4 {
 	<div>
 		<legend>
             <span style="vertical-align: top;" >
-                {% trans "My Contribution History " %} 
+                {% trans "My Contribution History " %}
             </span>
         </legend>
-        <div class="row-fluid">    
+        <div class="row-fluid">
             <div class="span5 summary">
                 <table>
                     <tr>
@@ -93,11 +94,11 @@ h4 {
 
                 </table>
             </div>
-        
+
             <div class="span7">
                 <form id="filterForm" action="." method="POST" >
                     {% csrf_token %}
-                    <div id="div_id_start_date" class="control-group" style="display: inline;" >     
+                    <div id="div_id_start_date" class="control-group" style="display: inline;" >
                         <label for="id_start_date" class="control-label required-field" style="display: inline;" >
                             {% trans "Show contributions from " %}
                         </label>
@@ -105,7 +106,7 @@ h4 {
                             {{ filter_form.start_date }}
                         </div>
                     </div>
-                    <div id="div_id_end_date" class="control-group" style="display: inline;" >     
+                    <div id="div_id_end_date" class="control-group" style="display: inline;" >
                         <label for="id_end_date" class="control-label required-field" style="display: inline;" >
                             {% trans " through " %}
                         </label>
@@ -119,20 +120,20 @@ h4 {
                         </label>
                         <div class="controls" style="display: inline; vertical-align: -10px;" >
                             {{ filter_form.event_types }}
-                        </div>                    
+                        </div>
                     </div>
                     <div id="div_id_paid_filter" class="control-group" >
                         <div class="controls" style="display: inline; vertical-align: -10px;" >
                             {{ filter_form.paid_filter }}
-                        </div>                    
+                        </div>
                     </div>
                     <div>
                         <input type="submit" name="submit" class="btn btn-info" value="{% trans 'Filter' %}" />
                     </div>
-                </form>        
+                </form>
             </div>
         </div>
-        
+
 		<table class="table table-bordered table-hover table-condensed" >
 			<thead>
 				<th>{% trans "Date" %}</th>
@@ -149,7 +150,7 @@ h4 {
                     <th>&nbsp;</th>
                 {% endif %}
 			</thead>
-			<tbody>	
+			<tbody>
 				{% for event in events %}
 					<tr class="{% cycle 'odd' 'even' %}">
 						<td>{{ event.event_date }}</td>
@@ -190,18 +191,18 @@ h4 {
 					    {% if user_is_agent %}
                             <td>
                                 <form
-                                    class="change-form" 
-                                    id="changeForm{{ event.id }}" 
-                                    action="{% url "change_history_event" event_id=event.id %}" 
+                                    class="change-form"
+                                    id="changeForm{{ event.id }}"
+                                    action="{% url "change_history_event" event_id=event.id %}"
                                     method="GET" >
                                     <input type='hidden' class="page" id='changePage{{ event.id }}' name='page' value='' />
                                     <input type='hidden' id='next' name='next' value='{% url "my_history" %}' />
                                     <button class="btn btn-info btn-mini" title="Change" ><i class="icon-edit icon-white"></button>
                                 </form>
                                 <form
-                                    class="delete-form" 
-                                    id="deleteForm{{ event.id }}" 
-                                    action="{% url "work_delete_event" event_id=event.id %}" 
+                                    class="delete-form"
+                                    id="deleteForm{{ event.id }}"
+                                    action="{% url "work_delete_event" event_id=event.id %}"
                                     method="POST" >
                                     {% csrf_token %}
                                     <input type='hidden' class="page" id='deletePage{{ event.id }}' name='page' value='' />
@@ -212,9 +213,9 @@ h4 {
 					    {% endif %}
 					</tr>
 				{% endfor %}
-			<tbody>	
+			<tbody>
 		</table>
-		
+
         <div class="pagination">
             <span class="step-links">
                 {% if events.has_previous %}
@@ -248,13 +249,13 @@ h4 {
     $(document).ready(function(){
 
         $( "#help" ).toggle( function(){
-            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $('#help-content').show("slide", { direction: "right" }, "slow" );
             $( "#help" ).text("Hide Help");
         }, function() {
             $('#help-content').hide("slide", { direction: "right" }, "slow");
             $( "#help" ).text("Show Help");
         })
-        
+
         $.extend({
           getUrlVars: function(){
             var vars = [], hash;
@@ -279,14 +280,14 @@ h4 {
         });
 
         $("select").chosen();
-        
+
         $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
         $('.filter-date').datepicker({ dateFormat: "yy-mm-dd" });
 
         $('.date-entry').change(saveDate);
         $('.quantity').change(saveQuantity);
 
-        jQuery.validator.setDefaults({ 
+        jQuery.validator.setDefaults({
             success: function(label) {
 		        label
 			        .text('').addClass('valid')
@@ -298,7 +299,7 @@ h4 {
             $("#eventDateForm-{{ event.id }}").validate({
 			    rules: {
 				    "{{ event.id }}-event_date": {
-					    required: true, 
+					    required: true,
                         date: true
 				    }
 			    },
@@ -309,8 +310,8 @@ h4 {
 		    $("#eventQtyForm-{{ event.id }}").validate({
 			    rules: {
 				    "{{ event.id }}-quantity": {
-					    required: true, 
-                        number: true, 
+					    required: true,
+                        number: true,
                         max: 999999.99
 				    }
 			    },
@@ -325,19 +326,19 @@ h4 {
 
     function notifySaving()
 	{
-		$("#saving").css("color","green"); 
+		$("#saving").css("color","green");
 		$("#saving").text("Saving...");
 	}
 
 	function notifySaved()
 	{
-		$("#saving").css("color","green"); 
+		$("#saving").css("color","green");
 		$("#saving").text("Saved");
 	}
 
 	function notifyProblem()
 	{
-		$("#saving").css("color","red"); 
+		$("#saving").css("color","red");
 		$("#saving").text("Problem saving");
 	}
 
@@ -349,7 +350,7 @@ h4 {
         var formData = $(formId).serialize();
         var eventId = "&eventId=" + eventId;
         formData += eventId;
-        
+
         var url = "{% url 'change_event_date' %}";
 
         notifySaving();
@@ -358,9 +359,9 @@ h4 {
             function( data ) {
                 notifySaved();
             })
-            .fail(function() 
-            { 
-                notifyProblem(); 
+            .fail(function()
+            {
+                notifyProblem();
             }
         );
     }
@@ -373,7 +374,7 @@ h4 {
         var formData = $(formId).serialize();
         var eventId = "&eventId=" + eventId;
 		formData += eventId;
-        
+
         var url = "{% url 'change_event_qty' %}";
 
 		notifySaving();
@@ -382,26 +383,26 @@ h4 {
 			function( data ) {
 				notifySaved();
 			})
-			.fail(function() 
-			{ 
-				notifyProblem(); 
+			.fail(function()
+			{
+				notifyProblem();
 			}
 		);
     }
 
-	$(document).ajaxSend(function(event, xhr, settings) 
+	$(document).ajaxSend(function(event, xhr, settings)
 	{
-		function getCookie(name) 
+		function getCookie(name)
 		{
 		    var cookieValue = null;
-		    if (document.cookie && document.cookie != '') 
+		    if (document.cookie && document.cookie != '')
 			{
 		        var cookies = document.cookie.split(';');
-		        for (var i = 0; i < cookies.length; i++) 
+		        for (var i = 0; i < cookies.length; i++)
 				{
 		            var cookie = jQuery.trim(cookies[i]);
 		            // Does this cookie string begin with the name we want?
-		            if (cookie.substring(0, name.length + 1) == (name + '=')) 
+		            if (cookie.substring(0, name.length + 1) == (name + '='))
 					{
 		                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
 		                break;
@@ -411,7 +412,7 @@ h4 {
 		    return cookieValue;
     	}
 
-		function sameOrigin(url) 
+		function sameOrigin(url)
 		{
 		    // url could be relative or scheme relative or absolute
 		    var host = document.location.host; // host + port
@@ -425,12 +426,12 @@ h4 {
 		        !(/^(\/\/|http:|https:).*/.test(url));
 		}
 
-		function safeMethod(method) 
+		function safeMethod(method)
 		{
 		    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
 		}
 
-		if (!safeMethod(settings.type) && sameOrigin(settings.url)) 
+		if (!safeMethod(settings.type) && sameOrigin(settings.url))
 		{
 		    xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
 		}

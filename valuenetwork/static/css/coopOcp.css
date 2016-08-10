@@ -34,3 +34,13 @@ textarea#id_comment {
 	margin-top: 8px;
 	font-weight: normal;
 }
+
+div.pull-right {
+	margin-top: 5px;
+}
+a.help-link {
+	color: #476B6B;
+}
+a.help-link:hover {
+	color: #333;
+}

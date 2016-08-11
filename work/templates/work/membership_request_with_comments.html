@@ -10,9 +10,10 @@
 {% block extra_head %}
 
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static "css/coopOcp.css" %}" />
 
 <style>
-    
+
 .description {
     margin-top: 0;
     margin-bottom: 0;
@@ -62,53 +63,86 @@ th
         <legend>
             {% trans "Freedom Coop Membership Request for " %} {{ mbr_req.name }}
         </legend>
-        
-        <table style="width: 100%;" class="table table-bordered table-hover table-condensed" >
-            <thead>
-                <th>{% trans "Date" %}</th>
-                <th>{% trans "Name" %}</th>
-                <th>{% trans "Requested username" %}</th>
-                <th>{% trans "Type" %}</th>
-                <th>{% trans "Shares" %}</th>
-                <th>{% trans "Description" %}</th>
-                <th>{% trans "Email" %}</th>
-                <th>{% trans "Phone" %}</th>
-                <th>{% trans "Address" %}</th>
-                <th>{% trans "Website" %}</th>
-                <th>{% trans "Languages" %}</th>
-                <th>{% trans "FairNetwork" %}</th>
-                <th>{% trans "UseFaircoin" %}</th>
-                <th>{% trans "FairMarket" %}</th>
-                <th>{% trans "References" %}</th>
-                <th>{% trans "Comments" %}</th>                
-            </thead>
-            <tbody> 
-                {% with mbr_req as req %}
-                    <tr>  
-                        <td>{{ req.request_date }}</td>
-                        <td>{{ req.name }} {{ req.surname }}  </td>
-                        <td>{{ req.requested_username }}</td>
-                        <td>{{ req.type_of_membership }}</td>
-                        <td>{{ req.number_of_shares }}</td>
-                        <td>{{ req.description }}</td>
-                        <td>{{ req.email_address }}</td>
-                        <td>{{ req.phone_number }}</td>
-                        <td>{{ req.address }}</td>
-                        <td>{{ req.website }}</td>
-                        <td>{{ req.native_language }}</td>
-                        <td>{{ req.fairnetwork }}</td>
-                        <td>{{ req.usefaircoin }}</td>
-                        <td>{{ req.fairmarket }}</td>
-                        <td>{{ req.known_member }}</td>
-                        <td>{{ req.comments_and_questions }}</td>
-                    </tr>
-                {% endwith %}
-            </tbody>    
+
+      <div id="member-request-block">
+        {% with mbr_req as req %}
+        <table style="/*display:block; max-width:1024px; width:100%;*/" class="table table-bordered table-hover table-condensed" >
+          <tbody style="display:block;">
+            <tr>
+                <th>{% trans "Date" %}:</th>
+                <td>{{ req.request_date }}</td>
+            </tr>
+            <tr>
+                <th>{% trans "Name" %}:</th>
+                <td>{{ req.name }} {{ req.surname }}  </td>
+            </tr>
+            <tr>
+                <th style="display:block; width:180px;">{% trans "Requested username" %}:</th>
+                <td>{{ req.requested_username }}</td>
+            </tr>
+            <tr>
+                <th>{% trans "Type" %}:</th>
+                <td>{{ req.type_of_membership }}</td>
+            </tr>
+            <tr>
+                <th>{% trans "Shares" %}:</th>
+                <td>{{ req.number_of_shares }}</td>
+            </tr>
+            <tr>
+                <th>{% trans "Email" %}:</th>
+                <td>{{ req.email_address }}</td>
+            </tr>
+            <tr>
+                <th>{% trans "Phone" %}:</th>
+                <td>{{ req.phone_number }}</td>
+            </tr>
+            <tr>
+                <th>{% trans "Address" %}:</th>
+                <td style="/*display: block;  width: 100%;*/">{{ req.address }}</td>
+            </tr>
+            <tr>
+                <th>{% trans "Website" %}:</th>
+                <td>{{ req.website }}</td>
+            </tr>
+            <tr>
+                <th>{% trans "Languages" %}:</th>
+                <td>{{ req.native_language }}</td>
+            </tr>
+            <tr>
+                <th>{% trans "FairNetwork" %}:</th>
+                <td>{{ req.fairnetwork }}</td>
+            </tr>
+            <tr>
+                <th>{% trans "UseFaircoin" %}:</th>
+                <td>{{ req.usefaircoin }}</td>
+            </tr>
+            <tr>
+                <th>{% trans "FairMarket" %}:</th>
+                <td>{{ req.fairmarket }}</td>
+            </tr>
+            <tr>
+                <th>{% trans "Description" %}:</th>
+                <td style="/*display:block;*/">{{ req.description }}</td>
+            </tr>
+            <tr>
+                <th>{% trans "References" %}:</th>
+                <td>{{ req.known_member }}</td>
+            </tr>
+                <th>{% trans "Other comments" %}:</th>
+                <td>{{ req.comments_and_questions }}</td>
+            </tr>
+          </tbody>
         </table>
+        {% endwith %}
+      </div>
 
-    </div>
+    <p>&nbsp;</p>
 
-    <div>
+    <div id="member-request-comments">
+      <legend>
+          {% trans "Comments about the membership process for " %} {{ mbr_req.name }}
+      </legend>
+
       {% get_comment_count for mbr_req as num_comm  %}
       {% if num_comm > 0 %}
         <div class="row-fluid">
@@ -133,7 +167,7 @@ th
         </form>
       </div>
     </div>
-    
+
     </div>
 {% endblock %}
 

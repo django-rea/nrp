@@ -12,10 +12,11 @@
 
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 <link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
+<link rel="stylesheet" href="{% static "css/coopOcp.css" %}" />
 
 <style>
 
-.days, .hours, .minutes 
+.days, .hours, .minutes
 {
 	width: 18px;
 }
@@ -69,7 +70,7 @@
 	                <td style="white-space:nowrap;" >
 	                    {{ form.quantity }}</br>
 	                    {{ form.quantity.help_text }}
-                    </td>   
+                    </td>
                     <td>{{ form.is_contribution }}</td>
 	                <td>{{ form.description }}</td>
 	            </tr>
@@ -85,7 +86,7 @@
             <div class="span9">
             </div>
             <div class="span3" >
-			    <input type="submit" name="save" value="{% trans 'Save' %}" class="btn btn-primary" /> 
+			    <input type="submit" name="save" value="{% trans 'Save' %}" class="btn btn-primary" />
 			    <input type="submit" name="keep-going" value="{% trans 'Save and add more' %}" class="btn btn-primary" />
 			</div>
 	   	</div>
@@ -106,25 +107,25 @@
     <script type="text/javascript">
 
     $(document).ready(function(){
-    
+
         $( "#help" ).toggle( function(){
-            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $('#help-content').show("slide", { direction: "right" }, "slow" );
             $( "#help" ).text("Hide Help");
         }, function() {
             $('#help-content').hide("slide", { direction: "right" }, "slow");
             $( "#help" ).text("Show Help");
         })
-    
-        jQuery.validator.setDefaults({ 
+
+        jQuery.validator.setDefaults({
             success: function(label) {
                 label
                     .text('').addClass('valid')
                     .closest('.control-group').addClass('success');
             }
         });
-        
+
         $.validator.addClassRules("url", { url: true, maxlength: 255 });
-        
+
         $( "#contributionsForm" ).validate({
             highlight: function(label) {
                 $(label).closest('.control-group').addClass('error');
@@ -134,7 +135,7 @@
         $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
         $(".chzn-select").chosen();
 
-        $('.date-entry').change(function(event) 
+        $('.date-entry').change(function(event)
 		{
 		    var field = event.target;
 		    var id = field.id;
@@ -166,13 +167,13 @@
             var hours = parseInt($(hourId).val());
             var minuteId = "#" + prefix + i + "-quantity_1";
             var minutes = parseInt($(minuteId).val());
-            var duration = hours; 
+            var duration = hours;
             duration += (minutes / 60);
-            total += duration; 
+            total += duration;
 	    }
         $("#total").text(Math.round(total*100)/100);
 	}
 
     </script>
-    
+
 {% endblock %}

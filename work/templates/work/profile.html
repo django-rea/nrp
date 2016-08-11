@@ -3,6 +3,7 @@
 {% load i18n %}
 {% load bootstrap_tags %}
 {% load thumbnail %}
+{% load staticfiles %}
 
 {% block head_title %}{% trans "Profile" %}: {{ agent.name }}{% endblock %}
 
@@ -19,7 +20,7 @@
 }
 #id_notes {
   width: 500px;
-  height: 100px;    
+  height: 100px;
 }
 .modal {
     width: 600px;
@@ -52,6 +53,8 @@ label {
 
 </style>
 
+<link rel="stylesheet" href="{% static "css/coopOcp.css" %}" />
+
 {% endblock %}
 
 {% block body_class %}profile{% endblock %}
@@ -66,14 +69,14 @@ label {
 		</legend>
 
 		<div class="row-fluid">
-		
+
 		    <div class="span4">
                 <h3>Personal Information
                     {% if agent and change_form %}
                         <a href="#agentChangeForm" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Change" %}</a>
                     {% endif %}
                 </h3>
-                
+
                 {% if agent and change_form %}
                     <div class="modal hide fade" id="agentChangeForm" tabindex="-1" role="dialog" aria-labelledby="agent-change-label" aria-hidden="true">
                         <div class="modal-header">
@@ -93,7 +96,7 @@ label {
                         </div>
                     </div>
                 {% endif %}
-		
+
 	            <table class="table table-bordered" >
 	                <tr>
                         <th style="text-align: right;">{% trans "Identifier" %}</th>
@@ -138,7 +141,7 @@ label {
                                 <td>{{ agent.email }}</td>
                             </tr>
                         {% endif %}
-                        
+
                         <tr>
                             <th style="text-align: right; vertical-align: top; ">{% trans "Work Location" %}</th>
                             <td>
@@ -149,7 +152,7 @@ label {
                                 {% endif %}
                             </td>
                         </tr>
-                        
+
                     {% endif %}
 	                {% if agent.description %}
 	                    <tr>
@@ -176,7 +179,7 @@ label {
 {% endcomment %}
 
 	            </table>
-	        
+
 	        </div>
 
             <div class="span4">
@@ -194,14 +197,14 @@ label {
                     </ul>
                 </form>
             </div>
-            
+
             <div class="span4">
                 <h3>Picture
                     {% if agent %}
                         <a href="#uploadPicture" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Upload" %}</a>
                     {% endif %}
                 </h3>
-                
+
                 {% if agent %}
                     <div class="modal hide fade" id="uploadPicture" tabindex="-1" role="dialog" aria-labelledby="upload-label" aria-hidden="true">
                         <div class="modal-header">
@@ -221,18 +224,18 @@ label {
                         </div>
                     </div>
                 {% endif %}
-                
+
                 {% if agent.photo %}
                     <img src="{% thumbnail agent.photo photo_size %}" />
                 {% elif agent.photo_url %}
                     <img src="{{ agent.photo_url }}" width="128" height="96" />
                 {% endif %}
-                
+
                 <div class="assoc">
                     <h4 class="hdg"> {{ agent.name }} {% trans "is associated with " %}: </h4>
                     <ul>
                     {% for assoc in is_associated_with  %}
-                        {% ifchanged assoc.association_type %} 
+                        {% ifchanged assoc.association_type %}
                             <h4> {{ assoc.association_type.label }}: </h4>
                         {% endifchanged %}
                         {% comment %}
@@ -244,12 +247,12 @@ label {
                     {% endfor %}
                     </ul>
                     {% if has_associations %}
-                        <h4 class="hdg">{{ agent.name }} {% trans "has these associates " %}: </h4>             
+                        <h4 class="hdg">{{ agent.name }} {% trans "has these associates " %}: </h4>
                         <ul>
                         {% for assoc in has_associations %}
-                            {% ifchanged assoc.association_type %} 
+                            {% ifchanged assoc.association_type %}
                                 <h4>{{ assoc.association_type.inverse_label }}: </h4>
-                            {% endifchanged %}   
+                            {% endifchanged %}
                             {% comment %}
                             <li><a href="{{ assoc.is_associate.get_absolute_url }}">{{ assoc.is_associate.name }}</a></li>
                             {% endcomment %}
@@ -257,11 +260,11 @@ label {
                         {% endfor %}
                         </ul>
                     {% endif %}
-                
+
                 </div>
-                
-            </div>  
-            
+
+            </div>
+
 
         </div>
 
@@ -286,15 +289,15 @@ label {
 		$('#projects').addClass('active');
 
 		$( "#help" ).toggle( function(){
-            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $('#help-content').show("slide", { direction: "right" }, "slow" );
             $( "#help" ).text("Hide Help");
         }, function() {
             $('#help-content').hide("slide", { direction: "right" }, "slow");
             $( "#help" ).text("Show Help");
         })
 
-        $('td.td-role > select').addClass('select-role');   
-        $('td.td-agent > select').addClass('select-agent');  
+        $('td.td-role > select').addClass('select-role');
+        $('td.td-agent > select').addClass('select-agent');
 
         $.validator.addMethod("agentRequired", function (value, element) {
             alert("value " + value + " element " + element);
@@ -307,15 +310,15 @@ label {
         $.validator.addClassRules("select-role", { agentRequired: true });
         $.validator.addClassRules("url", { url: true });
         $.validator.addClassRules("email", { email: true });
-        
-        jQuery.validator.setDefaults({ 
+
+        jQuery.validator.setDefaults({
             success: function(label) {
                 label
                     .text('').addClass('valid')
                     .closest('.control-group').addClass('success');
             }
         });
-       
+
         $('.validateMe').each( function(){
             var form = $(this);
             form.validate({
@@ -331,5 +334,5 @@ label {
 
 
     </script>
-    
+
 {% endblock %}

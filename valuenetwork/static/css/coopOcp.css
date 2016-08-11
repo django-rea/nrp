@@ -1,0 +1,46 @@
+#member-request-block th {
+	text-align: right;
+	background-color: #f5f7f7;
+}
+#member-request-block td {
+	padding: 3px 8px;
+}
+
+#member-request-block, #member-request-comments {
+	/*max-width: 1024px;*/
+}
+
+#member-request-comments > .row-fluid {
+	font-size: 1.1em;
+	font-weight: bold;
+}
+#member-request-comments dt {
+	font-size: 0.9em;
+	font-weight: normal;
+	color: #666;
+	margin-top: 13px;
+	/*width: 170px;*/
+}
+#member-request-comments dd {
+	border: solid 1px #eee;
+	padding: 8px 10px 2px 12px;
+  margin: 5px 0;
+  font-size: 1em;
+	font-weight: normal;
+  background-color: #f8fafa;
+}
+textarea#id_comment {
+	width: 99%;
+	margin-top: 8px;
+	font-weight: normal;
+}
+
+div.pull-right {
+	margin-top: 5px;
+}
+a.help-link {
+	color: #476B6B;
+}
+a.help-link:hover {
+	color: #333;
+}

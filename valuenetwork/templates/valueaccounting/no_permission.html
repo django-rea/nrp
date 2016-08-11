@@ -1,13 +1,24 @@
-{% extends "site_base.html" %}
-
+{% load staticfiles %}
 {% load i18n %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="https://www.w3.org/1999/xhtml" lang="en">
 
-{% block head_title %}{% trans "No permission" %}{% endblock %}
+<title>{% trans "Not permitted" %}</title>
 
-{% block body_base %}
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 
-<div class="container">
+<style>
+
+</style>
+
+</head>
+
+<body>
+
+<div >
     <p>{% trans "You do not have permission to access the requested page." %}</p>
 </div>
 
-{% endblock %}
+</body>
+</html>

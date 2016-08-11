@@ -6,6 +6,13 @@ ul.subnavsub li {
 ul.subnavsub {
 	margin: 0 0 9px 0px;
 }
+a.disabled {
+	color: #aaa;
+}
+a.disabled:hover {
+	color: #aaa;
+	background-color: #fff;
+}
 
 
 /*  M E M B E R S H I P   P R O C E S S   P A G E   */
@@ -15,7 +22,7 @@ ul.subnavsub {
 	background-color: #f5f7f7;
 }
 #member-request-block td {
-	padding: 3px 8px;
+	padding: 5px 8px 4px 10px;
 	max-width: 960px;
 	width: 100%;
 	overflow: auto;

@@ -4,6 +4,7 @@
 }
 #member-request-block td {
 	padding: 3px 8px;
+	width: 100%;
 }
 
 #member-request-block, #member-request-comments {
@@ -22,7 +23,7 @@
 	/*width: 170px;*/
 }
 #member-request-comments dd {
-	border: solid 1px #eee;
+	border: solid 1px #ddd;
 	padding: 8px 10px 2px 12px;
   margin: 5px 0;
   font-size: 1em;

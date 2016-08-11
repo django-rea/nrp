@@ -233,10 +233,6 @@ IGNORABLE_404_URLS = (
 
 ALL_WORK_PAGE = "/accounting/work/"
 
-try:
-    from local_settings import *
-except ImportError:
-    pass
 
 # updating to django 1.5
 USE_TZ = True
@@ -265,3 +261,8 @@ CAPTCHA_NOISE_FUNCTIONS = (
   'captcha.helpers.noise_dots',
 )
 
+# ----put all other settings above this line----
+try:
+    from local_settings import *
+except ImportError:
+    pass

@@ -461,6 +461,74 @@ class ChangePasswordView(FormView):
         subject = "".join(subject.splitlines())
         message = render_to_string("account/email/password_change.txt", ctx)
         send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
+        
+class WorkChangePasswordView(FormView):
+    
+    template_name = "account/work_password_change.html"
+    form_class = ChangePasswordForm
+    messages = {
+        "password_changed": {
+            "level": messages.SUCCESS,
+            "text": _(u"Password successfully changed.")
+        }
+    }
+    
+    def get(self, *args, **kwargs):
+        if not self.request.user.is_authenticated():
+            return redirect("account_password_reset")
+        return super(WorkChangePasswordView, self).get(*args, **kwargs)
+    
+    def post(self, *args, **kwargs):
+        if not self.request.user.is_authenticated():
+            return HttpResponseForbidden()
+        return super(WorkChangePasswordView, self).post(*args, **kwargs)
+    
+    def change_password(self, form):
+        user = self.request.user
+        form.save(user)
+        if settings.ACCOUNT_NOTIFY_ON_PASSWORD_CHANGE:
+            self.send_email(user)
+        if self.messages.get("password_changed"):
+            messages.add_message(
+                self.request,
+                self.messages["password_changed"]["level"],
+                self.messages["password_changed"]["text"]
+            )
+        signals.password_changed.send(sender=ChangePasswordForm, user=user)
+    
+    def get_form_kwargs(self):
+        """
+        Returns the keyword arguments for instantiating the form.
+        """
+        kwargs = {"user": self.request.user, "initial": self.get_initial()}
+        if self.request.method in ["POST", "PUT"]:
+            kwargs.update({
+                "data": self.request.POST,
+                "files": self.request.FILES,
+            })
+        return kwargs
+    
+    def form_valid(self, form):
+        self.change_password(form)
+        return redirect(self.get_success_url())
+    
+    def get_success_url(self, fallback_url=None, **kwargs):
+        if fallback_url is None:
+            fallback_url = settings.ACCOUNT_PASSWORD_CHANGE_REDIRECT_URL
+        return default_redirect(self.request, fallback_url, **kwargs)
+    
+    def send_email(self, user):
+        protocol = getattr(settings, "DEFAULT_HTTP_PROTOCOL", "http")
+        current_site = get_current_site(self.request)
+        ctx = {
+            "user": user,
+            "protocol": protocol,
+            "current_site": current_site,
+        }
+        subject = render_to_string("account/email/password_change_subject.txt", ctx)
+        subject = "".join(subject.splitlines())
+        message = render_to_string("account/email/password_change.txt", ctx)
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
 
 
 class PasswordResetView(FormView):

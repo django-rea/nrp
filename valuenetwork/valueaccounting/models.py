@@ -582,6 +582,20 @@ class EconomicAgent(models.Model):
         if not self.is_superuser() and not self.is_staff():
             return True
         return False
+        
+    def is_active_freedom_coop_member(self):
+        try:
+            fc = EconomicAgent.objects.get(name="Freedom Coop")
+        except EconomicAgent.DoesNotExist:
+            raise ValidationError("Freedom Coop does not exist by that name")
+        fcaas = self.is_associate_of.filter(
+            association_type__association_behavior="member",
+            has_associate=fc,
+            state="active")
+        if fcaas:
+            return True
+        else:
+            return False       
     
     def seniority(self):
         return (datetime.date.today() - self.created_date).days

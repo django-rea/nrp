@@ -1213,9 +1213,14 @@ def add_todo(request):
 
 def membership_discussion(request, membership_request_id):
     user_agent = get_agent(request)
-    if not user_agent:
-        return render_to_response('valueaccounting/no_permission.html')
     mbr_req = get_object_or_404(MembershipRequest, pk=membership_request_id)
+    allowed = False
+    if user_agent:
+        if user_agent.membership_request() == mbr_req or request.user.is_staff:
+            allowed = True
+    if not allowed:
+        return render_to_response('valueaccounting/no_permission.html')
+    
     return render_to_response("work/membership_request_with_comments.html", {
         "help": get_help("membership_request"),
         "mbr_req": mbr_req,

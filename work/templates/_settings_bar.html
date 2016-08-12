@@ -10,7 +10,7 @@
             </a>
             <ul class="dropdown-menu">
                 {% if user.is_staff or user.is_superuser %}
-                    <li><a href="{% url "start" %}"><i class="icon-tasks"></i> {% trans 'Coop Node App' %}</a></li>
+                    <li><a href="{% url "start" %}"><i class="icon-wrench"></i> {% trans 'Coop Node App' %}</a></li>
                     <li class="divider"></li>
                 {% endif %}
 
@@ -18,13 +18,13 @@
                   <li id="my-profile" >
                       <a href="{% url 'profile' %}"
                       title="{% trans 'My personal information and skills' %}"
-                      ><i class="icon-user"></i> {% trans 'My Profile' %}</a>
+                      ><i class="icon-user"></i> {% trans 'Your Profile' %}</a>
                   </li>
                   {% if request.user.agent.agent.faircoin_resource %}
                     <li id="my-wallet" >
                       <a href="{% url "manage_faircoin_account" resource_id=request.user.agent.agent.faircoin_resource.id %}"
                       title="{% trans 'My personal faircoin wallet' %}"
-                      ><i class="icon-wrench"></i> {% trans 'My Wallet' %}</a>
+                      ><i class="icon-tasks"></i> {% trans 'Your Wallet' %}</a>
                     </li>
                   {% endif %}
                   {% with request.user.agent.agent.membership_request.id as id %}

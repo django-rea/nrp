@@ -1,11 +1,19 @@
 /*  M A I N   M E N U   */
 
+.dropdown-menu a {
+	padding: 4px 15px 5px;
+}
 ul.subnavsub li {
 	list-style-type: disc;
-	list-style-position: inside;
+	/*list-style-position: inside;*/
 }
 ul.subnavsub {
-	margin: 0 0 0px 0px;
+	margin: 0 0 0px 16px;
+  list-style: inside;
+}
+ul.subnavsub a {
+	display: inline-block;
+	padding: 2px 7px 4px 7px;
 }
 a.disabled {
 	color: #aaa;

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-08-10 21:39+0200\n"
+"POT-Creation-Date: 2016-08-12 12:47+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Pablo Gustavo Rodriguez <pablogrod@gmail.com>, 2016\n"
 "Language-Team: Spanish (https://www.transifex.com/freedomcoop/teams/65382/es/)\n"
@@ -31,11 +31,11 @@ msgstr "Selecciona más de un lote para ser combinados"
 msgid "Receipt Date"
 msgstr "Fecha de la receta"
 
-#: settings.py:255
+#: settings.py:251
 msgid "English"
 msgstr "Inglés"
 
-#: settings.py:256
+#: settings.py:252
 msgid "Spanish"
 msgstr "Castellano"
 
@@ -184,6 +184,9 @@ msgstr "Configuración de notificaciones"
 
 #: templates/account/base.html:13 templates/account/password_change.html:7
 #: templates/account/password_change.html:11
+#: templates/account/work_password_change.html:7
+#: templates/account/work_password_change.html:11
+#: templates/account/work_settings.html:17
 msgid "Change password"
 msgstr "Cambiar contraseña"
 
@@ -268,37 +271,67 @@ msgstr "Plataforma Abierta Colaborativa (PAC)"
 
 #: templates/account/login.html:64
 msgid ""
-"<p>This is OCP, our Open Collaborative Platform. The OCP is the key "
+"This is OCP, our Open Collaborative Platform. The OCP is the key "
 "organizational tool we offer to individuals, collectives, and project "
-"coordinators inside Freedom Coop.</p><p>Therefore, it can be used "
-"to:</p><ul><li>Boost open collaborative projects between people in different"
-" places.</li><li>Manage open collective projects and their team work by "
-"setting up task forces.</li><li>Account the time spent by every member to "
-"use it as a base of income distribution and a way of self-actualization for "
-"any project.</li><li>Execute a quarterly fee and tax distribution between "
-"Freedom Coop and their members.</li><li>Manage an online Faircoin wallet to "
-"accept and make payments.</li></ul><p>Freedom Coop, will use OCP for our "
-"collective organization as an open cooperative process.</p>"
+"coordinators inside Freedom Coop."
 msgstr ""
-"<p>Esto es OCP, nuestra Plataforma Colaborativa Abierta. OCP is la "
-"herramienta organizativa clave que ofrecemos a individuos, colectivos y "
-"coordinadores de proyecto dentro de Freedom Coop.</p><p>Por lo tanto, puede "
-"ser usada para:</p><ul><li>Impulsar proyectos de colaboración abierta entre "
-"las personas de diferentes lugares.</li><li>Gestionar proyectos colectivos "
-"abiertos y su trabajo en equipo mediante la creación de grupos de "
-"trabajo.</li><li>Contabilizar el tiempo dedicado por cada miembro para "
-"utilizarlo como base de la distribución del ingreso y una forma de auto-"
-"actualización de cualquier proyecto.</li><li>Ejecutar una cuota trimestral y"
-" distribución fiscal entre Freedom Coop y sus miembros.</li><li>Gestionar un"
-" monedero Faircoin en línea para aceptar y realizar "
-"pagos.</li></ul><p>Freedom Coop, utilizaremos OCP para nuestra organización "
-"colectiva como un proceso cooperativo abierto.</p>"
+"Esto es PAC, nuestra Plataforma Colaborativa Abierta. PAC es la herramienta "
+"organizativa clave que ofrecemos a individuos, colectivos y coordinadores de"
+" proyecto en Freedom Coop."
 
-#: templates/account/login.html:69 templates/frontpage.html:39
+#: templates/account/login.html:65
+msgid "Therefore, it can be used to:"
+msgstr "Así, puede ser usada para:"
+
+#: templates/account/login.html:66
+msgid "Boost open collaborative projects between people in different places."
+msgstr ""
+"Impulsar proyectos de colaboración abierta entre personas de diferentes "
+"lugares."
+
+#: templates/account/login.html:67
+msgid ""
+"Manage open collective projects and their team work by setting up task "
+"forces."
+msgstr ""
+"Administrar proyectos colectivos abiertos y sus equipos de trabajo mediante "
+"la creación de grupos de tareas."
+
+#: templates/account/login.html:68
+msgid ""
+"Account the time spent by every member to use it as a base of income "
+"distribution and a way of self-actualization for any project."
+msgstr ""
+"Contabilizar el tiempo dedicado por cada miembro, para usarlo como una base "
+"de la distribución del ingreso y una forma de auto-actualización para "
+"cualquier proyecto."
+
+#: templates/account/login.html:69
+msgid ""
+"Use some legal services that can be covered with a quarterly fee and tax "
+"distribution between Freedom Coop members."
+msgstr ""
+"Utilizar algunos servicios legales que pueden ser cubiertos con una cuota "
+"trimestral y distribución fiscal entre los miembros Freedom Coop."
+
+#: templates/account/login.html:70
+msgid "Manage an online Faircoin wallet to accept and make payments."
+msgstr ""
+"Gestionar un monedero Faircoin en línea para aceptar y realizar pagos."
+
+#: templates/account/login.html:71
+msgid ""
+"Freedom Coop, will use OCP for our collective organization as an open "
+"cooperative process."
+msgstr ""
+"En Freedom Coop, utilizaremos OCP para nuestra organización colectiva como "
+"un proceso cooperativo abierto."
+
+#: templates/account/login.html:76 templates/frontpage.html:39
 msgid "Request Membership"
 msgstr "Solicitud de Membresía"
 
-#: templates/account/login.html:70
+#: templates/account/login.html:77
 msgid ""
 "The first step to become a member of Freedom Coop and use OCP, is to fill "
 "the following membership form:"
@@ -306,23 +339,23 @@ msgstr ""
 "El primer paso para convertirse en miembro de Freedom Coop y usar OCP, es "
 "rellenar el siguiente formulario de inscripción:"
 
-#: templates/account/login.html:71
+#: templates/account/login.html:78
 msgid "Join FreedomCoop"
 msgstr "Unirse a FreedomCoop"
 
-#: templates/account/login.html:75
+#: templates/account/login.html:82
 msgid "Log in to the OCP"
 msgstr "Iniciar sesión en OCP"
 
-#: templates/account/login.html:76
+#: templates/account/login.html:83
 msgid "If you already did it, and have user and password, login here."
 msgstr "Si ya lo hizo, y tienen un usuario y contraseña, inicie sesión aquí."
 
-#: templates/account/login.html:85
+#: templates/account/login.html:92
 msgid "Forgot your password?"
 msgstr "¿Olvidó su contraseña?"
 
-#: templates/account/login.html:86
+#: templates/account/login.html:93
 msgid "Log in"
 msgstr "Iniciar sesión"
 
@@ -340,10 +373,12 @@ msgstr "Cerrar sesión"
 
 #: templates/account/password_change.html:16
 #: templates/account/password_reset_token.html:16
-#: templates/account/settings.html:15 templates/account/work_settings.html:15
-#: templates/board/dhen_board.html:195 templates/board/dhen_board.html:238
-#: templates/board/dhen_board.html:278 templates/board/dhen_board.html:328
-#: templates/board/dhen_board.html:393 templates/board/dhen_board.html:411
+#: templates/account/settings.html:15
+#: templates/account/work_password_change.html:16
+#: templates/account/work_settings.html:15 templates/board/dhen_board.html:195
+#: templates/board/dhen_board.html:238 templates/board/dhen_board.html:278
+#: templates/board/dhen_board.html:328 templates/board/dhen_board.html:393
+#: templates/board/dhen_board.html:411
 #: templates/valueaccounting/agent_associations.html:52
 #: templates/valueaccounting/agent_associations.html:113
 #: templates/valueaccounting/agents.html:73
@@ -774,6 +809,19 @@ msgid ""
 "accept and make payments.</li></ul><p>Freedom Coop, will use OCP for our "
 "collective organization as an open cooperative process.</p>"
 msgstr ""
+"<p>Esto es OCP, nuestra Plataforma Abierta Colaborativa. La OCP es la "
+"herramienta clave de organización que ofrecemos a los individuos, colectivos"
+" y a la gestión interna de Freedom Coop.</p><p>Por lo tanto, pueda ser usada"
+" para:</p><ul><li>Impulsar proyectos de colaboración abierta entre las "
+"personas de diferentes lugares.</li><li>Gestionar proyectos colectivos "
+"abiertos y su trabajo en equipo mediante la creación de grupos de "
+"trabajo.</li><li>Dar cuenta del tiempo dedicado por cada miembro para "
+"utilizarlo como una base de la distribución del ingreso y una forma de auto-"
+"actualización para cualquier proyecto.</li><li>Ejecutar una cuota trimestral"
+" y distribución fiscal entre Freedom Coop y sus miembros.</li><li>Gestionar "
+"una cartera Faircoin en línea, para aceptar y realizar "
+"pagos.</li></ul><p>Freedom Coop, utilizará OCP para nuestra organización "
+"colectiva como un proceso cooperativo abierto."
 
 #: templates/frontpage.html:31
 msgid "Enter the platform"
@@ -932,7 +980,7 @@ msgstr "Las ecuaciones de valor y las distribuciones de ingresos"
 #: templates/valueaccounting/distribution_logging.html:7
 #: templates/valueaccounting/distribution_logging.html:213
 #: templates/valueaccounting/value_equation_sandbox.html:100
-#: valueaccounting/models.py:2962
+#: valueaccounting/models.py:2976
 msgid "Distribution"
 msgstr "Distribución"
 
@@ -1013,7 +1061,7 @@ msgstr "Filtro"
 #: templates/valueaccounting/start.html:223
 #: templates/valueaccounting/today.html:370
 #: templates/valueaccounting/work.html:255 valueaccounting/models.py:179
-#: valueaccounting/models.py:11068
+#: valueaccounting/models.py:11082
 msgid "Process"
 msgstr "Proceso"
 
@@ -1462,7 +1510,7 @@ msgstr "Tiempo acumulado"
 msgid "Last 2 months"
 msgstr "Últimos 2 meses"
 
-#: templates/valueaccounting/agent.html:203 valueaccounting/models.py:11423
+#: templates/valueaccounting/agent.html:203 valueaccounting/models.py:11437
 msgid "Forever"
 msgstr "Siempre"
 
@@ -1985,7 +2033,7 @@ msgid "Detailed Contributions and Distributions"
 msgstr "Contribuciones y Distribuciones detalladas"
 
 #: templates/valueaccounting/agent_value_accounting.html:56
-#: valueaccounting/models.py:8207 valueaccounting/models.py:9936
+#: valueaccounting/models.py:8221 valueaccounting/models.py:9950
 msgid "to"
 msgstr "a"
 
@@ -1994,7 +2042,7 @@ msgstr "a"
 #: templates/valueaccounting/edit_value_equation.html:7
 #: templates/valueaccounting/value_equation_sandbox.html:103
 #: valueaccounting/forms.py:3420 valueaccounting/forms.py:3825
-#: valueaccounting/models.py:2963
+#: valueaccounting/models.py:2977
 msgid "Value Equation"
 msgstr "Ecuación de valor"
 
@@ -2028,8 +2076,8 @@ msgstr "por"
 #: templates/valueaccounting/resource.html:225
 #: templates/valueaccounting/resource.html:248
 #: templates/valueaccounting/resource.html:300
-#: templates/valueaccounting/resource.html:308 valueaccounting/models.py:8204
-#: valueaccounting/models.py:9933
+#: templates/valueaccounting/resource.html:308 valueaccounting/models.py:8218
+#: valueaccounting/models.py:9947
 msgid "from"
 msgstr "de"
 
@@ -2184,7 +2232,7 @@ msgid "Balance (starting"
 msgstr "Balance (comenzando"
 
 #: templates/valueaccounting/cash_report.html:115
-#: valueaccounting/models.py:1587
+#: valueaccounting/models.py:1601
 msgid "Virtual Account"
 msgstr "Cuenta Virtual"
 
@@ -2377,7 +2425,7 @@ msgstr "Cambiar Plan de Proceso para"
 #: templates/valueaccounting/process_oriented_logging.html:1388
 #: templates/valueaccounting/start.html:222
 #: templates/valueaccounting/unfold.html:93
-#: templates/valueaccounting/work.html:318 valueaccounting/models.py:11065
+#: templates/valueaccounting/work.html:318 valueaccounting/models.py:11079
 msgid "Order"
 msgstr "Orden"
 
@@ -2529,16 +2577,16 @@ msgstr ""
 #: templates/valueaccounting/internal_exchanges.html:52
 #: templates/valueaccounting/material_contributions.html:44
 #: templates/valueaccounting/sales_and_distributions.html:54
-#: valueaccounting/models.py:445 valueaccounting/models.py:1633
-#: valueaccounting/models.py:3177 valueaccounting/models.py:3531
-#: valueaccounting/models.py:3893 valueaccounting/models.py:4002
-#: valueaccounting/models.py:5475 valueaccounting/models.py:5583
-#: valueaccounting/models.py:5818 valueaccounting/models.py:6837
-#: valueaccounting/models.py:6992 valueaccounting/models.py:7574
-#: valueaccounting/models.py:8035 valueaccounting/models.py:8102
-#: valueaccounting/models.py:8237 valueaccounting/models.py:9471
-#: valueaccounting/models.py:9793 valueaccounting/models.py:9993
-#: valueaccounting/models.py:11085 valueaccounting/models.py:11440
+#: valueaccounting/models.py:445 valueaccounting/models.py:1647
+#: valueaccounting/models.py:3191 valueaccounting/models.py:3545
+#: valueaccounting/models.py:3907 valueaccounting/models.py:4016
+#: valueaccounting/models.py:5489 valueaccounting/models.py:5597
+#: valueaccounting/models.py:5832 valueaccounting/models.py:6851
+#: valueaccounting/models.py:7006 valueaccounting/models.py:7588
+#: valueaccounting/models.py:8049 valueaccounting/models.py:8116
+#: valueaccounting/models.py:8251 valueaccounting/models.py:9485
+#: valueaccounting/models.py:9807 valueaccounting/models.py:10007
+#: valueaccounting/models.py:11099 valueaccounting/models.py:11454
 msgid "created by"
 msgstr "creado por"
 
@@ -2548,7 +2596,7 @@ msgstr "creado por"
 #: templates/valueaccounting/cleanup_unsourced_resources.html:29
 #: templates/valueaccounting/cleanup_unvalued_resources.html:29
 #: templates/valueaccounting/cleanup_work_resourcetypes.html:29
-#: valueaccounting/models.py:444 valueaccounting/models.py:4001
+#: valueaccounting/models.py:444 valueaccounting/models.py:4015
 msgid "created date"
 msgstr "creado en la fecha "
 
@@ -2725,7 +2773,7 @@ msgstr ""
 #: templates/valueaccounting/create_distribution_using_value_equation.html:181
 #: templates/valueaccounting/create_distribution_using_value_equation.html:185
 msgid "Calculating, please be patient..."
-msgstr ""
+msgstr "Calculando, por favor se paciente..."
 
 #: templates/valueaccounting/create_distribution_using_value_equation.html:184
 msgid "TEST Distribution Here First !"
@@ -3156,46 +3204,46 @@ msgstr "Reclamar Valor"
 
 #: templates/valueaccounting/edit_xbill.html:8
 msgid " Edit Recipe for "
-msgstr ""
+msgstr "Editar receta por"
 
 #: templates/valueaccounting/edit_xbill.html:120
 msgid "Edit Recipe for "
-msgstr ""
+msgstr "Editar receta por"
 
 #: templates/valueaccounting/edit_xbill.html:123
 #: templates/valueaccounting/extended_bill.html:118
 msgid "Produces"
-msgstr ""
+msgstr "Produce"
 
 #: templates/valueaccounting/edit_xbill.html:137
 msgid "Change Resource Type"
-msgstr ""
+msgstr "Cambio tipo de recurso"
 
 #: templates/valueaccounting/edit_xbill.html:176
 #: templates/valueaccounting/edit_xbill.html:184
 #, python-format
 msgid "Add a process type to create %(resource_type)s"
-msgstr ""
+msgstr "Añadir tipo de proceso para crear %(resource_type)s"
 
 #: templates/valueaccounting/edit_xbill.html:365
 #: templates/valueaccounting/edit_xbill.html:373
 #, python-format
 msgid "Add a process type to produce %(rtype)s"
-msgstr ""
+msgstr "Añadir tipo de proceso para producir %(rtype)s"
 
 #: templates/valueaccounting/edit_xbill.html:406
 #, python-format
 msgid "Add a source for %(rtype)s"
-msgstr ""
+msgstr "Añadir fuente de %(rtype)s"
 
 #: templates/valueaccounting/edit_xbill.html:441
 #, python-format
 msgid "Add a consumable input to %(ptype)s"
-msgstr ""
+msgstr "Añadir una entrada de consumible para %(ptype)s"
 
 #: templates/valueaccounting/edit_xbill.html:452
 msgid "at stage"
-msgstr ""
+msgstr "en la fase"
 
 #: templates/valueaccounting/edit_xbill.html:475
 #: templates/valueaccounting/edit_xbill.html:551
@@ -3206,365 +3254,365 @@ msgstr ""
 #: templates/valueaccounting/resource_types.html:74
 #: templates/valueaccounting/workbook.html:236
 msgid "Create a new Resource Type"
-msgstr ""
+msgstr "Crear un nuevo tipo de recurso"
 
 #: templates/valueaccounting/edit_xbill.html:519
 #, python-format
 msgid "Add a usable input to %(ptype)s"
-msgstr ""
+msgstr "Añade un entrada utilizable a %(ptype)s"
 
 #: templates/valueaccounting/edit_xbill.html:595
 #, python-format
 msgid "Add a citable to %(ptype)s"
-msgstr ""
+msgstr "Agregar un citable a %(ptype)s"
 
 #: templates/valueaccounting/edit_xbill.html:663
 #, python-format
 msgid "Add work to %(ptype)s"
-msgstr ""
+msgstr "Añadir trabajo a %(ptype)s"
 
 #: templates/valueaccounting/edit_xbill.html:707
 msgid "Pattern:"
-msgstr ""
+msgstr "Patrón:"
 
 #: templates/valueaccounting/edit_xbill.html:752
 #: templates/valueaccounting/edit_xbill.html:759
 #, python-format
 msgid "Change options for %(xbill_object)s"
-msgstr ""
+msgstr "Cambiar las opciones para %(xbill_object)s"
 
 #: templates/valueaccounting/edit_xbill.html:779
 #: templates/valueaccounting/edit_xbill.html:786
 #, python-format
 msgid "Select options for %(xbill_object)s"
-msgstr ""
+msgstr "Seleccionar opción para %(xbill_object)s"
 
 #: templates/valueaccounting/event_history.html:5
 #: templates/valueaccounting/event_history.html:32
 msgid "Event History for Resource"
-msgstr ""
+msgstr "Historial de eventos de los recursos"
 
 #: templates/valueaccounting/event_history.html:35
 msgid "Adjust Quantity"
-msgstr ""
+msgstr "Ajustar cantidad"
 
 #: templates/valueaccounting/event_history.html:42
 msgid "Current Balance"
-msgstr ""
+msgstr "Saldo actual"
 
 #: templates/valueaccounting/event_history.html:44
 msgid "Current Quantity"
-msgstr ""
+msgstr "Cantidad actual"
 
 #: templates/valueaccounting/event_history.html:53
 msgid "Adjust quantity of"
-msgstr ""
+msgstr "Cantidad actual"
 
 #: templates/valueaccounting/event_history.html:61
 msgid "of unit "
-msgstr ""
+msgstr "de la unidad"
 
 #: templates/valueaccounting/event_history.html:88
 msgid "To Address"
-msgstr ""
+msgstr "Para la dirección"
 
 #: templates/valueaccounting/event_history.html:89
 msgid "Tx State"
-msgstr ""
+msgstr "Estado de Tx"
 
 #: templates/valueaccounting/event_history.html:90
 msgid "Chain"
-msgstr ""
+msgstr "Cadena"
 
 #: templates/valueaccounting/event_history.html:119
 msgid "On Chain"
-msgstr ""
+msgstr "En la cadena"
 
 #: templates/valueaccounting/exchange_logging.html:146
 msgid "Go to Order"
-msgstr ""
+msgstr "Ve al pedido"
 
 #: templates/valueaccounting/exchange_logging.html:155
 msgid "Total transfer value"
-msgstr ""
+msgstr "Valor total de la transferencia"
 
 #: templates/valueaccounting/exchange_logging.html:156
 msgid "Total reciprocal transfer value"
-msgstr ""
+msgstr "Valor total de a transferencia recíproca"
 
 #: templates/valueaccounting/exchange_logging.html:190
 #: templates/valueaccounting/exchange_logging.html:545
 msgid "New Commitment"
-msgstr ""
+msgstr "Nuevo compromiso"
 
 #: templates/valueaccounting/exchange_logging.html:193
 #: templates/valueaccounting/exchange_logging.html:548
 msgid "New Transfer"
-msgstr ""
+msgstr "Nueva transferencia"
 
 #: templates/valueaccounting/exchange_logging.html:202
 #: templates/valueaccounting/exchange_logging.html:557
 msgid "Log a New "
-msgstr ""
+msgstr "Registre un nuevo"
 
 #: templates/valueaccounting/exchange_logging.html:268
 #: templates/valueaccounting/exchange_logging.html:623
 msgid "Log a New Commitment"
-msgstr ""
+msgstr "Registre un nuevo compromiso"
 
 #: templates/valueaccounting/exchange_logging.html:298
 #: templates/valueaccounting/exchange_logging.html:653
 msgid "Commitment"
-msgstr ""
+msgstr "Compromiso"
 
 #: templates/valueaccounting/exchange_logging.html:307
 #: templates/valueaccounting/exchange_logging.html:662
 msgid "Change Transfer Commitment"
-msgstr ""
+msgstr "Cambiar cometido de la transferencia"
 
 #: templates/valueaccounting/exchange_logging.html:343
 #: templates/valueaccounting/exchange_logging.html:698
 msgid "Transfer This"
-msgstr ""
+msgstr "Transferir eso"
 
 #: templates/valueaccounting/exchange_logging.html:347
 #: templates/valueaccounting/exchange_logging.html:702
 msgid "Make Transfer from Commitment"
-msgstr ""
+msgstr "Hacer la transferencia del cometido"
 
 #: templates/valueaccounting/exchange_logging.html:409
 #: templates/valueaccounting/exchange_logging.html:467
 #: templates/valueaccounting/exchange_logging.html:761
 #: templates/valueaccounting/exchange_logging.html:820
 msgid "Transfer"
-msgstr ""
+msgstr "Transferencia"
 
 #: templates/valueaccounting/exchange_logging.html:418
 #: templates/valueaccounting/exchange_logging.html:475
 #: templates/valueaccounting/exchange_logging.html:770
 #: templates/valueaccounting/exchange_logging.html:828
 msgid "Change Transfer"
-msgstr ""
+msgstr "Cambiar la transferencia"
 
 #: templates/valueaccounting/exchange_logging.html:887
 #: templates/valueaccounting/process.html:315
 #: templates/valueaccounting/process_oriented_logging.html:439
 #: templates/valueaccounting/work.html:7
 msgid "Work"
-msgstr ""
+msgstr "Trabajo"
 
 #: templates/valueaccounting/exchange_logging.html:890
 msgid "Log a work event"
-msgstr ""
+msgstr "Registrar un evento del trabajo"
 
 #: templates/valueaccounting/exchange_logging.html:903
 msgid "Add Work Done for This Exchange"
-msgstr ""
+msgstr "Añadir un trabajo hecho por este intercambio"
 
 #: templates/valueaccounting/exchange_logging.html:920
 #: templates/valueaccounting/process_oriented_logging.html:715
 msgid "Work event"
-msgstr ""
+msgstr "Evento del trabajo"
 
 #: templates/valueaccounting/exchange_logging.html:920
 #: templates/valueaccounting/process.html:366
 #: templates/valueaccounting/process_oriented_logging.html:661
 #: templates/valueaccounting/process_oriented_logging.html:716
 msgid "Done by"
-msgstr ""
+msgstr "Hecho por"
 
 #: templates/valueaccounting/exchange_logging.html:930
 #: templates/valueaccounting/labnote.html:56
 #: templates/valueaccounting/process_oriented_logging.html:672
 #: templates/valueaccounting/process_oriented_logging.html:727
 msgid "Change Time Contribution"
-msgstr ""
+msgstr "Cambiar tiempo de contribución"
 
 #: templates/valueaccounting/exchange_types.html:7
 msgid "Maintain Exchange Types"
-msgstr ""
+msgstr "Mantener tipo de intercambio"
 
 #: templates/valueaccounting/exchange_types.html:40
 msgid "Maintain Exchange Types / Patterns"
-msgstr ""
+msgstr "Mantener tipo/patrón de trabajo"
 
 #: templates/valueaccounting/exchange_types.html:44
 msgid "New Exchange Type"
-msgstr ""
+msgstr "Un nuevo tipo de intercambio"
 
 #: templates/valueaccounting/exchange_types.html:49
 msgid "Create exchange type"
-msgstr ""
+msgstr "Crear tipo de intercambio"
 
 #: templates/valueaccounting/exchange_types.html:57
 msgid "Incoming / Supply Exchange Types"
-msgstr ""
+msgstr "Tipos de Intercambio Entrante / Suministros"
 
 #: templates/valueaccounting/exchange_types.html:78
 msgid "Internal Exchange Types"
-msgstr ""
+msgstr "Tipos de cambio internos"
 
 #: templates/valueaccounting/exchange_types.html:99
 msgid "Outgoing / Demand Exchange Types"
-msgstr ""
+msgstr "Tipos de Intercambio Saliente / Demanda"
 
 #: templates/valueaccounting/exchanges.html:5
 #: templates/valueaccounting/exchanges.html:37
 #: templates/valueaccounting/projects.html:108
 msgid "Incoming Exchanges"
-msgstr ""
+msgstr "Intercambios entrantes"
 
 #: templates/valueaccounting/explore.html:6
 msgid "Explore"
-msgstr ""
+msgstr "Explorar"
 
 #: templates/valueaccounting/explore.html:22
 #: templates/valueaccounting/explore.html:55
 #: templates/valueaccounting/unfold.html:206
 msgid "Connections"
-msgstr ""
+msgstr "Conexiones"
 
 #: templates/valueaccounting/explore.html:55
 #: templates/valueaccounting/unfold.html:206
 msgid "Something else"
-msgstr ""
+msgstr "Algo más"
 
 #: templates/valueaccounting/extended_bill.html:6
 #: templates/valueaccounting/extended_bill.html:108
 msgid "Recipe for "
-msgstr ""
+msgstr "Factura para"
 
 #: templates/valueaccounting/extended_bill.html:198
 msgid "Filter Recipe Contents"
-msgstr ""
+msgstr "Filtrar Contenido de Recibo"
 
 #: templates/valueaccounting/extended_bill.html:202
 msgid "Depth"
-msgstr ""
+msgstr "Profundidad"
 
 #: templates/valueaccounting/feature_delete_confirmation.html:5
 #: templates/valueaccounting/order_delete_confirmation.html:6
 #: templates/valueaccounting/process_type_delete_confirmation.html:5
 #: templates/valueaccounting/resource_type_delete_confirmation.html:5
 msgid "Confirm deletion of "
-msgstr ""
+msgstr "Confirmar la eliminación de"
 
 #: templates/valueaccounting/feature_delete_confirmation.html:13
 #: templates/valueaccounting/order_delete_confirmation.html:15
 #: templates/valueaccounting/process_type_delete_confirmation.html:13
 #: templates/valueaccounting/resource_type_delete_confirmation.html:13
 msgid "Are you sure you want to delete "
-msgstr ""
+msgstr "¿Seguro que quiere eliminar"
 
 #: templates/valueaccounting/feature_delete_confirmation.html:16
 #: templates/valueaccounting/process_type_delete_confirmation.html:16
 #: templates/valueaccounting/resource_type_delete_confirmation.html:16
 msgid "The following objects will be also deleted"
-msgstr ""
+msgstr "También se eliminarán los siguientes objetos"
 
 #: templates/valueaccounting/financial_contribution.html:7
 msgid "Log Financial Contribution"
-msgstr ""
+msgstr "Cargar Contribución Financiera"
 
 #: templates/valueaccounting/financial_contribution.html:61
 msgid "Log Financial Contribution for "
-msgstr ""
+msgstr "Cargar Contribución Financiera para"
 
 #: templates/valueaccounting/financial_contribution.html:67
 msgid "Financial Contribution"
-msgstr ""
+msgstr "Contribución Financiera"
 
 #: templates/valueaccounting/financial_contribution.html:75
 msgid "Resources Acquired"
-msgstr ""
+msgstr "Recursos Adquiridos"
 
 #: templates/valueaccounting/financial_contribution.html:240
 #: templates/valueaccounting/log_simple.html:296
 msgid "Remove"
-msgstr ""
+msgstr "Quitar"
 
 #: templates/valueaccounting/finished_processes.html:5
 #: templates/valueaccounting/finished_processes.html:32
 msgid "Finished processes for "
-msgstr ""
+msgstr "Procesos finalizados para"
 
 #: templates/valueaccounting/finished_processes.html:42
 #: templates/valueaccounting/project_wip.html:44
 msgid "For"
-msgstr ""
+msgstr "Para"
 
 #: templates/valueaccounting/finished_processes.html:45
 #: templates/valueaccounting/project_wip.html:47
 msgid "Work Requirements"
-msgstr ""
+msgstr "Requerimientos de Trabajo"
 
 #: templates/valueaccounting/incoming_value_flows.html:7
 msgid "Incoming value flows for "
-msgstr ""
+msgstr "Flujos de valor entrantes para"
 
 #: templates/valueaccounting/incoming_value_flows.html:60
 msgid "Incoming Value Flows for "
-msgstr ""
+msgstr "Fluos de Valor Entrantes para"
 
 #: templates/valueaccounting/incoming_value_flows.html:62
 msgid "Using Value Equation"
-msgstr ""
+msgstr "Usando Ecuación de Valor"
 
 #: templates/valueaccounting/incoming_value_flows.html:68
 msgid "Recalc"
-msgstr ""
+msgstr "Recalc"
 
 #: templates/valueaccounting/incoming_value_flows.html:75
 msgid "Total accumulated value per unit "
-msgstr ""
+msgstr "Valor total acumulado por unidad"
 
 #: templates/valueaccounting/incoming_value_flows.html:83
 msgid "Production qty"
-msgstr ""
+msgstr "Cantidad de producción"
 
 #: templates/valueaccounting/internal_exchanges.html:5
 #: templates/valueaccounting/internal_exchanges.html:37
 #: templates/valueaccounting/projects.html:114
 msgid "Internal Exchanges"
-msgstr ""
+msgstr "Intercambios internos"
 
 #: templates/valueaccounting/inventory.html:49
 #: templates/valueaccounting/locations.html:6
 #: templates/valueaccounting/locations.html:23
 #: templates/valueaccounting/projects.html:75 valueaccounting/models.py:171
 msgid "Locations"
-msgstr ""
+msgstr "Ubicaciones"
 
 #: templates/valueaccounting/inventory.html:79
 msgid "Documentation"
-msgstr ""
+msgstr "Documentación"
 
 #: templates/valueaccounting/inventory_board_demo.html:8
 msgid "Inventory "
-msgstr ""
+msgstr "Inventario"
 
 #: templates/valueaccounting/inventory_board_demo.html:144
 msgid "Add resource"
-msgstr ""
+msgstr "Agregar recurso"
 
 #: templates/valueaccounting/inventory_board_demo.html:257
 #: templates/valueaccounting/workflow_board_demo.html:215
 msgid "Complete this process"
-msgstr ""
+msgstr "Completar este proceso"
 
 #: templates/valueaccounting/inventory_board_demo.html:276
 #: templates/valueaccounting/workflow_board_demo.html:234
 msgid "Change this process"
-msgstr ""
+msgstr "Cambiar este proceso"
 
 #: templates/valueaccounting/inventory_board_demo.html:294
 msgid "Farm to Harvester"
-msgstr ""
+msgstr "Granja a cosechadora"
 
 #: templates/valueaccounting/inventory_board_demo.html:313
 #: templates/valueaccounting/resource_type.html:127
 msgid "Create Resource of type"
-msgstr ""
+msgstr "Crear Recurso de tipo"
 
 #: templates/valueaccounting/labnote.html:6
 #: templates/valueaccounting/labnote.html:28
@@ -3572,52 +3620,52 @@ msgstr ""
 #: templates/valueaccounting/workbook.html:7
 #: templates/valueaccounting/workbook.html:101
 msgid "Work Notes for "
-msgstr ""
+msgstr "Notas de Trabajo para"
 
 #: templates/valueaccounting/labnote.html:6
 #: templates/valueaccounting/labnote.html:30
 msgid "from "
-msgstr ""
+msgstr "de"
 
 #: templates/valueaccounting/labnote.html:43
 #: templates/valueaccounting/labnotes.html:59
 msgid "Time contributions"
-msgstr ""
+msgstr "Contribuciones de tiempo"
 
 #: templates/valueaccounting/labnote.html:74
 msgid "Outputs created by "
-msgstr ""
+msgstr "Salidas creadas por"
 
 #: templates/valueaccounting/labnote.html:81
 msgid "Citations by "
-msgstr ""
+msgstr "Citaciones por"
 
 #: templates/valueaccounting/labnote.html:88
 msgid "Inputs consumed by "
-msgstr ""
+msgstr "Inputs consumidos por"
 
 #: templates/valueaccounting/labnote.html:96
 msgid "Inputs used by "
-msgstr ""
+msgstr "Inputs usados por"
 
 #: templates/valueaccounting/labnote.html:103
 msgid "Failed outputs posted by "
-msgstr ""
+msgstr "Salidas fallidas publicadas por "
 
 #: templates/valueaccounting/labnote.html:106
 msgid "Reason"
-msgstr ""
+msgstr "Razón"
 
 #: templates/valueaccounting/labnotes.html:5
 #: templates/valueaccounting/labnotes.html:14
 msgid "Work Notes for Process"
-msgstr ""
+msgstr "Notas de Trabajo para Proceso"
 
 #: templates/valueaccounting/labnotes.html:14
 #: templates/valueaccounting/process.html:65
 #: templates/valueaccounting/start.html:224
 msgid "Started"
-msgstr ""
+msgstr "Comenzado"
 
 #: templates/valueaccounting/labnotes.html:25
 #: templates/valueaccounting/process.html:103
@@ -3625,7 +3673,7 @@ msgstr ""
 #: templates/valueaccounting/unfold.html:113
 #: templates/valueaccounting/work.html:299
 msgid "Previous processes"
-msgstr ""
+msgstr "Procesos previos"
 
 #: templates/valueaccounting/labnotes.html:34
 #: templates/valueaccounting/process.html:112
@@ -3633,56 +3681,56 @@ msgstr ""
 #: templates/valueaccounting/unfold.html:168
 #: templates/valueaccounting/work.html:308
 msgid "Next processes"
-msgstr ""
+msgstr "Procesos siguientes"
 
 #: templates/valueaccounting/labnotes.html:42
 #: templates/valueaccounting/labnotes_history.html:60
 msgid "Work Notes"
-msgstr ""
+msgstr "Notas de Trabajo"
 
 #: templates/valueaccounting/labnotes_history.html:6
 #: templates/valueaccounting/labnotes_history.html:50
 #: templates/valueaccounting/work.html:197
 msgid "Work Notes History"
-msgstr ""
+msgstr "Historia de Notas de Trabajo"
 
 #: templates/valueaccounting/labnotes_history.html:74
 #: templates/valueaccounting/orders.html:137
 msgid "Deliverable"
-msgstr ""
+msgstr "Entregable"
 
 #: templates/valueaccounting/locations.html:25
 msgid "Create a new Location"
-msgstr ""
+msgstr "Crear una nueva Ubicación"
 
 #: templates/valueaccounting/locations.html:38
 msgid "Agents at"
-msgstr ""
+msgstr "Agentes a"
 
 #: templates/valueaccounting/locations.html:45
 msgid "Resources at"
-msgstr ""
+msgstr "Recursos a"
 
 #: templates/valueaccounting/locations.html:52
 msgid "Locations without map coordinates"
-msgstr ""
+msgstr "Ubicaciones sin coordenadas de mapa"
 
 #: templates/valueaccounting/locations.html:156
 msgid "Change this Location"
-msgstr ""
+msgstr "Cambiar esta ubicación"
 
 #: templates/valueaccounting/locations.html:157
 msgid "Add me,"
-msgstr ""
+msgstr "Agregarme,"
 
 #: templates/valueaccounting/locations.html:157
 msgid ", to this Location"
-msgstr ""
+msgstr ", a esta Ubicación"
 
 #: templates/valueaccounting/log_past_work.html:7
 #: templates/valueaccounting/log_past_work.html:93
 msgid "Labnotes for "
-msgstr ""
+msgstr "Notas de laboratorio para"
 
 #: templates/valueaccounting/log_past_work.html:95
 #: templates/valueaccounting/log_past_work.html:115
@@ -3690,108 +3738,108 @@ msgstr ""
 #: templates/valueaccounting/workbook.html:103
 #: templates/valueaccounting/workbook.html:122
 msgid "doing"
-msgstr ""
+msgstr "haciendo"
 
 #: templates/valueaccounting/log_past_work.html:95
 #: templates/valueaccounting/work_now.html:102
 #: templates/valueaccounting/workbook.html:103
 msgid "on Process"
-msgstr ""
+msgstr "en Proceso"
 
 #: templates/valueaccounting/log_past_work.html:96
 #: templates/valueaccounting/work_now.html:103
 #: templates/valueaccounting/workbook.html:104
 msgid "Estimated duration"
-msgstr ""
+msgstr "Duración estimada"
 
 #: templates/valueaccounting/log_past_work.html:111
 #: templates/valueaccounting/work_now.html:118
 #: templates/valueaccounting/workbook.html:118
 msgid "Others working on this process"
-msgstr ""
+msgstr "Otros trabajando en este proceso"
 
 #: templates/valueaccounting/log_past_work.html:126
 #: templates/valueaccounting/work_now.html:135
 #: templates/valueaccounting/workbook.html:133
 msgid "Description of work done"
-msgstr ""
+msgstr "Descripción del trabajo realizado"
 
 #: templates/valueaccounting/log_past_work.html:135
 #: templates/valueaccounting/workbook.html:142
 msgid "My work is done"
-msgstr ""
+msgstr "Mi trabajo está terminado"
 
 #: templates/valueaccounting/log_past_work.html:137
 #: templates/valueaccounting/workbook.html:144
 msgid "This process is done"
-msgstr ""
+msgstr "Este proceso está terminado"
 
 #: templates/valueaccounting/log_past_work.html:142
 #: templates/valueaccounting/workbook.html:150
 msgid "Close"
-msgstr ""
+msgstr "Cerrar"
 
 #: templates/valueaccounting/log_past_work.html:149
 msgid "Work date"
-msgstr ""
+msgstr "Fecha de trabajo"
 
 #: templates/valueaccounting/log_past_work.html:154
 #: templates/valueaccounting/unscheduled_time_contributions.html:58
 msgid "Time spent"
-msgstr ""
+msgstr "Tiempo utilizado"
 
 #: templates/valueaccounting/log_past_work.html:164
 #: templates/valueaccounting/workbook.html:174
 msgid "+ output"
-msgstr ""
+msgstr "+ salida"
 
 #: templates/valueaccounting/log_past_work.html:165
 #: templates/valueaccounting/log_simple.html:87
 #: templates/valueaccounting/workbook.html:179
 msgid "+ cite"
-msgstr ""
+msgstr "+ citar"
 
 #: templates/valueaccounting/log_past_work.html:166
 #: templates/valueaccounting/workbook.html:184
 msgid "+ consume"
-msgstr ""
+msgstr "+ consumir"
 
 #: templates/valueaccounting/log_past_work.html:168
 #: templates/valueaccounting/workbook.html:189
 msgid "+ use"
-msgstr ""
+msgstr "+ usar"
 
 #: templates/valueaccounting/log_past_work.html:170
 #: templates/valueaccounting/workbook.html:194
 msgid "+ work"
-msgstr ""
+msgstr "+ trabajar"
 
 #: templates/valueaccounting/log_past_work.html:176
 #: templates/valueaccounting/workbook.html:201
 msgid "Add an output"
-msgstr ""
+msgstr "Agregar una salida"
 
 #: templates/valueaccounting/log_past_work.html:200
 #: templates/valueaccounting/process_oriented_logging.html:1449
 #: templates/valueaccounting/workbook.html:225
 msgid "Add output"
-msgstr ""
+msgstr "Agregar salida"
 
 #: templates/valueaccounting/log_past_work.html:240
 #: templates/valueaccounting/workbook.html:291
 msgid "Add a consumable input"
-msgstr ""
+msgstr "Agregar una entrada consumible"
 
 #: templates/valueaccounting/log_past_work.html:267
 #: templates/valueaccounting/workbook.html:318
 msgid "Add a usable input"
-msgstr ""
+msgstr "Agregar una entrada usable"
 
 #: templates/valueaccounting/log_past_work.html:294
 #: templates/valueaccounting/log_simple.html:103
 #: templates/valueaccounting/workbook.html:265
 msgid "Add a citation"
-msgstr ""
+msgstr "Agregar una citación"
 
 #: templates/valueaccounting/log_past_work.html:309
 #: templates/valueaccounting/log_simple.html:111
@@ -3799,22 +3847,22 @@ msgstr ""
 #: templates/valueaccounting/process_oriented_logging.html:1501
 #: templates/valueaccounting/workbook.html:279
 msgid "Add citation"
-msgstr ""
+msgstr "Agregar citación"
 
 #: templates/valueaccounting/log_past_work.html:321
 #: templates/valueaccounting/workbook.html:345
 msgid "Invite a helper"
-msgstr ""
+msgstr "Invitar a un ayudante"
 
 #: templates/valueaccounting/log_past_work.html:336
 #: templates/valueaccounting/workbook.html:359
 msgid "Invite helper"
-msgstr ""
+msgstr "Invitar yudante"
 
 #: templates/valueaccounting/log_past_work.html:353
 #: templates/valueaccounting/workbook.html:376
 msgid "Planned"
-msgstr ""
+msgstr "Planeado"
 
 #: templates/valueaccounting/log_past_work.html:365
 #: templates/valueaccounting/log_past_work.html:465
@@ -3827,34 +3875,34 @@ msgstr ""
 #: templates/valueaccounting/workbook.html:588
 #: templates/valueaccounting/workbook.html:643
 msgid "X"
-msgstr ""
+msgstr "X"
 
 #: templates/valueaccounting/log_past_work.html:369
 #: templates/valueaccounting/workbook.html:391
 msgid "Actual"
-msgstr ""
+msgstr "Real"
 
 #: templates/valueaccounting/log_past_work.html:374
 #: templates/valueaccounting/workbook.html:396
 msgid "Details"
-msgstr ""
+msgstr "Detalles"
 
 #: templates/valueaccounting/log_past_work.html:378
 #: templates/valueaccounting/log_past_work.html:426
 #: templates/valueaccounting/workbook.html:400
 #: templates/valueaccounting/workbook.html:448
 msgid "Failed"
-msgstr ""
+msgstr "Falló"
 
 #: templates/valueaccounting/log_past_work.html:386
 #: templates/valueaccounting/workbook.html:408
 msgid "Failures"
-msgstr ""
+msgstr "Fallas"
 
 #: templates/valueaccounting/log_past_work.html:396
 #: templates/valueaccounting/workbook.html:418
 msgid "Details for "
-msgstr ""
+msgstr "Detalles para"
 
 #: templates/valueaccounting/log_past_work.html:450
 #: templates/valueaccounting/log_simple.html:86
@@ -3862,12 +3910,12 @@ msgstr ""
 #: templates/valueaccounting/process_oriented_logging.html:767
 #: templates/valueaccounting/workbook.html:472
 msgid "Citations"
-msgstr ""
+msgstr "Citaciones"
 
 #: templates/valueaccounting/log_past_work.html:496
 #: templates/valueaccounting/workbook.html:517
 msgid "Consumed inputs"
-msgstr ""
+msgstr "Entradas consumidas"
 
 #: templates/valueaccounting/log_past_work.html:521
 #: templates/valueaccounting/log_past_work.html:578
@@ -3880,95 +3928,95 @@ msgstr ""
 #: templates/valueaccounting/workbook.html:541
 #: templates/valueaccounting/workbook.html:597
 msgid "Used"
-msgstr ""
+msgstr "Usado"
 
 #: templates/valueaccounting/log_past_work.html:533
 #: templates/valueaccounting/log_past_work.html:591
 #: templates/valueaccounting/workbook.html:553
 #: templates/valueaccounting/workbook.html:610
 msgid "Not purchased yet"
-msgstr ""
+msgstr "No comprado todavía"
 
 #: templates/valueaccounting/log_past_work.html:554
 #: templates/valueaccounting/workbook.html:574
 msgid "Used inputs"
-msgstr ""
+msgstr "Entradas usadas"
 
 #: templates/valueaccounting/log_past_work.html:577
 #: templates/valueaccounting/workbook.html:596
 msgid "Available"
-msgstr ""
+msgstr "Disponible"
 
 #: templates/valueaccounting/log_past_work.html:610
 #: templates/valueaccounting/workbook.html:628
 msgid "Other work requirements"
-msgstr ""
+msgstr "Otros requisitos de Trabajo"
 
 #: templates/valueaccounting/log_simple.html:7
 msgid "Log Design Contributions"
-msgstr ""
+msgstr "Cargar Contribuciones de Diseño"
 
 #: templates/valueaccounting/log_simple.html:61
 msgid "Log Contribution for "
-msgstr ""
+msgstr "Cargar Contribución para"
 
 #: templates/valueaccounting/log_simple.html:68
 msgid "Resource Created"
-msgstr ""
+msgstr "Recurso creado"
 
 #: templates/valueaccounting/log_simple.html:83
 msgid "Work Done"
-msgstr ""
+msgstr "Trabajo Realizado"
 
 #: templates/valueaccounting/log_time.html:8
 msgid "Log Your Time Contributions"
-msgstr ""
+msgstr "Cargar sus Contribuciones de Tiempo"
 
 #: templates/valueaccounting/log_time.html:37
 msgid "Log Time Contributions for "
-msgstr ""
+msgstr "Cargar Contribuciones de Tiempo para"
 
 #: templates/valueaccounting/log_time.html:39
 msgid "Contribution history for "
-msgstr ""
+msgstr "Historia de Contribicón para"
 
 #: templates/valueaccounting/maintain_patterns.html:7
 msgid "Maintain Patterns"
-msgstr ""
+msgstr "Mantener Patrones"
 
 #: templates/valueaccounting/maintain_patterns.html:160
 msgid "Maintain Process Patterns"
-msgstr ""
+msgstr "Mantener Patrones de Procesos"
 
 #: templates/valueaccounting/maintain_patterns.html:165
 #: valueaccounting/forms.py:2471
 msgid "Select Use Case"
-msgstr ""
+msgstr "Seleccionar Cartera de Uso"
 
 #: templates/valueaccounting/maintain_patterns.html:167
 msgid "Get Patterns"
-msgstr ""
+msgstr "Conseguir Patrones"
 
 #: templates/valueaccounting/maintain_patterns.html:174
 msgid "Patterns for this Use Case"
-msgstr ""
+msgstr "Patrones para esta Cartera de Uso"
 
 #: templates/valueaccounting/maintain_patterns.html:192
 msgid "Other use cases for this pattern"
-msgstr ""
+msgstr "Otras carteras de uso para este patrón"
 
 #: templates/valueaccounting/maintain_patterns.html:213
 msgid "Create a new Pattern for this Use Case"
-msgstr ""
+msgstr "Crear un nuevo Patrón para esta Cartera de Uso"
 
 #: templates/valueaccounting/maintain_patterns.html:219
 msgid "Add an existing Pattern"
-msgstr ""
+msgstr "Agregar un Patrón existente"
 
 #: templates/valueaccounting/material_contributions.html:5
 #: templates/valueaccounting/material_contributions.html:37
 msgid "Material Contributions"
-msgstr ""
+msgstr "Contribuciones materiales"
 
 #: templates/valueaccounting/membership_request.html:7
 #: templates/valueaccounting/membership_request.html:61
@@ -3978,56 +4026,56 @@ msgstr "Solicitud de membresía para Freedom Coop"
 #: templates/valueaccounting/membership_request.html:89
 #: templates/valueaccounting/membership_requests.html:42
 msgid "Created Agent"
-msgstr ""
+msgstr "Agente Creado"
 
 #: templates/valueaccounting/membership_request.html:92
 #: templates/valueaccounting/membership_requests.html:45
 msgid "Requested username"
-msgstr ""
+msgstr "Nombre de usuario solicitado"
 
 #: templates/valueaccounting/membership_request.html:94
 #: templates/valueaccounting/membership_requests.html:47
 msgid "Shares"
-msgstr ""
+msgstr "Acciones"
 
 #: templates/valueaccounting/membership_request.html:97
 #: templates/valueaccounting/membership_requests.html:50
 msgid "Phone"
-msgstr ""
+msgstr "Teléfono"
 
 #: templates/valueaccounting/membership_request.html:98
 #: templates/valueaccounting/membership_requests.html:51
 msgid "Address"
-msgstr ""
+msgstr "Dirección"
 
 #: templates/valueaccounting/membership_request.html:100
 #: templates/valueaccounting/membership_requests.html:53
 msgid "Languages"
-msgstr ""
+msgstr "Idiomas"
 
 #: templates/valueaccounting/membership_request.html:101
 #: templates/valueaccounting/membership_requests.html:54
 msgid "FairNetwork"
-msgstr ""
+msgstr "FairNetwork"
 
 #: templates/valueaccounting/membership_request.html:102
 #: templates/valueaccounting/membership_requests.html:55
 msgid "UseFaircoin"
-msgstr ""
+msgstr "UseFaircoin"
 
 #: templates/valueaccounting/membership_request.html:103
 #: templates/valueaccounting/membership_requests.html:56
 msgid "FairMarket"
-msgstr ""
+msgstr "FairMarket"
 
 #: templates/valueaccounting/membership_request.html:104
 #: templates/valueaccounting/membership_requests.html:57
 msgid "References"
-msgstr ""
+msgstr "Referencias"
 
 #: templates/valueaccounting/membership_request.html:114
 msgid "Not yet"
-msgstr ""
+msgstr "Todavía No"
 
 #: templates/valueaccounting/membership_requests.html:7
 #: templates/valueaccounting/membership_requests.html:37
@@ -4037,21 +4085,23 @@ msgstr "Solicitud de membresía para Freedom Coop"
 #: templates/valueaccounting/misc.html:6
 #: templates/valueaccounting/misc.html:21
 msgid "Miscellaneous pages and pagelets"
-msgstr ""
+msgstr "Páginas misceláneas y pagelets"
 
 #: templates/valueaccounting/misc.html:23
 msgid "Cleanup functions"
-msgstr ""
+msgstr "Limpiar funciones"
 
 #: templates/valueaccounting/misc.html:25
 msgid "Pagelets"
-msgstr ""
+msgstr "Pagelets"
 
 #: templates/valueaccounting/misc.html:26
 msgid ""
 "These pagelets display information about a context agent (e.g. a Project) "
 "without any site decorations."
 msgstr ""
+"Estos paneles muestran información acerca de un agente de contexto (p.e. un "
+"proyecto) sin ninguna decoración de sitio."
 
 #: templates/valueaccounting/misc.html:27
 #, python-format
@@ -4059,6 +4109,9 @@ msgid ""
 "They are presented for a representative context agent (%(context_agent)s), "
 "but can be used for any context agent."
 msgstr ""
+"Ellos se presentan para un agente de contacto representante "
+"(%(context_agent)s), pero pueden ser usador por cualquier agente de "
+"contexto."
 
 #: templates/valueaccounting/misc.html:28
 #, python-format
@@ -4066,80 +4119,82 @@ msgid ""
 "They require the context agent Page name, for example, "
 "%(context_agent.slug)s, which can be found in Admin."
 msgstr ""
+"Requieren el nombre de la Página del agente de contexto, por ejemplo, "
+"%(context_agent.slug)s, el cual se puede encontrar en Admin."
 
 #: templates/valueaccounting/misc.html:31
 msgid "Project schedule"
-msgstr ""
+msgstr "Cronograma del proyecto"
 
 #: templates/valueaccounting/misc.html:32
 #: templates/valueaccounting/project_roles.html:6
 msgid "Project roles"
-msgstr ""
+msgstr "Roles del proyecto"
 
 #: templates/valueaccounting/misc.html:33
 msgid "All-time project stats"
-msgstr ""
+msgstr "Estadísticas del proyecto nunca vistas"
 
 #: templates/valueaccounting/misc.html:34
 msgid "Last 2 months project stats"
-msgstr ""
+msgstr "Estadísticas del proyecto de los últimos 2 meses"
 
 #: templates/valueaccounting/misc.html:36
 msgid "Pagelets require a context agent."
-msgstr ""
+msgstr "Los paneles requieren un agente de contexto"
 
 #: templates/valueaccounting/network.html:6
 #: templates/valueaccounting/network.html:18
 msgid "Project-level Value Network"
-msgstr ""
+msgstr "Red de Valor a nivel de proyecto"
 
 #: templates/valueaccounting/network.html:29
 msgid "redraw"
-msgstr ""
+msgstr "redibujar"
 
 #: templates/valueaccounting/network.html:29
 msgid "or just drag stuff around..."
-msgstr ""
+msgstr "o simplemente arrastre las cosas alrededor..."
 
 #: templates/valueaccounting/network.html:32
 msgid "Blue oval = Project"
-msgstr ""
+msgstr "óvalo azul = Proyecto"
 
 #: templates/valueaccounting/network.html:33
 msgid "Red rectangle = Resource Type"
-msgstr ""
+msgstr "Rectángulo rojo = Tipo de Recurso"
 
-#: templates/valueaccounting/no_permission.html:5
-msgid "No permission"
-msgstr ""
+#: templates/valueaccounting/no_permission.html:6
+msgid "Not permitted"
+msgstr "No permitido"
 
-#: templates/valueaccounting/no_permission.html:10
+#: templates/valueaccounting/no_permission.html:20
 msgid "You do not have permission to access the requested page."
-msgstr ""
+msgstr "No tiene permisos para acceder a la página solicitada."
 
 #: templates/valueaccounting/open_todos.html:6
 #: templates/valueaccounting/open_todos.html:50
 msgid "Open Todos"
-msgstr ""
+msgstr "Abrir Para-Hacer"
 
 #: templates/valueaccounting/open_todos.html:55
 #: templates/valueaccounting/today.html:376
 #: templates/valueaccounting/todo_history.html:55
 msgid "Todo"
-msgstr ""
+msgstr "Para Hacer"
 
 #: templates/valueaccounting/open_todos.html:55
 #: templates/valueaccounting/todo_history.html:55
 #: templates/valueaccounting/work.html:369
 msgid "Poster"
-msgstr ""
+msgstr "Posteador"
 
 #: templates/valueaccounting/open_todos.html:55
 #: templates/valueaccounting/open_todos.html:64
 #: templates/valueaccounting/todo_history.html:64
 #: templates/valueaccounting/work.html:370
 msgid "Doer"
-msgstr ""
+msgstr "Realizador"
 
 #: templates/valueaccounting/open_todos.html:55
 #: templates/valueaccounting/start.html:542
@@ -4147,225 +4202,227 @@ msgstr ""
 #: templates/valueaccounting/todo_history.html:55
 #: templates/valueaccounting/work.html:367
 msgid "Due"
-msgstr ""
+msgstr "Cuota"
 
 #: templates/valueaccounting/order_delete_confirmation.html:16
 msgid ""
 "The following processes and commitments will be deleted and the events will "
 "be orphaned"
 msgstr ""
+"Los siguientes procesos y compromisos serán borrados y los eventos quedarán "
+"huérfanos"
 
 #: templates/valueaccounting/order_delete_confirmation.html:20
 #: templates/valueaccounting/order_schedule.html:113
 msgid "Order Items"
-msgstr ""
+msgstr "Encargar artículos"
 
 #: templates/valueaccounting/order_schedule.html:7
 #: templates/valueaccounting/order_schedule.html:97
 msgid "Schedule for "
-msgstr ""
+msgstr "Calendario para"
 
 #: templates/valueaccounting/order_schedule.html:100
 msgid "Go to Exchange"
-msgstr ""
+msgstr "ir a intercambio"
 
 #: templates/valueaccounting/order_schedule.html:114
 msgid "Add an Order Item"
-msgstr ""
+msgstr "Añadir un artículo al pedido"
 
 #: templates/valueaccounting/order_schedule.html:118
 msgid "Add a Deliverable"
-msgstr ""
+msgstr "Agregar un entregable"
 
 #: templates/valueaccounting/order_schedule.html:136
 msgid "Change Quantity"
-msgstr ""
+msgstr "Cambiar cantidad"
 
 #: templates/valueaccounting/order_schedule.html:138
 msgid "Change Project"
-msgstr ""
+msgstr "Modificar proyecto"
 
 #: templates/valueaccounting/order_schedule.html:143
 msgid "Change resource quantity for workflow plan"
-msgstr ""
+msgstr "Cambiar la cantidad de recursos para el plan del flujo de trabajo"
 
 #: templates/valueaccounting/order_schedule.html:164
 msgid "Change project for workflow plan"
-msgstr ""
+msgstr "Cambiar proyecto por plan de flujo de trabajo"
 
 #: templates/valueaccounting/order_schedule.html:193
 msgid "Add another Order Item"
-msgstr ""
+msgstr "Agregar otro item a la Orden"
 
 #: templates/valueaccounting/order_schedule.html:213
 msgid "Production Schedule"
-msgstr ""
+msgstr "Cronograma de Producción"
 
 #: templates/valueaccounting/order_schedule.html:215
 #: templates/valueaccounting/project_wip.html:34
 msgid "Process graph diagram"
-msgstr ""
+msgstr "Diagráma de gráfico de proceso"
 
 #: templates/valueaccounting/order_schedule.html:223
 msgid "Order Item"
-msgstr ""
+msgstr "Item de Orden"
 
 #: templates/valueaccounting/order_schedule.html:231
 msgid "Add Process to produce "
-msgstr ""
+msgstr "Agregar Proceso para producir"
 
 #: templates/valueaccounting/order_schedule.html:241
 msgid "Add Production Process"
-msgstr ""
+msgstr "Agregar Proceso de Producción"
 
 #: templates/valueaccounting/order_schedule.html:269
 msgid "Insert a process here "
-msgstr ""
+msgstr "Insertar el proceso aquí"
 
 #: templates/valueaccounting/order_schedule.html:276
 msgid "Insert process for "
-msgstr ""
+msgstr "Insertar proceso para"
 
 #: templates/valueaccounting/order_schedule.html:322
 msgid "Change process plan"
-msgstr ""
+msgstr "Cambiar el plan del proceso"
 
 #: templates/valueaccounting/order_schedule.html:350
 msgid "Delete process"
-msgstr ""
+msgstr "Borrar proceso"
 
 #: templates/valueaccounting/order_schedule.html:365
 msgid "Add a process here "
-msgstr ""
+msgstr "Añadir proceso aquí"
 
 #: templates/valueaccounting/order_schedule.html:372
 msgid "Add process for "
-msgstr ""
+msgstr "Añadir proceso para"
 
 #: templates/valueaccounting/orders.html:7
 msgid "Orders for "
-msgstr ""
+msgstr "Órdenes para"
 
 #: templates/valueaccounting/orders.html:103
 msgid "Active Orders for "
-msgstr ""
+msgstr "Órdenes Activas para"
 
 #: templates/valueaccounting/orders.html:112
 msgid "Due "
-msgstr ""
+msgstr "Cuota"
 
 #: templates/valueaccounting/orders.html:115
 msgid "Detailed schedule"
-msgstr ""
+msgstr "Cronograma detallado"
 
 #: templates/valueaccounting/plan_from_recipe.html:7
 msgid "Work Order from Recipe"
-msgstr ""
+msgstr "Orden de Trabajo de Factura"
 
 #: templates/valueaccounting/plan_from_recipe.html:53
 msgid "Plan Work Order Using Recipe"
-msgstr ""
+msgstr "Planificar Orden de Trabajo Usando Factura"
 
 #: templates/valueaccounting/plan_from_recipe.html:61
 #: templates/valueaccounting/process_selections.html:68
 msgid "Project "
-msgstr ""
+msgstr "Proyecto"
 
 #: templates/valueaccounting/plan_from_recipe.html:66
 #: templates/valueaccounting/process_selections.html:74
 msgid "Choose a project "
-msgstr ""
+msgstr "Elegir el proyecto"
 
 #: templates/valueaccounting/plan_from_recipe.html:67
 msgid "Get recipes"
-msgstr ""
+msgstr "Conseguir Facturas"
 
 #: templates/valueaccounting/plan_from_recipe.html:78
 msgid "Choose a Resource Type..."
-msgstr ""
+msgstr "Elegir un Tipo de Recurso..."
 
 #: templates/valueaccounting/plan_from_recipe.html:101
 #: templates/valueaccounting/plan_from_rt_recipe.html:37
 msgid "This recipe needs a starting resource"
-msgstr ""
+msgstr "Esta Factura necesita un recurso de partida"
 
 #: templates/valueaccounting/plan_from_recipe.html:115
 msgid "...or choose a Resource Type List"
-msgstr ""
+msgstr "... o elija una Lista de Tipo de Recurso"
 
 #: templates/valueaccounting/plan_from_recipe.html:162
 msgid "Create plan from recipe"
-msgstr ""
+msgstr "Crear plan a partir de factura"
 
 #: templates/valueaccounting/plan_from_rt.html:7
 #: templates/valueaccounting/plan_from_rt_recipe.html:7
 #: templates/valueaccounting/process_selections.html:7
 msgid "Production"
-msgstr ""
+msgstr "Producción"
 
 #: templates/valueaccounting/plan_from_rt.html:26
 msgid "Plan a Process for "
-msgstr ""
+msgstr "Planificar un Proceso para"
 
 #: templates/valueaccounting/plan_from_rt.html:30
 msgid "Save planned process"
-msgstr ""
+msgstr "Guardar proceso planeado"
 
 #: templates/valueaccounting/plan_from_rt_recipe.html:30
 msgid "Create a Plan from Recipe for "
-msgstr ""
+msgstr "Crear un Plan a partir de Factura para"
 
 #: templates/valueaccounting/plan_from_rt_recipe.html:49
 #: templates/valueaccounting/plan_from_rt_recipe.html:51
 msgid "Create plan"
-msgstr ""
+msgstr "Crear plan"
 
 #: templates/valueaccounting/process.html:67
 msgid "Change Process Plan"
-msgstr ""
+msgstr "Cambiar Plan de Proceso"
 
 #: templates/valueaccounting/process.html:71
 #: templates/valueaccounting/process_oriented_logging.html:184
 msgid "Unfinish"
-msgstr ""
+msgstr "Sin terminar"
 
 #: templates/valueaccounting/process.html:81
 msgid "Labnotes for this process"
-msgstr ""
+msgstr "Notas de laboratorio para este proceso"
 
 #: templates/valueaccounting/process.html:93
 msgid "Process Notes"
-msgstr ""
+msgstr "Notas de proceso"
 
 #: templates/valueaccounting/process.html:126
 msgid "Log Resource"
-msgstr ""
+msgstr "Cargar Recurso"
 
 #: templates/valueaccounting/process.html:131
 msgid "Create"
-msgstr ""
+msgstr "Crear"
 
 #: templates/valueaccounting/process.html:154
 #: templates/valueaccounting/process_oriented_logging.html:373
 msgid "Completed"
-msgstr ""
+msgstr "Completado"
 
 #: templates/valueaccounting/process.html:162
 #: templates/valueaccounting/process_oriented_logging.html:407
 msgid "Created"
-msgstr ""
+msgstr "Creado"
 
 #: templates/valueaccounting/process.html:178
 #: templates/valueaccounting/process.html:190
 #: templates/valueaccounting/process_oriented_logging.html:837
 #: templates/valueaccounting/process_oriented_logging.html:903
 msgid "Cited"
-msgstr ""
+msgstr "Citado"
 
 #: templates/valueaccounting/process.html:198
 #: templates/valueaccounting/process_oriented_logging.html:931
 msgid "Consumable Inputs"
-msgstr ""
+msgstr "Entradas Consumibles"
 
 #: templates/valueaccounting/process.html:213
 #: templates/valueaccounting/process.html:223
@@ -4373,236 +4430,239 @@ msgstr ""
 #: templates/valueaccounting/process_oriented_logging.html:1063
 #: templates/valueaccounting/process_oriented_logging.html:1129
 msgid "Consumed"
-msgstr ""
+msgstr "Consumido"
 
 #: templates/valueaccounting/process.html:236
 #: templates/valueaccounting/process.html:301
 #: templates/valueaccounting/process.html:358
 msgid "Source"
-msgstr ""
+msgstr "Fuente"
 
 #: templates/valueaccounting/process.html:263
 #: templates/valueaccounting/process_oriented_logging.html:1159
 msgid "Usable Inputs"
-msgstr ""
+msgstr "Entradas usables"
 
 #: templates/valueaccounting/process.html:324
 #: templates/valueaccounting/process_oriented_logging.html:590
 msgid "Unassigned"
-msgstr ""
+msgstr "Sin asignar"
 
 #: templates/valueaccounting/process_oriented_logging.html:167
 #: templates/valueaccounting/process_oriented_logging.html:264
 msgid "Change "
-msgstr ""
+msgstr "Cambiar"
 
 #: templates/valueaccounting/process_oriented_logging.html:207
 #: templates/valueaccounting/process_oriented_logging.html:1423
 msgid "Add an output requirement"
-msgstr ""
+msgstr "Agregar un requerimiento de salida"
 
 #: templates/valueaccounting/process_oriented_logging.html:212
 msgid "Log an unplanned output"
-msgstr ""
+msgstr "Cargar una salida no planeada"
 
 #: templates/valueaccounting/process_oriented_logging.html:258
 msgid "or Log details"
-msgstr ""
+msgstr "o Cargar detalles"
 
 #: templates/valueaccounting/process_oriented_logging.html:293
 #: templates/valueaccounting/process_oriented_logging.html:478
 #: templates/valueaccounting/process_oriented_logging.html:989
 #: templates/valueaccounting/process_oriented_logging.html:1211
 msgid "Change Requirement"
-msgstr ""
+msgstr "Cambiar Requerimiento"
 
 #: templates/valueaccounting/process_oriented_logging.html:321
 msgid "Log process output"
-msgstr ""
+msgstr "Cargar salida de proceso"
 
 #: templates/valueaccounting/process_oriented_logging.html:325
 msgid "Add to Resource"
-msgstr ""
+msgstr "Agregar a Recurso"
 
 #: templates/valueaccounting/process_oriented_logging.html:332
 msgid "Log new"
-msgstr ""
+msgstr "Cargar nuevo"
 
 #: templates/valueaccounting/process_oriented_logging.html:349
 msgid "Add to "
-msgstr ""
+msgstr "Agregar a"
 
 #: templates/valueaccounting/process_oriented_logging.html:404
 msgid "Unplanned Production"
-msgstr ""
+msgstr "Producción no Planeada"
 
 #: templates/valueaccounting/process_oriented_logging.html:443
 #: templates/valueaccounting/process_oriented_logging.html:529
 #: templates/valueaccounting/process_oriented_logging.html:536
 #: templates/valueaccounting/process_oriented_logging.html:1563
 msgid "Invite a collaborator"
-msgstr ""
+msgstr "Invitar un colaborador"
 
 #: templates/valueaccounting/process_oriented_logging.html:445
 #: templates/valueaccounting/process_oriented_logging.html:1565
 msgid "Add a work requirement"
-msgstr ""
+msgstr "Agregar un requerimiento de trabajo"
 
 #: templates/valueaccounting/process_oriented_logging.html:451
 msgid "Log unplanned work"
-msgstr ""
+msgstr "Cargar trabajo no planeado"
 
 #: templates/valueaccounting/process_oriented_logging.html:464
 msgid "(Requirements are ordered by due date)"
-msgstr ""
+msgstr "(Los requisitos están clasificadas por fecha de vencimiento)"
 
 #: templates/valueaccounting/process_oriented_logging.html:549
 #: templates/valueaccounting/process_oriented_logging.html:1580
 msgid "Invite collaborator"
-msgstr ""
+msgstr "Invitar a un colaborador"
 
 #: templates/valueaccounting/process_oriented_logging.html:559
 #: templates/valueaccounting/process_oriented_logging.html:564
 #: templates/valueaccounting/process_oriented_logging.html:580
 msgid "Join this task"
-msgstr ""
+msgstr "Unirse a esta tarea"
 
 #: templates/valueaccounting/process_oriented_logging.html:594
 msgid "I'll work on this later"
-msgstr ""
+msgstr "Voy a trabajar en esto más tarde"
 
 #: templates/valueaccounting/process_oriented_logging.html:609
 msgid "You are committing to do this work."
-msgstr ""
+msgstr "Ud. está comprometiendose a realizar este trabajo"
 
 #: templates/valueaccounting/process_oriented_logging.html:610
 msgid "The estimated time above is a guess about how long it will take."
 msgstr ""
+"El tiempo estimado arriba es una conjetura acerca de la duración que tendrá."
 
 #: templates/valueaccounting/process_oriented_logging.html:611
 msgid "The next step is to do the work and log your actual time."
 msgstr ""
+"El siguiente paso es realizar el trabajo y cargar el tiempo realmente "
+"utilizado."
 
 #: templates/valueaccounting/process_oriented_logging.html:629
 msgid "I'll start working now"
-msgstr ""
+msgstr "Voy a empezar a trabajar ahora"
 
 #: templates/valueaccounting/process_oriented_logging.html:633
 msgid "I did some work on this"
-msgstr ""
+msgstr "Hice algunos trabajos en este"
 
 #: templates/valueaccounting/process_oriented_logging.html:639
 msgid "Add Work Contribution"
-msgstr ""
+msgstr "Añadir contribución del trabajo"
 
 #: templates/valueaccounting/process_oriented_logging.html:658
 msgid "Work events"
-msgstr ""
+msgstr "Eventos de trabajo"
 
 #: templates/valueaccounting/process_oriented_logging.html:712
 msgid "Unplanned Work"
-msgstr ""
+msgstr "Trabajo no planificado"
 
 #: templates/valueaccounting/process_oriented_logging.html:770
 #: templates/valueaccounting/process_oriented_logging.html:1490
 msgid "Add a citation requirement"
-msgstr ""
+msgstr "Agregar un requerimiento de citación"
 
 #: templates/valueaccounting/process_oriented_logging.html:775
 msgid "Log unplanned citation"
-msgstr ""
+msgstr "Cargar una citación no planeada"
 
 #: templates/valueaccounting/process_oriented_logging.html:790
 msgid "Add an unplanned citation"
-msgstr ""
+msgstr "Agregar una citación no planeada"
 
 #: templates/valueaccounting/process_oriented_logging.html:869
 msgid "Log citation"
-msgstr ""
+msgstr "Cargar citación"
 
 #: templates/valueaccounting/process_oriented_logging.html:875
 msgid "Log citation of"
-msgstr ""
+msgstr "Cargar citación de"
 
 #: templates/valueaccounting/process_oriented_logging.html:900
 msgid "Unplanned Citations"
-msgstr ""
+msgstr "Citaciones no planeadas"
 
 #: templates/valueaccounting/process_oriented_logging.html:934
 #: templates/valueaccounting/process_oriented_logging.html:1513
 msgid "Add a consumable input requirement"
-msgstr ""
+msgstr "Agregar un requerimiento de entrada consumible"
 
 #: templates/valueaccounting/process_oriented_logging.html:939
 msgid "Log unplanned consumption"
-msgstr ""
+msgstr "Cargar consumo no pleneado"
 
 #: templates/valueaccounting/process_oriented_logging.html:954
 msgid "Add unplanned consumption"
-msgstr ""
+msgstr "Añadir consumo no planeado"
 
 #: templates/valueaccounting/process_oriented_logging.html:963
 msgid "Add consumption"
-msgstr ""
+msgstr "Añadir consumo"
 
 #: templates/valueaccounting/process_oriented_logging.html:1039
 msgid "Log consumption"
-msgstr ""
+msgstr "Cargar consumo"
 
 #: templates/valueaccounting/process_oriented_logging.html:1045
 msgid "Log consumption of"
-msgstr ""
+msgstr "Cargar consumo de"
 
 #: templates/valueaccounting/process_oriented_logging.html:1065
 #: templates/valueaccounting/process_oriented_logging.html:1276
 msgid "by"
-msgstr ""
+msgstr "por"
 
 #: templates/valueaccounting/process_oriented_logging.html:1126
 msgid "Unplanned Consumption"
-msgstr ""
+msgstr "Consumo no pleneado"
 
 #: templates/valueaccounting/process_oriented_logging.html:1162
 #: templates/valueaccounting/process_oriented_logging.html:1537
 msgid "Add a usable input requirement"
-msgstr ""
+msgstr "Agregar un requerimiento de entrada usable"
 
 #: templates/valueaccounting/process_oriented_logging.html:1167
 msgid "Log unplanned use"
-msgstr ""
+msgstr "Cargar un uso no pleneado"
 
 #: templates/valueaccounting/process_oriented_logging.html:1181
 msgid "Add unplanned use"
-msgstr ""
+msgstr "Agregar uso no pleneado"
 
 #: templates/valueaccounting/process_oriented_logging.html:1190
 msgid "Add Use"
-msgstr ""
+msgstr "Añadir uso"
 
 #: templates/valueaccounting/process_oriented_logging.html:1250
 msgid "Log use"
-msgstr ""
+msgstr "Cargar uso"
 
 #: templates/valueaccounting/process_oriented_logging.html:1256
 msgid "Log use of"
-msgstr ""
+msgstr "Cargar uso de"
 
 #: templates/valueaccounting/process_oriented_logging.html:1324
 msgid "Unplanned Use"
-msgstr ""
+msgstr "Uso no planeado"
 
 #: templates/valueaccounting/process_oriented_logging.html:1364
 msgid "Notes for this process"
-msgstr ""
+msgstr "Notas para este proceso"
 
 #: templates/valueaccounting/process_oriented_logging.html:1368
 msgid "Process context"
-msgstr ""
+msgstr "Contexto del proceso"
 
 #: templates/valueaccounting/process_oriented_logging.html:1371
 #: valueaccounting/forms.py:3362
 msgid "Pattern"
-msgstr ""
+msgstr "Patrón"
 
 #: templates/valueaccounting/process_oriented_logging.html:1384
 #: templates/valueaccounting/today.html:186
@@ -4613,128 +4673,131 @@ msgstr ""
 #: valueaccounting/forms.py:2948 valueaccounting/forms.py:3295
 #: valueaccounting/forms.py:3402
 msgid "Context"
-msgstr ""
+msgstr "Contexto"
 
 #: templates/valueaccounting/process_oriented_logging.html:1408
 msgid "Process notes"
-msgstr ""
+msgstr "Notas del proceso"
 
 #: templates/valueaccounting/process_oriented_logging.html:1582
 msgid "Add work requirement"
-msgstr ""
+msgstr "Añadir requisito del trabajo"
 
 #: templates/valueaccounting/process_oriented_logging.html:1599
 msgid "Log Unplanned Output"
-msgstr ""
+msgstr "Cargar Salida no Planeada"
 
 #: templates/valueaccounting/process_oriented_logging.html:1632
 msgid "Log Unplanned Work Contribution"
-msgstr ""
+msgstr "Cargar Contribución de Trabajo no Planeada"
 
 #: templates/valueaccounting/process_selections.html:54
 msgid "Production Planning"
-msgstr ""
+msgstr "Planificación de la producción"
 
 #: templates/valueaccounting/process_selections.html:56
 msgid "Log Unplanned Production Work"
-msgstr ""
+msgstr "Cargar Trabajo de Producción no Planeado"
 
 #: templates/valueaccounting/process_selections.html:65
 msgid "Pattern "
-msgstr ""
+msgstr "Patrón"
 
 #: templates/valueaccounting/process_selections.html:73
 msgid "Choose a pattern "
-msgstr ""
+msgstr "Elegir el patrón"
 
 #: templates/valueaccounting/process_selections.html:75
 msgid "Get resource types"
-msgstr ""
+msgstr "Obtener tipos de recursos"
 
 #: templates/valueaccounting/process_selections.html:116
 #: templates/valueaccounting/process_selections.html:129
 msgid "Save process & exit"
-msgstr ""
+msgstr "Guardar el proceso y salir"
 
 #: templates/valueaccounting/process_selections.html:120
 msgid "Save process & add another"
-msgstr ""
+msgstr "Guarda el proceso y añade uno nuevo"
 
 #: templates/valueaccounting/process_selections.html:124
 msgid "Change process"
-msgstr ""
+msgstr "Cambiar proceso"
 
 #: templates/valueaccounting/process_selections.html:133
 msgid "Work now"
-msgstr ""
+msgstr "Trabajar ahora"
 
 #: templates/valueaccounting/processes_graph.html:7
 msgid "Process Graph"
-msgstr ""
+msgstr "Gráfico de proceso"
 
 #: templates/valueaccounting/processes_graph.html:91
 msgid "Projects"
-msgstr ""
+msgstr "Proyectos"
 
 #: templates/valueaccounting/processes_graph.html:94
 msgid "Orders"
-msgstr ""
+msgstr "Pedidos"
 
 #: templates/valueaccounting/processes_graph.html:95
 msgid "Processes"
-msgstr ""
+msgstr "Procesos"
 
 #: templates/valueaccounting/processes_graph.html:98
 msgid ""
 "Zoom using mousewheel or touchpad scroll. Slide the whole graph like a map, "
 "or move a node."
 msgstr ""
+"Haga zoom usando la rueda del ratón o la barra de deslizamiento del "
+"touchpad. Deslice todo el gráfico como un mapa, o mueva un nodo."
 
 #: templates/valueaccounting/processes_graph.html:99
 msgid "Click a node to freeze it, click again to unfreeze."
 msgstr ""
+"Cliquee en un nodo para congelarlo, cliquéelo nuevamente para descongelarlo."
 
 #: templates/valueaccounting/processes_graph.html:100
 msgid "Double-click a node to open its own page."
-msgstr ""
+msgstr "Haga doble click sobre un nodo para abrir su propia página."
 
 #: templates/valueaccounting/processes_graph.html:101
 msgid "Processes horizontally positioned by date, width by duration."
-msgstr ""
+msgstr "Procesos posicionados horizontalmente por fecha, ancho por duración."
 
 #: templates/valueaccounting/project_contributions.html:8
 msgid "Project Contributions for "
-msgstr ""
+msgstr "Contribuciones de Proyecto para"
 
 #: templates/valueaccounting/project_contributions.html:38
 msgid "Contributions for"
-msgstr ""
+msgstr "Contribuciones para"
 
 #: templates/valueaccounting/project_wip.html:5
 msgid "WIP for "
-msgstr ""
+msgstr "TEP para"
 
 #: templates/valueaccounting/project_wip.html:32
 msgid "Work in Process for "
-msgstr ""
+msgstr "Trabajo en proceso para"
 
 #: templates/valueaccounting/project_wip.html:33
 msgid "Finished processes"
-msgstr ""
+msgstr "Procesos terminados"
 
 #: templates/valueaccounting/projects.html:76
 msgid "All contributions"
-msgstr ""
+msgstr "Todas las contribuciones"
 
 #: templates/valueaccounting/projects.html:82
 msgid "Network diagram"
-msgstr ""
+msgstr "Diagrama de red"
 
 #: templates/valueaccounting/projects.html:84
 #: templates/valueaccounting/value_equations.html:6
 #: templates/valueaccounting/value_equations.html:58
 msgid "Value Equations"
-msgstr ""
+msgstr "Ecuaciones de Valor"
 
 #: templates/valueaccounting/projects.html:85
 msgid "Membership requests"
@@ -4742,170 +4805,170 @@ msgstr "Solicitudes de membresía"
 
 #: templates/valueaccounting/projects.html:105
 msgid "Work in process"
-msgstr ""
+msgstr "Trabajo en proceso"
 
 #: templates/valueaccounting/radial_graph.html:7
 #: templates/valueaccounting/radial_graph.html:29
 msgid "Association Graph for"
-msgstr ""
+msgstr "Gráfico de Asociación para"
 
 #: templates/valueaccounting/resource.html:55
 msgid "Plan Work Order"
-msgstr ""
+msgstr "Panear Pedido de Trabajo"
 
 #: templates/valueaccounting/resource.html:59
 msgid "Incoming Value Flow"
-msgstr ""
+msgstr "Flujo de Valor Entrante"
 
 #: templates/valueaccounting/resource.html:101
 msgid "Create Work Order for"
-msgstr ""
+msgstr "Crear Pedido de Trabajo para"
 
 #: templates/valueaccounting/resource.html:207
 msgid "Demands"
-msgstr ""
+msgstr "Demandas "
 
 #: templates/valueaccounting/resource.html:221
 msgid "Where from"
-msgstr ""
+msgstr "De dónde"
 
 #: templates/valueaccounting/resource.html:225
 #: templates/valueaccounting/resource.html:296
 #: templates/valueaccounting/resource.html:317
 msgid "Event"
-msgstr ""
+msgstr "Evento"
 
 #: templates/valueaccounting/resource.html:240
 msgid "Contributions to payment for "
-msgstr ""
+msgstr "Contribuciones al pago por"
 
 #: templates/valueaccounting/resource.html:265
 msgid "Add process that created resource"
-msgstr ""
+msgstr "Agregar procesos que crearon el recurso"
 
 #: templates/valueaccounting/resource.html:270
 msgid "Add Process"
-msgstr ""
+msgstr "Agregar proceso"
 
 #: templates/valueaccounting/resource.html:291
 msgid "Where to"
-msgstr ""
+msgstr "A dónde"
 
 #: templates/valueaccounting/resource.html:308
 msgid "Workers"
-msgstr ""
+msgstr "Trabajadores"
 
 #: templates/valueaccounting/resource.html:310
 msgid "Labnotes"
-msgstr ""
+msgstr "Notas de laboratorio"
 
 #: templates/valueaccounting/resource_flow.html:7
 #: templates/valueaccounting/resource_flow_report.html:5
 msgid "Resource Flow"
-msgstr ""
+msgstr "Flujo de Recurso"
 
 #: templates/valueaccounting/resource_flow.html:52
 msgid "Record New Resource Flow"
-msgstr ""
+msgstr "Registrar Nuevo Flujo de Recurso"
 
 #: templates/valueaccounting/resource_flow.html:60
 msgid "Network"
-msgstr ""
+msgstr "Red"
 
 #: templates/valueaccounting/resource_flow.html:68
 msgid "Lot Identifier"
-msgstr ""
+msgstr "Identificador de Lote"
 
 #: templates/valueaccounting/resource_flow.html:76
 #: templates/valueaccounting/virtual_accounts.html:60
 msgid "Owner"
-msgstr ""
+msgstr "Propietario"
 
 #: templates/valueaccounting/resource_flow.html:91
 #: templates/valueaccounting/resource_flow.html:116
 msgid "Farm"
-msgstr ""
+msgstr "Granja"
 
 #: templates/valueaccounting/resource_flow.html:95
 msgid "Harvester"
-msgstr ""
+msgstr "Cosaechadora"
 
 #: templates/valueaccounting/resource_flow.html:124
 msgid "If Paid, $"
-msgstr ""
+msgstr "Si Pagado, $"
 
 #: templates/valueaccounting/resource_flow.html:144
 msgid "Facility"
-msgstr ""
+msgstr "Facilidad"
 
 #: templates/valueaccounting/resource_flow_report.html:54
 msgid "Resource Flows for "
-msgstr ""
+msgstr "Flujo de Recurso para"
 
 #: templates/valueaccounting/resource_flow_report.html:62
 msgid "Onhand or Sold"
-msgstr ""
+msgstr "A mano o Vendido"
 
 #: templates/valueaccounting/resource_flow_report.html:71
 msgid "Sales"
-msgstr ""
+msgstr "Ventas"
 
 #: templates/valueaccounting/resource_flow_report.html:78
 msgid "Lot"
-msgstr ""
+msgstr "Lote"
 
 #: templates/valueaccounting/resource_type.html:76
 msgid "Create Resource"
-msgstr ""
+msgstr "Crear Recurso"
 
 #: templates/valueaccounting/resource_type.html:100
 msgid "Create Manufacturing Recipe"
-msgstr ""
+msgstr "Crear Factura de Fabricación"
 
 #: templates/valueaccounting/resource_type.html:106
 msgid "Create Workflow Recipe"
-msgstr ""
+msgstr "Crear Factura de Flujo de Trabajo"
 
 #: templates/valueaccounting/resource_type.html:110
 msgid "Plan"
-msgstr ""
+msgstr "Plan"
 
 #: templates/valueaccounting/resource_type.html:112
 msgid "Plan using recipe"
-msgstr ""
+msgstr "Plan usando factura"
 
 #: templates/valueaccounting/resource_type.html:117
 msgid "All Resource Types"
-msgstr ""
+msgstr "Todos los Tipos de Recurso"
 
 #: templates/valueaccounting/resource_type.html:168
 #: templates/valueaccounting/resource_types.html:126
 msgid "Parent"
-msgstr ""
+msgstr "Padre"
 
 #: templates/valueaccounting/resource_type.html:184
 msgid "Children"
-msgstr ""
+msgstr "Hijos"
 
 #: templates/valueaccounting/resource_type.html:203
 msgid "Used in these recipes"
-msgstr ""
+msgstr "Usado en estas facturas"
 
 #: templates/valueaccounting/resource_type.html:227
-#: valueaccounting/models.py:238 valueaccounting/models.py:3981
-#: valueaccounting/models.py:5579 valueaccounting/models.py:8032
-#: valueaccounting/models.py:8229 valueaccounting/models.py:9967
-#: valueaccounting/models.py:11586 valueaccounting/models.py:11775
+#: valueaccounting/models.py:238 valueaccounting/models.py:3995
+#: valueaccounting/models.py:5593 valueaccounting/models.py:8046
+#: valueaccounting/models.py:8243 valueaccounting/models.py:9981
+#: valueaccounting/models.py:11600 valueaccounting/models.py:11789
 msgid "quantity"
-msgstr ""
+msgstr "cantidad"
 
 #: templates/valueaccounting/resource_type.html:234
 msgid "Scheduled Requirements"
-msgstr ""
+msgstr "Requerimientos programados"
 
 #: templates/valueaccounting/resource_type.html:245
 msgid "Scheduled Production"
-msgstr ""
+msgstr "Producción Programada"
 
 #: templates/valueaccounting/resource_type_delete_confirmation.html:21
 #, python-format
@@ -4914,6 +4977,9 @@ msgid ""
 "\t\t\t\t\t\t<b>%(resource_type)s</b> will be removed as an input to the Process Type <b>%(proc_type)s</b>\n"
 "\t\t\t\t\t\t"
 msgstr ""
+"\n"
+"\t\t\t\t\t\t<b>%(resource_type)s</b> será eliminado como entrada del Tipo de Proceo <b>%(proc_type)s</b>\n"
+"\t\t\t\t\t\t"
 
 #: templates/valueaccounting/resource_type_delete_confirmation.html:27
 #, python-format
@@ -4921,323 +4987,332 @@ msgid ""
 "The Process Type <b>%(pt)s</b> for making <b>%(resource_type)s</b> will also"
 " be deleted"
 msgstr ""
+"El Tipo de Proceso <b>%(pt)s</b> para hacer <b>%(resource_type)s</b> también"
+" será borrado"
 
 #: templates/valueaccounting/resource_type_delete_confirmation.html:29
 msgid "along with all of its input and output relationships"
-msgstr ""
+msgstr "junto a todas sus relaciones de entradas y salidas"
 
 #: templates/valueaccounting/resource_type_list.html:9
 msgid "Resource Type List"
-msgstr ""
+msgstr "Lista de Tipos de Recurso"
 
 #: templates/valueaccounting/resource_type_list.html:42
 msgid "Change Resource Type List"
-msgstr ""
+msgstr "Cambiar Lista de Tipo de Recurso"
 
 #: templates/valueaccounting/resource_type_list.html:44
 msgid "Create Resource Type List"
-msgstr ""
+msgstr "Crear Lista de Tipo de Recurso"
 
 #: templates/valueaccounting/resource_type_list.html:71
 msgid "Selected"
-msgstr ""
+msgstr "Seleccionado"
 
 #: templates/valueaccounting/resource_type_lists.html:8
 #: templates/valueaccounting/resource_type_lists.html:53
 #: templates/valueaccounting/resource_types.html:61
 msgid "Resource Type Lists"
-msgstr ""
+msgstr "Listas de Tipo de Recurso"
 
 #: templates/valueaccounting/resource_type_lists.html:56
 msgid "Create new List"
-msgstr ""
+msgstr "Crear nueva Lista"
 
 #: templates/valueaccounting/resource_type_lists.html:62
 msgid ""
 "Resource Type Lists may be used to schedule many deliverables on the same "
 "Work Order."
 msgstr ""
+"Las Listas de Tipo de Recurso pueden usarse para programar muchos "
+"entregables en el mismo Pedido de Trabajo."
 
 #: templates/valueaccounting/resource_types.html:66
 msgid "Create new Resource Type"
-msgstr ""
+msgstr "Crear nuevp Tipo de Recurso"
 
 #: templates/valueaccounting/resource_types.html:133
 msgid "Resource class"
-msgstr ""
+msgstr "Clase de recurso"
 
 #: templates/valueaccounting/sales_and_distributions.html:5
 #: templates/valueaccounting/value_equation.html:48
 msgid "Sales and Distributions"
-msgstr ""
+msgstr "Ventas y Distribuciones"
 
 #: templates/valueaccounting/sales_and_distributions.html:37
 msgid "External Exchanges and Distributions"
-msgstr ""
+msgstr "Intercamabios Externos y Distribuciones"
 
 #: templates/valueaccounting/sales_and_distributions.html:108
 msgid "Accounting Reference"
-msgstr ""
+msgstr "Referencia Contable"
 
 #: templates/valueaccounting/schedule.html:6
 #: templates/valueaccounting/schedule.html:182
 #: templates/valueaccounting/work.html:191
 msgid "Work in Process"
-msgstr ""
+msgstr "Trabajo en Proceso"
 
 #: templates/valueaccounting/schedule.html:201
 #: templates/valueaccounting/this_week.html:220
 #: templates/valueaccounting/work.html:258
 msgid "starting"
-msgstr ""
+msgstr "comenzando"
 
 #: templates/valueaccounting/schedule.html:202
 #: templates/valueaccounting/this_week.html:221
 #: templates/valueaccounting/work.html:259
 msgid "ending"
-msgstr ""
+msgstr "finalizando"
 
 #: templates/valueaccounting/sessions.html:5
 #: templates/valueaccounting/sessions.html:13
 msgid "Sessions"
-msgstr ""
+msgstr "Sesiones"
 
 #: templates/valueaccounting/sessions.html:17
 msgid "Get session"
-msgstr ""
+msgstr "Obtener sesión"
 
 #: templates/valueaccounting/start.html:178
 msgid "My contributions"
-msgstr ""
+msgstr "Mis contribuciones"
 
 #: templates/valueaccounting/start.html:179
 msgid "Comparative stats"
-msgstr ""
+msgstr "Estadísticas comparativas"
 
 #: templates/valueaccounting/start.html:193
 #: templates/valueaccounting/work.html:203
 msgid "Log non-production work"
-msgstr ""
+msgstr "Cargar trabajo no productivo"
 
 #: templates/valueaccounting/start.html:205
 msgid "My unfinished production work"
-msgstr ""
+msgstr "Mi trabajo productivo sin terminar"
 
 #: templates/valueaccounting/start.html:228
 msgid "Log work on process"
-msgstr ""
+msgstr "Cargar trabajo en proceso"
 
 #: templates/valueaccounting/start.html:237
 msgid "Close task"
-msgstr ""
+msgstr "Cerrar tarea"
 
 #: templates/valueaccounting/start.html:247
 msgid "Unassign"
-msgstr ""
+msgstr "Des-asignar"
 
 #: templates/valueaccounting/start.html:262
 msgid "Unassigned tasks using my skills"
-msgstr ""
+msgstr "Tareas no asignadas usando mis habilidades"
 
 #: templates/valueaccounting/start.html:365
 #: templates/valueaccounting/start.html:486
 #: templates/valueaccounting/supply.html:133
 #: templates/valueaccounting/supply.html:161
 msgid "for process"
-msgstr ""
+msgstr "para procesar"
 
 #: templates/valueaccounting/start.html:368
 #: templates/valueaccounting/start.html:489
 msgid "for order"
-msgstr ""
+msgstr "para pedido"
 
 #: templates/valueaccounting/start.html:382
 msgid "Other unassigned tasks"
-msgstr ""
+msgstr "Otras tareas sin asignar"
 
 #: templates/valueaccounting/start.html:510
 msgid "My todo list:"
-msgstr ""
+msgstr "Mi lista de tareas por hacer"
 
 #: templates/valueaccounting/start.html:515
 #: templates/valueaccounting/start.html:522
 #: templates/valueaccounting/work.html:337
 #: templates/valueaccounting/work.html:344
 msgid "Add a todo"
-msgstr ""
+msgstr "Agregar a lista por hacer"
 
 #: templates/valueaccounting/start.html:532
 #: templates/valueaccounting/work.html:354
 msgid "Add"
-msgstr ""
+msgstr "Agregar"
 
 #: templates/valueaccounting/start.html:543
 #: templates/valueaccounting/today.html:209
 msgid "Who"
-msgstr ""
+msgstr "Quien"
 
 #: templates/valueaccounting/start.html:551
 #: templates/valueaccounting/today.html:217
 #: templates/valueaccounting/work.html:372
 msgid "Url"
-msgstr ""
+msgstr "Url"
 
 #: templates/valueaccounting/start.html:611
 #: templates/valueaccounting/today.html:295
 #: templates/valueaccounting/work.html:484
 msgid "Change todo"
-msgstr ""
+msgstr "Cambiar por hacer"
 
 #: templates/valueaccounting/start.html:633
 #: templates/valueaccounting/today.html:272
 #: templates/valueaccounting/work.html:448
 msgid "Decline"
-msgstr ""
+msgstr "Declinar"
 
 #: templates/valueaccounting/start.html:645
 #: templates/valueaccounting/today.html:320
 msgid "Did"
-msgstr ""
+msgstr "Hizo"
 
 #: templates/valueaccounting/start.html:678
 msgid "Other unassigned todos:"
-msgstr ""
+msgstr "Otras por hacer sin asignar"
 
 #: templates/valueaccounting/supply.html:94
 msgid "Requirements by Supplier"
-msgstr ""
+msgstr "Requerimientos por Proveedor"
 
 #: templates/valueaccounting/supply.html:98
 #: templates/valueaccounting/supply.html:141
 #: templates/valueaccounting/supply.html:169
 msgid "Buy from"
-msgstr ""
+msgstr "Comprar de"
 
 #: templates/valueaccounting/supply.html:99
 msgid "Combined Score"
-msgstr ""
+msgstr "Puntaje Combinado"
 
 #: templates/valueaccounting/supply.html:104
 msgid "Total required"
-msgstr ""
+msgstr "Total requerido"
 
 #: templates/valueaccounting/supply.html:105
 #: templates/valueaccounting/supply.html:142
 #: templates/valueaccounting/supply.html:170
 msgid "Score"
-msgstr ""
+msgstr "Puntaje"
 
 #: templates/valueaccounting/supply.html:111
 #: templates/valueaccounting/supply.html:136
 #: templates/valueaccounting/supply.html:164
 msgid "for demand"
-msgstr ""
+msgstr "para demanda"
 
 #: templates/valueaccounting/supply.html:126
 msgid "Open Purchase Requirements"
-msgstr ""
+msgstr "Abrir Requerimientos de Compra"
 
 #: templates/valueaccounting/supply.html:154
 msgid "Open Tool Requirements"
-msgstr ""
+msgstr "Abrir Requerimientos de Herramientas"
 
 #: templates/valueaccounting/test_patterns.html:7
 msgid "Test Patterns"
-msgstr ""
+msgstr "Testear Patrones"
 
 #: templates/valueaccounting/test_patterns.html:160
 msgid "Test Process Patterns"
-msgstr ""
+msgstr "Testear Patrones de Proceso"
 
 #: templates/valueaccounting/test_patterns.html:166
 msgid "Get Pattern"
-msgstr ""
+msgstr "Obtener Patrón"
 
 #: templates/valueaccounting/this_week.html:8
 #: templates/valueaccounting/this_week.html:183
 #: templates/valueaccounting/work.html:193
 msgid "This week"
-msgstr ""
+msgstr "Esta semana"
 
 #: templates/valueaccounting/this_week.html:183
 msgid "through"
-msgstr ""
+msgstr "a través de"
 
 #: templates/valueaccounting/this_week.html:189
 msgid "Active projects"
-msgstr ""
+msgstr "Proyectos activos"
 
 #: templates/valueaccounting/this_week.html:190
 msgid "Non-active projects"
-msgstr ""
+msgstr "Proyectos inactivos"
 
 #: templates/valueaccounting/this_week.html:192
 msgid "Total logged time"
-msgstr ""
+msgstr "Total de tiempo cargado"
 
 #: templates/valueaccounting/this_week.html:192
 #: templates/valueaccounting/unscheduled_time_contributions.html:81
 msgid "hours"
-msgstr ""
+msgstr "horas"
 
 #: templates/valueaccounting/this_week.html:193
 msgid "Total active participants"
-msgstr ""
+msgstr "Total de participantes activos"
 
 #: templates/valueaccounting/this_week.html:201
 msgid "Activity by project between"
-msgstr ""
+msgstr "Actividad por proyecto entre"
 
 #: templates/valueaccounting/this_week.html:201
 msgid "and"
-msgstr ""
+msgstr "y"
 
 #: templates/valueaccounting/this_week.html:224
 msgid "Complete"
-msgstr ""
+msgstr "Completo"
 
 #: templates/valueaccounting/this_week.html:226
 msgid "Incomplete"
-msgstr ""
+msgstr "Incompleto"
 
 #: templates/valueaccounting/timeline.html:36
 msgid ""
 "Double-click on date in bottom lane to slide to that date. Click on process "
 "in top lane to show details."
 msgstr ""
+"Hga doble click en el carril inferior para deslizarse a esa fecha. Cliquee "
+"sobre el proceso en el carril superior para mostrar los detalles."
 
 #: templates/valueaccounting/today.html:8
 #: templates/valueaccounting/today.html:175
 msgid "Today"
-msgstr ""
+msgstr "Hoy"
 
 #: templates/valueaccounting/today.html:180
 msgid "Work in process today"
-msgstr ""
+msgstr "Trabajo en proceso hoy"
 
 #: templates/valueaccounting/today.html:202
 msgid "Todos due today"
-msgstr ""
+msgstr "Por hacer para hoy"
 
 #: templates/valueaccounting/today.html:312
 #: templates/valueaccounting/work.html:476
 msgid "Mine!"
-msgstr ""
+msgstr "Mío!"
 
 #: templates/valueaccounting/today.html:357
 msgid "Today's events"
-msgstr ""
+msgstr "Eventos de hoy"
 
 #: templates/valueaccounting/todo_history.html:6
 #: templates/valueaccounting/todo_history.html:50
 msgid "Todo History"
-msgstr ""
+msgstr "Historia de por hacer"
 
 #: templates/valueaccounting/tutorials.html:25
 msgid ""
 "These tutorials for NRP (Network Resource Planning) are for the software "
 "that is used for the OCP (Open Collaborative Platform) for Freedom Coop."
 msgstr ""
+"Estos tutoriales para PRR (Planeación de Recursos de Red) son para el "
+"software que se usa para PAC (Plataforma Abierta Colaborativa) para la "
+"Freedom Coop."
 
 #: templates/valueaccounting/tutorials.html:26
 msgid ""
@@ -5245,18 +5320,21 @@ msgid ""
 "what it creates, and what it needs to do that. The first 5 slide decks below"
 " should help."
 msgstr ""
+"Su primer trabajo es crear un modelo de su red, cómo está organizada, qué "
+"produce, y qué necesita para hacerlo. Las primeras 5 diapositivas debajo "
+"deberían ayudarle."
 
 #: templates/valueaccounting/tutorials.html:29
 msgid "send an email"
-msgstr ""
+msgstr "enviar un email"
 
 #: templates/valueaccounting/tutorials.html:29
 msgid "for even more help"
-msgstr ""
+msgstr "para más ayuda aún"
 
 #: templates/valueaccounting/unfold.html:6
 msgid "Unfold"
-msgstr ""
+msgstr "Desplegado"
 
 #: templates/valueaccounting/unfold.html:72
 #, python-format
@@ -5264,10 +5342,12 @@ msgid ""
 "The work of <span class=\"this\">%(commitment.resource_type.name)s</span> \n"
 "                    contributes to This Process. "
 msgstr ""
+"El trabajo de <span class=\"this\">%(commitment.resource_type.name)s</span> \n"
+"                    contribuye a Este Proceso."
 
 #: templates/valueaccounting/unfold.html:79
 msgid "A Process happens in an organizational Context."
-msgstr ""
+msgstr "Un Proceso ocurre en un Contexto organizacional."
 
 #: templates/valueaccounting/unfold.html:89
 #, python-format
@@ -5275,6 +5355,8 @@ msgid ""
 "This process is connected to other processes to fulfill a "
 "%(process.independent_demand.get_order_type_display)s."
 msgstr ""
+"Este proceso está conectado a otro proceso para cumplir una "
+"%(process.independent_demand.get_order_type_display)s."
 
 #: templates/valueaccounting/unfold.html:91
 #, python-format
@@ -5282,407 +5364,419 @@ msgid ""
 "This process fulfills a "
 "%(process.independent_demand.get_order_type_display)s."
 msgstr ""
+"Este proceso cumple una "
+"%(process.independent_demand.get_order_type_display)s."
 
 #: templates/valueaccounting/unfold.html:103
 msgid "All Contexts"
-msgstr ""
+msgstr "Todos los contextos"
 
 #: templates/valueaccounting/unfold.html:105
 msgid "All Orders"
-msgstr ""
+msgstr "Todos los Pedidos"
 
 #: templates/valueaccounting/unfold.html:121
 msgid "This Process"
-msgstr ""
+msgstr "Este Proceso"
 
 #: templates/valueaccounting/unfold.html:128
 msgid "Input requirements"
-msgstr ""
+msgstr "Requerimientos de entrada"
 
 #: templates/valueaccounting/unfold.html:145
 msgid "Output plans"
-msgstr ""
+msgstr "`Planes de salida"
 
 #: templates/valueaccounting/unfold.html:153
 msgid "Resources created"
-msgstr ""
+msgstr "Recursos creados"
 
 #: templates/valueaccounting/unscheduled_time_contributions.html:9
 msgid "Log Unscheduled Time Contributions"
-msgstr ""
+msgstr "Cargar Contribuciones de Tiempo no Programadas"
 
 #: templates/valueaccounting/unscheduled_time_contributions.html:46
 msgid "Log Unscheduled Time Contributions for "
-msgstr ""
+msgstr "Cargar Contribuciones de Tiempo no Programadas para"
 
 #: templates/valueaccounting/unscheduled_time_contributions.html:59
 msgid "Credit for value equations"
-msgstr ""
+msgstr "Crédito para ecuaciones de valor"
 
 #: templates/valueaccounting/unscheduled_time_contributions.html:80
 msgid "Total"
-msgstr ""
+msgstr "Total"
 
 #: templates/valueaccounting/value_equation.html:7
 #: templates/valueaccounting/value_equation.html:47
 msgid "Value Time Contributions for "
-msgstr ""
+msgstr "Contribuciones de Valor para"
 
 #: templates/valueaccounting/value_equation.html:59
 msgid ""
 "Enter an equation using the parameters hours, rate, reputation, seniority, "
 "and importance."
 msgstr ""
+"Ingresar una ecuación usando los parámetros horas, tasa, reputación, "
+"antigüedad, e importancia"
 
 #: templates/valueaccounting/value_equation.html:60
 msgid "The result will be the value of the time contribution."
-msgstr ""
+msgstr "El resultado será el valor de la contribución de tiempo."
 
 #: templates/valueaccounting/value_equation.html:61
 msgid "Please leave a space between each element of the equation."
-msgstr ""
+msgstr "Por favor, deje un espacio entre cada elemento de la ecuación."
 
 #: templates/valueaccounting/value_equation.html:74
 msgid "Compute"
-msgstr ""
+msgstr "Computar"
 
 #: templates/valueaccounting/value_equation.html:84
 #: templates/valueaccounting/value_equation.html:132
 msgid "Member"
-msgstr ""
+msgstr "Miembro"
 
 #: templates/valueaccounting/value_equation.html:88
 #: templates/valueaccounting/value_equation_sandbox.html:191
 msgid "Rate"
-msgstr ""
+msgstr "Tasa"
 
 #: templates/valueaccounting/value_equation.html:91
 msgid "Seniority"
-msgstr ""
+msgstr "Antigüedad"
 
 #: templates/valueaccounting/value_equation.html:92
 msgid "Importance"
-msgstr ""
+msgstr "Importancia"
 
 #: templates/valueaccounting/value_equation.html:133
 msgid "Total Value"
-msgstr ""
+msgstr "Valor Total"
 
 #: templates/valueaccounting/value_equation.html:134
-#: valueaccounting/models.py:11417
+#: valueaccounting/models.py:11431
 msgid "Percentage"
-msgstr ""
+msgstr "Porcentaje"
 
 #: templates/valueaccounting/value_equation_sandbox.html:97
 msgid "Your distribution will be displayed but will not be saved."
-msgstr ""
+msgstr "Su distribución será mostrada pero no será guardada."
 
 #: templates/valueaccounting/value_equation_sandbox.html:105
 msgid ">Amount to distribute"
-msgstr ""
+msgstr ">Monto a distribuir"
 
 #: templates/valueaccounting/value_equation_sandbox.html:142
 msgid "Calculate Distribution"
-msgstr ""
+msgstr "Calcular Distribución"
 
 #: templates/valueaccounting/value_equation_sandbox.html:189
 msgid "Value Added"
-msgstr ""
+msgstr "Valor Agredado"
 
 #: templates/valueaccounting/value_equation_sandbox.html:190
 msgid "Distr Amount"
-msgstr ""
+msgstr "Monto Distr"
 
 #: templates/valueaccounting/value_equation_sandbox.html:220
 msgid "Contribution Date"
-msgstr ""
+msgstr "Fecha de Contribución"
 
 #: templates/valueaccounting/value_equation_sandbox.html:221
 msgid "Contribution Type"
-msgstr ""
+msgstr "Tipo de Contribución"
 
 #: templates/valueaccounting/value_equation_sandbox.html:222
 msgid "Contribution"
-msgstr ""
+msgstr "Contribución"
 
 #: templates/valueaccounting/value_equation_sandbox.html:223
 msgid "Claim equation"
-msgstr ""
+msgstr "Reclamar ecuación"
 
 #: templates/valueaccounting/value_equation_sandbox.html:225
 msgid "Explanation"
-msgstr ""
+msgstr "Explicación"
 
 #: templates/valueaccounting/value_equation_sandbox.html:360
 msgid "Distribute to"
-msgstr ""
+msgstr "Distribuir a"
 
 #: templates/valueaccounting/value_equations.html:72
 msgid "Live"
-msgstr ""
+msgstr "Vivo"
 
 #: templates/valueaccounting/value_equations.html:72
 msgid "Test Only"
-msgstr ""
+msgstr "Sólo Prueba"
 
 #: templates/valueaccounting/view_stream_recipe.html:8
 msgid " View Workflow Recipe for "
-msgstr ""
+msgstr "Ver Factura de Flujo de Trabajo para"
 
 #: templates/valueaccounting/view_stream_recipe.html:113
 msgid "View Workflow Recipe for "
-msgstr ""
+msgstr "Ver Factura de Flujo de Trabajo para"
 
 #: templates/valueaccounting/virtual_accounts.html:43
 msgid "Payout from "
-msgstr ""
+msgstr "Desembolso desde"
 
 #: templates/valueaccounting/work.html:196
 msgid "Process Diagram"
-msgstr ""
+msgstr "Diagrama de proceso"
 
 #: templates/valueaccounting/work.html:212
 msgid "Show processes scheduled during "
-msgstr ""
+msgstr "Mostrar procesos programados durante"
 
 #: templates/valueaccounting/work.html:228
 msgid "for project"
-msgstr ""
+msgstr "para proyecto"
 
 #: templates/valueaccounting/work.html:234
 msgid "Reload"
-msgstr ""
+msgstr "Recargar"
 
 #: templates/valueaccounting/work.html:246
 msgid "No project"
-msgstr ""
+msgstr "Sin proyecto"
 
 #: templates/valueaccounting/work.html:262
 msgid "Notes and Dates"
-msgstr ""
+msgstr "Notas y Fechas"
 
 #: templates/valueaccounting/work.html:268
 msgid "Add Notes and Change Dates"
-msgstr ""
+msgstr "Agregar Notas y Cambiar Fechas"
 
 #: templates/valueaccounting/work.html:332
 msgid "Todo list"
-msgstr ""
+msgstr "Lista de tareas por hacer"
 
 #: templates/valueaccounting/work.html:360
 msgid "Unfinished Todos"
-msgstr ""
+msgstr "Por hacer sin terminar"
 
 #: templates/valueaccounting/work.html:361
 msgid "Finished Todos"
-msgstr ""
+msgstr "Por hacer terminados"
 
 #: templates/valueaccounting/work.html:371
 msgid "What to do"
-msgstr ""
+msgstr "Qué hacer"
 
 #: templates/valueaccounting/work.html:373
 msgid "Did what"
-msgstr ""
+msgstr "Qué se hizo"
 
 #: templates/valueaccounting/work_now.html:7
 msgid "Work Notes on "
-msgstr ""
+msgstr "Notas de trabajo sobre"
 
 #: templates/valueaccounting/work_now.html:154
 msgid "Save and Close"
-msgstr ""
+msgstr "Guardar y Cerrar"
 
 #: templates/valueaccounting/work_now.html:160
 #: templates/valueaccounting/workbook.html:156
 msgid "Start"
-msgstr ""
+msgstr "Comenzar"
 
 #: templates/valueaccounting/work_now.html:161
 #: templates/valueaccounting/workbook.html:157
 msgid "Stop"
-msgstr ""
+msgstr "Parar"
 
 #: templates/valueaccounting/work_now.html:164
 msgid "Time spent in this work session"
-msgstr ""
+msgstr "Tiempo utilizado in esta sesión de trabajo"
 
 #: templates/valueaccounting/workbook.html:160
 msgid "Time spent today"
-msgstr ""
+msgstr "Tiempo utilizado hoy"
 
 #: templates/valueaccounting/workflow_board_demo.html:7
 msgid "Workflow "
-msgstr ""
+msgstr "Flujo de Trabajo"
 
 #: templates/valueaccounting/workflow_board_demo.html:122
 msgid "Plan Processes"
-msgstr ""
+msgstr "Procesos del plan"
 
 #: templates/valueaccounting/workflow_board_demo.html:194
 msgid "Filter Board"
-msgstr ""
+msgstr "Filtrar tablero"
 
 #: templates/valueaccounting/workflow_board_demo.html:197
 msgid "Show All"
-msgstr ""
+msgstr "Mostrar todo"
 
 #: valueaccounting/forms.py:169
 msgid "Add Agents to this Location"
-msgstr ""
+msgstr "Agregar agentes a esta Ubicación"
 
 #: valueaccounting/forms.py:174
 msgid "Remove Agents from this Location"
-msgstr ""
+msgstr "Quitar Agentes de esta Ubicación"
 
 #: valueaccounting/forms.py:227 valueaccounting/forms.py:926
 #: valueaccounting/forms.py:1655 valueaccounting/forms.py:1900
 #: valueaccounting/forms.py:2312 valueaccounting/forms.py:2389
 #: valueaccounting/forms.py:3525
 msgid "Current Resource Location"
-msgstr ""
+msgstr "Ubicación de Recurso Actual"
 
 #: valueaccounting/forms.py:514
 msgid "Select an existing Process Type..."
-msgstr ""
+msgstr "Seleccionar un Tipo de Proceso existente..."
 
 #: valueaccounting/forms.py:519
 msgid "...or create a new Process Type named:"
-msgstr ""
+msgstr "...o crear un nuevo Tipo de Proceso denominado:"
 
 #: valueaccounting/forms.py:2228
 msgid "Check if the cash contribution comes from your virtual account"
-msgstr ""
+msgstr "Cotejar si la contribución de efectivo viene de su cuenta virtual"
 
 #: valueaccounting/forms.py:2367
 msgid "Unit of Value"
-msgstr ""
+msgstr "Unidad de Valor"
 
 #: valueaccounting/forms.py:2539
 msgid ""
 "Transfer From (optional - this will limit the choices when creating a "
 "transfer)"
 msgstr ""
+"Transferir desde (opcional - esto limitará las opciones cuando se crea una "
+"transferencia)"
 
 #: valueaccounting/forms.py:2545
 msgid ""
 "Transfer To (optional - this will limit the choices when creating a "
 "transfer)"
 msgstr ""
+"Transferir a (opcional - esto limitará las opciones cuando se crea una "
+"transferencia)"
 
-#: valueaccounting/forms.py:2800 valueaccounting/models.py:1620
+#: valueaccounting/forms.py:2800 valueaccounting/models.py:1634
 msgid ""
 "Can any resource of this type be substituted for any other resource of this "
 "type?"
 msgstr ""
+"¿Puede ser sustituido cualquier recurso de este tipo por cualquier otro "
+"recurso de este tipo?"
 
 #: valueaccounting/forms.py:2893
 msgid "Output quantity"
-msgstr ""
+msgstr "Cantidad de salida"
 
 #: valueaccounting/forms.py:3265
 msgid "Amount to distribute"
-msgstr ""
+msgstr "Monto a distribuir"
 
 #: valueaccounting/forms.py:3305
 msgid "Link to receipt(s)"
-msgstr ""
+msgstr "Cíncular a Factura(s)"
 
 #: valueaccounting/forms.py:3367
 msgid "Context (who interacts with the payer)"
-msgstr ""
+msgstr "Contexto (quién interactúa con el pagador)"
 
 #: valueaccounting/forms.py:3432
 msgid ""
 "if you selected only one distribution source, you may distribute only part "
 "of it"
 msgstr ""
+"si Ud. seleccionó sólo una fuente de distribución, Ud. puede distribuir sólo"
+" parte de la misma"
 
 #: valueaccounting/forms.py:3618 valueaccounting/forms.py:3651
 #: valueaccounting/forms.py:3724 valueaccounting/forms.py:3837
 msgid "Select zero or more Process Types"
-msgstr ""
+msgstr "Seleccionar cero o más Tipos de Proceso"
 
 #: valueaccounting/forms.py:3623 valueaccounting/forms.py:3656
 #: valueaccounting/forms.py:3729 valueaccounting/forms.py:3842
 msgid "Select zero or more Resource Types"
-msgstr ""
+msgstr "Seleccionar cero o más Tipos de Recurso"
 
 #: valueaccounting/forms.py:3718 valueaccounting/forms.py:3989
 msgid "Select one or more Delivery Events"
-msgstr ""
+msgstr "Seleccionar cero o más Eventos de Entrega"
 
 #: valueaccounting/forms.py:3805
 msgid "Select a Value Equation"
-msgstr ""
+msgstr "Seleccionar una Ecuación de Valor"
 
 #: valueaccounting/forms.py:3906
 msgid "Network/Project (optional)"
-msgstr ""
+msgstr "Red/Proyecto (optativo)"
 
 #: valueaccounting/forms.py:3945
 msgid "Select one or more Orders"
-msgstr ""
+msgstr "Seleccionar uno o más Pedidos"
 
 #: valueaccounting/forms.py:4024
 msgid "Select one or more Processes"
-msgstr ""
+msgstr "Seleccionar uno o más Procesos"
 
 #: valueaccounting/management.py:9
 msgid "Join Task"
-msgstr ""
+msgstr "Unirse a la Tarea"
 
 #: valueaccounting/management.py:9
 msgid "a colleaque wants to help with this task"
-msgstr ""
+msgstr "un compañero quiere ayudar con esta tarea"
 
 #: valueaccounting/management.py:10
 msgid "Help Wanted"
-msgstr ""
+msgstr "Se busca ayuda"
 
 #: valueaccounting/management.py:10
 msgid "a colleague requests help that fits your skills"
-msgstr ""
+msgstr "un compañero solicita una ayuda que se ajusta a sus habilidades"
 
 #: valueaccounting/management.py:11
 msgid "New Task"
-msgstr ""
+msgstr "Nueva Tarea"
 
 #: valueaccounting/management.py:11
 msgid "a new task was posted that fits your skills"
-msgstr ""
+msgstr "se publicó una nueva tarea que se adecúa a sus habilidades"
 
 #: valueaccounting/management.py:12
 msgid "New Todo"
-msgstr ""
+msgstr "Nueva Por Hacer"
 
 #: valueaccounting/management.py:12
 msgid "a new todo was posted that is assigned to you"
-msgstr ""
+msgstr "su publicó una nueva por hacer que le fue asignada a Ud."
 
 #: valueaccounting/management.py:13
 msgid "Deleted Todo"
-msgstr ""
+msgstr "Por Hacer borrado"
 
 #: valueaccounting/management.py:13
 msgid "a todo that was assigned to you has been deleted"
-msgstr ""
+msgstr "ha sido borrada una Por Hacer que le había sido asignada a Ud."
 
 #: valueaccounting/management.py:14
 msgid "New Distribution"
-msgstr ""
+msgstr "Nueva Distribución"
 
 #: valueaccounting/management.py:14
 msgid "you have received a new income distribution"
-msgstr ""
+msgstr "Ud. a recibido una nueva distribución de ingresos"
 
 #: valueaccounting/management.py:15
 msgid "Payout Request"
-msgstr ""
+msgstr "Solicitud de Desembolso"
 
 #: valueaccounting/management.py:15
 msgid "you have received a new payout request"
-msgstr ""
+msgstr "Ud. ha recibido una nueva solicitud de desembolso"
 
 #: valueaccounting/management.py:16
 msgid "Freedom Coop Membership Request"
@@ -5694,1390 +5788,1398 @@ msgstr "hemos recibido una nueva solicitud de membresía"
 
 #: valueaccounting/models.py:133
 msgid "banner"
-msgstr ""
+msgstr "banner"
 
 #: valueaccounting/models.py:134
 msgid "HTML text for top Banner"
-msgstr ""
+msgstr "Texto HTML para el Banner superior"
 
 #: valueaccounting/models.py:135
 msgid "use work panel"
-msgstr ""
+msgstr "usar panel de trabajo"
 
 #: valueaccounting/models.py:136
 msgid "Work panel, if used, will be Panel 1"
-msgstr ""
+msgstr "Panel de trabajo, si se usa, será el Panel 1"
 
 #: valueaccounting/models.py:137
 msgid "work panel headline"
-msgstr ""
+msgstr "encabezado del panel de trabajo"
 
 #: valueaccounting/models.py:138
 msgid "use needs panel"
-msgstr ""
+msgstr "usar panel de necesidades"
 
 #: valueaccounting/models.py:139
 msgid "Needs panel, if used, will be Panel 2"
-msgstr ""
+msgstr "Panel de necesidades, si se usa, será el Panel 2"
 
 #: valueaccounting/models.py:140
 msgid "needs panel headline"
-msgstr ""
+msgstr "encabezado del panel de necesidades"
 
 #: valueaccounting/models.py:141
 msgid "use creations panel"
-msgstr ""
+msgstr "usar panel de creaciones"
 
 #: valueaccounting/models.py:142
 msgid "Creations panel, if used, will be Panel 3"
-msgstr ""
+msgstr "Panel de Creaciones, si se usa, será el Panel 3"
 
 #: valueaccounting/models.py:143
 msgid "creations panel headline"
-msgstr ""
+msgstr "encabezado del panel de creaciones"
 
 #: valueaccounting/models.py:144
 msgid "panel 1"
-msgstr ""
+msgstr "panel 1"
 
 #: valueaccounting/models.py:145
 msgid "HTML text for Panel 1"
-msgstr ""
+msgstr "Texto HTML para el Panel 1"
 
 #: valueaccounting/models.py:146
 msgid "panel 2"
-msgstr ""
+msgstr "panel 2"
 
 #: valueaccounting/models.py:147
 msgid "HTML text for Panel 2"
-msgstr ""
+msgstr "Texto HTML para el Panel 2"
 
 #: valueaccounting/models.py:148
 msgid "panel 3"
-msgstr ""
+msgstr "panel 3"
 
 #: valueaccounting/models.py:149
 msgid "HTML text for Panel 3"
-msgstr ""
+msgstr "Texto HTML para el Panel 3"
 
 #: valueaccounting/models.py:150
 msgid "footer"
-msgstr ""
+msgstr "pie de página"
 
 #: valueaccounting/models.py:153
 msgid "home page layout"
-msgstr ""
+msgstr "diseño de página de inicio"
 
 #: valueaccounting/models.py:161
 msgid "Create Distribution"
-msgstr ""
+msgstr "Crear Distribución"
 
 #: valueaccounting/models.py:163
 msgid "Create Sale"
-msgstr ""
+msgstr "Crear Venta"
 
 #: valueaccounting/models.py:165
 msgid "Edit Assembly Recipes"
-msgstr ""
+msgstr "Editar Facturas de Asamblea"
 
 #: valueaccounting/models.py:166
 msgid "Edit Workflow Recipes"
-msgstr ""
+msgstr "Editar Facturas de Flujo de Trabajo"
 
 #: valueaccounting/models.py:168
 msgid "Home"
-msgstr ""
+msgstr "Inicio"
 
 #: valueaccounting/models.py:170
 msgid "Labnotes Form"
-msgstr ""
+msgstr "Formulario de Notas de Laboratorio"
 
 #: valueaccounting/models.py:174
 msgid "Non-production time logging"
-msgstr ""
+msgstr "Carga de tiempo no productivo"
 
 #: valueaccounting/models.py:176
 msgid "Plan from recipe"
-msgstr ""
+msgstr "Plan desde Factura"
 
 #: valueaccounting/models.py:177
 msgid "Plan from Resource Type"
-msgstr ""
+msgstr "Plan desde Tipo de REcurso"
 
 #: valueaccounting/models.py:178
 msgid "Plan from Resource Type Recipe"
-msgstr ""
+msgstr "Plan desde Factura de Tipo de Recurso"
 
 #: valueaccounting/models.py:180
 msgid "Process Selections"
-msgstr ""
+msgstr "Selecciones de Proceso"
 
 #: valueaccounting/models.py:181
 msgid "Recipes"
-msgstr ""
+msgstr "Facturas"
 
 #: valueaccounting/models.py:185
 msgid "Non-process Logging (Work)"
-msgstr ""
+msgstr "Carga de no proceso (trabajo)"
 
 #: valueaccounting/models.py:186
 msgid "Process Logging (Work)"
-msgstr ""
+msgstr "Carga de proceso (trabajo)"
 
 #: valueaccounting/models.py:187
 msgid "My Profile (Work)"
-msgstr ""
+msgstr "Mi Perfil (Trabajo)"
 
 #: valueaccounting/models.py:188
 msgid "My History (Work)"
-msgstr ""
+msgstr "Mi Historial (Trabajo)"
 
 #: valueaccounting/models.py:189
 msgid "Map (Work)"
-msgstr ""
+msgstr "Mapa (Trabajo)"
 
 #: valueaccounting/models.py:190
 msgid "Home (Work)"
-msgstr ""
+msgstr "Inicio  (Trabajo)"
 
 #: valueaccounting/models.py:191
 msgid "Process (Work)"
-msgstr ""
+msgstr "Proceso  (Trabajo)"
 
 #: valueaccounting/models.py:192
 msgid "Work Now (Work)"
-msgstr ""
+msgstr "Trabajar ahora  (Trabajo)"
 
 #: valueaccounting/models.py:196
 msgid "page"
-msgstr ""
+msgstr "página"
 
 #: valueaccounting/models.py:197 valueaccounting/models.py:209
 #: valueaccounting/models.py:225 valueaccounting/models.py:280
 #: valueaccounting/models.py:316 valueaccounting/models.py:423
-#: valueaccounting/models.py:1232 valueaccounting/models.py:1310
-#: valueaccounting/models.py:1557 valueaccounting/models.py:1574
-#: valueaccounting/models.py:1629 valueaccounting/models.py:2440
-#: valueaccounting/models.py:3176 valueaccounting/models.py:3527
-#: valueaccounting/models.py:3865 valueaccounting/models.py:3892
-#: valueaccounting/models.py:5474 valueaccounting/models.py:5546
-#: valueaccounting/models.py:5582 valueaccounting/models.py:6823
-#: valueaccounting/models.py:8227 valueaccounting/models.py:9465
-#: valueaccounting/models.py:9966
+#: valueaccounting/models.py:1246 valueaccounting/models.py:1324
+#: valueaccounting/models.py:1571 valueaccounting/models.py:1588
+#: valueaccounting/models.py:1643 valueaccounting/models.py:2454
+#: valueaccounting/models.py:3190 valueaccounting/models.py:3541
+#: valueaccounting/models.py:3879 valueaccounting/models.py:3906
+#: valueaccounting/models.py:5488 valueaccounting/models.py:5560
+#: valueaccounting/models.py:5596 valueaccounting/models.py:6837
+#: valueaccounting/models.py:8241 valueaccounting/models.py:9479
+#: valueaccounting/models.py:9980
 msgid "description"
-msgstr ""
+msgstr "descripción"
 
 #: valueaccounting/models.py:200
 msgid "help"
-msgstr ""
+msgstr "ayuda"
 
 #: valueaccounting/models.py:208 valueaccounting/models.py:250
 #: valueaccounting/models.py:279 valueaccounting/models.py:310
-#: valueaccounting/models.py:417 valueaccounting/models.py:1227
-#: valueaccounting/models.py:1392 valueaccounting/models.py:1538
-#: valueaccounting/models.py:1556 valueaccounting/models.py:1573
-#: valueaccounting/models.py:1595 valueaccounting/models.py:2439
-#: valueaccounting/models.py:2547 valueaccounting/models.py:2882
-#: valueaccounting/models.py:3166 valueaccounting/models.py:3517
-#: valueaccounting/models.py:3888 valueaccounting/models.py:5545
-#: valueaccounting/models.py:5798 valueaccounting/models.py:6819
-#: valueaccounting/models.py:6966 valueaccounting/models.py:7561
-#: valueaccounting/models.py:8018 valueaccounting/models.py:9461
-#: valueaccounting/models.py:9778 valueaccounting/models.py:11072
+#: valueaccounting/models.py:417 valueaccounting/models.py:1241
+#: valueaccounting/models.py:1406 valueaccounting/models.py:1552
+#: valueaccounting/models.py:1570 valueaccounting/models.py:1587
+#: valueaccounting/models.py:1609 valueaccounting/models.py:2453
+#: valueaccounting/models.py:2561 valueaccounting/models.py:2896
+#: valueaccounting/models.py:3180 valueaccounting/models.py:3531
+#: valueaccounting/models.py:3902 valueaccounting/models.py:5559
+#: valueaccounting/models.py:5812 valueaccounting/models.py:6833
+#: valueaccounting/models.py:6980 valueaccounting/models.py:7575
+#: valueaccounting/models.py:8032 valueaccounting/models.py:9475
+#: valueaccounting/models.py:9792 valueaccounting/models.py:11086
 msgid "name"
-msgstr ""
+msgstr "nombre"
 
 #: valueaccounting/models.py:223
 msgid "facet"
-msgstr ""
+msgstr "faceta"
 
 #: valueaccounting/models.py:224 valueaccounting/models.py:240
-#: valueaccounting/models.py:5467 valueaccounting/models.py:8233
-#: valueaccounting/models.py:9971 valueaccounting/models.py:11608
-#: valueaccounting/models.py:11689 valueaccounting/models.py:11777
+#: valueaccounting/models.py:5481 valueaccounting/models.py:8247
+#: valueaccounting/models.py:9985 valueaccounting/models.py:11622
+#: valueaccounting/models.py:11703 valueaccounting/models.py:11791
 msgid "value"
-msgstr ""
+msgstr "valor"
 
 #: valueaccounting/models.py:236
 msgid "area"
-msgstr ""
+msgstr "área"
 
 #: valueaccounting/models.py:237
 msgid "length"
-msgstr ""
+msgstr "longitud"
 
 #: valueaccounting/models.py:239
 msgid "time"
-msgstr ""
+msgstr "tiempo"
 
 #: valueaccounting/models.py:241
 msgid "volume"
-msgstr ""
+msgstr "volumen"
 
 #: valueaccounting/models.py:242
 msgid "weight"
-msgstr ""
+msgstr "peso"
 
 #: valueaccounting/models.py:243
 msgid "ip"
-msgstr ""
+msgstr "ip"
 
 #: valueaccounting/models.py:244
 msgid "percent"
-msgstr ""
+msgstr "por ciento"
 
-#: valueaccounting/models.py:248 valueaccounting/models.py:1401
+#: valueaccounting/models.py:248 valueaccounting/models.py:1415
 msgid "unit type"
-msgstr ""
+msgstr "tipo de unidad"
 
 #: valueaccounting/models.py:249
 msgid "abbreviation"
-msgstr ""
+msgstr "abreviatura"
 
 #: valueaccounting/models.py:251
 msgid "symbol"
-msgstr ""
+msgstr "símbolo"
 
 #: valueaccounting/models.py:262
 msgid "active contributor"
-msgstr ""
+msgstr "contribuyente activo"
 
 #: valueaccounting/models.py:263
 msgid "close affiliate"
-msgstr ""
+msgstr "afiliado cercano"
 
 #: valueaccounting/models.py:264
 msgid "inactive contributor"
-msgstr ""
+msgstr "contribuyente inactivo"
 
 #: valueaccounting/models.py:265
 msgid "passive agent"
-msgstr ""
+msgstr "agente pasivo"
 
 #: valueaccounting/models.py:266
 msgid "external agent"
-msgstr ""
+msgstr "agente externo"
 
 #: valueaccounting/models.py:270
 msgid "individual"
-msgstr ""
+msgstr "individuo"
 
 #: valueaccounting/models.py:271
 msgid "organization"
-msgstr ""
+msgstr "organización"
 
 #: valueaccounting/models.py:272
 msgid "network"
-msgstr ""
+msgstr "red"
 
 #: valueaccounting/models.py:273
 msgid "project"
-msgstr ""
+msgstr "proyecto"
 
 #: valueaccounting/models.py:274
 msgid "community"
-msgstr ""
+msgstr "comunidad"
 
-#: valueaccounting/models.py:312 valueaccounting/models.py:1598
-#: valueaccounting/models.py:3519 valueaccounting/models.py:5800
+#: valueaccounting/models.py:312 valueaccounting/models.py:1612
+#: valueaccounting/models.py:3533 valueaccounting/models.py:5814
 msgid "parent"
-msgstr ""
+msgstr "padre"
 
 #: valueaccounting/models.py:313
 msgid "party type"
-msgstr ""
+msgstr "tipo de parte"
 
 #: valueaccounting/models.py:317 valueaccounting/models.py:442
 msgid "is context"
-msgstr ""
+msgstr "es contexto"
 
 #: valueaccounting/models.py:419
 msgid "Must be unique, and no more than 32 characters"
-msgstr ""
+msgstr "Debe ser único, y no más de 32 caracteres"
 
-#: valueaccounting/models.py:420 valueaccounting/models.py:1628
-#: valueaccounting/models.py:3528 valueaccounting/models.py:3977
-#: valueaccounting/models.py:5812 valueaccounting/models.py:6980
-#: valueaccounting/models.py:8228 valueaccounting/models.py:9786
-#: valueaccounting/models.py:9965
+#: valueaccounting/models.py:420 valueaccounting/models.py:1642
+#: valueaccounting/models.py:3542 valueaccounting/models.py:3991
+#: valueaccounting/models.py:5826 valueaccounting/models.py:6994
+#: valueaccounting/models.py:8242 valueaccounting/models.py:9800
+#: valueaccounting/models.py:9979
 msgid "url"
-msgstr ""
+msgstr "url"
 
 #: valueaccounting/models.py:422
 msgid "agent type"
-msgstr ""
+msgstr "tipo de agente"
 
 #: valueaccounting/models.py:424
 msgid "address"
-msgstr ""
+msgstr "dirección"
 
 #: valueaccounting/models.py:425
 msgid "email address"
-msgstr ""
+msgstr "dirección de email"
 
 #: valueaccounting/models.py:426
 msgid "primary phone"
-msgstr ""
+msgstr "teléfono primario"
 
 #: valueaccounting/models.py:427
 msgid "secondary phone"
-msgstr ""
+msgstr "teléfono secundario"
 
 #: valueaccounting/models.py:428
 msgid "latitude"
-msgstr ""
+msgstr "latitud"
 
 #: valueaccounting/models.py:429
 msgid "longitude"
-msgstr ""
+msgstr "longitud"
 
-#: valueaccounting/models.py:431 valueaccounting/models.py:3991
+#: valueaccounting/models.py:431 valueaccounting/models.py:4005
 msgid "current location"
-msgstr ""
+msgstr "ubicación actual"
 
-#: valueaccounting/models.py:434 valueaccounting/models.py:11773
+#: valueaccounting/models.py:434 valueaccounting/models.py:11787
 msgid "reputation"
-msgstr ""
+msgstr "reputación"
 
-#: valueaccounting/models.py:436 valueaccounting/models.py:1625
-#: valueaccounting/models.py:3986
+#: valueaccounting/models.py:436 valueaccounting/models.py:1639
+#: valueaccounting/models.py:4000
 msgid "photo"
-msgstr ""
+msgstr "foto"
 
-#: valueaccounting/models.py:438 valueaccounting/models.py:1627
-#: valueaccounting/models.py:3988
+#: valueaccounting/models.py:438 valueaccounting/models.py:1641
+#: valueaccounting/models.py:4002
 msgid "photo url"
-msgstr ""
+msgstr "url de foto"
 
 #: valueaccounting/models.py:440
 msgid "unit used in claims"
-msgstr ""
+msgstr "unidad usada en reclamos"
 
 #: valueaccounting/models.py:441
 msgid "For a context agent, the unit of all claims"
-msgstr ""
+msgstr "Para un agente de contrexto, la unidad de todos los reclamos"
 
-#: valueaccounting/models.py:443 valueaccounting/models.py:1404
-#: valueaccounting/models.py:1639 valueaccounting/models.py:3537
-#: valueaccounting/models.py:3899 valueaccounting/models.py:5824
-#: valueaccounting/models.py:6998 valueaccounting/models.py:7580
-#: valueaccounting/models.py:8243 valueaccounting/models.py:9799
-#: valueaccounting/models.py:9998 valueaccounting/models.py:11616
+#: valueaccounting/models.py:443 valueaccounting/models.py:1418
+#: valueaccounting/models.py:1653 valueaccounting/models.py:3551
+#: valueaccounting/models.py:3913 valueaccounting/models.py:5838
+#: valueaccounting/models.py:7012 valueaccounting/models.py:7594
+#: valueaccounting/models.py:8257 valueaccounting/models.py:9813
+#: valueaccounting/models.py:10012 valueaccounting/models.py:11630
 msgid "Page name"
-msgstr ""
+msgstr "Nombre de página"
 
-#: valueaccounting/models.py:447 valueaccounting/models.py:1635
-#: valueaccounting/models.py:3179 valueaccounting/models.py:3533
-#: valueaccounting/models.py:3895 valueaccounting/models.py:4004
-#: valueaccounting/models.py:5477 valueaccounting/models.py:5585
-#: valueaccounting/models.py:5820 valueaccounting/models.py:6839
-#: valueaccounting/models.py:6994 valueaccounting/models.py:7576
-#: valueaccounting/models.py:8037 valueaccounting/models.py:8104
-#: valueaccounting/models.py:8239 valueaccounting/models.py:9795
-#: valueaccounting/models.py:9995 valueaccounting/models.py:11087
-#: valueaccounting/models.py:11442
+#: valueaccounting/models.py:447 valueaccounting/models.py:1649
+#: valueaccounting/models.py:3193 valueaccounting/models.py:3547
+#: valueaccounting/models.py:3909 valueaccounting/models.py:4018
+#: valueaccounting/models.py:5491 valueaccounting/models.py:5599
+#: valueaccounting/models.py:5834 valueaccounting/models.py:6853
+#: valueaccounting/models.py:7008 valueaccounting/models.py:7590
+#: valueaccounting/models.py:8051 valueaccounting/models.py:8118
+#: valueaccounting/models.py:8253 valueaccounting/models.py:9809
+#: valueaccounting/models.py:10009 valueaccounting/models.py:11101
+#: valueaccounting/models.py:11456
 msgid "changed by"
-msgstr ""
+msgstr "cambiado por"
 
-#: valueaccounting/models.py:1210 valueaccounting/models.py:1357
-#: valueaccounting/models.py:5457 valueaccounting/models.py:5555
-#: valueaccounting/models.py:11762
+#: valueaccounting/models.py:1224 valueaccounting/models.py:1371
+#: valueaccounting/models.py:5471 valueaccounting/models.py:5569
+#: valueaccounting/models.py:11776
 msgid "agent"
-msgstr ""
+msgstr "agente"
 
-#: valueaccounting/models.py:1212
+#: valueaccounting/models.py:1226
 msgid "user"
-msgstr ""
+msgstr "usuario"
 
-#: valueaccounting/models.py:1216 valueaccounting/models.py:6985
+#: valueaccounting/models.py:1230 valueaccounting/models.py:6999
 msgid "supplier"
-msgstr ""
+msgstr "proveedor"
 
-#: valueaccounting/models.py:1217 valueaccounting/models.py:6988
+#: valueaccounting/models.py:1231 valueaccounting/models.py:7002
 msgid "customer"
-msgstr ""
+msgstr "cliente"
 
-#: valueaccounting/models.py:1218
+#: valueaccounting/models.py:1232
 msgid "member"
-msgstr ""
+msgstr "miembro"
 
-#: valueaccounting/models.py:1219
+#: valueaccounting/models.py:1233
 msgid "child"
-msgstr ""
+msgstr "niño"
 
-#: valueaccounting/models.py:1220
+#: valueaccounting/models.py:1234
 msgid "custodian"
-msgstr ""
+msgstr "custorio"
 
-#: valueaccounting/models.py:1221
+#: valueaccounting/models.py:1235
 msgid "manager"
-msgstr ""
+msgstr "administrador"
 
-#: valueaccounting/models.py:1222
+#: valueaccounting/models.py:1236
 msgid "peer"
-msgstr ""
+msgstr "par"
 
-#: valueaccounting/models.py:1226 valueaccounting/models.py:2881
-#: valueaccounting/models.py:3864 valueaccounting/models.py:3964
+#: valueaccounting/models.py:1240 valueaccounting/models.py:2895
+#: valueaccounting/models.py:3878 valueaccounting/models.py:3978
 msgid "identifier"
-msgstr ""
+msgstr "identificador"
 
-#: valueaccounting/models.py:1228
+#: valueaccounting/models.py:1242
 msgid "plural name"
-msgstr ""
+msgstr "nombre plural"
 
-#: valueaccounting/models.py:1229
+#: valueaccounting/models.py:1243
 msgid "association behavior"
-msgstr ""
+msgstr "comportamiento de la asociación"
 
-#: valueaccounting/models.py:1233 valueaccounting/models.py:1393
+#: valueaccounting/models.py:1247 valueaccounting/models.py:1407
 msgid "label"
-msgstr ""
+msgstr "etiqueta"
 
-#: valueaccounting/models.py:1234 valueaccounting/models.py:1394
+#: valueaccounting/models.py:1248 valueaccounting/models.py:1408
 msgid "inverse label"
-msgstr ""
+msgstr "etiqueta inversa"
 
-#: valueaccounting/models.py:1298
+#: valueaccounting/models.py:1312
 msgid "active"
-msgstr ""
+msgstr "activo"
 
-#: valueaccounting/models.py:1299
+#: valueaccounting/models.py:1313
 msgid "inactive"
-msgstr ""
+msgstr "inactivo"
 
-#: valueaccounting/models.py:1300
+#: valueaccounting/models.py:1314
 msgid "candidate"
-msgstr ""
+msgstr "candidato"
 
-#: valueaccounting/models.py:1305
+#: valueaccounting/models.py:1319
 msgid "is associate of"
-msgstr ""
+msgstr "es socio de"
 
-#: valueaccounting/models.py:1307
+#: valueaccounting/models.py:1321
 msgid "has associate"
-msgstr ""
+msgstr "tiene socio"
 
-#: valueaccounting/models.py:1309
+#: valueaccounting/models.py:1323
 msgid "association type"
-msgstr ""
+msgstr "tipo de asociación"
 
-#: valueaccounting/models.py:1311 valueaccounting/models.py:3976
-#: valueaccounting/models.py:5578 valueaccounting/models.py:8194
+#: valueaccounting/models.py:1325 valueaccounting/models.py:3990
+#: valueaccounting/models.py:5592 valueaccounting/models.py:8208
 msgid "state"
-msgstr ""
+msgstr "estado"
 
-#: valueaccounting/models.py:1335
+#: valueaccounting/models.py:1349
 msgid "input"
-msgstr ""
+msgstr "entrada"
 
-#: valueaccounting/models.py:1336
+#: valueaccounting/models.py:1350
 msgid "consume"
-msgstr ""
+msgstr "consumo"
 
-#: valueaccounting/models.py:1337
+#: valueaccounting/models.py:1351
 msgid "use"
-msgstr ""
+msgstr "uso"
 
-#: valueaccounting/models.py:1338
+#: valueaccounting/models.py:1352
 msgid "output"
-msgstr ""
+msgstr "salida"
 
-#: valueaccounting/models.py:1339
+#: valueaccounting/models.py:1353
 msgid "citation"
-msgstr ""
+msgstr "citación"
 
-#: valueaccounting/models.py:1340 valueaccounting/models.py:2996
+#: valueaccounting/models.py:1354 valueaccounting/models.py:3010
 msgid "work"
-msgstr ""
+msgstr "trabajo"
 
-#: valueaccounting/models.py:1341 valueaccounting/models.py:2994
+#: valueaccounting/models.py:1355 valueaccounting/models.py:3008
 msgid "todo"
-msgstr ""
+msgstr "por hacer"
 
-#: valueaccounting/models.py:1342
+#: valueaccounting/models.py:1356
 msgid "payment"
-msgstr ""
+msgstr "pago"
 
-#: valueaccounting/models.py:1343
+#: valueaccounting/models.py:1357
 msgid "receipt"
-msgstr ""
+msgstr "factura"
 
-#: valueaccounting/models.py:1344
+#: valueaccounting/models.py:1358
 msgid "expense"
-msgstr ""
+msgstr "expensa"
 
-#: valueaccounting/models.py:1345
+#: valueaccounting/models.py:1359
 msgid "cash input"
-msgstr ""
+msgstr "entrada de efectivo"
 
-#: valueaccounting/models.py:1346
+#: valueaccounting/models.py:1360
 msgid "resource contribution"
-msgstr ""
+msgstr "contribución de recurso"
 
-#: valueaccounting/models.py:1347
+#: valueaccounting/models.py:1361
 msgid "cash receipt"
-msgstr ""
+msgstr "factura en efectivo"
 
-#: valueaccounting/models.py:1348
+#: valueaccounting/models.py:1362
 msgid "shipment"
-msgstr ""
+msgstr "envío"
 
-#: valueaccounting/models.py:1349 valueaccounting/models.py:1359
-#: valueaccounting/models.py:9958 valueaccounting/models.py:11580
-#: valueaccounting/models.py:11583
+#: valueaccounting/models.py:1363 valueaccounting/models.py:1373
+#: valueaccounting/models.py:9972 valueaccounting/models.py:11594
+#: valueaccounting/models.py:11597
 msgid "distribution"
-msgstr ""
+msgstr "distribución"
 
-#: valueaccounting/models.py:1350 valueaccounting/models.py:1365
+#: valueaccounting/models.py:1364 valueaccounting/models.py:1379
 msgid "adjust"
-msgstr ""
+msgstr "ajusta"
 
-#: valueaccounting/models.py:1352 valueaccounting/models.py:3003
+#: valueaccounting/models.py:1366 valueaccounting/models.py:3017
 msgid "disburses cash"
-msgstr ""
+msgstr "desembolsa efectivo"
 
-#: valueaccounting/models.py:1356 valueaccounting/models.py:8216
-#: valueaccounting/models.py:9946
+#: valueaccounting/models.py:1370 valueaccounting/models.py:8230
+#: valueaccounting/models.py:9960
 msgid "process"
-msgstr ""
+msgstr "proceso"
 
-#: valueaccounting/models.py:1358 valueaccounting/models.py:7567
-#: valueaccounting/models.py:8219 valueaccounting/models.py:9950
-#: valueaccounting/models.py:11004
+#: valueaccounting/models.py:1372 valueaccounting/models.py:7581
+#: valueaccounting/models.py:8233 valueaccounting/models.py:9964
+#: valueaccounting/models.py:11018
 msgid "exchange"
-msgstr ""
+msgstr "intercambio"
 
-#: valueaccounting/models.py:1363 valueaccounting/models.py:11678
+#: valueaccounting/models.py:1377 valueaccounting/models.py:11692
 msgid "increase"
-msgstr ""
+msgstr "incremento"
 
-#: valueaccounting/models.py:1364 valueaccounting/models.py:11679
+#: valueaccounting/models.py:1378 valueaccounting/models.py:11693
 msgid "decrease"
-msgstr ""
+msgstr "disminución"
 
-#: valueaccounting/models.py:1366 valueaccounting/models.py:9954
+#: valueaccounting/models.py:1380 valueaccounting/models.py:9968
 msgid "transfer"
-msgstr ""
+msgstr "transferencia"
 
-#: valueaccounting/models.py:1367
+#: valueaccounting/models.py:1381
 msgid "no effect"
-msgstr ""
+msgstr "sin efecto"
 
-#: valueaccounting/models.py:1368
+#: valueaccounting/models.py:1382
 msgid "failure"
-msgstr ""
+msgstr "falla"
 
-#: valueaccounting/models.py:1369
+#: valueaccounting/models.py:1383
 msgid "create to change"
-msgstr ""
+msgstr "crear para cambiar"
 
-#: valueaccounting/models.py:1370 valueaccounting/models.py:2998
+#: valueaccounting/models.py:1384 valueaccounting/models.py:3012
 msgid "to be changed"
-msgstr ""
+msgstr "a ser cambiado"
 
-#: valueaccounting/models.py:1371
+#: valueaccounting/models.py:1385
 msgid "change"
-msgstr ""
+msgstr "cambiar"
 
-#: valueaccounting/models.py:1395
+#: valueaccounting/models.py:1409
 msgid "relationship"
-msgstr ""
+msgstr "relación"
 
-#: valueaccounting/models.py:1397
+#: valueaccounting/models.py:1411
 msgid "related to"
-msgstr ""
+msgstr "relacionado a"
 
-#: valueaccounting/models.py:1399
+#: valueaccounting/models.py:1413
 msgid "resource effect"
-msgstr ""
+msgstr "efecto de recurso"
 
-#: valueaccounting/models.py:1537
+#: valueaccounting/models.py:1551
 msgid "code"
-msgstr ""
+msgstr "código"
 
-#: valueaccounting/models.py:1580
+#: valueaccounting/models.py:1594
 msgid "Keep inventory"
-msgstr ""
+msgstr "Llevar inventario"
 
-#: valueaccounting/models.py:1581
+#: valueaccounting/models.py:1595
 msgid "Not worth it"
-msgstr ""
+msgstr "No lo vale"
 
-#: valueaccounting/models.py:1582
+#: valueaccounting/models.py:1596
 msgid "Does not apply"
-msgstr ""
-
-#: valueaccounting/models.py:1586
-msgid "Type of Work"
-msgstr ""
-
-#: valueaccounting/models.py:1588
-msgid "Digital Currency"
-msgstr ""
-
-#: valueaccounting/models.py:1589
-msgid "Digital Currency Address"
-msgstr ""
-
-#: valueaccounting/models.py:1590
-msgid "Digital Currency Wallet"
-msgstr ""
-
-#: valueaccounting/models.py:1591
-msgid "Other"
-msgstr ""
+msgstr "No se aplica"
 
 #: valueaccounting/models.py:1600
-msgid "resource class"
-msgstr ""
+msgid "Type of Work"
+msgstr "Tipo de Trabajo"
 
-#: valueaccounting/models.py:1602 valueaccounting/models.py:5581
-#: valueaccounting/models.py:8034 valueaccounting/models.py:8231
-#: valueaccounting/models.py:9969 valueaccounting/models.py:11589
-msgid "unit"
-msgstr ""
+#: valueaccounting/models.py:1602
+msgid "Digital Currency"
+msgstr "Moneda digital"
 
 #: valueaccounting/models.py:1603
+msgid "Digital Currency Address"
+msgstr "Dirección de Moneda Digital"
+
+#: valueaccounting/models.py:1604
+msgid "Digital Currency Wallet"
+msgstr "Monedero Digital"
+
+#: valueaccounting/models.py:1605
+msgid "Other"
+msgstr "Otro"
+
+#: valueaccounting/models.py:1614
+msgid "resource class"
+msgstr "clase de recurso"
+
+#: valueaccounting/models.py:1616 valueaccounting/models.py:5595
+#: valueaccounting/models.py:8048 valueaccounting/models.py:8245
+#: valueaccounting/models.py:9983 valueaccounting/models.py:11603
+msgid "unit"
+msgstr "unidad"
+
+#: valueaccounting/models.py:1617
 msgid ""
 "if this resource has different units of use and inventory, this is the unit "
 "of inventory"
 msgstr ""
+"si este recurso tiene diferentes unidades de uso e inventario, esta es la "
+"unidad de inventario"
 
-#: valueaccounting/models.py:1605
+#: valueaccounting/models.py:1619
 msgid "unit of use"
-msgstr ""
+msgstr "unidad de uso"
 
-#: valueaccounting/models.py:1606
+#: valueaccounting/models.py:1620
 msgid ""
 "if this resource has different units of use and inventory, this is the unit "
 "of use"
 msgstr ""
+"si este recurso tiene diferentes unidades de uso e inventario, esta es la "
+"unidad de uso"
 
-#: valueaccounting/models.py:1609 valueaccounting/models.py:5471
-#: valueaccounting/models.py:8236 valueaccounting/models.py:9974
-#: valueaccounting/models.py:11611 valueaccounting/models.py:11691
+#: valueaccounting/models.py:1623 valueaccounting/models.py:5485
+#: valueaccounting/models.py:8250 valueaccounting/models.py:9988
+#: valueaccounting/models.py:11625 valueaccounting/models.py:11705
 msgid "unit of value"
-msgstr ""
+msgstr "unidad de valor"
 
-#: valueaccounting/models.py:1610 valueaccounting/models.py:3995
-#: valueaccounting/models.py:5472
+#: valueaccounting/models.py:1624 valueaccounting/models.py:4009
+#: valueaccounting/models.py:5486
 msgid "value per unit"
-msgstr ""
+msgstr "valor unitario"
 
-#: valueaccounting/models.py:1612 valueaccounting/models.py:3997
+#: valueaccounting/models.py:1626 valueaccounting/models.py:4011
 msgid "value per unit of use"
-msgstr ""
+msgstr "valor por unidad de uso"
 
-#: valueaccounting/models.py:1614 valueaccounting/models.py:3866
-#: valueaccounting/models.py:3999
+#: valueaccounting/models.py:1628 valueaccounting/models.py:3880
+#: valueaccounting/models.py:4013
 msgid "price per unit"
-msgstr ""
+msgstr "precio unitario"
 
-#: valueaccounting/models.py:1618 valueaccounting/models.py:9978
+#: valueaccounting/models.py:1632 valueaccounting/models.py:9992
 msgid "unit of price"
-msgstr ""
+msgstr "unidad de precio"
 
-#: valueaccounting/models.py:1619
+#: valueaccounting/models.py:1633
 msgid "substitutable"
-msgstr ""
+msgstr "sustituible"
 
-#: valueaccounting/models.py:1621
+#: valueaccounting/models.py:1635
 msgid "inventory rule"
-msgstr ""
+msgstr "regla de inventario"
 
-#: valueaccounting/models.py:1623
+#: valueaccounting/models.py:1637
 msgid "behavior"
-msgstr ""
+msgstr "compartamiento"
 
-#: valueaccounting/models.py:1631 valueaccounting/models.py:9985
+#: valueaccounting/models.py:1645 valueaccounting/models.py:9999
 msgid "accounting reference"
-msgstr ""
+msgstr "referencia contable"
 
-#: valueaccounting/models.py:1632
+#: valueaccounting/models.py:1646
 msgid "optional reference to an external account"
-msgstr ""
+msgstr "referncia optativa a una cuenta externa"
 
-#: valueaccounting/models.py:1643 valueaccounting/models.py:2477
-#: valueaccounting/models.py:2491 valueaccounting/models.py:3863
-#: valueaccounting/models.py:3963 valueaccounting/models.py:5459
-#: valueaccounting/models.py:5572 valueaccounting/models.py:8210
-#: valueaccounting/models.py:9938 valueaccounting/models.py:11768
+#: valueaccounting/models.py:1657 valueaccounting/models.py:2491
+#: valueaccounting/models.py:2505 valueaccounting/models.py:3877
+#: valueaccounting/models.py:3977 valueaccounting/models.py:5473
+#: valueaccounting/models.py:5586 valueaccounting/models.py:8224
+#: valueaccounting/models.py:9952 valueaccounting/models.py:11782
 msgid "resource type"
-msgstr ""
+msgstr "tipo de recurso"
 
-#: valueaccounting/models.py:2444 valueaccounting/models.py:3526
-#: valueaccounting/models.py:5811 valueaccounting/models.py:6979
-#: valueaccounting/models.py:7571 valueaccounting/models.py:8226
-#: valueaccounting/models.py:9464 valueaccounting/models.py:9785
-#: valueaccounting/models.py:9963 valueaccounting/models.py:11606
-#: valueaccounting/models.py:11765
+#: valueaccounting/models.py:2458 valueaccounting/models.py:3540
+#: valueaccounting/models.py:5825 valueaccounting/models.py:6993
+#: valueaccounting/models.py:7585 valueaccounting/models.py:8240
+#: valueaccounting/models.py:9478 valueaccounting/models.py:9799
+#: valueaccounting/models.py:9977 valueaccounting/models.py:11620
+#: valueaccounting/models.py:11779
 msgid "context agent"
-msgstr ""
+msgstr "agente de contexto"
 
-#: valueaccounting/models.py:2475
+#: valueaccounting/models.py:2489
 msgid "resource type list"
-msgstr ""
+msgstr "lista de tipo de recurso"
 
-#: valueaccounting/models.py:2478
+#: valueaccounting/models.py:2492
 msgid "default quantity"
-msgstr ""
+msgstr "cantidad por omisión"
 
-#: valueaccounting/models.py:2493 valueaccounting/models.py:2858
-#: valueaccounting/models.py:6925
+#: valueaccounting/models.py:2507 valueaccounting/models.py:2872
+#: valueaccounting/models.py:6939
 msgid "facet value"
-msgstr ""
+msgstr "valor de faceta"
 
-#: valueaccounting/models.py:2856 valueaccounting/models.py:3116
-#: valueaccounting/models.py:6969 valueaccounting/models.py:9781
+#: valueaccounting/models.py:2870 valueaccounting/models.py:3130
+#: valueaccounting/models.py:6983 valueaccounting/models.py:9795
 msgid "pattern"
-msgstr ""
+msgstr "patrón"
 
-#: valueaccounting/models.py:2860 valueaccounting/models.py:3021
-#: valueaccounting/models.py:5464 valueaccounting/models.py:5574
-#: valueaccounting/models.py:8031 valueaccounting/models.py:8188
-#: valueaccounting/models.py:9929 valueaccounting/models.py:11431
-#: valueaccounting/models.py:11770
+#: valueaccounting/models.py:2874 valueaccounting/models.py:3035
+#: valueaccounting/models.py:5478 valueaccounting/models.py:5588
+#: valueaccounting/models.py:8045 valueaccounting/models.py:8202
+#: valueaccounting/models.py:9943 valueaccounting/models.py:11445
+#: valueaccounting/models.py:11784
 msgid "event type"
-msgstr ""
+msgstr "tipo de evento"
 
-#: valueaccounting/models.py:2861
+#: valueaccounting/models.py:2875
 msgid "consumed means gone, used means re-usable"
-msgstr ""
+msgstr "medios consumidos que se fueron, medios usados reutilizables"
 
-#: valueaccounting/models.py:2883
+#: valueaccounting/models.py:2897
 msgid "restrict_to_one_pattern"
-msgstr ""
-
-#: valueaccounting/models.py:2952
-msgid "Non-production Logging"
-msgstr ""
-
-#: valueaccounting/models.py:2953
-msgid "Manufacturing Recipes/Logging"
-msgstr ""
-
-#: valueaccounting/models.py:2954
-msgid "Workflow Recipes/Logging"
-msgstr ""
-
-#: valueaccounting/models.py:2955
-msgid "Todos"
-msgstr ""
-
-#: valueaccounting/models.py:2956
-msgid "Customer Orders"
-msgstr ""
-
-#: valueaccounting/models.py:2957
-msgid "Purchasing"
-msgstr ""
-
-#: valueaccounting/models.py:2964
-msgid "Payout"
-msgstr ""
+msgstr "restrict_to_one_pattern"
 
 #: valueaccounting/models.py:2966
-msgid "Make Available"
-msgstr ""
+msgid "Non-production Logging"
+msgstr "Carga no productiva"
 
 #: valueaccounting/models.py:2967
-msgid "Internal Exchange"
-msgstr ""
+msgid "Manufacturing Recipes/Logging"
+msgstr "Carga/Facturas de Fabricación"
 
 #: valueaccounting/models.py:2968
-msgid "Incoming Exchange"
-msgstr ""
+msgid "Workflow Recipes/Logging"
+msgstr "Carga/Facturas de Flujo de Trabajo"
 
 #: valueaccounting/models.py:2969
+msgid "Todos"
+msgstr "Por hacer"
+
+#: valueaccounting/models.py:2970
+msgid "Customer Orders"
+msgstr "Pedidos de Clientes"
+
+#: valueaccounting/models.py:2971
+msgid "Purchasing"
+msgstr "Adquisición"
+
+#: valueaccounting/models.py:2978
+msgid "Payout"
+msgstr "Desembolso"
+
+#: valueaccounting/models.py:2980
+msgid "Make Available"
+msgstr "Hacer disponible"
+
+#: valueaccounting/models.py:2981
+msgid "Internal Exchange"
+msgstr "Intercambio interno"
+
+#: valueaccounting/models.py:2982
+msgid "Incoming Exchange"
+msgstr "Intercambio entrante"
+
+#: valueaccounting/models.py:2983
 msgid "Outgoing Exchange"
-msgstr ""
+msgstr "Intercambio saliente"
 
-#: valueaccounting/models.py:2979
+#: valueaccounting/models.py:2993
 msgid "cites"
-msgstr ""
+msgstr "cita"
 
-#: valueaccounting/models.py:2979
+#: valueaccounting/models.py:2993
 msgid "cited by"
-msgstr ""
+msgstr "citado por"
 
-#: valueaccounting/models.py:2980
+#: valueaccounting/models.py:2994
 msgid "consumes"
-msgstr ""
+msgstr "consume"
 
-#: valueaccounting/models.py:2980
+#: valueaccounting/models.py:2994
 msgid "consumed by"
-msgstr ""
+msgstr "consumido por"
 
-#: valueaccounting/models.py:2984
+#: valueaccounting/models.py:2998
 msgid "damages"
-msgstr ""
+msgstr "daña"
 
-#: valueaccounting/models.py:2984
+#: valueaccounting/models.py:2998
 msgid "damaged by"
-msgstr ""
-
-#: valueaccounting/models.py:2986
-msgid "fails"
-msgstr ""
-
-#: valueaccounting/models.py:2988
-msgid "produces"
-msgstr ""
-
-#: valueaccounting/models.py:2988
-msgid "produced by"
-msgstr ""
-
-#: valueaccounting/models.py:2989
-msgid "provides"
-msgstr ""
-
-#: valueaccounting/models.py:2989
-msgid "provided by"
-msgstr ""
-
-#: valueaccounting/models.py:2991
-msgid "sells"
-msgstr ""
-
-#: valueaccounting/models.py:2991
-msgid "sold by"
-msgstr ""
-
-#: valueaccounting/models.py:2993
-msgid "supplies"
-msgstr ""
-
-#: valueaccounting/models.py:2993
-msgid "supplied by"
-msgstr ""
-
-#: valueaccounting/models.py:2995
-msgid "uses"
-msgstr ""
-
-#: valueaccounting/models.py:2995
-msgid "used by"
-msgstr ""
-
-#: valueaccounting/models.py:2997
-msgid "creates changeable"
-msgstr ""
-
-#: valueaccounting/models.py:2999
-msgid "changes"
-msgstr ""
+msgstr "dañado por"
 
 #: valueaccounting/models.py:3000
-msgid "adjusts"
-msgstr ""
+msgid "fails"
+msgstr "falla"
 
 #: valueaccounting/models.py:3002
-msgid "distributes"
-msgstr ""
+msgid "produces"
+msgstr "produce"
 
 #: valueaccounting/models.py:3002
-msgid "distributed by"
-msgstr ""
+msgid "produced by"
+msgstr "producido por"
 
 #: valueaccounting/models.py:3003
+msgid "provides"
+msgstr "proporciona"
+
+#: valueaccounting/models.py:3003
+msgid "provided by"
+msgstr "provisto por"
+
+#: valueaccounting/models.py:3005
+msgid "sells"
+msgstr "vende"
+
+#: valueaccounting/models.py:3005
+msgid "sold by"
+msgstr "vendido por"
+
+#: valueaccounting/models.py:3007
+msgid "supplies"
+msgstr "suministra"
+
+#: valueaccounting/models.py:3007
+msgid "supplied by"
+msgstr "suministrado por"
+
+#: valueaccounting/models.py:3009
+msgid "uses"
+msgstr "usa"
+
+#: valueaccounting/models.py:3009
+msgid "used by"
+msgstr "usado por"
+
+#: valueaccounting/models.py:3011
+msgid "creates changeable"
+msgstr "crea intercambiable"
+
+#: valueaccounting/models.py:3013
+msgid "changes"
+msgstr "cambia"
+
+#: valueaccounting/models.py:3014
+msgid "adjusts"
+msgstr "ajusta"
+
+#: valueaccounting/models.py:3016
+msgid "distributes"
+msgstr "distribuye"
+
+#: valueaccounting/models.py:3016
+msgid "distributed by"
+msgstr "distribuido por"
+
+#: valueaccounting/models.py:3017
 msgid "disbursed by"
-msgstr ""
+msgstr "desembolsado por"
 
-#: valueaccounting/models.py:3004
+#: valueaccounting/models.py:3018
 msgid "pays out"
-msgstr ""
+msgstr "abona"
 
-#: valueaccounting/models.py:3004
+#: valueaccounting/models.py:3018
 msgid "paid by"
-msgstr ""
+msgstr "pagado por"
 
-#: valueaccounting/models.py:3009
+#: valueaccounting/models.py:3023
 msgid "gives"
-msgstr ""
+msgstr "da"
 
-#: valueaccounting/models.py:3009
+#: valueaccounting/models.py:3023
 msgid "given by"
-msgstr ""
+msgstr "dado por"
 
-#: valueaccounting/models.py:3010
+#: valueaccounting/models.py:3024
 msgid "receives"
-msgstr ""
+msgstr "recibe"
 
-#: valueaccounting/models.py:3010
+#: valueaccounting/models.py:3024
 msgid "received by"
-msgstr ""
+msgstr "recibido por"
 
-#: valueaccounting/models.py:3019 valueaccounting/models.py:3119
-#: valueaccounting/models.py:3891 valueaccounting/models.py:6972
+#: valueaccounting/models.py:3033 valueaccounting/models.py:3133
+#: valueaccounting/models.py:3905 valueaccounting/models.py:6986
 msgid "use case"
-msgstr ""
+msgstr "usa caja"
 
-#: valueaccounting/models.py:3129
+#: valueaccounting/models.py:3143
 msgid "Customer order"
-msgstr ""
+msgstr "Pedido de cliente"
 
-#: valueaccounting/models.py:3130
+#: valueaccounting/models.py:3144
 msgid "Work order"
-msgstr ""
+msgstr "pedido de trabajo"
 
-#: valueaccounting/models.py:3131
+#: valueaccounting/models.py:3145
 msgid "Placeholder order"
-msgstr ""
+msgstr "Marcador de posición de pedido"
 
-#: valueaccounting/models.py:3164
+#: valueaccounting/models.py:3178
 msgid "order type"
-msgstr ""
+msgstr "tipo de pedido"
 
-#: valueaccounting/models.py:3167
+#: valueaccounting/models.py:3181
 msgid "appended to process labels for Work orders"
-msgstr ""
+msgstr "anexado a etiquetras de proceso para pedidos de Trabajo"
 
-#: valueaccounting/models.py:3170
+#: valueaccounting/models.py:3184
 msgid "receiver"
-msgstr ""
+msgstr "receptor"
 
-#: valueaccounting/models.py:3173
+#: valueaccounting/models.py:3187
 msgid "provider"
-msgstr ""
+msgstr "proveedor"
 
-#: valueaccounting/models.py:3174
+#: valueaccounting/models.py:3188
 msgid "order date"
-msgstr ""
+msgstr "fecha de pedido"
 
-#: valueaccounting/models.py:3175 valueaccounting/models.py:8197
+#: valueaccounting/models.py:3189 valueaccounting/models.py:8211
 msgid "due date"
-msgstr ""
+msgstr "fecha de vencimiento"
 
-#: valueaccounting/models.py:3522 valueaccounting/models.py:5803
+#: valueaccounting/models.py:3536 valueaccounting/models.py:5817
 msgid "process pattern"
-msgstr ""
+msgstr "patrón de proceso"
 
-#: valueaccounting/models.py:3529
+#: valueaccounting/models.py:3543
 msgid "estimated duration"
-msgstr ""
+msgstr "duración estimada"
 
-#: valueaccounting/models.py:3530
+#: valueaccounting/models.py:3544
 msgid "in minutes, e.g. 3 hours = 180"
-msgstr ""
+msgstr "en minutos, p.e. 3 horas = 180"
 
-#: valueaccounting/models.py:3869 valueaccounting/models.py:3972
-#: valueaccounting/models.py:5576 valueaccounting/models.py:8190
+#: valueaccounting/models.py:3883 valueaccounting/models.py:3986
+#: valueaccounting/models.py:5590 valueaccounting/models.py:8204
 msgid "stage"
-msgstr ""
+msgstr "etapa"
 
-#: valueaccounting/models.py:3967 valueaccounting/models.py:8183
+#: valueaccounting/models.py:3981 valueaccounting/models.py:8197
 msgid "independent demand"
-msgstr ""
+msgstr "demanda independiente"
 
-#: valueaccounting/models.py:3970 valueaccounting/models.py:8186
+#: valueaccounting/models.py:3984 valueaccounting/models.py:8200
 msgid "order item"
-msgstr ""
+msgstr "pedir item"
 
-#: valueaccounting/models.py:3974 valueaccounting/models.py:8192
-#: valueaccounting/models.py:9943
+#: valueaccounting/models.py:3988 valueaccounting/models.py:8206
+#: valueaccounting/models.py:9957
 msgid "exchange stage"
-msgstr ""
+msgstr "etapa de intercambio"
 
-#: valueaccounting/models.py:3980
+#: valueaccounting/models.py:3994
 msgid "author"
-msgstr ""
+msgstr "autor"
 
-#: valueaccounting/models.py:3983 valueaccounting/models.py:8232
-#: valueaccounting/models.py:9970
+#: valueaccounting/models.py:3997 valueaccounting/models.py:8246
+#: valueaccounting/models.py:9984
 msgid "quality"
-msgstr ""
+msgstr "calidad"
 
-#: valueaccounting/models.py:3985 valueaccounting/models.py:5817
-#: valueaccounting/models.py:6982 valueaccounting/models.py:7573
-#: valueaccounting/models.py:9788
+#: valueaccounting/models.py:3999 valueaccounting/models.py:5831
+#: valueaccounting/models.py:6996 valueaccounting/models.py:7587
+#: valueaccounting/models.py:9802
 msgid "notes"
-msgstr ""
+msgstr "notas"
 
-#: valueaccounting/models.py:3989
+#: valueaccounting/models.py:4003
 msgid "access rules"
-msgstr ""
+msgstr "relgas de acceso"
 
-#: valueaccounting/models.py:3993
+#: valueaccounting/models.py:4007
 msgid "digital currency address"
-msgstr ""
+msgstr "dirección de moneda digital"
 
-#: valueaccounting/models.py:5460
+#: valueaccounting/models.py:5474
 msgid "score"
-msgstr ""
+msgstr "puntaje"
 
-#: valueaccounting/models.py:5462
+#: valueaccounting/models.py:5476
 msgid "the quantity of contributions of this resource type from this agent"
-msgstr ""
+msgstr "la cantidad de contribuciones de este tipo de recurso de este agente"
 
-#: valueaccounting/models.py:5465
+#: valueaccounting/models.py:5479
 msgid "lead time"
-msgstr ""
+msgstr "tiempo de espera"
 
-#: valueaccounting/models.py:5466
+#: valueaccounting/models.py:5480
 msgid "in days"
-msgstr ""
-
-#: valueaccounting/models.py:5547
-msgid "is owner"
-msgstr ""
-
-#: valueaccounting/models.py:5557 valueaccounting/models.py:8213
-#: valueaccounting/models.py:9941
-msgid "resource"
-msgstr ""
-
-#: valueaccounting/models.py:5559
-msgid "role"
-msgstr ""
-
-#: valueaccounting/models.py:5560
-msgid "is contact"
-msgstr ""
+msgstr "en días"
 
 #: valueaccounting/models.py:5561
+msgid "is owner"
+msgstr "es propietario"
+
+#: valueaccounting/models.py:5571 valueaccounting/models.py:8227
+#: valueaccounting/models.py:9955
+msgid "resource"
+msgstr "recurso"
+
+#: valueaccounting/models.py:5573
+msgid "role"
+msgstr "rol"
+
+#: valueaccounting/models.py:5574
+msgid "is contact"
+msgstr "es contacto"
+
+#: valueaccounting/models.py:5575
 msgid "owner percentage"
-msgstr ""
+msgstr "porcentaje del propietario"
 
-#: valueaccounting/models.py:5570 valueaccounting/models.py:5806
-#: valueaccounting/models.py:8029
+#: valueaccounting/models.py:5584 valueaccounting/models.py:5820
+#: valueaccounting/models.py:8043
 msgid "process type"
-msgstr ""
+msgstr "tipo de proceso"
 
-#: valueaccounting/models.py:5592
+#: valueaccounting/models.py:5606
 msgid "commitment type"
-msgstr ""
+msgstr "tipo de compromiso"
 
-#: valueaccounting/models.py:5813 valueaccounting/models.py:6981
-#: valueaccounting/models.py:8196
+#: valueaccounting/models.py:5827 valueaccounting/models.py:6995
+#: valueaccounting/models.py:8210
 msgid "start date"
-msgstr ""
+msgstr "fecha de inicio"
 
-#: valueaccounting/models.py:5814
+#: valueaccounting/models.py:5828
 msgid "end date"
-msgstr ""
+msgstr "fecha de finalización"
 
-#: valueaccounting/models.py:5815
+#: valueaccounting/models.py:5829
 msgid "started"
-msgstr ""
+msgstr "iniciado"
 
-#: valueaccounting/models.py:5816 valueaccounting/models.py:8198
+#: valueaccounting/models.py:5830 valueaccounting/models.py:8212
 msgid "finished"
-msgstr ""
+msgstr "finalizado"
 
-#: valueaccounting/models.py:5830
+#: valueaccounting/models.py:5844
 msgid "processes"
-msgstr ""
+msgstr "procesos"
 
-#: valueaccounting/models.py:6820 valueaccounting/models.py:11073
+#: valueaccounting/models.py:6834 valueaccounting/models.py:11087
 msgid "sequence"
-msgstr ""
+msgstr "secuencia"
 
-#: valueaccounting/models.py:6822 valueaccounting/models.py:6975
+#: valueaccounting/models.py:6836 valueaccounting/models.py:6989
 msgid "exchange type"
-msgstr ""
+msgstr "tipo de intercambio"
 
-#: valueaccounting/models.py:6824 valueaccounting/models.py:9982
+#: valueaccounting/models.py:6838 valueaccounting/models.py:9996
 msgid "is contribution"
-msgstr ""
+msgstr "es contribución"
 
-#: valueaccounting/models.py:6825 valueaccounting/models.py:9983
+#: valueaccounting/models.py:6839 valueaccounting/models.py:9997
 msgid "is to distribute"
-msgstr ""
+msgstr "es para distribuir"
 
-#: valueaccounting/models.py:6826
+#: valueaccounting/models.py:6840
 msgid "is reciprocal"
-msgstr ""
+msgstr "es recíproco"
 
-#: valueaccounting/models.py:6827
+#: valueaccounting/models.py:6841
 msgid "can create resource"
-msgstr ""
+msgstr "puede crear recurso"
 
-#: valueaccounting/models.py:6828
+#: valueaccounting/models.py:6842
 msgid "is currency"
-msgstr ""
+msgstr "es moneda"
 
-#: valueaccounting/models.py:6829
+#: valueaccounting/models.py:6843
 msgid "give agent is context"
-msgstr ""
+msgstr "el agente dador es contexto"
 
-#: valueaccounting/models.py:6830
+#: valueaccounting/models.py:6844
 msgid "receive agent is context"
-msgstr ""
+msgstr "el agente receptor es contexto"
 
-#: valueaccounting/models.py:6833
+#: valueaccounting/models.py:6847
 msgid "give agent association type"
-msgstr ""
+msgstr "tipo de asociación del agente dador"
 
-#: valueaccounting/models.py:6836
+#: valueaccounting/models.py:6850
 msgid "receive agent association type"
-msgstr ""
+msgstr "tipo de asociación del agente receptor"
 
-#: valueaccounting/models.py:6923 valueaccounting/models.py:7564
+#: valueaccounting/models.py:6937 valueaccounting/models.py:7578
 msgid "transfer type"
-msgstr ""
+msgstr "tipo de transferencia"
 
-#: valueaccounting/models.py:6991 valueaccounting/models.py:8180
+#: valueaccounting/models.py:7005 valueaccounting/models.py:8194
 msgid "order"
-msgstr ""
+msgstr "pedido"
 
-#: valueaccounting/models.py:7004
+#: valueaccounting/models.py:7018
 msgid "exchanges"
-msgstr ""
-
-#: valueaccounting/models.py:7572
-msgid "transfer date"
-msgstr ""
+msgstr "intercambia"
 
 #: valueaccounting/models.py:7586
+msgid "transfer date"
+msgstr "fecha de transferencia"
+
+#: valueaccounting/models.py:7600
 msgid "transfers"
-msgstr ""
+msgstr "transfiere"
 
-#: valueaccounting/models.py:8026
+#: valueaccounting/models.py:8040
 msgid "product"
-msgstr ""
+msgstr "producto"
 
-#: valueaccounting/models.py:8099
+#: valueaccounting/models.py:8113
 msgid "feature"
-msgstr ""
+msgstr "caracteristica"
 
-#: valueaccounting/models.py:8101
+#: valueaccounting/models.py:8115
 msgid "component"
-msgstr ""
+msgstr "componente"
 
-#: valueaccounting/models.py:8195
+#: valueaccounting/models.py:8209
 msgid "commitment date"
-msgstr ""
+msgstr "fecha del compromiso"
 
-#: valueaccounting/models.py:8201
+#: valueaccounting/models.py:8215
 msgid "from agent type"
-msgstr ""
+msgstr "del tipo de agente"
 
-#: valueaccounting/models.py:9314
+#: valueaccounting/models.py:9328
 msgid "initiating commitment"
-msgstr ""
+msgstr "iniciando compromiso"
 
-#: valueaccounting/models.py:9316
+#: valueaccounting/models.py:9330
 msgid "reciprocal commitment"
-msgstr ""
+msgstr "compromiso recíproco"
 
-#: valueaccounting/models.py:9317
+#: valueaccounting/models.py:9331
 msgid "reciprocity date"
-msgstr ""
+msgstr "fecha de reciprocidad"
 
-#: valueaccounting/models.py:9341
+#: valueaccounting/models.py:9355
 msgid "commitment"
-msgstr ""
+msgstr "compromiso"
 
-#: valueaccounting/models.py:9343
+#: valueaccounting/models.py:9357
 msgid "option"
-msgstr ""
+msgstr "opción"
 
-#: valueaccounting/models.py:9456
+#: valueaccounting/models.py:9470
 msgid "Remaining percentage"
-msgstr ""
+msgstr "porcentaje restante"
 
-#: valueaccounting/models.py:9457
+#: valueaccounting/models.py:9471
 msgid "Straight percentage"
-msgstr ""
+msgstr "Porcentaje directo"
 
-#: valueaccounting/models.py:9466
+#: valueaccounting/models.py:9480
 msgid "percentage behavior"
-msgstr ""
+msgstr "comportamiento del porcentaje"
 
-#: valueaccounting/models.py:9468
+#: valueaccounting/models.py:9482
 #, python-format
 msgid ""
 "Remaining percentage uses the %% of the remaining amount to be distributed."
 "  Straight percentage uses the %% of the total distribution amount."
 msgstr ""
+"El porcentaje restante usa el %% del monto restante a ser distribuido. el "
+"porcentaje directo usa el %% del monto de distribución total."
 
-#: valueaccounting/models.py:9469
+#: valueaccounting/models.py:9483
 msgid "live"
-msgstr ""
+msgstr "vivo"
 
-#: valueaccounting/models.py:9470
+#: valueaccounting/models.py:9484
 msgid "Make this value equation available for use in real distributions."
 msgstr ""
+"Hacer que esta ecuación de valor esté disponible para ser usada en "
+"distribuciones reales."
 
-#: valueaccounting/models.py:9787 valueaccounting/models.py:11001
-#: valueaccounting/models.py:11576
+#: valueaccounting/models.py:9801 valueaccounting/models.py:11015
+#: valueaccounting/models.py:11590
 msgid "distribution date"
-msgstr ""
+msgstr "fecha de distribución"
 
-#: valueaccounting/models.py:9791 valueaccounting/models.py:11007
+#: valueaccounting/models.py:9805 valueaccounting/models.py:11021
 msgid "value equation link"
-msgstr ""
+msgstr "vínculo de ecuación de valor"
 
-#: valueaccounting/models.py:9792 valueaccounting/models.py:11008
+#: valueaccounting/models.py:9806 valueaccounting/models.py:11022
 msgid "value equation formulas used"
-msgstr ""
+msgstr "fórmulas de ecuación de valor usadas"
 
-#: valueaccounting/models.py:9805
+#: valueaccounting/models.py:9819
 msgid "distributions"
-msgstr ""
+msgstr "distribuciones"
 
-#: valueaccounting/models.py:9921
+#: valueaccounting/models.py:9935
 msgid "New"
-msgstr ""
+msgstr "Nuevo"
 
-#: valueaccounting/models.py:9922
+#: valueaccounting/models.py:9936
 msgid "Pending"
-msgstr ""
+msgstr "Pendiente"
 
-#: valueaccounting/models.py:9923
+#: valueaccounting/models.py:9937
 msgid "Broadcast"
-msgstr ""
+msgstr "Publicar"
 
-#: valueaccounting/models.py:9924
+#: valueaccounting/models.py:9938
 msgid "Confirmed"
-msgstr ""
+msgstr "Confirmado"
 
-#: valueaccounting/models.py:9930
+#: valueaccounting/models.py:9944
 msgid "event date"
-msgstr ""
+msgstr "fecha de evento"
 
-#: valueaccounting/models.py:9975
+#: valueaccounting/models.py:9989
 msgid "price"
-msgstr ""
+msgstr "precio"
 
-#: valueaccounting/models.py:9980
+#: valueaccounting/models.py:9994
 msgid "fulfills commitment"
-msgstr ""
+msgstr "cumple el compromiso"
 
-#: valueaccounting/models.py:9986
+#: valueaccounting/models.py:10000
 msgid "optional reference to an accounting grouping"
-msgstr ""
+msgstr "referncia optativa a una agrupación de contabilidad"
 
-#: valueaccounting/models.py:9987
+#: valueaccounting/models.py:10001
 msgid "reference"
-msgstr ""
+msgstr "referencia"
 
-#: valueaccounting/models.py:9988 valueaccounting/models.py:9990
+#: valueaccounting/models.py:10002 valueaccounting/models.py:10004
 msgid "digital currency transaction hash"
-msgstr ""
+msgstr "hash de la transación en moneda digital"
 
-#: valueaccounting/models.py:11066
+#: valueaccounting/models.py:11080
 msgid "Shipment or Delivery"
-msgstr ""
-
-#: valueaccounting/models.py:11067
-msgid "Date range"
-msgstr ""
-
-#: valueaccounting/models.py:11075
-msgid "value equation"
-msgstr ""
-
-#: valueaccounting/models.py:11076
-msgid "filter method"
-msgstr ""
-
-#: valueaccounting/models.py:11078
-msgid "bucket percentage"
-msgstr ""
+msgstr "Envío o Entrega"
 
 #: valueaccounting/models.py:11081
+msgid "Date range"
+msgstr "Intervalo de fecha"
+
+#: valueaccounting/models.py:11089
+msgid "value equation"
+msgstr "ecuación de valor"
+
+#: valueaccounting/models.py:11090
+msgid "filter method"
+msgstr "filtrar método"
+
+#: valueaccounting/models.py:11092
+msgid "bucket percentage"
+msgstr "porcentaje agregado"
+
+#: valueaccounting/models.py:11095
 msgid "distribution agent"
-msgstr ""
+msgstr "agente de distribución"
 
-#: valueaccounting/models.py:11084
+#: valueaccounting/models.py:11098
 msgid "filter agent"
-msgstr ""
-
-#: valueaccounting/models.py:11418
-msgid "Oldest first"
-msgstr ""
-
-#: valueaccounting/models.py:11422
-msgid "Until paid off"
-msgstr ""
-
-#: valueaccounting/models.py:11424
-msgid "One distribution"
-msgstr ""
-
-#: valueaccounting/models.py:11429
-msgid "value equation bucket"
-msgstr ""
+msgstr "filtrar agente"
 
 #: valueaccounting/models.py:11432
-msgid "filter rule"
-msgstr ""
-
-#: valueaccounting/models.py:11434
-msgid "division rule"
-msgstr ""
+msgid "Oldest first"
+msgstr "El más antiguo primero"
 
 #: valueaccounting/models.py:11436
-msgid "claim rule type"
-msgstr ""
+msgid "Until paid off"
+msgstr "Hasta amortizar"
 
 #: valueaccounting/models.py:11438
+msgid "One distribution"
+msgstr "Una distribución"
+
+#: valueaccounting/models.py:11443
+msgid "value equation bucket"
+msgstr "contenedor de ecuación de valor"
+
+#: valueaccounting/models.py:11446
+msgid "filter rule"
+msgstr "filtrar regla"
+
+#: valueaccounting/models.py:11448
+msgid "division rule"
+msgstr "regla de división"
+
+#: valueaccounting/models.py:11450
+msgid "claim rule type"
+msgstr "reclamar tipo de regla"
+
+#: valueaccounting/models.py:11452
 msgid "claim creation equation"
-msgstr ""
-
-#: valueaccounting/models.py:11585
-msgid "income event"
-msgstr ""
-
-#: valueaccounting/models.py:11595
-msgid "value equation bucket rule"
-msgstr ""
-
-#: valueaccounting/models.py:11596
-msgid "claim date"
-msgstr ""
+msgstr "reclamar ecuación de creación "
 
 #: valueaccounting/models.py:11599
+msgid "income event"
+msgstr "evento de ingreso"
+
+#: valueaccounting/models.py:11609
+msgid "value equation bucket rule"
+msgstr "regla contenedora de ecuación de valor"
+
+#: valueaccounting/models.py:11610
+msgid "claim date"
+msgstr "fecha de reclamo"
+
+#: valueaccounting/models.py:11613
 msgid "has"
-msgstr ""
+msgstr "tiene"
 
-#: valueaccounting/models.py:11602
+#: valueaccounting/models.py:11616
 msgid "against"
-msgstr ""
+msgstr "contra"
 
-#: valueaccounting/models.py:11612
+#: valueaccounting/models.py:11626
 msgid "original value"
-msgstr ""
+msgstr "valor original"
 
-#: valueaccounting/models.py:11614
+#: valueaccounting/models.py:11628
 msgid "creation equation"
-msgstr ""
+msgstr "ecuación de creación"
 
-#: valueaccounting/models.py:11685
+#: valueaccounting/models.py:11699
 msgid "claim event"
-msgstr ""
+msgstr "reclamar evento"
 
-#: valueaccounting/models.py:11687
+#: valueaccounting/models.py:11701
 msgid "claims"
-msgstr ""
+msgstr "reclama"
 
-#: valueaccounting/models.py:11688
+#: valueaccounting/models.py:11702
 msgid "claim event date"
-msgstr ""
+msgstr "reclamar fecha de evento"
 
-#: valueaccounting/models.py:11692
+#: valueaccounting/models.py:11706
 msgid "event effect"
-msgstr ""
+msgstr "efecto de evento"
 
-#: valueaccounting/models.py:11771
+#: valueaccounting/models.py:11785
 msgid "resource type rate"
-msgstr ""
+msgstr "tasa de tipo de recurso"
 
-#: valueaccounting/models.py:11772
+#: valueaccounting/models.py:11786
 msgid "importance"
-msgstr ""
+msgstr "importancia"
 
 #: valueaccounting/templates/notification/valnet_deleted_todo/full.txt:1
 #, python-format
 msgid "%(creator)s deleted a Todo that was assigned to you:"
-msgstr ""
+msgstr "%(creator)s borró un Por Hacer que le había sido asignado a Ud.:"
 
 #: valueaccounting/templates/notification/valnet_deleted_todo/short.txt:1
 msgid "Todo assigned to you was deleted"
-msgstr ""
+msgstr "Un Por Hacer asignado a Ud. ha sido borrado"
 
 #: valueaccounting/templates/notification/valnet_distribution/full.txt:1
 #, python-format
@@ -7086,10 +7188,13 @@ msgid ""
 "\n"
 "You can see it here:"
 msgstr ""
+"Ud. consiguió una  %(distribution.distribution_quantity_formatted)s distribución de %(distribution.from_agent)s\n"
+"\n"
+"Puede verla aquí:"
 
 #: valueaccounting/templates/notification/valnet_distribution/short.txt:1
 msgid "You got an income distribution from"
-msgstr ""
+msgstr "Ud. recibió una distribución de ingreso de"
 
 #: valueaccounting/templates/notification/valnet_help_wanted/full.txt:1
 #, python-format
@@ -7107,10 +7212,22 @@ msgid ""
 "\n"
 "You can see the process here:"
 msgstr ""
+"%(creator)s solicita ayuda que se adecua a sus habilidades:\n"
+"\n"
+"Trabajo requerido: %(resource_type)s, Duración estimada: %(hours)s %(unit)s\n"
+"Vencimiento: %(due_date)s\n"
+"\n"
+"%(description)s\n"
+"\n"
+"para Proceso: %(process)s\n"
+"\n"
+"Este mensaje ha sido enviado muy probablemente a otros individuos. \n"
+"\n"
+"Puede ver el proceso aquí:"
 
 #: valueaccounting/templates/notification/valnet_help_wanted/short.txt:1
 msgid "requests help that fits your skills"
-msgstr ""
+msgstr "solicita ayuda que se adecua a sus habilidades"
 
 #: valueaccounting/templates/notification/valnet_join_task/full.txt:1
 #, python-format
@@ -7128,10 +7245,22 @@ msgid ""
 "\n"
 "You can see the process here:"
 msgstr ""
+"%(creator)s le gustaría uirse a esta tarea:\n"
+"\n"
+"Trabajo requerido: %(resource_type)s, Duración estimada: %(hours)s %(unit)s\n"
+"VEncimiento: %(due_date)s\n"
+"\n"
+"%(description)s\n"
+"\n"
+"para Proceso: %(process)s\n"
+"\n"
+"Este mensaje le ha sido enviado a Ud. porque está trabajando en esta tarea o se ha asignado a sí mismo a esta tarea.\n"
+"\n"
+"Puede ver el proceso aquí:"
 
 #: valueaccounting/templates/notification/valnet_join_task/short.txt:1
 msgid "would like to help with this task"
-msgstr ""
+msgstr "le gustaría ayudar con esta tarea"
 
 #: valueaccounting/templates/notification/valnet_new_task/full.txt:1
 #, python-format
@@ -7151,10 +7280,24 @@ msgid ""
 "\n"
 "You can see the process here:"
 msgstr ""
+"%(creator)s publicó una nueva tarea que se ajusta a sus habilidades:\n"
+"\n"
+"Trabajko requerido: %(resource_type)s, Duración estimada: %(hours)s %(unit)s\n"
+"Vencimiento: %(due_date)s\n"
+"\n"
+"%(description)s\n"
+"\n"
+"para Proceso: %(process)s\n"
+"\n"
+"Este mensaje ha sido enviado muy probablemente a otros individuos. \n"
+"SI Ud. lo desea puede tomar la tarea, pero sino otros la tomarán. \n"
+"Primero en llegar, primero en ser servido. \n"
+"\n"
+"Puede ver el proceso aquí:"
 
 #: valueaccounting/templates/notification/valnet_new_task/short.txt:1
 msgid "New Task that fits your skills"
-msgstr ""
+msgstr "Nueva Tarea que se adecúa a sus habilidades"
 
 #: valueaccounting/templates/notification/valnet_new_todo/full.txt:1
 #, python-format
@@ -7165,10 +7308,15 @@ msgid ""
 "\n"
 "You can see it here:"
 msgstr ""
+"%(creator)s le ha asignado un Por Hacer a Ud.:\n"
+"\n"
+"%(description)s\n"
+"\n"
+"Puede verlo aquí:"
 
 #: valueaccounting/templates/notification/valnet_new_todo/short.txt:1
 msgid "New Todo assigned to you"
-msgstr ""
+msgstr "Nuevo Por Hacer asignado a Us."
 
 #: valueaccounting/templates/notification/valnet_payout_request/full.txt:1
 #, python-format
@@ -7178,7 +7326,11 @@ msgid ""
 "%(payout.from_agent)s requests a payout of %(payout.quantity_formatted)s.\n"
 "You can see and respond to the request here:"
 msgstr ""
+"Tiene una solicitud de pago de %(payout.from_agent)s\n"
+"\n"
+"%(payout.from_agent)s solicita un pago de%(payout.quantity_formatted)s.\n"
+"Puede ver y responder a la solicitud aquí:"
 
 #: valueaccounting/templates/notification/valnet_payout_request/short.txt:1
 msgid "You got a payout request from"
-msgstr ""
+msgstr "Tiene una solicitud de pago de"

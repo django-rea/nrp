@@ -1,4 +1,4 @@
-{% extends "site_base.html" %}
+{% extends "work_base.html" %}
 
 {% load i18n %}
 {% load bootstrap_tags %}
@@ -84,6 +84,41 @@
             <a class="indent" href="{% url "value_equations" %}">{% trans "Value Equations" %}</a>
 
         </legend>
+
+
+        {% if projects %}
+          <ul id="member-projects">
+          {% for node in projects %}
+            {% if not node.name = 'Freedom Coop' %}
+              {% if node.managers %}
+                {% for manager in node.managers %}
+                  {% if manager.id = agent.id %}
+                  <li><a href="{{ node.get_absolute_url }}">{{ node.name }}</a>
+                  {% if node.members %}
+                    <ul>
+                      {% for agent in node.members %}
+                      <li><a href="{{ agent.get_absolute_url }}">{{ agent.name }}</a></li>
+                      {% endfor %}
+                    </ul>
+                  {% endif %}
+                  {% endif %}
+                  </li>
+                {% endfor %}
+              {% endif %}
+              <li><b>{{ node.name }}</b>
+              {% if node.members %}
+                <ul>
+                  {% for agent in node.members %}
+                  <li>{{ agent.name }}</li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+              </li>
+            {% endif %}
+          {% endfor %}
+          <li><b>{% trans "Freedom Coop's active member" %}</b></li>
+          </ul>
+        {% endif %}
 
         {% for root in roots %}
 

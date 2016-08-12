@@ -116,18 +116,18 @@ def collect_lower_trash(commitment, trash):
             if pc.order_item == order_item:
                 collect_trash(pc, trash)
     return trash
-    
+
 #class Stage(models.Model):
 #    name = models.CharField(_('name'), max_length=32)
 #    sequence = models.IntegerField(_('sequence'), default=0)
-    
+
 
 #    class Meta:
 #        ordering = ('sequence',)
-     
+
 #    def __unicode__(self):
 #        return self.name
-       
+
 
 class HomePageLayout(models.Model):
     banner = models.TextField(_('banner'), blank=True, null=True,
@@ -148,10 +148,10 @@ class HomePageLayout(models.Model):
     panel_3 = models.TextField(_('panel 3'), blank=True, null=True,
         help_text=_("HTML text for Panel 3"))
     footer = models.TextField(_('footer'), blank=True, null=True)
-    
+
     class Meta:
         verbose_name_plural = _('home page layout')
-    
+
 
 #for help text
 PAGE_CHOICES = (
@@ -199,7 +199,7 @@ class Help(models.Model):
     class Meta:
         verbose_name_plural = _('help')
         ordering = ('page',)
-     
+
     def __unicode__(self):
         return self.get_page_display()
 
@@ -243,7 +243,7 @@ UNIT_TYPE_CHOICES = (
     ('ip', _('ip')),
     ('percent', _('percent')),
 )
- 
+
 class Unit(models.Model):
     unit_type = models.CharField(_('unit type'), max_length=12, choices=UNIT_TYPE_CHOICES)
     abbrev = models.CharField(_('abbreviation'), max_length=8)
@@ -252,7 +252,7 @@ class Unit(models.Model):
 
     class Meta:
         ordering = ('name',)
-     
+
     def __unicode__(self):
         return self.name
 
@@ -281,7 +281,7 @@ class Location(models.Model):
     address = models.CharField(max_length=255, blank=True)
     latitude = models.FloatField(default=0.0, blank=True, null=True)
     longitude = models.FloatField(default=0.0, blank=True, null=True)
-    
+
     class Meta:
         ordering = ('name',)
 
@@ -290,27 +290,27 @@ class Location(models.Model):
 
     def resources(self):
         return self.resources_at_location.all()
-        
+
     def agents(self):
         return self.agents_at_location.all()
 
-        
+
 class AgentTypeManager(models.Manager):
-    
+
     def context_agent_types(self):
         return AgentType.objects.filter(is_context=True)
-        
+
     def context_types_string(self):
         return " or ".join([ at.name for at in self.context_agent_types()])
-        
+
     def non_context_agent_types(self):
         return AgentType.objects.filter(is_context=False)
-        
+
 class AgentType(models.Model):
     name = models.CharField(_('name'), max_length=128)
-    parent = models.ForeignKey('self', blank=True, null=True, 
+    parent = models.ForeignKey('self', blank=True, null=True,
         verbose_name=_('parent'), related_name='sub_agents', editable=False)
-    party_type = models.CharField(_('party type'), 
+    party_type = models.CharField(_('party type'),
         max_length=12, choices=SIZE_CHOICES,
         default='individual')
     description = models.TextField(_('description'), blank=True, null=True)
@@ -321,11 +321,11 @@ class AgentType(models.Model):
         ordering = ('name',)
 
     def __unicode__(self):
-        return self.name   
-        
+        return self.name
+
     @classmethod
     def create(cls, name, party_type, is_context, verbosity=2):
-        """  
+        """
         Creates a new AgentType, updates an existing one, or does nothing.
         This is intended to be used as a post_syncdb manangement step.
         """
@@ -347,7 +347,7 @@ class AgentType(models.Model):
             if verbosity > 1:
                 print "Created %s AgentType" % name
 
-        
+
 class AgentAccount(object):
     def __init__(self, agent, event_type, count, quantity, events):
         self.agent = agent
@@ -358,8 +358,8 @@ class AgentAccount(object):
 
     def example(self):
         return self.events[0]
-        
-        
+
+
 class AgentManager(models.Manager):
 
     def without_user(self):
@@ -379,40 +379,40 @@ class AgentManager(models.Manager):
             if agent.users.all():
                 ua_ids.append(agent.id)
         return all_agents.exclude(id__in=ua_ids)
-        
+
     def without_membership_request(self):
         from work.models import MembershipRequest
         reqs = MembershipRequest.objects.all()
         req_agts = [req.agent for req in reqs if req.agent]
         rids = [agt.id for agt in req_agts]
         return EconomicAgent.objects.exclude(id__in=rids).order_by("name")
-    
+
     def projects(self):
         return EconomicAgent.objects.filter(agent_type__party_type="team")
-    
+
     def individuals(self):
         return EconomicAgent.objects.filter(agent_type__party_type="individual")
-        
+
     def organizations(self):
         return EconomicAgent.objects.filter(agent_type__party_type="org")
 
     def networks(self):
         return EconomicAgent.objects.filter(agent_type__party_type="network")
-    
+
     #def projects_and_networks(self):
     #    return EconomicAgent.objects.filter(Q(agent_type__party_type="network") | Q(agent_type__party_type="team"))
-        
+
     def context_agents(self):
         return EconomicAgent.objects.filter(is_context=True)
-        
+
     def non_context_agents(self):
         return EconomicAgent.objects.filter(is_context=False)
-        
+
     def resource_role_agents(self):
         #return EconomicAgent.objects.filter(Q(is_context=True)|Q(agent_type__party_type="individual"))
         #todo: should there be some limits?  Ran into condition where we needed an organization, therefore change to below.
         return EconomicAgent.objects.all()
-    
+
 class EconomicAgent(models.Model):
     name = models.CharField(_('name'), max_length=255)
     nick = models.CharField(_('ID'), max_length=32, unique=True,
@@ -427,11 +427,11 @@ class EconomicAgent(models.Model):
     phone_secondary = models.CharField(_('secondary phone'), max_length=32, blank=True, null=True)
     latitude = models.FloatField(_('latitude'), default=0.0, blank=True, null=True)
     longitude = models.FloatField(_('longitude'), default=0.0, blank=True, null=True)
-    primary_location = models.ForeignKey(Location, 
-        verbose_name=_('current location'), related_name='agents_at_location', 
+    primary_location = models.ForeignKey(Location,
+        verbose_name=_('current location'), related_name='agents_at_location',
         blank=True, null=True,
         on_delete=models.SET_NULL)
-    reputation = models.DecimalField(_('reputation'), max_digits=8, decimal_places=2, 
+    reputation = models.DecimalField(_('reputation'), max_digits=8, decimal_places=2,
         default=Decimal("0.00"))
     photo = ThumbnailerImageField(_("photo"),
         upload_to='photos', blank=True, null=True)
@@ -448,17 +448,17 @@ class EconomicAgent(models.Model):
         related_name='agents_changed', blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
     objects = AgentManager()
-    
+
     class Meta:
         ordering = ('nick',)
-    
+
     def __unicode__(self):
         return self.nick
-    
+
     def save(self, *args, **kwargs):
         unique_slugify(self, self.nick)
         super(EconomicAgent, self).save(*args, **kwargs)
-        
+
     def delete(self, *args, **kwargs):
         aus = self.users.all()
         if aus:
@@ -467,26 +467,26 @@ class EconomicAgent(models.Model):
                 user.delete()
                 au.delete()
         super(EconomicAgent, self).delete(*args, **kwargs)
-        
+
     @models.permalink
     def get_absolute_url(self):
         return ('agent', (),
         { 'agent_id': str(self.id),})
-        
+
     def membership_request(self):
         reqs = self.membership_requests.all()
         if reqs:
             return reqs[0]
         else:
             return None
-            
+
     def membership_request_id(self):
         req = self.membership_request()
         if req:
             return req.id
         else:
             return None
-        
+
     def request_faircoin_address(self):
         #import pdb; pdb.set_trace()
         address = self.faircoin_address()
@@ -494,7 +494,7 @@ class EconomicAgent(models.Model):
             address = "address_requested"
             resource = self.create_faircoin_resource(address)
         return address
-        
+
     def create_fake_faircoin_address(self):
         #import pdb; pdb.set_trace()
         address = self.faircoin_address()
@@ -503,7 +503,7 @@ class EconomicAgent(models.Model):
             resource = self.create_faircoin_resource(address)
             print "created fake faircoin address"
         return address
-        
+
     def create_faircoin_resource(self, address):
         role_types = AgentResourceRoleType.objects.filter(is_owner=True)
         owner_role_type = None
@@ -537,24 +537,24 @@ class EconomicAgent(models.Model):
         else:
             raise ValidationError("Cannot create digital currency resource for " + self.nick + " because no owner AgentResourceRoleTypes.")
             return None
-        
+
     def faircoin_address(self):
         fcr = self.faircoin_resource()
         if fcr:
             return fcr.digital_currency_address
         else:
             return None
-            
+
     def faircoin_resource(self):
         candidates = self.agent_resource_roles.filter(
-            role__is_owner=True, 
+            role__is_owner=True,
             resource__resource_type__behavior="dig_acct",
             resource__digital_currency_address__isnull=False)
         if candidates:
             return candidates[0].resource
         else:
             return None
-            
+
     def owns(self, resource):
         if self in resource.owners():
             return True
@@ -567,22 +567,22 @@ class EconomicAgent(models.Model):
         if users:
             return users[0].user
         return None
-    
+
     def is_superuser(self):
         if self.my_user():
             return self.my_user().is_superuser
         return False
-    
+
     def is_staff(self):
         if self.my_user():
             return self.my_user().is_staff
         return False
-    
+
     def is_coop_worker(self):
         if not self.is_superuser() and not self.is_staff():
             return True
         return False
-        
+
     def is_active_freedom_coop_member(self):
         try:
             fc = EconomicAgent.objects.get(name="Freedom Coop")
@@ -595,8 +595,8 @@ class EconomicAgent(models.Model):
         if fcaas:
             return True
         else:
-            return False       
-    
+            return False
+
     def seniority(self):
         return (datetime.date.today() - self.created_date).days
 
@@ -624,13 +624,13 @@ class EconomicAgent(models.Model):
 
     def consumed_and_used_resource_types(self):
         return [ptrt.resource_type for ptrt in self.consumed_and_used_resource_type_relationships()]
-        
+
     def orders(self):
         #import pdb; pdb.set_trace()
         ps = self.processes.all()
         oset = {p.independent_demand() for p in ps if p.independent_demand()}
         return list(oset)
-        
+
     def active_orders(self):
         return [o for o in self.orders() if o.has_open_processes()]
 
@@ -641,7 +641,7 @@ class EconomicAgent(models.Model):
         return []
 
     def xbill_class(self):
-        return "economic-agent"  
+        return "economic-agent"
 
     def score(self):
         return sum(art.score for art in self.resource_types.all())
@@ -655,7 +655,7 @@ class EconomicAgent(models.Model):
             return users[0]
         else:
             return None
-            
+
     def username(self):
         agent_user = self.user()
         if agent_user:
@@ -669,78 +669,78 @@ class EconomicAgent(models.Model):
         processes = [x.process for x in cts if x.process]
         processes.extend([x.process for x in events if x.process])
         return list(set(processes))
-        
+
     def active_worked_processes(self):
         aps = [p for p in self.worked_processes() if p.finished==False]
         return aps
-        
+
     def finished_worked_processes(self):
         aps = [p for p in self.worked_processes() if p.finished==True]
         return aps
-        
+
     def context_processes(self):
         return self.processes.all()
-        
+
     def active_context_processes(self):
         return self.context_processes().filter(finished=False)
-        
+
     def finished_context_processes(self):
         return self.context_processes().filter(finished=True)
-        
+
     def is_individual(self):
         return self.agent_type.party_type == "individual"
-        
+
     def active_processes(self):
         if self.is_individual():
             return self.active_worked_processes()
         else:
             return self.active_context_processes()
-            
+
     def finished_processes(self):
         if self.is_individual():
             return self.finished_worked_processes()
         else:
             return self.finished_context_processes()
-            
+
     def all_processes(self):
         if self.is_individual():
             return self.worked_processes()
         else:
             return self.context_processes()
-    
+
     def resources_created(self):
         creations = []
         for p in self.all_processes():
             creations.extend(p.deliverables())
         return list(set(creations))
-        
+
     def resource_relationships(self):
         return self.agent_resource_roles.all()
-    
+
     #from here these were copied from project - todo: fix these to work correctly using context agent relationships (these are in various stages of fix and test)
     def time_contributions(self):
         return sum(event.quantity for event in self.events.filter(
             is_contribution=True,
             event_type__relationship="work"))
- 
+
     def context_contributions(self):
         return sum(event.quantity for event in self.events.filter(
             is_contribution=True))
-        
+
     def contributions_count(self):
         if self.is_individual():
             return self.contributions().count()
         else:
             return self.contribution_events().count()
-        
+
     def contribution_events(self):
         return self.events.filter(is_contribution=True)
-        
+
     def contributors(self):
         ids = self.events.filter(is_contribution=True).values_list('from_agent').order_by('from_agent').distinct()
         id_list = [id[0] for id in ids]
         return EconomicAgent.objects.filter(id__in=id_list)
-        
+
     def total_financial_contributions(self):
         #this is wrong
         events = self.events.filter(
@@ -749,7 +749,7 @@ class EconomicAgent(models.Model):
             Q(event_type__name='Expense Contribution')
             )
         return sum(event.quantity for event in events)
-        
+
     def total_financial_income(self):
         #this is really wrong
         events = self.events.filter(
@@ -758,7 +758,7 @@ class EconomicAgent(models.Model):
             Q(event_type__name='Expense Contribution')
             )
         return sum(event.quantity for event in events)
-        
+
     def events_by_event_type(self):
         agent_events = EconomicEvent.objects.filter(
             Q(from_agent=self)|Q(to_agent=self))
@@ -772,31 +772,31 @@ class EconomicAgent(models.Model):
                 aa = AgentAccount(self, et, count, quantity, events)
                 answer.append(aa)
         return answer
-        
+
     def distributions_count(self):
         return Distribution.objects.filter(context_agent=self).count()
-              
+
     def demand_exchange_count(self):
         return Exchange.objects.demand_exchanges().filter(context_agent=self).count()
-              
+
     def supply_exchange_count(self):
         return Exchange.objects.supply_exchanges().filter(context_agent=self).count()
-              
+
     def internal_exchange_count(self):
         return Exchange.objects.internal_exchanges().filter(context_agent=self).count()
-               
+
     def with_all_sub_agents(self):
         from valuenetwork.valueaccounting.utils import flattened_children_by_association
         aas = AgentAssociation.objects.filter(association_type__association_behavior="child").order_by("is_associate__name")
         return flattened_children_by_association(self, aas, [])
-        
+
     def with_all_associations(self):
         from valuenetwork.valueaccounting.utils import group_dfs_by_has_associate, group_dfs_by_is_associate
         if self.is_individual():
             agents = [self,]
             agents.extend([ag.has_associate for ag in self.is_associate_of.all()])
             agents.extend([ag.is_associate for ag in self.has_associates.all()])
-        else:     
+        else:
             associations = AgentAssociation.objects.all().order_by("-association_type")
             #associations = associations.exclude(is_associate__agent_type__party_type="individual")
             #associations = associations.exclude(association_type__identifier="supplier")
@@ -807,27 +807,27 @@ class EconomicAgent(models.Model):
                 if ga not in agents:
                     agents.append(ga)
         return agents
-        
+
     def related_contexts(self):
         agents = [ag.has_associate for ag in self.is_associate_of.all()]
         agents.extend([ag.is_associate for ag in self.has_associates.all()])
         return [a for a in agents if a.is_context]
-        
+
     def task_assignment_candidates(self):
         answer = []
         if self.is_context:
             answer = [a.is_associate for a in self.all_has_associates() if a.is_associate.is_individual()]
-        return answer          
-        
+        return answer
+
     def child_tree(self):
         from valuenetwork.valueaccounting.utils import agent_dfs_by_association
         #todo: figure out why this failed when AAs were ordered by from_agent
         aas = AgentAssociation.objects.filter(association_type__association_behavior="child").order_by("is_associate__name")
         return agent_dfs_by_association(self, aas, 1)
-        
+
     def wip(self):
         return self.active_processes()
-        
+
     def process_types_queryset(self):
         pts = list(ProcessType.objects.filter(context_agent=self))
         parent = self.parent()
@@ -836,7 +836,7 @@ class EconomicAgent(models.Model):
             parent = parent.parent()
         pt_ids = [pt.id for pt in pts]
         return ProcessType.objects.filter(id__in=pt_ids)
-        
+
     def get_resource_types_with_recipe(self):
         rts = [pt.main_produced_resource_type() for pt in ProcessType.objects.filter(context_agent=self) if pt.main_produced_resource_type()]
         #import pdb; pdb.set_trace()
@@ -850,9 +850,9 @@ class EconomicAgent(models.Model):
         parent_rts = rts
         for rt in parent_rts:
             rts.extend(rt.all_children())
-            
+
         return list(set(rts))
-        
+
     def get_resource_type_lists(self):
         rt_lists = list(self.lists.all())
         #import pdb; pdb.set_trace()
@@ -866,7 +866,7 @@ class EconomicAgent(models.Model):
         rt_lists = list(set(rt_lists))
         rt_lists.sort(lambda x, y: cmp(x.name, y.name))
         return rt_lists
-                
+
     #from here are new methods for context agent code
     def parent(self):
         #assumes only one parent
@@ -876,7 +876,7 @@ class EconomicAgent(models.Model):
         if associations.count() > 0:
             parent = associations[0].has_associate
         return parent
-        
+
     def all_ancestors(self):
         parent_ids = []
         parent_ids.append(self.id)
@@ -886,7 +886,7 @@ class EconomicAgent(models.Model):
             parent = parent.parent()
         parents = EconomicAgent.objects.filter(pk__in=parent_ids)
         return parents
-                
+
     def children(self): #returns a list or None
         associations = self.has_associates.filter(association_type__association_behavior="child").filter(state="active")
         children = None
@@ -895,51 +895,56 @@ class EconomicAgent(models.Model):
             for association in associations:
                 children.append(association.from_agent)
         return children
-        
+
     def is_root(self):
         if self.parent():
             return False
         else:
             return True
-            
+
     def suppliers(self):
         #import pdb; pdb.set_trace()
         agent_ids = self.has_associates.filter(association_type__association_behavior="supplier").filter(state="active").values_list('is_associate')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
-        
-    def exchange_firms(self): 
+
+    def exchange_firms(self):
         #import pdb; pdb.set_trace()
         agent_ids = self.has_associates.filter(association_type__association_behavior="exchange").filter(state="active").values_list('is_associate')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
-        
-    def members(self): 
+
+    def members(self):
         #import pdb; pdb.set_trace()
         agent_ids = self.has_associates.filter(association_type__association_behavior="member").filter(state="active").values_list('is_associate')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
-        
+
     def individual_members(self):
         return self.members().filter(agent_type__party_type="individual")
-        
+
+    #  bum2
+    def managers(self): #returns a list or None
+        agent_ids = self.has_associates.filter(association_type__association_behavior="manager").filter(state="active").values_list('is_associate')
+        return EconomicAgent.objects.filter(pk__in=agent_ids)
+
     #def affiliates(self):
     #    #import pdb; pdb.set_trace()
     #    agent_ids = self.has_associates.filter(association_type__identifier="affiliate").filter(state="active").values_list('is_associate')
     #    return EconomicAgent.objects.filter(pk__in=agent_ids)
-        
+
     def customers(self):
         #import pdb; pdb.set_trace()
         agent_ids = self.has_associates.filter(association_type__association_behavior="customer").filter(state="active").values_list('is_associate')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
-        
+
     def potential_customers(self):
         #import pdb; pdb.set_trace()
         agent_ids = self.has_associates.filter(association_type__association_behavior="customer").filter(state="potential").values_list('is_associate')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
-        
+
     def all_has_associates_by_type(self, assoc_type_identifier):
         #import pdb; pdb.set_trace()
         agent_ids = self.has_associates.filter(association_type__identifier=assoc_type_identifier).exclude(state="inactive").values_list('is_associate')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
-        
+
     def has_associates_of_type(self, assoc_type_identifier): #returns boolean
         #import pdb; pdb.set_trace()
         if self.all_has_associates_by_type(assoc_type_identifier).count() > 0: #todo: can this be made more efficient, return count from sql?
@@ -959,10 +964,10 @@ class EconomicAgent(models.Model):
                 return assocs
             parent = parent.parent()
         return EconomicAgent.objects.none()
-    
+
     def associate_count_of_type(self, assoc_type_identifier):
         return self.all_has_associates_by_type(assoc_type_identifier).count()
-            
+
     def agent_association_types(self):
         my_aats = []
         all_aats = AgentAssociationType.objects.all()
@@ -974,11 +979,11 @@ class EconomicAgent(models.Model):
     def has_group_associates(self):
         atgs = self.has_associates.exclude(is_associate__agent_type__party_type="individual")
         return atgs
-        
+
     def is_associated_with_groups(self):
         afgs = self.is_associate_of.exclude(has_associate__agent_type__party_type="individual")
         return afgs
-        
+
     def exchange_firm(self):
         xs = self.exchange_firms()
         if xs:
@@ -990,13 +995,13 @@ class EconomicAgent(models.Model):
                 return xs[0]
             parent = parent.parent()
         return None
-        
+
     def virtual_accounts(self):
         vars = self.agent_resource_roles.filter(
-            role__is_owner=True, 
+            role__is_owner=True,
             resource__resource_type__behavior="account")
         return [var.resource for var in vars]
-        
+
     def create_virtual_account(self, resource_type):
         #import pdb; pdb.set_trace()
         role_types = AgentResourceRoleType.objects.filter(is_owner=True)
@@ -1019,7 +1024,7 @@ class EconomicAgent(models.Model):
         else:
             raise ValidationError("Cannot create virtual account for " + self.nick + " because no owner AgentResourceRoleTypes.")
             return None
-        
+
     def own_or_parent_value_equations(self):
         ves = self.value_equations.all()
         if ves:
@@ -1031,11 +1036,11 @@ class EconomicAgent(models.Model):
                 return ves
             parent = parent.parent()
         return []
-        
+
     def live_value_equations(self):
         #shd this use own_or_parent_value_equations?
         return self.value_equations.filter(live=True)
-        
+
     def compatible_value_equation(self, value_equation):
         if value_equation.context_agent == self:
             return True
@@ -1046,10 +1051,10 @@ class EconomicAgent(models.Model):
             if value_equation in self.own_or_parent_value_equations():
                 return True
         return False
-        
+
     def default_agent(self):
         return self
-        
+
     def all_suppliers(self):
         sups = list(self.suppliers())
         parent = self.parent()
@@ -1058,7 +1063,7 @@ class EconomicAgent(models.Model):
             parent = parent.parent()
         sup_ids = [sup.id for sup in sups]
         return EconomicAgent.objects.filter(pk__in=sup_ids)
-        
+
     def all_customers(self):
         #import pdb; pdb.set_trace()
         custs = list(self.customers())
@@ -1068,12 +1073,12 @@ class EconomicAgent(models.Model):
             parent = parent.parent()
         cust_ids = [cust.id for cust in custs]
         return EconomicAgent.objects.filter(pk__in=cust_ids)
-                
-    def all_members(self): 
+
+    def all_members(self):
         mems = self.all_members_list()
         mem_ids = [mem.id for mem in mems]
         return EconomicAgent.objects.filter(pk__in=mem_ids)
-        
+
     def all_members_list(self):
         mems = list(self.members())
         parent = self.parent()
@@ -1081,32 +1086,32 @@ class EconomicAgent(models.Model):
             mems.extend(parent.members())
             parent = parent.parent()
         return mems
-        
+
     def all_ancestors_and_members(self):
         #import pdb; pdb.set_trace()
         agent_list = list(self.all_ancestors())
         agent_list.extend(self.all_members_list())
         agent_ids = [agent.id for agent in agent_list]
         return EconomicAgent.objects.filter(pk__in=agent_ids)
-        
+
     def context_equipment_users(self):
         agent_list = self.all_members_list()
         agent_list.extend([agent for agent in self.exchange_firms()])
         return agent_list
-        
+
     def all_has_associates(self):
         return self.has_associates.all().order_by('association_type__name', 'is_associate__nick')
-        
+
     def all_is_associates(self):
         return self.is_associate_of.all().order_by('association_type__name', 'has_associate__nick')
-        
+
     def all_associations(self):
         return AgentAssociation.objects.filter(
             Q(has_associate=self ) | Q(is_associate=self))
-            
+
     def is_context_agent(self):
         return self.is_context
-        
+
     def orders_queryset(self):
         #import pdb; pdb.set_trace()
         orders = []
@@ -1126,7 +1131,7 @@ class EconomicAgent(models.Model):
         orders = list(set(orders))
         order_ids = [order.id for order in orders]
         return Order.objects.filter(id__in=order_ids)
-        
+
     def shipments_queryset(self):
         #import pdb; pdb.set_trace()
         shipments = []
@@ -1158,7 +1163,7 @@ class EconomicAgent(models.Model):
         else:
             qs = qs.filter(context_agent=self)
         return qs
-        
+
     def undistributed_events(self):
         #import pdb; pdb.set_trace()
         event_ids = []
@@ -1191,7 +1196,7 @@ class EconomicAgent(models.Model):
             if id.is_undistributed():
                 id_ids.append(id.id)
         return EconomicEvent.objects.filter(id__in=id_ids)
-        
+
     def is_deletable(self):
         if self.given_events.filter(quantity__gt=0):
             return False
@@ -1208,7 +1213,7 @@ class EconomicAgent(models.Model):
         if self.virtual_accounts():
             return False
         return True
-        
+
     def contexts_participated_in(self):
         answer = []
         if self.agent_type.party_type == "individual":
@@ -1217,12 +1222,12 @@ class EconomicAgent(models.Model):
             cids = list(set(cids))
             answer = EconomicAgent.objects.filter(id__in=cids)
         return answer
-                
-        
+
+
 class AgentUser(models.Model):
     agent = models.ForeignKey(EconomicAgent,
         verbose_name=_('agent'), related_name='users')
-    user = models.OneToOneField(User, 
+    user = models.OneToOneField(User,
         verbose_name=_('user'), related_name='agent')
 
 
@@ -1240,19 +1245,19 @@ class AgentAssociationType(models.Model):
     identifier = models.CharField(_('identifier'), max_length=12, unique=True)
     name = models.CharField(_('name'), max_length=128)
     plural_name = models.CharField(_('plural name'), default="", max_length=128)
-    association_behavior = models.CharField(_('association behavior'), 
+    association_behavior = models.CharField(_('association behavior'),
         max_length=12, choices=ASSOCIATION_BEHAVIOR_CHOICES,
         blank=True, null=True)
     description = models.TextField(_('description'), blank=True, null=True)
     label = models.CharField(_('label'), max_length=32, null=True)
     inverse_label = models.CharField(_('inverse label'), max_length=40, null=True)
-    
+
     def __unicode__(self):
         return self.name
-        
+
     @classmethod
     def create(cls, identifier, name, plural_name, association_behavior, label, inverse_label, verbosity=2):
-        """  
+        """
         Creates a new AgentType, updates an existing one, or does nothing.
         This is intended to be used as a post_syncdb manangement step.
         """
@@ -1284,30 +1289,30 @@ class AgentAssociationType(models.Model):
                 print "Created %s AgentAssociationType" % name
 
 from django.db.models.signals import post_migrate
-        
+
 #def create_agent_types(app, **kwargs):
 #    if app != "valueaccounting":
 #        return
 def create_agent_types(**kwargs):
-    AgentType.create('Individual', 'individual', False) 
-    AgentType.create('Organization', 'org', False) 
-    AgentType.create('Network', 'network', True) 
+    AgentType.create('Individual', 'individual', False)
+    AgentType.create('Organization', 'org', False)
+    AgentType.create('Network', 'network', True)
     print "created agent types"
-    
-post_migrate.connect(create_agent_types) 
+
+post_migrate.connect(create_agent_types)
 
 #def create_agent_association_types(app, **kwargs):
 #    if app != "valueaccounting":
 #        return
 def create_agent_association_types(**kwargs):
-    AgentAssociationType.create('child', 'Child', 'Children', 'child', 'is child of', 'has child') 
-    AgentAssociationType.create('member', 'Member', 'Members', 'member', 'is member of', 'has member')  
-    AgentAssociationType.create('supplier', 'Supplier', 'Suppliers', 'supplier', 'is supplier of', 'has supplier') 
-    AgentAssociationType.create('customer', 'Customer', 'Customers', 'customer', 'is customer of', 'has customer') 
+    AgentAssociationType.create('child', 'Child', 'Children', 'child', 'is child of', 'has child')
+    AgentAssociationType.create('member', 'Member', 'Members', 'member', 'is member of', 'has member')
+    AgentAssociationType.create('supplier', 'Supplier', 'Suppliers', 'supplier', 'is supplier of', 'has supplier')
+    AgentAssociationType.create('customer', 'Customer', 'Customers', 'customer', 'is customer of', 'has customer')
     print "created agent association types"
-    
-post_migrate.connect(create_agent_association_types)  
-        
+
+post_migrate.connect(create_agent_association_types)
+
 RELATIONSHIP_STATE_CHOICES = (
     ('active', _('active')),
     ('inactive', _('inactive')),
@@ -1322,16 +1327,16 @@ class AgentAssociation(models.Model):
     association_type = models.ForeignKey(AgentAssociationType,
         verbose_name=_('association type'), related_name='associations')
     description = models.TextField(_('description'), blank=True, null=True)
-    state = models.CharField(_('state'), 
+    state = models.CharField(_('state'),
         max_length=12, choices=RELATIONSHIP_STATE_CHOICES,
         default='active')
-        
+
     class Meta:
         ordering = ('is_associate',)
-        
+
     def __unicode__(self):
         return self.is_associate.nick + " " + self.association_type.label + " " + self.has_associate.nick
-        
+
     def representation(self):
         state = ""
         if self.state == "potential":
@@ -1342,7 +1347,7 @@ class AgentAssociation(models.Model):
             self.has_associate.nick,
             state,
             ])
-        
+
 #todo exchange redesign fallout
 #many of these are obsolete
 DIRECTION_CHOICES = (
@@ -1390,12 +1395,12 @@ class EventTypeManager(models.Manager):
 
     def get_by_natural_key(self, name):
         return self.get(name=name)
-        
+
     def used_for_value_equations(self):
         ets = EventType.objects.all()
         used_ids = [et.id for et in ets if et.used_for_value_equations()]
         return EventType.objects.filter(id__in=used_ids)
-        
+
     #todo exchange redesign fallout
     #obsolete event type
     def cash_event_types(self):
@@ -1406,13 +1411,13 @@ class EventType(models.Model):
     name = models.CharField(_('name'), max_length=128)
     label = models.CharField(_('label'), max_length=32)
     inverse_label = models.CharField(_('inverse label'), max_length=40, blank=True)
-    relationship = models.CharField(_('relationship'), 
+    relationship = models.CharField(_('relationship'),
         max_length=12, choices=DIRECTION_CHOICES, default='in')
-    related_to = models.CharField(_('related to'), 
+    related_to = models.CharField(_('related to'),
         max_length=12, choices=RELATED_CHOICES, default='process')
-    resource_effect = models.CharField(_('resource effect'), 
+    resource_effect = models.CharField(_('resource effect'),
         max_length=12, choices=RESOURCE_EFFECT_CHOICES)
-    unit_type = models.CharField(_('unit type'), 
+    unit_type = models.CharField(_('unit type'),
         max_length=12, choices=UNIT_TYPE_CHOICES,
         blank=True)
     slug = models.SlugField(_("Page name"), editable=False)
@@ -1434,7 +1439,7 @@ class EventType(models.Model):
 
     @classmethod
     def create(cls, name, label, inverse_label, relationship, related_to, resource_effect, unit_type, verbosity=2):
-        """  
+        """
         Creates a new EventType, updates an existing one, or does nothing.
         This is intended to be used as a post_syncdb manangement step.
         """
@@ -1487,7 +1492,7 @@ class EventType(models.Model):
             else:
                 return "quantity * valuePerUnit"
         return ""
-            
+
     def used_for_value_equations(self):
         #todo exchange redesign fallout
         #some of these are obsolete
@@ -1512,9 +1517,9 @@ class EventType(models.Model):
         if self.relationship in bad_relationships:
             return False
         elif self.name in bad_names:
-            return False 
+            return False
         return True
-            
+
     def creates_resources(self):
         if "+" in self.resource_effect:
             #this is to rule out adjustments
@@ -1524,28 +1529,28 @@ class EventType(models.Model):
 
     def consumes_resources(self):
         return self.resource_effect == "-"
-        
+
     def is_change_related(self):
         if "~" in self.resource_effect:
             return True
         else:
             return False
-            
+
     def applies_stage(self):
         return self.resource_effect == "+~"
-        
+
     def changes_stage(self):
         return self.resource_effect == "~>"
-        
+
     def stage_to_be_changed(self):
         return self.resource_effect == ">~"
-        
+
     def is_work(self):
         if self.relationship == "work":
             return True
         else:
             return False
-        
+
 
 class AccountingReference(models.Model):
     code = models.CharField(_('code'), max_length=128, unique=True)
@@ -1570,7 +1575,7 @@ class ResourceState(models.Model):
     name = models.CharField(_('name'), max_length=128, unique=True)
     description = models.TextField(_('description'), blank=True, null=True)
 
-    
+
 class RecipeInheritance(object):
     def __init__(self, parent, heir):
         self.parent = parent
@@ -1582,11 +1587,11 @@ class RecipeInheritance(object):
         else:
             return candidate
 
-            
+
 class ResourceClass(models.Model):
     name = models.CharField(_('name'), max_length=128, unique=True)
     description = models.TextField(_('description'), blank=True, null=True)
-    
+
     def __unicode__(self):
         return self.name
 
@@ -1607,10 +1612,10 @@ BEHAVIOR_CHOICES = (
 
 class EconomicResourceType(models.Model):
     name = models.CharField(_('name'), max_length=128, unique=True)
-    #version = models.CharField(_('version'), max_length=32, blank=True)    
-    parent = models.ForeignKey('self', blank=True, null=True, 
-        verbose_name=_('parent'), related_name='children')    
-    resource_class = models.ForeignKey(ResourceClass, blank=True, null=True, 
+    #version = models.CharField(_('version'), max_length=32, blank=True)
+    parent = models.ForeignKey('self', blank=True, null=True,
+        verbose_name=_('parent'), related_name='children')
+    resource_class = models.ForeignKey(ResourceClass, blank=True, null=True,
         verbose_name=_('resource class'), related_name='resource_types')
     unit = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit'), related_name="resource_units",
@@ -1621,11 +1626,11 @@ class EconomicResourceType(models.Model):
     unit_of_value = models.ForeignKey(Unit, blank=True, null=True,
         limit_choices_to={'unit_type': 'value'},
         verbose_name=_('unit of value'), related_name="resource_type_value_units", editable=False)
-    value_per_unit = models.DecimalField(_('value per unit'), max_digits=8, decimal_places=2, 
+    value_per_unit = models.DecimalField(_('value per unit'), max_digits=8, decimal_places=2,
         default=Decimal("0.00"), editable=False)
-    value_per_unit_of_use = models.DecimalField(_('value per unit of use'), max_digits=8, decimal_places=2, 
+    value_per_unit_of_use = models.DecimalField(_('value per unit of use'), max_digits=8, decimal_places=2,
         default=Decimal("0.00"), editable=False)
-    price_per_unit = models.DecimalField(_('price per unit'), max_digits=8, decimal_places=2, 
+    price_per_unit = models.DecimalField(_('price per unit'), max_digits=8, decimal_places=2,
         default=Decimal("0.00"))
     unit_of_price = models.ForeignKey(Unit, blank=True, null=True,
         limit_choices_to={'unit_type': 'value'},
@@ -1655,7 +1660,7 @@ class EconomicResourceType(models.Model):
     class Meta:
         ordering = ('name',)
         verbose_name = _('resource type')
-    
+
     def __unicode__(self):
         return self.name
 
@@ -1676,30 +1681,30 @@ class EconomicResourceType(models.Model):
             return True
         else:
             return False
-            
+
     def is_work(self):
         if self.behavior == "work":
             return True
         else:
             return False
-            
+
     def direct_children(self):
         return self.children.all()
-        
+
     def with_all_children(self):
         answer = [self,]
         kids = self.direct_children()
         for kid in kids:
             answer.extend(kid.with_all_children())
         return answer
-        
+
     def all_children(self):
         kids = self.direct_children()
         answer = list(kids)
         for kid in kids:
             answer.extend(kid.all_children())
         return answer
-        
+
     def child_of_class(self, resource_class):
         kids = self.all_children()
         for kid in kids:
@@ -1717,19 +1722,19 @@ class EconomicResourceType(models.Model):
         return EconomicResource.goods.filter(
             resource_type=self,
             quantity__gt=0)
-            
+
     def onhand_for_stage(self, stage):
         return EconomicResource.goods.filter(
             resource_type=self,
             stage=stage,
             quantity__gt=0)
-             
+
     def onhand_for_exchange_stage(self, stage):
         return EconomicResource.goods.filter(
             resource_type=self,
             exchange_stage=stage,
             quantity__gt=0)
-              
+
     def commits_for_exchange_stage(self, stage):
         cfes = []
         commits = Commitment.objects.filter(
@@ -1740,7 +1745,7 @@ class EconomicResourceType(models.Model):
             if com.unfilled_quantity > 0:
                 cfes.append(com)
         return cfes
-       
+
     def onhand_for_resource_driven_recipe(self):
         return EconomicResource.goods.filter(
             resource_type=self,
@@ -1753,7 +1758,7 @@ class EconomicResourceType(models.Model):
 
     def onhand_qty(self):
         return sum(oh.quantity for oh in self.onhand())
-        
+
     def onhand_qty_for_stage(self, stage):
         return sum(oh.quantity for oh in self.onhand_for_stage(stage))
 
@@ -1803,16 +1808,16 @@ class EconomicResourceType(models.Model):
     def producing_process_type_relationships(self):
         #todo pr: this shd be replaced by own_recipes
         return self.process_types.filter(event_type__relationship='out')
-        
+
     def manufacturing_producing_process_type_relationships(self):
         return self.process_types.filter(
             stage__isnull=True,
             event_type__relationship='out')
-        
+
     def own_recipes(self):
         #todo pr: or shd that be own_producing_commitment_types?
         return self.process_types.filter(event_type__relationship='out')
-        
+
     def own_or_parent_recipes(self):
         ptrs =  self.own_recipes()
         parent = None
@@ -1850,7 +1855,7 @@ class EconomicResourceType(models.Model):
                 return one_ptrt, inheritance
         else:
             return None, None
-            
+
     def recipe_is_staged(self):
         #todo pr: shd this use own_or_parent_recipes?
         #staged_commitments = self.process_types.filter(stage__isnull=False)
@@ -1873,20 +1878,20 @@ class EconomicResourceType(models.Model):
             return ptrt.process_type
         else:
             return None
-            
+
     def all_staged_commitment_types(self):
         #todo pr: shd this be own or own_or_parent_recipes?
         return self.process_types.filter(stage__isnull=False)
-        
+
     def all_staged_process_types(self):
         cts = self.all_staged_commitment_types()
         pts = [ct.process_type for ct in cts]
         return list(set(pts))
-        
+
     def all_stages(self):
         ids = [pt.id for pt in self.all_staged_process_types()]
         return ProcessType.objects.filter(id__in=ids)
-        
+
     def staged_commitment_type_sequence(self):
         #ximport pdb; pdb.set_trace()
         #pr changed
@@ -1903,7 +1908,7 @@ class EconomicResourceType(models.Model):
                     parent = parent.parent
         if not staged_commitments:
             return [], None
-        creation_et = EventType.objects.get(name='Create Changeable') 
+        creation_et = EventType.objects.get(name='Create Changeable')
         chain = []
         creation = None
         try:
@@ -1931,7 +1936,7 @@ class EconomicResourceType(models.Model):
         if creation:
             creation.follow_stage_chain(chain)
         return chain, inheritance
-              
+
     def staged_commitment_type_sequence_beyond_workflow(self):
         #import pdb; pdb.set_trace()
         #pr changed
@@ -1948,7 +1953,7 @@ class EconomicResourceType(models.Model):
                     parent = parent.parent
         if not staged_commitments:
             return [], None
-        creation_et = EventType.objects.get(name='Create Changeable') 
+        creation_et = EventType.objects.get(name='Create Changeable')
         chain = []
         creation = None
         try:
@@ -1974,7 +1979,7 @@ class EconomicResourceType(models.Model):
         if creation:
             creation.follow_stage_chain_beyond_workflow(chain)
         return chain, inheritance
-        
+
     def staged_process_type_sequence(self):
         #import pdb; pdb.set_trace()
         #pr changed
@@ -1984,12 +1989,12 @@ class EconomicResourceType(models.Model):
             if stage.process_type not in pts:
                 pts.append(stage.process_type)
         return pts, inheritance
-        
+
     def all_stages(self):
         pts, inheritance = self.staged_process_type_sequence()
         ids = [pt.id for pt in pts]
         return ProcessType.objects.filter(id__in=ids)
-        
+
     def staged_process_type_sequence_beyond_workflow(self):
         #pr changed
         pts = []
@@ -1998,7 +2003,7 @@ class EconomicResourceType(models.Model):
             if stage.process_type not in pts:
                 pts.append(stage.process_type)
         return pts, inheritance
-        
+
     def recipe_needs_starting_resource(self):
         #todo pr: shd this pass inheritance on?
         #shd recipe_is_staged consider own_or_parent_recipes?
@@ -2012,7 +2017,7 @@ class EconomicResourceType(models.Model):
             if ct0.event_type.name == 'To Be Changed':
                 answer =  True
         return answer
-            
+
     def has_listable_recipe(self):
         #todo pr: shd this be own or own_or_parent_recipes?
         answer = False
@@ -2022,7 +2027,7 @@ class EconomicResourceType(models.Model):
             if self.recipe_needs_starting_resource():
                 answer = False
         return answer
-        
+
     def can_be_parent(self):
         if self.own_recipes():
             #if self.recipe_is_staged():
@@ -2068,7 +2073,7 @@ class EconomicResourceType(models.Model):
                 ct.order_item = order_item
                 ct.save()
         return order
-        
+
     def generate_staged_order_item(self, order, start_date, user):
         #pr changed
         pts, inheritance = self.staged_process_type_sequence()
@@ -2099,7 +2104,7 @@ class EconomicResourceType(models.Model):
                 ct.order_item = order_item
                 ct.save()
         return order
-    
+
     def generate_staged_work_order_from_resource(self, resource, order_name, start_date, user):
         #pr changed
         #import pdb; pdb.set_trace()
@@ -2150,8 +2155,8 @@ class EconomicResourceType(models.Model):
                         commitment.quantity = resource.quantity
                 commitment.save()
 
-        return order 
-    
+        return order
+
     def is_process_output(self):
         #import pdb; pdb.set_trace()
         #todo: does this still return false positives?
@@ -2168,12 +2173,12 @@ class EconomicResourceType(models.Model):
                     if self in pattern.output_resource_types():
                         return True
         return False
-       
+
     #does not seem to be used
     def is_purchased(self):
         rts = all_purchased_resource_types()
         return self in rts
-        
+
     def is_work(self):
         #import pdb; pdb.set_trace()
         #todo: does this still return false positives?
@@ -2188,7 +2193,7 @@ class EconomicResourceType(models.Model):
                     if self in pattern.work_resource_types():
                         return True
         return False
-        
+
     def consuming_process_type_relationships(self):
         #todo pr: shd this be own or own_or_parent_recipes?
         return self.process_types.filter(event_type__resource_effect='-')
@@ -2214,17 +2219,17 @@ class EconomicResourceType(models.Model):
     def consuming_commitments(self):
         return self.commitments.filter(
             finished=False, event_type__resource_effect='-')
-            
+
     def consuming_commitments_for_stage(self, stage):
         return self.commitments.filter(
-            finished=False, 
+            finished=False,
             stage=stage,
             event_type__resource_effect='>~')
 
     def wanting_process_type_relationships(self):
         #todo pr: shd this be own or own_or_parent_recipes?
         return self.process_types.exclude(event_type__relationship='out')
-        
+
     def wanting_process_type_relationships_for_stage(self, stage):
         #todo pr: shd this be own or own_or_parent_recipes?
         return self.process_types.exclude(event_type__relationship='out').filter(stage=stage)
@@ -2239,7 +2244,7 @@ class EconomicResourceType(models.Model):
 
     def producing_agent_relationships(self):
         return self.agents.filter(event_type__relationship='out')
-        
+
     def work_agent_relationships(self):
         return self.agents.filter(event_type__relationship='work')
 
@@ -2251,9 +2256,9 @@ class EconomicResourceType(models.Model):
 
     def producing_agents(self):
         return [art.agent for art in self.producing_agent_relationships()]
-        
+
     def work_agents(self):
-        return [art.agent for art in self.work_agent_relationships()] 
+        return [art.agent for art in self.work_agent_relationships()]
 
     def producer_relationships(self):
         return self.agents.filter(event_type__relationship='out')
@@ -2341,29 +2346,29 @@ class EconomicResourceType(models.Model):
 
     def process_create_prefix(self):
         return "".join(["PC", str(self.id)])
-        
+
     def process_create_form(self):
         from valuenetwork.valueaccounting.forms import XbillProcessTypeForm
         init = {"name": " ".join(["Make", self.name])}
         return XbillProcessTypeForm(initial=init, prefix=self.process_create_prefix())
         #return XbillProcessTypeForm(prefix=self.process_create_prefix())
-        
+
     def process_stream_create_form(self):
         from valuenetwork.valueaccounting.forms import RecipeProcessTypeForm
         #init = {"name": " ".join(["Make", self.name])}
         #return RecipeProcessTypeForm(initial=init, prefix=self.process_create_prefix())
         return RecipeProcessTypeForm(prefix=self.process_create_prefix())
-            
+
     def source_create_prefix(self):
         return "".join(["SRC", str(self.id)])
 
     def source_create_form(self):
         from valuenetwork.valueaccounting.forms import AgentResourceTypeForm
         return AgentResourceTypeForm(prefix=self.source_create_prefix())
-            
+
     def form_prefix(self):
         return "".join(["RT", str(self.id)])
-    
+
     def directional_unit(self, direction):
         answer = self.unit
         if self.unit_of_use:
@@ -2401,7 +2406,7 @@ class EconomicResourceType(models.Model):
             if not self.value_per_unit:
                 return True
         return False
-    
+
     def facet_list(self):
         return ", ".join([facet.facet_value.__unicode__() for facet in self.facets.all()])
 
@@ -2441,7 +2446,7 @@ class EconomicResourceType(models.Model):
         if False in filter_matches:
             answer = False
         return answer
-        
+
     def uninventoried(self):
         if self.inventory_rule == "yes":
             return False
@@ -2456,26 +2461,26 @@ class ResourceTypeList(models.Model):
         blank=True, null=True,
         limit_choices_to={"is_context": True,},
         verbose_name=_('context agent'), related_name='lists')
-        
+
     class Meta:
         ordering = ('name',)
 
     def __unicode__(self):
         return self.name
-        
+
     def resource_types_string(self):
         return ", ".join([elem.resource_type.name for elem in self.list_elements.all()])
-        
+
     def form_prefix(self):
         return "-".join(["RTL", str(self.id)])
-   
+
     def change_form(self):
         from valuenetwork.valueaccounting.forms import ResourceTypeListForm
         prefix=self.form_prefix()
         rt_ids = [elem.resource_type.id for elem in self.resource_types.all()]
         init = {"resource_types": rt_ids,}
         return ResourceTypeListForm(instance=self, prefix=prefix, initial=init)
-        
+
     def recipe_class(self):
         answer = "workflow"
         for elem in self.list_elements.all():
@@ -2483,25 +2488,25 @@ class ResourceTypeList(models.Model):
                 answer = "manufacturing"
         return answer
 
-        
+
 class ResourceTypeListElement(models.Model):
-    resource_type_list = models.ForeignKey(ResourceTypeList, 
+    resource_type_list = models.ForeignKey(ResourceTypeList,
         verbose_name=_('resource type list'), related_name='list_elements')
-    resource_type = models.ForeignKey(EconomicResourceType, 
+    resource_type = models.ForeignKey(EconomicResourceType,
         verbose_name=_('resource type'), related_name='lists')
-    default_quantity = models.DecimalField(_('default quantity'), max_digits=8, decimal_places=2, 
+    default_quantity = models.DecimalField(_('default quantity'), max_digits=8, decimal_places=2,
         default=Decimal("1.0"))
-        
+
     class Meta:
         unique_together = ('resource_type_list', 'resource_type')
         ordering = ('resource_type_list', 'resource_type')
-        
+
     def __unicode__(self):
         return ": ".join([self.resource_type_list.name, self.resource_type.name])
-   
+
 
 class ResourceTypeFacetValue(models.Model):
-    resource_type = models.ForeignKey(EconomicResourceType, 
+    resource_type = models.ForeignKey(EconomicResourceType,
         verbose_name=_('resource type'), related_name='facets')
     facet_value = models.ForeignKey(FacetValue,
         verbose_name=_('facet value'), related_name='resource_types')
@@ -2512,8 +2517,8 @@ class ResourceTypeFacetValue(models.Model):
 
     def __unicode__(self):
         return ": ".join([self.resource_type.name, self.facet_value.facet.name, self.facet_value.value])
-        
-        
+
+
 def all_purchased_resource_types():
     uc = UseCase.objects.get(name="Purchasing")
     pats = ProcessPattern.objects.usecase_patterns(uc)
@@ -2534,20 +2539,20 @@ class ProcessPatternManager(models.Manager):
             Q(use_case__identifier='rand')|Q(use_case__identifier='design')|Q(use_case__identifier='recipe'))
         pattern_ids = [uc.pattern.id for uc in use_cases]
         return ProcessPattern.objects.filter(id__in=pattern_ids)
-        
+
     def recipe_patterns(self):
         #import pdb; pdb.set_trace()
         use_cases = PatternUseCase.objects.filter(use_case__identifier='recipe')
         pattern_ids = [uc.pattern.id for uc in use_cases]
         return ProcessPattern.objects.filter(id__in=pattern_ids)
-        
+
     def usecase_patterns(self, use_case):
         #import pdb; pdb.set_trace()
         use_cases = PatternUseCase.objects.filter(
             Q(use_case=use_case))
         pattern_ids = [uc.pattern.id for uc in use_cases]
         return ProcessPattern.objects.filter(id__in=pattern_ids)
-        
+
     def all_production_resource_types(self):
         patterns = self.production_patterns()
         rt_ids = []
@@ -2555,7 +2560,7 @@ class ProcessPatternManager(models.Manager):
             #todo pr: shd this be own or own_or_parent_recipes?
             rt_ids.extend([rt.id for rt in pat.output_resource_types() if rt.producing_process_type_relationships()])
         return EconomicResourceType.objects.filter(id__in=rt_ids)
-        
+
 
 class ProcessPattern(models.Model):
     name = models.CharField(_('name'), max_length=32)
@@ -2579,10 +2584,10 @@ class ProcessPattern(models.Model):
 
     def slots(self):
         return [et.relationship for et in self.event_types()]
-        
+
     def change_event_types(self):
         return [et for et in self.event_types() if et.is_change_related()]
-        
+
     def non_change_event_type_names(self):
         return [et.name for et in self.event_types() if not et.is_change_related()]
 
@@ -2596,7 +2601,7 @@ class ProcessPattern(models.Model):
             And if the Resource Type has other Facets
             that are not in the Pattern, they do not matter.
         """
-        
+
         #import pdb; pdb.set_trace()
         pattern_facet_values = self.facets_for_event_type(event_type)
         facet_values = [pfv.facet_value for pfv in pattern_facet_values]
@@ -2604,8 +2609,8 @@ class ProcessPattern(models.Model):
         for fv in facet_values:
             if fv.facet not in facets:
                 facets[fv.facet] = []
-            facets[fv.facet].append(fv.value)  
-           
+            facets[fv.facet].append(fv.value)
+
         fv_ids = [fv.id for fv in facet_values]
         rt_facet_values = ResourceTypeFacetValue.objects.filter(facet_value__id__in=fv_ids)
 
@@ -2615,10 +2620,10 @@ class ProcessPattern(models.Model):
             if rt not in rts:
                 rts[rt] = []
             rts[rt].append(rtfv.facet_value)
-            
+
         #import pdb; pdb.set_trace()
         matches = []
-        
+
         for rt, facet_values in rts.iteritems():
             match = True
             for facet, values in facets.iteritems():
@@ -2631,14 +2636,14 @@ class ProcessPattern(models.Model):
                     match = False
             if match:
                 matches.append(rt)
-                
-        answer_ids = [a.id for a in matches]        
-        answer = EconomicResourceType.objects.filter(id__in=answer_ids)       
+
+        answer_ids = [a.id for a in matches]
+        answer = EconomicResourceType.objects.filter(id__in=answer_ids)
         return answer
 
     def resource_types_for_relationship(self, relationship):
         #import pdb; pdb.set_trace()
-        ets = [f.event_type for f in self.facets.filter(event_type__relationship=relationship)] 
+        ets = [f.event_type for f in self.facets.filter(event_type__relationship=relationship)]
         if ets:
             ets = list(set(ets))
             if len(ets) == 1:
@@ -2659,7 +2664,7 @@ class ProcessPattern(models.Model):
             rts.extend(self.get_resource_types(et))
         rt_ids = [rt.id for rt in rts]
         return EconomicResourceType.objects.filter(id__in=rt_ids)
-        
+
     def work_resource_types(self):
         return self.resource_types_for_relationship("work")
 
@@ -2677,7 +2682,7 @@ class ProcessPattern(models.Model):
     def citable_resources(self):
         rts = [rt for rt in self.citable_resource_types() if rt.onhand()]
         return EconomicResource.objects.filter(resource_type__in=rts)
-    
+
     def input_resource_types(self):
         #must be changed, in no longer covers
         # or event types must be changed so all ins are ins
@@ -2711,37 +2716,37 @@ class ProcessPattern(models.Model):
 
     #def receipt_resource_types(self):
     #    return self.resource_types_for_relationship("receive")
-        
+
     #def receipt_resource_types_with_resources(self):
     #    #import pdb; pdb.set_trace()
     #    rts = [rt for rt in self.resource_types_for_relationship("receive") if rt.all_resources()] # if rt.onhand()]
     #    rt_ids = [rt.id for rt in rts]
     #    return EconomicResourceType.objects.filter(id__in=rt_ids)
-        
+
     #def matl_contr_resource_types_with_resources(self):
     #    #import pdb; pdb.set_trace()
     #    rts = [rt for rt in self.resource_types_for_relationship("resource") if rt.onhand()]
     #    rt_ids = [rt.id for rt in rts]
     #    return EconomicResourceType.objects.filter(id__in=rt_ids)
-        
+
     #def expense_resource_types(self):
     #    #import pdb; pdb.set_trace()
     #    return self.resource_types_for_relationship("expense")
 
     #def process_expense_resource_types(self):
     #    return self.resource_types_for_relationship("payexpense")
-        
+
     #def cash_contr_resource_types(self): #now includes cash contributions and donations
     #    return self.resource_types_for_relationship("cash")
-    
+
     #def shipment_resource_types(self):
     #    return self.resource_types_for_relationship("shipment")
-        
+
     #def shipment_uninventoried_resource_types(self):
     #    rts = [rt for rt in self.resource_types_for_relationship("shipment") if rt.uninventoried()]
     #    rt_ids = [rt.id for rt in rts]
     #    return EconomicResourceType.objects.filter(id__in=rt_ids)
-            
+
     #def shipment_resources(self):
     #    #import pdb; pdb.set_trace()
     #    rts = self.shipment_resource_types()
@@ -2752,19 +2757,19 @@ class ProcessPattern(models.Model):
     #            resources.append(res)
     #    resource_ids = [res.id for res in resources]
     #    return EconomicResource.objects.filter(id__in=resource_ids).order_by("-created_date")
-                
+
     #def material_contr_resource_types(self):
     #    return self.resource_types_for_relationship("resource")
-        
+
     #def cash_receipt_resource_types(self):
     #    return self.resource_types_for_relationship("receivecash")
-            
+
     def distribution_resource_types(self):
         return self.resource_types_for_relationship("distribute")
-            
+
     def disbursement_resource_types(self):
         return self.resource_types_for_relationship("disburse")
-        
+
     def facets_for_event_type(self, event_type):
         return self.facets.filter(event_type=event_type)
 
@@ -2843,7 +2848,7 @@ class ProcessPattern(models.Model):
     def use_case_list(self):
         ucl = [uc.use_case.name for uc in self.use_cases.all()]
         return ", ".join(ucl)
-    
+
     def use_case_identifier_list(self):
         ucl = [uc.use_case.identifier for uc in self.use_cases.all()]
         return ", ".join(ucl)
@@ -2864,9 +2869,9 @@ class ProcessPattern(models.Model):
                 fvs_for_facet.append(fv.facet_value)
         return fvs_for_facet
 
-        
+
 class PatternFacetValue(models.Model):
-    pattern = models.ForeignKey(ProcessPattern, 
+    pattern = models.ForeignKey(ProcessPattern,
         verbose_name=_('pattern'), related_name='facets')
     facet_value = models.ForeignKey(FacetValue,
         verbose_name=_('facet value'), related_name='patterns')
@@ -2887,7 +2892,7 @@ class UseCaseManager(models.Manager):
     def get_by_natural_key(self, identifier):
         #import pdb; pdb.set_trace()
         return self.get(identifier=identifier)
-    
+
     def exchange_use_cases(self):
         return UseCase.objects.filter(Q(identifier="supply_xfer")|Q(identifier="demand_xfer")|Q(identifier="intrnl_xfer"))
 
@@ -2906,7 +2911,7 @@ class UseCase(models.Model):
 
     @classmethod
     def create(cls, identifier, name, restrict_to_one_pattern=False, verbosity=2):
-        """  
+        """
         Creates a new UseCase, updates an existing one, or does nothing.
         This is intended to be used as a post_syncdb manangement step.
         """
@@ -2940,7 +2945,7 @@ class UseCase(models.Model):
         et_ids = []
         for ucet in ucets:
             if ucet.event_type.pk not in et_ids:
-                et_ids.append(ucet.event_type.pk) 
+                et_ids.append(ucet.event_type.pk)
         return EventType.objects.filter(pk__in=et_ids)
 
     def allowed_patterns(self): #patterns must not have event types not assigned to the use case
@@ -2962,13 +2967,13 @@ class UseCase(models.Model):
 #    if app != "valueaccounting":
 #        return
 def create_use_cases(**kwargs):
-    #UseCase.create('cash_contr', _('Cash Contribution'), True) 
+    #UseCase.create('cash_contr', _('Cash Contribution'), True)
     UseCase.create('non_prod', _('Non-production Logging'), True)
     UseCase.create('rand', _('Manufacturing Recipes/Logging'))
     UseCase.create('recipe', _('Workflow Recipes/Logging'))
     UseCase.create('todo', _('Todos'), True)
     UseCase.create('cust_orders', _('Customer Orders'))
-    UseCase.create('purchasing', _('Purchasing')) 
+    UseCase.create('purchasing', _('Purchasing'))
     #UseCase.create('res_contr', _('Material Contribution'))
     #UseCase.create('purch_contr', _('Purchase Contribution'))
     #UseCase.create('exp_contr', _('Expense Contribution'), True)
@@ -2991,26 +2996,26 @@ post_migrate.connect(create_use_cases)
 def create_event_types(**kwargs):
     #Keep the first column (name) as unique
     EventType.create('Citation', _('cites'), _('cited by'), 'cite', 'process', '=', '')
-    EventType.create('Resource Consumption', _('consumes'), _('consumed by'), 'consume', 'process', '-', 'quantity') 
+    EventType.create('Resource Consumption', _('consumes'), _('consumed by'), 'consume', 'process', '-', 'quantity')
     #EventType.create('Cash Contribution', _('contributes cash'), _('cash contributed by'), 'cash', 'exchange', '+', 'value')
-    #EventType.create('Donation', _('donates cash'), _('cash donated by'), 'cash', 'exchange', '+', 'value') 
-    #EventType.create('Resource Contribution', _('contributes resource'), _('resource contributed by'), 'resource', 'exchange', '+', 'quantity') 
-    EventType.create('Damage', _('damages'), _('damaged by'), 'out', 'agent', '-', 'value')  
-    #EventType.create('Expense', _('expense'), '', 'expense', 'exchange', '=', 'value') 
-    EventType.create('Failed quantity', _('fails'), '', 'out', 'process', '<', 'quantity') 
-    #EventType.create('Payment', _('pays'), _('paid by'), 'pay', 'exchange', '-', 'value') 
-    EventType.create('Resource Production', _('produces'), _('produced by'), 'out', 'process', '+', 'quantity') 
-    EventType.create('Work Provision', _('provides'), _('provided by'), 'out', 'agent', '+', 'time') 
-    #EventType.create('Receipt', _('receives'), _('received by'), 'receive', 'exchange', '+', 'quantity') 
-    EventType.create('Sale', _('sells'), _('sold by'), 'out', 'agent', '=', '') 
-    #EventType.create('Shipment', _('ships'), _('shipped by'), 'shipment', 'exchange', '-', 'quantity') 
-    EventType.create('Supply', _('supplies'), _('supplied by'), 'out', 'agent', '=', '') 
+    #EventType.create('Donation', _('donates cash'), _('cash donated by'), 'cash', 'exchange', '+', 'value')
+    #EventType.create('Resource Contribution', _('contributes resource'), _('resource contributed by'), 'resource', 'exchange', '+', 'quantity')
+    EventType.create('Damage', _('damages'), _('damaged by'), 'out', 'agent', '-', 'value')
+    #EventType.create('Expense', _('expense'), '', 'expense', 'exchange', '=', 'value')
+    EventType.create('Failed quantity', _('fails'), '', 'out', 'process', '<', 'quantity')
+    #EventType.create('Payment', _('pays'), _('paid by'), 'pay', 'exchange', '-', 'value')
+    EventType.create('Resource Production', _('produces'), _('produced by'), 'out', 'process', '+', 'quantity')
+    EventType.create('Work Provision', _('provides'), _('provided by'), 'out', 'agent', '+', 'time')
+    #EventType.create('Receipt', _('receives'), _('received by'), 'receive', 'exchange', '+', 'quantity')
+    EventType.create('Sale', _('sells'), _('sold by'), 'out', 'agent', '=', '')
+    #EventType.create('Shipment', _('ships'), _('shipped by'), 'shipment', 'exchange', '-', 'quantity')
+    EventType.create('Supply', _('supplies'), _('supplied by'), 'out', 'agent', '=', '')
     EventType.create('Todo', _('todo'), '', 'todo', 'agent', '=', '')
-    EventType.create('Resource use', _('uses'), _('used by'), 'use', 'process', '=', 'time') 
-    EventType.create('Time Contribution', _('work'), '', 'work', 'process', '=', 'time') 
-    EventType.create('Create Changeable', _('creates changeable'), 'changeable created', 'out', 'process', '+~', 'quantity')  
-    EventType.create('To Be Changed', _('to be changed'), '', 'in', 'process', '>~', 'quantity')  
-    EventType.create('Change', _('changes'), 'changed', 'out', 'process', '~>', 'quantity') 
+    EventType.create('Resource use', _('uses'), _('used by'), 'use', 'process', '=', 'time')
+    EventType.create('Time Contribution', _('work'), '', 'work', 'process', '=', 'time')
+    EventType.create('Create Changeable', _('creates changeable'), 'changeable created', 'out', 'process', '+~', 'quantity')
+    EventType.create('To Be Changed', _('to be changed'), '', 'in', 'process', '>~', 'quantity')
+    EventType.create('Change', _('changes'), 'changed', 'out', 'process', '~>', 'quantity')
     EventType.create('Adjust Quantity', _('adjusts'), 'adjusted', 'adjust', 'agent', '+-', 'quantity')
     #EventType.create('Cash Receipt', _('receives cash'), _('cash received by'), 'receivecash', 'exchange', '+', 'value')
     EventType.create('Distribution', _('distributes'), _('distributed by'), 'distribute', 'distribution', '+', 'value')
@@ -3023,7 +3028,7 @@ def create_event_types(**kwargs):
     EventType.create('Give', _('gives'), _('given by'), 'give', 'transfer', '-', 'quantity')
     EventType.create('Receive', _('receives'), _('received by'), 'receive', 'exchange', '+', 'quantity')
     #EventType.create('Make Available', _('makes available'), _('made available by'), 'available', 'agent', '+', 'quantity')
-    
+
     print "created event types"
 
 post_migrate.connect(create_event_types)
@@ -3031,7 +3036,7 @@ post_migrate.connect(create_event_types)
 class UseCaseEventType(models.Model):
     use_case = models.ForeignKey(UseCase,
         verbose_name=_('use case'), related_name='event_types')
-    event_type = models.ForeignKey(EventType, 
+    event_type = models.ForeignKey(EventType,
         verbose_name=_('event type'), related_name='use_cases')
 
     def __unicode__(self):
@@ -3039,7 +3044,7 @@ class UseCaseEventType(models.Model):
 
     @classmethod
     def create(cls, use_case_identifier, event_type_name):
-        """  
+        """
         Creates a new UseCaseEventType, updates an existing one, or does nothing.
         This is intended to be used as a post_syncdb manangement step.
         """
@@ -3056,9 +3061,9 @@ class UseCaseEventType(models.Model):
 #    if app != "valueaccounting":
 #        return
 def create_usecase_eventtypes(**kwargs):
-    #UseCaseEventType.create('cash_contr', 'Time Contribution') 
-    #UseCaseEventType.create('cash_contr', 'Cash Contribution')  
-    #UseCaseEventType.create('cash_contr', 'Donation') 
+    #UseCaseEventType.create('cash_contr', 'Time Contribution')
+    #UseCaseEventType.create('cash_contr', 'Cash Contribution')
+    #UseCaseEventType.create('cash_contr', 'Donation')
     UseCaseEventType.create('non_prod', 'Time Contribution')
     UseCaseEventType.create('rand', 'Citation')
     UseCaseEventType.create('rand', 'Resource Consumption')
@@ -3087,8 +3092,8 @@ def create_usecase_eventtypes(**kwargs):
     #UseCaseEventType.create('cust_orders', 'Receipt')
     #UseCaseEventType.create('cust_orders', 'Sale')
     #UseCaseEventType.create('cust_orders', 'Shipment')
-    #UseCaseEventType.create('purchasing', 'Payment') 
-    #UseCaseEventType.create('purchasing', 'Receipt') 
+    #UseCaseEventType.create('purchasing', 'Payment')
+    #UseCaseEventType.create('purchasing', 'Receipt')
     #UseCaseEventType.create('res_contr', 'Time Contribution')
     #UseCaseEventType.create('res_contr', 'Resource Contribution')
     #UseCaseEventType.create('purch_contr', 'Time Contribution')
@@ -3126,7 +3131,7 @@ post_migrate.connect(create_usecase_eventtypes)
 
 
 class PatternUseCase(models.Model):
-    pattern = models.ForeignKey(ProcessPattern, 
+    pattern = models.ForeignKey(ProcessPattern,
         verbose_name=_('pattern'), related_name='use_cases')
     use_case = models.ForeignKey(UseCase,
         blank=True, null=True,
@@ -3147,13 +3152,13 @@ ORDER_TYPE_CHOICES = (
 
 
 class OrderManager(models.Manager):
-    
+
     def customer_orders(self):
         return Order.objects.filter(order_type="customer")
-        
+
     def rand_orders(self):
         return Order.objects.filter(order_type="rand")
-                
+
     def open_rand_orders(self):
         orders = self.rand_orders()
         open_orders = []
@@ -3163,19 +3168,19 @@ class OrderManager(models.Manager):
             if not order.unordered_processes():
                 open_orders.append(order)
         return open_orders
-        
+
     def closed_work_orders(self):
         orders = self.rand_orders()
         closed_orders = []
         for order in orders:
             if not order.has_open_processes():
                 closed_orders.append(order)
-        return closed_orders        
-        
+        return closed_orders
+
 #todo: Order is used for both of the above types.
 #maybe shd be renamed?
 class Order(models.Model):
-    order_type = models.CharField(_('order type'), max_length=12, 
+    order_type = models.CharField(_('order type'), max_length=12,
         choices=ORDER_TYPE_CHOICES, default='customer')
     name = models.CharField(_('name'), max_length=255, blank=True,
         help_text=_("appended to process labels for Work orders"))
@@ -3196,7 +3201,7 @@ class Order(models.Model):
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
 
     objects = OrderManager()
-    
+
     class Meta:
         ordering = ('due_date',)
 
@@ -3224,17 +3229,17 @@ class Order(models.Model):
         if provider_name or receiver_name:
             due_label = ", due:"
         return " ".join(
-            [self.get_order_type_display(), 
-            str(self.id), 
+            [self.get_order_type_display(),
+            str(self.id),
             process_name,
-            provider_label, 
-            provider_name, 
-            receiver_label, 
-            receiver_name, 
+            provider_label,
+            provider_name,
+            receiver_label,
+            receiver_name,
             due_label,
             self.due_date.strftime('%Y-%m-%d'),
             ])
-            
+
     def shorter_label_customer_order(self):
         receiver_label = ", buyer:"
         receiver_name = ""
@@ -3242,10 +3247,10 @@ class Order(models.Model):
             receiver_name = self.receiver.name
         due_label = " on:"
         return " ".join(
-            [self.get_order_type_display(), 
+            [self.get_order_type_display(),
             str(self.id),
-            receiver_label, 
-            receiver_name, 
+            receiver_label,
+            receiver_name,
             due_label,
             self.due_date.strftime('%Y-%m-%d'),
             ])
@@ -3261,7 +3266,7 @@ class Order(models.Model):
         if exs:
             return exs[0]
         return None
-        
+
     def node_id(self):
         return "-".join(["Order", str(self.id)])
 
@@ -3368,7 +3373,7 @@ class Order(models.Model):
         if ptrt:
             commitment.generate_producing_process(user, [], inheritance, explode=True)
         return commitment
-        
+
     def add_customer_order_item(self,
             resource_type,
             quantity,
@@ -3401,7 +3406,7 @@ class Order(models.Model):
         ct.save()
         ct.generate_producing_process(user, [], inheritance=None, explode=True)
         return ct
-    
+
     def all_processes(self):
         # this method includes only processes for this order
         #import pdb; pdb.set_trace()
@@ -3427,8 +3432,8 @@ class Order(models.Model):
         ordered_processes.reverse()
         #todo: review bug fixes
         #this code might need more testing for orders with more than one end process
-        return ordered_processes 
-        
+        return ordered_processes
+
     def unordered_processes(self):
         #this cd be cts = order.dependent_commitments.all()
         # or self.all_dependent_commitments()
@@ -3438,7 +3443,7 @@ class Order(models.Model):
             if ct.process:
                 processes.add(ct.process)
         return processes
-        
+
     def all_dependent_commitments(self):
         # this cd be return order.dependent_commitments.all()
         return Commitment.objects.filter(independent_demand=self)
@@ -3458,7 +3463,7 @@ class Order(models.Model):
             return processes[-1]
         else:
             return None
-            
+
     def first_process_in_order(self):
         #import pdb; pdb.set_trace()
         processes = list(self.unordered_processes())
@@ -3471,39 +3476,39 @@ class Order(models.Model):
         else:
             return None
 
-                
+
     def process_types(self):
         pts = []
         for process in self.all_processes():
             if process.process_type:
                 pts.append(process.process_type)
         return pts
-        
+
     def all_events(self):
         processes = self.unordered_processes()
         events = []
         for process in processes:
             events.extend(process.events.all())
         return events
-        
+
     def all_input_events(self):
         processes = self.unordered_processes()
         events = []
         for process in processes:
             events.extend(process.events.exclude(event_type__relationship="out"))
         return events
-        
+
     def context_agents(self):
         items = self.order_items()
         return [item.context_agent for item in items]
-        
+
     def sale(self):
         sale = None
         if self.order_type == "customer":
             exchange = Exchange.objects.filter(order=self).filter(use_case__identifier="sale")
             sale = exchange[0]
         return sale
-        
+
     def reschedule_forward(self, delta_days, user):
         #import pdb; pdb.set_trace()
         self.due_date = self.due_date + datetime.timedelta(days=delta_days)
@@ -3514,10 +3519,10 @@ class Order(models.Model):
             if oi.due_date != self.due_date:
                 oi.due_date = self.due_date
                 oi.save()
-            
+
 
 class ProcessTypeManager(models.Manager):
-    
+
     def workflow_process_types(self):
         pts = ProcessType.objects.all()
         workflow_pts = []
@@ -3526,10 +3531,10 @@ class ProcessTypeManager(models.Manager):
                 workflow_pts.append(pt)
         return workflow_pts
 
-        
+
 class ProcessType(models.Model):
     name = models.CharField(_('name'), max_length=128)
-    parent = models.ForeignKey('self', blank=True, null=True, 
+    parent = models.ForeignKey('self', blank=True, null=True,
         verbose_name=_('parent'), related_name='sub_process_types', editable=False)
     process_pattern = models.ForeignKey(ProcessPattern,
         blank=True, null=True,
@@ -3540,7 +3545,7 @@ class ProcessType(models.Model):
         verbose_name=_('context agent'), related_name='process_types')
     description = models.TextField(_('description'), blank=True, null=True)
     url = models.CharField(_('url'), max_length=255, blank=True)
-    estimated_duration = models.IntegerField(_('estimated duration'), 
+    estimated_duration = models.IntegerField(_('estimated duration'),
         default=0, help_text=_("in minutes, e.g. 3 hours = 180"))
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='process_types_created', blank=True, null=True, editable=False)
@@ -3549,32 +3554,32 @@ class ProcessType(models.Model):
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
     slug = models.SlugField(_("Page name"), editable=False)
-    
+
     objects = ProcessTypeManager()
-    
+
     class Meta:
         ordering = ('name',)
-            
+
     def __unicode__(self):
         return self.name
-            
+
     def save(self, *args, **kwargs):
         unique_slugify(self, self.name)
         super(ProcessType, self).save(*args, **kwargs)
-                
+
     def timeline_title(self):
         return " ".join([self.name, "Process to be planned"])
-                    
+
     def node_id(self):
         return "-".join(["ProcessType", str(self.id)])
-                        
+
     def color(self):
         return "blue"
-        
+
     def create_process(self, start_date, user, inheritance=None):
         #pr changed
         end_date = start_date + datetime.timedelta(minutes=self.estimated_duration)
-        process = Process(          
+        process = Process(
             name=self.name,
             notes=self.description or "",
             process_type=self,
@@ -3595,79 +3600,79 @@ class ProcessType(models.Model):
         #process.name = " ".join([process.name, oc.resource_type.name])
         #process.save()
         return process
-                            
+
     def produced_resource_type_relationships(self):
         #todo pr: needs own_or_parent_recipes
         return self.resource_types.filter(event_type__relationship='out')
-        
+
     def main_produced_resource_type_relationship(self):
         ptrs = self.produced_resource_type_relationships()
         if ptrs:
             return ptrs[0]
         else:
             return None
-            
+
     def is_stage(self):
         ct = self.main_produced_resource_type_relationship()
         if ct.stage:
             return True
         return False
-                                
+
     def produced_resource_types(self):
         return [ptrt.resource_type for ptrt in self.produced_resource_type_relationships()]
-                                    
+
     def main_produced_resource_type(self):
         prts = self.produced_resource_types()
         if prts:
             return prts[0]
         else:
             return None
-                                                
+
     def consumed_and_used_resource_type_relationships(self):
         return self.resource_types.filter(Q(event_type__relationship='consume')|Q(event_type__relationship='use'))
-                                                    
+
     def consumed_resource_type_relationships(self):
         return self.resource_types.filter(event_type__relationship='consume')
-                                                        
+
     def used_resource_type_relationships(self):
         return self.resource_types.filter(event_type__relationship='use')
-                                                            
+
     def cited_resource_type_relationships(self):
         return self.resource_types.filter(event_type__relationship='cite')
-                                                                
+
     def work_resource_type_relationships(self):
         return self.resource_types.filter(event_type__relationship='work')
-        
+
     def to_be_changed_resource_type_relationships(self):
-        return self.resource_types.filter(event_type__name='To Be Changed')       
-        
+        return self.resource_types.filter(event_type__name='To Be Changed')
+
     def consumed_resource_types(self):
         return [ptrt.resource_type for ptrt in self.consumed_resource_type_relationships()]
-                                                                        
+
     def used_resource_types(self):
         return [ptrt.resource_type for ptrt in self.used_resource_type_relationships()]
-                                                                            
+
     def cited_resource_types(self):
         return [ptrt.resource_type for ptrt in self.cited_resource_type_relationships()]
-                                                                                
+
     def work_resource_types(self):
         return [ptrt.resource_type for ptrt in self.work_resource_type_relationships()]
-                                                                                    
+
     def all_input_resource_type_relationships(self):
         return self.resource_types.exclude(event_type__relationship='out').exclude(event_type__relationship='todo')
-        
+
     def all_input_except_change_resource_type_relationships(self):
         return self.resource_types.exclude(event_type__relationship='out').exclude(event_type__relationship='todo').exclude(event_type__name='To Be Changed')
-        
+
     def all_input_resource_types(self):
         return [ptrt.resource_type for ptrt in self.all_input_resource_type_relationships()]
-        
+
     def stream_resource_type_relationships(self):
         return self.resource_types.filter(Q(event_type__name='To Be Changed')|Q(event_type__name='Change')|Q(event_type__name='Create Changeable'))
-        
+
     def input_stream_resource_type_relationship(self):
         return self.resource_types.filter(event_type__name='To Be Changed')
-        
+
     def has_create_changeable_output(self):
         #import pdb; pdb.set_trace()
         if self.produced_resource_type_relationships():
@@ -3677,7 +3682,7 @@ class ProcessType(models.Model):
                 return False
         else:
             return False
-            
+
     def is_workflow_process_type(self):
         if self.stream_resource_type_relationships():
             return True
@@ -3686,23 +3691,23 @@ class ProcessType(models.Model):
                 return False
             else:
                 return True
-        
+
     def previous_process_types(self):
         return []
-        
+
     def next_process_types(self):
         return []
-                                                                                        
+
     def xbill_parents(self):
         return self.produced_resource_type_relationships()
-                                                                                            
+
     def xbill_children(self):
         kids = list(self.consumed_and_used_resource_type_relationships())
         kids.extend(self.cited_resource_type_relationships())
         kids.extend(self.work_resource_type_relationships())
         kids.extend(self.features.all())
         return kids
-                                                                                                
+
     def xbill_explanation(self):
         return "Process Type"
 
@@ -3717,7 +3722,7 @@ class ProcessType(models.Model):
             qty = prtr.quantity
         init = {"quantity": qty,}
         return XbillProcessTypeForm(instance=self, initial=init, prefix=self.xbill_change_prefix())
-    
+
     def recipe_change_form(self):
         from valuenetwork.valueaccounting.forms import RecipeProcessTypeChangeForm
         return RecipeProcessTypeChangeForm(instance=self, prefix=self.xbill_change_prefix())
@@ -3778,11 +3783,11 @@ class ProcessType(models.Model):
         #import pdb; pdb.set_trace()
         from valuenetwork.valueaccounting.forms import ProcessTypeCitableForm
         return ProcessTypeCitableForm(process_type=self, prefix=self.xbill_citable_prefix())
-     
+
     def stream_recipe_citable_form(self):
         from valuenetwork.valueaccounting.forms import ProcessTypeCitableStreamRecipeForm
         return ProcessTypeCitableStreamRecipeForm(process_type=self, prefix=self.xbill_citable_prefix())
-        
+
     def xbill_work_form(self):
         from valuenetwork.valueaccounting.forms import ProcessTypeWorkForm
         return ProcessTypeWorkForm(process_type=self, prefix=self.xbill_work_prefix())
@@ -3814,10 +3819,10 @@ class ProcessType(models.Model):
 
     def xbill_citable_rt_facet_formset(self):
         return self.create_facet_formset_filtered(slot="cite", pre=self.xbill_citable_rt_facet_prefix())
-        
+
     def stream_process_type_create_prefix(self):
         return "".join(["PTP", str(self.id)])
-            
+
     def stream_process_type_create_form(self):
         #import pdb; pdb.set_trace()
         from valuenetwork.valueaccounting.forms import RecipeProcessTypeForm
@@ -3825,7 +3830,7 @@ class ProcessType(models.Model):
         #init = {"name": " ".join(["Make", rt.name])}
         #return RecipeProcessTypeForm(initial=init, prefix=self.stream_process_type_create_prefix())
         return RecipeProcessTypeForm(prefix=self.stream_process_type_create_prefix())
-        
+
     def stream_resource_type(self):
         #import pdb; pdb.set_trace()
         answer = None
@@ -3834,7 +3839,7 @@ class ProcessType(models.Model):
             if ptrt.is_change_related():
                 answer = ptrt.resource_type
         return answer
-        
+
     def create_facet_formset_filtered(self, pre, slot, data=None):
         from django.forms.models import formset_factory
         from valuenetwork.valueaccounting.forms import ResourceTypeFacetValueForm
@@ -3873,28 +3878,28 @@ class ProcessType(models.Model):
 
 
 class ResourceTypeSpecialPrice(models.Model):
-    resource_type = models.ForeignKey(EconomicResourceType, 
+    resource_type = models.ForeignKey(EconomicResourceType,
         verbose_name=_('resource type'), related_name='prices')
     identifier = models.CharField(_('identifier'), max_length=128)
     description = models.TextField(_('description'), blank=True, null=True)
-    price_per_unit = models.DecimalField(_('price per unit'), max_digits=8, decimal_places=2, 
+    price_per_unit = models.DecimalField(_('price per unit'), max_digits=8, decimal_places=2,
         default=Decimal("0.00"))
     stage = models.ForeignKey(ProcessType, related_name="price_at_stage",
         verbose_name=_('stage'), blank=True, null=True)
 
 
 class ExchangeTypeManager(models.Manager):
-    
+
     #before deleting this, track down the connections
     def sale_exchange_types(self):
         return ExchangeType.objects.filter(use_case__identifier='sale')
-      
+
     def internal_exchange_types(self):
         return ExchangeType.objects.filter(use_case__identifier='intrnl_xfer')
-      
+
     def supply_exchange_types(self):
         return ExchangeType.objects.filter(use_case__identifier='supply_xfer')
-      
+
     def demand_exchange_types(self):
         return ExchangeType.objects.filter(use_case__identifier='demand_xfer')
 
@@ -3913,29 +3918,29 @@ class ExchangeType(models.Model):
     slug = models.SlugField(_("Page name"), editable=False)
 
     objects = ExchangeTypeManager()
-    
+
     class Meta:
         ordering = ('name',)
-            
+
     def __unicode__(self):
         return self.name
-            
+
     def save(self, *args, **kwargs):
         unique_slugify(self, self.name)
-        super(ExchangeType, self).save(*args, **kwargs) 
-        
+        super(ExchangeType, self).save(*args, **kwargs)
+
     def slots(self):
         return self.transfer_types.all()
-    
+
     def is_deletable(self):
         answer = True
         if self.exchanges.all():
             answer = False
         return answer
-    
+
     def transfer_types_non_reciprocal(self):
         return self.transfer_types.filter(is_reciprocal=False)
-        
+
     def transfer_types_reciprocal(self):
         return self.transfer_types.filter(is_reciprocal=True)
 
@@ -3947,9 +3952,9 @@ class GoodResourceManager(models.Manager):
 class FailedResourceManager(models.Manager):
     def get_queryset(self):
         return super(FailedResourceManager, self).get_queryset().filter(quality__lt=0)
-        
+
 class EconomicResourceManager(models.Manager):
-    
+
     def virtual_accounts(self):
         #import pdb; pdb.set_trace()
         resources = EconomicResource.objects.all()
@@ -3958,7 +3963,7 @@ class EconomicResourceManager(models.Manager):
             if resource.resource_type.is_virtual_account():
                 vas.append(resource)
         return vas
-        
+
     def context_agent_virtual_accounts(self):
         vas = self.virtual_accounts()
         #import pdb; pdb.set_trace()
@@ -3968,12 +3973,12 @@ class EconomicResourceManager(models.Manager):
                 if va.owner().is_context_agent():
                     cavas.append(va)
         return cavas
-        
+
     def onhand(self):
         return EconomicResource.objects.filter(quantity__gt=0)
-        
+
 class EconomicResource(models.Model):
-    resource_type = models.ForeignKey(EconomicResourceType, 
+    resource_type = models.ForeignKey(EconomicResourceType,
         verbose_name=_('resource type'), related_name='resources')
     identifier = models.CharField(_('identifier'), blank=True, max_length=128)
     independent_demand = models.ForeignKey(Order,
@@ -3992,25 +3997,25 @@ class EconomicResource(models.Model):
     #todo: remove author, in the meantime, don't use it
     author = models.ForeignKey(EconomicAgent, related_name="authored_resources",
         verbose_name=_('author'), blank=True, null=True)
-    quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, 
+    quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2,
         default=Decimal("0.00"), editable=False)
-    quality = models.DecimalField(_('quality'), max_digits=3, decimal_places=0, 
+    quality = models.DecimalField(_('quality'), max_digits=3, decimal_places=0,
         default=Decimal("0"), blank=True, null=True)
     notes = models.TextField(_('notes'), blank=True, null=True)
     photo = ThumbnailerImageField(_("photo"),
         upload_to='photos', blank=True, null=True)
     photo_url = models.CharField(_('photo url'), max_length=255, blank=True)
     access_rules = models.TextField(_('access rules'), blank=True, null=True)
-    current_location = models.ForeignKey(Location, 
-        verbose_name=_('current location'), related_name='resources_at_location', 
+    current_location = models.ForeignKey(Location,
+        verbose_name=_('current location'), related_name='resources_at_location',
         blank=True, null=True)
     digital_currency_address = models.CharField(_("digital currency address"), max_length=96,
         blank=True, null=True, editable=False)
-    value_per_unit = models.DecimalField(_('value per unit'), max_digits=8, decimal_places=2, 
+    value_per_unit = models.DecimalField(_('value per unit'), max_digits=8, decimal_places=2,
         default=Decimal("0.00"))
-    value_per_unit_of_use = models.DecimalField(_('value per unit of use'), max_digits=8, decimal_places=2, 
+    value_per_unit_of_use = models.DecimalField(_('value per unit of use'), max_digits=8, decimal_places=2,
         default=Decimal("0.00"))
-    price_per_unit = models.DecimalField(_('price per unit'), max_digits=8, decimal_places=2, 
+    price_per_unit = models.DecimalField(_('price per unit'), max_digits=8, decimal_places=2,
         default=Decimal("0.00"))
     created_date = models.DateField(_('created date'), default=datetime.date.today)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
@@ -4025,7 +4030,7 @@ class EconomicResource(models.Model):
 
     class Meta:
         ordering = ('resource_type', 'identifier',)
-    
+
     def __unicode__(self):
         #import pdb; pdb.set_trace()
         id_str = self.identifier or str(self.id)
@@ -4050,7 +4055,7 @@ class EconomicResource(models.Model):
 
     def flow_class(self):
         return "resource"
-            
+
     def class_label(self):
         return "Economic Resource"
 
@@ -4073,14 +4078,14 @@ class EconomicResource(models.Model):
             return True
         else:
             return False
-            
+
     def address_is_activated(self):
         address = self.digital_currency_address
         if address:
             if address != "address_requested":
                 return True
         return False
-            
+
     def digital_currency_history(self):
         history = []
         address = self.digital_currency_address
@@ -4088,7 +4093,7 @@ class EconomicResource(models.Model):
             from valuenetwork.valueaccounting.faircoin_utils import get_address_history
             history = get_address_history(address)
         return history
-        
+
     def digital_currency_balance(self):
         bal = 0
         address = self.digital_currency_address
@@ -4099,7 +4104,7 @@ class EconomicResource(models.Model):
             if balance:
                 bal = Decimal(balance) / FAIRCOIN_DIVISOR
         return bal
-        
+
     def spending_limit(self):
         limit = 0
         address = self.digital_currency_address
@@ -4111,7 +4116,7 @@ class EconomicResource(models.Model):
                 fee = Decimal(network_fee()) / FAIRCOIN_DIVISOR
                 limit = bal - fee
         return limit
-            
+
     def context_agents(self):
         pes = self.where_from_events()
         cas = [pe.context_agent for pe in pes if pe.context_agent]
@@ -4131,7 +4136,7 @@ class EconomicResource(models.Model):
             if ship.exchange.order:
                 orders.append(ship.exchange.order)
         return orders
-        
+
     def sales(self):
         sales = []
         use_case = UseCase.objects.get(identifier="demand_xfer")
@@ -4144,7 +4149,7 @@ class EconomicResource(models.Model):
                     if transfer.exchange.exchange_type.use_case == use_case:
                         sales.append(event.transfer.exchange)
         return sales
-            
+
     def value_equations(self):
         ves = []
         #import pdb; pdb.set_trace()
@@ -4154,13 +4159,13 @@ class EconomicResource(models.Model):
             if ca_ves:
                 ves.extend(ca_ves)
         return ves
-                  
+
     def value_explanation(self):
         return "Value per unit is composed of the value of the inputs on the next level:"
-        
+
     def unit_of_quantity(self):
         return self.resource_type.unit
-        
+
     def formatted_quantity(self):
         unit = self.unit_of_quantity()
         if unit:
@@ -4171,13 +4176,13 @@ class EconomicResource(models.Model):
         else:
             answer = str(self.quantity)
         return answer
-        
+
     def allow_payout_by(self, agent, user):
         if self.quantity:
             if user.is_superuser:
                 return True
         return False
-        
+
     def payout_form(self, data=None):
         from valuenetwork.valueaccounting.forms import PayoutForm
         init = {
@@ -4195,7 +4200,7 @@ class EconomicResource(models.Model):
         if unit:
             vpu_help = "Value added when this resource is used for one " + unit.abbrev
         return EconomicResourceForm(instance=self, vpu_help=vpu_help)
-        
+
     def transform_form(self, data=None):
         #import pdb; pdb.set_trace()
         from valuenetwork.valueaccounting.forms import TransformEconomicResourceForm
@@ -4214,7 +4219,7 @@ class EconomicResource(models.Model):
     #def change_role_formset(self):
     #    from valuenetwork.valueaccounting.forms import ResourceRoleAgentForm
     #    return EconomicResourceForm(instance=self)
-    
+
     def event_sequence(self):
         #import pdb; pdb.set_trace()
         events = self.events.all()
@@ -4242,14 +4247,14 @@ class EconomicResource(models.Model):
         value_per_unit = self.roll_up_value(path, depth, visited, value_equation)
         print "value_per_unit:", value_per_unit
         return path
-        
+
     def compute_value_per_unit(self, value_equation=None):
         #import pdb; pdb.set_trace()
         visited = set()
         path = []
         depth = 0
         return self.roll_up_value(path, depth, visited, value_equation)
-    
+
     def roll_up_value(self, path, depth, visited, value_equation=None):
         # EconomicResource method
         #import pdb; pdb.set_trace()
@@ -4375,7 +4380,7 @@ class EconomicResource(models.Model):
                             #    padding += "."
                             #print padding, depth, ip.id, ip
                             #print padding, "--- ip.value: ", ip.value
-                            #print padding, "--- pe_value:", pe_value    
+                            #print padding, "--- pe_value:", pe_value
                             ip.depth = depth
                             path.append(ip)
                         #Use contributions use resource value_per_unit_of_use.
@@ -4394,7 +4399,7 @@ class EconomicResource(models.Model):
                                 #    padding += "."
                                 #print padding, depth, ip.id, ip
                                 #print padding, "--- ip.value: ", ip.value
-                                #print padding, "--- pe_value:", pe_value 
+                                #print padding, "--- pe_value:", pe_value
                                 ip.depth = depth
                                 path.append(ip)
                                 ip.resource.roll_up_value(path, depth, visited, value_equation)
@@ -4414,7 +4419,7 @@ class EconomicResource(models.Model):
                             #    padding += "."
                             #print padding, depth, ip.id, ip
                             #print padding, "--- ip.value: ", ip.value
-                            #print padding, "--- pe_value:", pe_value 
+                            #print padding, "--- pe_value:", pe_value
                         #Citations valued later, after all other inputs added up
                         elif ip.event_type.relationship == "cite":
                             ip.depth = depth
@@ -4425,13 +4430,13 @@ class EconomicResource(models.Model):
                             else:
                                 ip.value = ip.quantity
                                 pe_value += ip.value
-                                
+
                                 #padding = ""
                                 #for x in range(0,depth):
                                 #    padding += "."
                                 #print padding, depth, ip.id, ip
                                 #print padding, "--- ip.value: ", ip.value
-                                #print padding, "--- pe_value:", pe_value 
+                                #print padding, "--- pe_value:", pe_value
                             if ip.resource:
                                 ip.resource.roll_up_value(path, depth, visited, value_equation)
             production_value += pe_value
@@ -4448,7 +4453,7 @@ class EconomicResource(models.Model):
                 #    padding += "."
                 #print padding, depth, c.id, c
                 #print padding, "--- c.value: ", c.value
-                #print padding, "--- production_value:", production_value 
+                #print padding, "--- production_value:", production_value
         if production_value and production_qty:
             #print "production value:", production_value, "production qty", production_qty
             production_value_per_unit = production_value / production_qty
@@ -4472,7 +4477,7 @@ class EconomicResource(models.Model):
         #    padding += "."
         #print padding, depth, self.id, self, "value_per_unit:", self.value_per_unit
         return self.value_per_unit
-        
+
     def rollup_explanation(self):
         depth = -1
         visited = set()
@@ -4481,7 +4486,7 @@ class EconomicResource(models.Model):
         #import pdb; pdb.set_trace()
         self.rollup_explanation_traversal(path, visited, depth)
         return path
-        
+
     def direct_value_tree(self):
         depth = -1
         visited = set()
@@ -4489,7 +4494,7 @@ class EconomicResource(models.Model):
         queue = []
         self.direct_value_components(path, visited, depth)
         return path
-        
+
     def rollup_explanation_traversal(self, path, visited, depth):
         depth += 1
         self.depth = depth
@@ -4525,7 +4530,7 @@ class EconomicResource(models.Model):
                         elif ip.event_type.relationship == "cite":
                             ip.depth = depth
                             path.append(ip)
-                            
+
     def direct_value_components(self, components, visited, depth):
         depth += 1
         self.depth = depth
@@ -4563,8 +4568,8 @@ class EconomicResource(models.Model):
                             #depth += 1
                         elif ip.event_type.relationship == "cite":
                             ip.depth = depth
-                            components.append(ip)       
-        
+                            components.append(ip)
+
     def test_compute_income_shares(self, value_equation):
         visited = set()
         path = []
@@ -4583,7 +4588,7 @@ class EconomicResource(models.Model):
         #import pdb; pdb.set_trace()
         #print "total shares:", total
         return shares
-         
+
     def compute_shipment_income_shares(self, value_equation, quantity):
         #visited = set()
         #path = []
@@ -4602,11 +4607,11 @@ class EconomicResource(models.Model):
                 s.fraction = s.share / total
         else:
             for s in shares:
-                s.fraction = 1            
+                s.fraction = 1
         #import pdb; pdb.set_trace()
         #print "total shares:", total
         return shares
-        
+
     def compute_income_shares(self, value_equation, quantity, events, visited):
         #Resource method
         #print "Resource:", self.id, self
@@ -4726,17 +4731,17 @@ class EconomicResource(models.Model):
                                     path = []
                                     depth = 0
                                     resource_value = ip.resource.roll_up_value(path, depth, new_visited, value_equation)
-                                    ip.resource.compute_income_shares_for_use(value_equation, ip, ip_value, resource_value, events, visited) 
+                                    ip.resource.compute_income_shares_for_use(value_equation, ip, ip_value, resource_value, events, visited)
                             elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
-                                #consume events are not contributions, but their resources may have contributions  
+                                #consume events are not contributions, but their resources may have contributions
                                 #equip logging changes
                                 new_visited = set()
                                 path = []
                                 depth = 0
-                                
+
                                 value_per_unit = ip.roll_up_value(path, depth, new_visited, value_equation)
                                 ip.value = ip.quantity * value_per_unit
-                                ip.save()                     
+                                ip.save()
                                 ip_value = ip.value * distro_fraction
                                 d_qty = ip.quantity * distro_fraction
                                 #if ip_value:
@@ -4767,8 +4772,8 @@ class EconomicResource(models.Model):
                                     path = []
                                     depth = 0
                                     resource_value = ip.resource.roll_up_value(path, depth, new_visited, value_equation)
-                                    ip.resource.compute_income_shares_for_use(value_equation, ip, ip_value, resource_value, events, visited) 
-                                
+                                    ip.resource.compute_income_shares_for_use(value_equation, ip, ip_value, resource_value, events, visited)
+
     def compute_income_shares_for_use(self, value_equation, use_event, use_value, resource_value, events, visited):
         #Resource method
         #import pdb; pdb.set_trace()
@@ -4850,9 +4855,9 @@ class EconomicResource(models.Model):
                                     d_qty = distro_qty
                                     if ip_value and value:
                                         d_qty = ip_value / value
-                                    ip.resource.compute_income_shares_for_use(value_equation, ip, ip_value, resource_value, events, visited) 
+                                    ip.resource.compute_income_shares_for_use(value_equation, ip, ip_value, resource_value, events, visited)
                             elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
-                                #consume events are not contributions, but their resources may have contributions                       
+                                #consume events are not contributions, but their resources may have contributions
                                 ip_value = ip.value * distro_fraction
                                 d_qty = ip.quantity * distro_fraction
                                 if ip.resource:
@@ -4877,7 +4882,7 @@ class EconomicResource(models.Model):
                                     path = []
                                     depth = 0
                                     resource_value = ip.resource.roll_up_value(path, depth, new_visited, value_equation)
-                                    ip.resource.compute_income_shares_for_use(value_equation, ip, ip_value, resource_value, events, visited) 
+                                    ip.resource.compute_income_shares_for_use(value_equation, ip, ip_value, resource_value, events, visited)
 
     def direct_share_components(self, components, visited, depth):
         depth += 1
@@ -4916,7 +4921,7 @@ class EconomicResource(models.Model):
                         elif ip.event_type.relationship == "cite":
                             ip.depth = depth
                             components.append(ip)
-                            
+
     def is_orphan(self):
         o = True
         if self.agent_resource_roles.all():
@@ -4930,15 +4935,15 @@ class EconomicResource(models.Model):
     def producing_events(self):
         if self.quality:
             if self.quality < 0:
-               return self.events.filter(event_type__resource_effect='<') 
+               return self.events.filter(event_type__resource_effect='<')
         return self.events.filter(event_type__relationship='out')
-        
+
     def producing_processes(self):
         pes = self.producing_events()
         processes = [pe.process for pe in pes if pe.process]
         processes = list(set(processes))
         return processes
-        
+
     def producing_processes_for_historical_stage(self):
         #rollup stage change
         pes = self.producing_events()
@@ -4950,7 +4955,7 @@ class EconomicResource(models.Model):
             except AttributeError:
                 processes = [p for p in processes if p.process_type==self.stage]
         return processes
-        
+
     def producing_events_for_historical_stage(self):
         pes = self.producing_events()
         if self.stage:
@@ -4959,7 +4964,7 @@ class EconomicResource(models.Model):
             except AttributeError:
                 pes = [pe for pe in pes if pe.process and pe.process.process_type==self.stage]
         return pes
-        
+
     def where_from_events(self):
         #todo exchange redesign fallout
         #these are all obsolete
@@ -4984,8 +4989,8 @@ class EconomicResource(models.Model):
         if events:
             return events[0]
         else:
-            return None  
-        
+            return None
+
     def owner_based_on_exchange(self):
         event = self.last_exchange_event()
         if event:
@@ -4998,17 +5003,17 @@ class EconomicResource(models.Model):
 
     def using_events(self):
         return self.events.filter(event_type__relationship="use")
-               
+
     def resource_contribution_events(self):
-        return self.events.filter(is_contribution=True)        
-        
+        return self.events.filter(is_contribution=True)
+
     def cash_events(self): #includes cash contributions, donations and loans
         #todo exchange redesign fallout
         rct_et = EventType.objects.get(name="Receive")
         with_xfer = [event for event in self.events.all() if event.transfer and event.event_type==rct_et]
         currencies = [event for event in with_xfer if event.transfer.transfer_type.is_currency]
         return currencies
-            
+
     def cash_contribution_events(self): #includes only cash contributions
         #todo exchange redesign fallout
         #import pdb; pdb.set_trace()
@@ -5017,20 +5022,20 @@ class EconomicResource(models.Model):
         contributions = [event for event in with_xfer if event.is_contribution]
         currencies = [event for event in contributions if event.transfer.transfer_type.is_currency]
         return currencies
-        
+
     def purchase_events(self):
         #todo exchange redesign fallout
         #is this correct?
         rct_et = EventType.objects.get(name="Receive")
         return self.events.filter(event_type=rct_et, is_contribution=False)
-        
+
     def purchase_events_for_exchange_stage(self):
         #import pdb; pdb.set_trace()
         if self.exchange_stage:
             return self.purchase_events().filter(exchange_stage=self.exchange_stage)
         else:
             return self.purchase_events()
-        
+
     def transfer_events(self):
         #obsolete
         #todo exchange redesign fallout
@@ -5038,7 +5043,7 @@ class EconomicResource(models.Model):
         #import pdb; pdb.set_trace()
         tx_et = EventType.objects.get(name="Receive")
         return self.events.filter(event_type=tx_et)
-        
+
     def transfer_events_for_exchange_stage(self):
         #obsolete
         #todo exchange redesign fallout
@@ -5046,11 +5051,11 @@ class EconomicResource(models.Model):
             return self.transfer_events().filter(exchange_stage=self.exchange_stage)
         else:
             return self.transfer_events()
-        
+
     def available_events(self):
         av_et = EventType.objects.get(name="Make Available")
         return self.events.filter(event_type=av_et)
-    
+
     def all_usage_events(self):
         #todo exchange redesign fallout
         #cash is obsolete
@@ -5075,13 +5080,13 @@ class EconomicResource(models.Model):
         else:
             cited = ''
         return (self.identifier or str(self.id)) + cited
-        
+
     def unsourced_consumption(self):
         if self.consuming_events():
             if not self.where_from_events():
                 return True
         return False
-        
+
     def used_without_value(self):
         if self.using_events():
             if not self.value_per_unit_of_use:
@@ -5094,11 +5099,11 @@ class EconomicResource(models.Model):
         if self.quantity != 0:
             return False
         return True
-        
+
     def track_lot_forward(self):
         pass
-        
-        
+
+
     def bill_of_lots(self):
         flows = self.inputs_to_output()
         lots = []
@@ -5116,7 +5121,7 @@ class EconomicResource(models.Model):
         flows = self.incoming_value_flows()
         flows.reverse()
         return flows
-       
+
     def incoming_value_flows(self):
         flows = []
         visited = set()
@@ -5125,7 +5130,7 @@ class EconomicResource(models.Model):
         flows.append(self)
         self.incoming_value_flows_dfs(flows, visited, depth)
         return flows
-        
+
     def process_exchange_flow(self):
         flows = self.incoming_value_flows()
         xnp = [f for f in flows if type(f) is Process or type(f) is Exchange]
@@ -5138,7 +5143,7 @@ class EconomicResource(models.Model):
                 x.type="Exchange"
                 x.stage=x.exchange_type
         return xnp
-                
+
     def incoming_value_flows_dfs(self, flows, visited, depth):
         #Resource method
         #import pdb; pdb.set_trace()
@@ -5153,7 +5158,7 @@ class EconomicResource(models.Model):
             #xfer events no longer exist
             #rcpt = EventType.objects.get(name="Receipt")
             rcpt = EventType.objects.get(name="Receive")
-            
+
             for event in events:
                 if event not in visited:
                     visited.add(event)
@@ -5192,9 +5197,9 @@ class EconomicResource(models.Model):
                                                     self.incoming_value_flows_dfs(flows, visited, depth + 2)
                                             elif evt.resource not in resources:
                                                 resources.append(evt.resource)
-                                        
 
-                
+
+
             for event in self.purchase_events_for_exchange_stage():
                 if event not in visited:
                     visited.add(event)
@@ -5213,12 +5218,12 @@ class EconomicResource(models.Model):
                     visited.add(event)
                     event.depth = depth
                     flows.append(event)
-            
+
             for resource in resources:
                 resource.depth = depth + 3
                 flows.append(resource)
                 resource.incoming_value_flows_dfs(flows, visited, depth + 3)
-                                
+
     def incoming_events(self):
         flows = self.incoming_value_flows()
         events = []
@@ -5227,11 +5232,11 @@ class EconomicResource(models.Model):
                 if flow not in events:
                     events.append(flow)
         return events
-        
+
     def possible_root_events(self):
         root_names = ['Create Changeable', 'Resource Production',  'Receipt', 'Make Available']
         return self.events.filter(event_type__name__in=root_names)
-                
+
     def value_flow_going_forward(self):
         #todo: needs rework, see next method
         #import pdb; pdb.set_trace()
@@ -5258,7 +5263,7 @@ class EconomicResource(models.Model):
             for exchange in exchanges:
                 flows.insert(0, exchange)
         return flows
-                
+
     def value_flow_going_forward_dfs(self, flows, visited, depth):
         #import pdb; pdb.set_trace()
         if not self in visited:
@@ -5301,7 +5306,7 @@ class EconomicResource(models.Model):
                         #    flows.append(evt)
                         #    if evt.resource:
                         #        evt.resource.value_flow_going_forward_dfs(flows, visited, depth)
-                            
+
     def forward_flow(self):
         flows = []
         visited = []
@@ -5310,9 +5315,9 @@ class EconomicResource(models.Model):
         flows.append(self)
         usage_events = self.all_usage_events()
         #import pdb; pdb.set_trace()
-                            
+
     def staged_process_sequence_beyond_workflow(self):
-        #todo: this was created for a DHen report 
+        #todo: this was created for a DHen report
         # but does not work yet because the converted data
         # has no commitments
         # Plus, it can't be tested and so probably won't work.
@@ -5339,7 +5344,7 @@ class EconomicResource(models.Model):
                 if io.input_includes_resource(self):
                     processes.append(io)
         return processes
-        
+
     def receipt(self):
         in_out = self.value_flow_going_forward()
         receipt = None
@@ -5353,33 +5358,33 @@ class EconomicResource(models.Model):
     def form_prefix(self):
         return "-".join(["RES", str(self.id)])
 
-    def consumption_event_form(self):        
+    def consumption_event_form(self):
         from valuenetwork.valueaccounting.forms import InputEventForm
         prefix=self.form_prefix()
         qty_help = " ".join(["unit:", self.unit_of_quantity().abbrev, ", up to 2 decimal places"])
         init = { "quantity": self.quantity, }
         return InputEventForm(qty_help=qty_help, prefix=prefix, initial=init)
 
-    def use_event_form(self, data=None):        
+    def use_event_form(self, data=None):
         from valuenetwork.valueaccounting.forms import InputEventForm
         prefix=self.form_prefix()
         unit = self.resource_type.directional_unit("use")
         qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
         return InputEventForm(qty_help=qty_help, prefix=prefix, data=data)
-        
-    def cite_event_form(self, data=None):        
+
+    def cite_event_form(self, data=None):
         from valuenetwork.valueaccounting.forms import InputEventForm
         prefix=self.form_prefix()
         unit = self.resource_type.directional_unit("cite")
         qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
         return InputEventForm(qty_help=qty_help, prefix=prefix, data=data)
-            
+
     def input_event_form(self, data=None):
         from valuenetwork.valueaccounting.forms import InputEventForm
         prefix=self.form_prefix()
         qty_help = " ".join(["unit:", self.unit_of_quantity().abbrev, ", up to 2 decimal places"])
         return InputEventForm(qty_help=qty_help, prefix=prefix, data=data)
-    
+
     def owner(self): #returns first owner
         #owner_roles = self.agent_resource_roles.filter(role__is_owner=True)
         #if owner_roles:
@@ -5389,29 +5394,29 @@ class EconomicResource(models.Model):
             return owners[0]
         else:
             return None
-        
+
     def owners(self):
         #todo faircoin: possible problem with multiple owners of faircoin_resources?
         #mitigated by requiring owner or superuser to change faircoin resource
         return [arr.agent for arr in self.agent_resource_roles.filter(role__is_owner=True)]
-        
+
     def is_virtual_account_of(self, agent):
         if self.resource_type.is_virtual_account():
             owners = [arr.agent for arr in self.agent_resource_roles.filter(role__is_owner=True)]
             if agent in owners:
                 return True
         return False
-             
+
     def all_owners(self):
         owner_assns = self.agent_resource_roles.filter(role__is_owner=True)
         owners = []
         for own in owner_assns:
             owners.append(own.agent.nick)
         return owners
-        
+
     def all_contacts(self):
         return self.agent_resource_roles.filter(is_contact=True)
-        
+
     def all_related_agents(self):
         #import pdb; pdb.set_trace()
         arrs = self.agent_resource_roles.all()
@@ -5419,7 +5424,7 @@ class EconomicResource(models.Model):
         for arr in arrs:
             agent_ids.append(arr.agent.id)
         return EconomicAgent.objects.filter(pk__in=agent_ids)
-        
+
     def related_agents(self, role):
         #import pdb; pdb.set_trace()
         arrs = self.agent_resource_roles.filter(role=role)
@@ -5427,13 +5432,13 @@ class EconomicResource(models.Model):
         for arr in arrs:
             agent_ids.append(arr.agent.id)
         return EconomicAgent.objects.filter(pk__in=agent_ids)
-    
+
     def equipment_users(self, context_agent):
         agent_list = context_agent.context_equipment_users()
         agent_list.extend([arr.agent for arr in self.agent_resource_roles.all()])
         agent_ids = [agent.id for agent in agent_list]
         return EconomicAgent.objects.filter(pk__in=agent_ids)
-        
+
     def payout_contacts(self):
         """ this method only applies to virtual account resources """
         distributions = self.distribution_events()
@@ -5444,15 +5449,15 @@ class EconomicResource(models.Model):
             for dis in disbursements:
                 contacts.extend(dis.resource.all_contacts())
         return contacts
-        
+
     def distribution_events(self):
         return self.events.filter(
             event_type__relationship='distribute')
-            
+
     def disbursement_events(self):
         return self.events.filter(
             event_type__relationship='disburse')
-           
+
     def revert_to_previous_stage(self):
         #import pdb; pdb.set_trace()
         current_stage = self.stage
@@ -5469,21 +5474,21 @@ class EconomicResource(models.Model):
 class AgentResourceType(models.Model):
     agent = models.ForeignKey(EconomicAgent,
         verbose_name=_('agent'), related_name='resource_types')
-    resource_type = models.ForeignKey(EconomicResourceType, 
+    resource_type = models.ForeignKey(EconomicResourceType,
         verbose_name=_('resource type'), related_name='agents')
-    score = models.DecimalField(_('score'), max_digits=8, decimal_places=2, 
+    score = models.DecimalField(_('score'), max_digits=8, decimal_places=2,
         default=Decimal("0.0"),
         help_text=_("the quantity of contributions of this resource type from this agent"))
     event_type = models.ForeignKey(EventType,
         verbose_name=_('event type'), related_name='agent_resource_types')
-    lead_time = models.IntegerField(_('lead time'), 
+    lead_time = models.IntegerField(_('lead time'),
         default=0, help_text=_("in days"))
-    value = models.DecimalField(_('value'), max_digits=8, decimal_places=2, 
+    value = models.DecimalField(_('value'), max_digits=8, decimal_places=2,
         default=Decimal("0.0"))
     unit_of_value = models.ForeignKey(Unit, blank=True, null=True,
         limit_choices_to={'unit_type': 'value'},
         verbose_name=_('unit of value'), related_name="agent_resource_value_units")
-    value_per_unit = models.DecimalField(_('value per unit'), max_digits=8, decimal_places=2, 
+    value_per_unit = models.DecimalField(_('value per unit'), max_digits=8, decimal_places=2,
         default=Decimal("0.0"))
     description = models.TextField(_('description'), null=True, blank=True)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
@@ -5549,11 +5554,11 @@ class AgentResourceType(models.Model):
         scores = AgentResourceType.objects.filter(resource_type=self.resource_type).values_list('score', flat=True)
         average = str((sum(scores) / len(scores)).quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
         return "".join([
-            "Min: ", str(min(scores).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)), 
-            ", Average: ", average, 
+            "Min: ", str(min(scores).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)),
+            ", Average: ", average,
             ", Max: ", str(max(scores).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)),
-            ]) 
-   
+            ])
+
 
 class AgentResourceRoleType(models.Model):
     name = models.CharField(_('name'), max_length=128)
@@ -5564,25 +5569,25 @@ class AgentResourceRoleType(models.Model):
         return self.name
 
 
-class AgentResourceRole(models.Model):     
+class AgentResourceRole(models.Model):
     agent = models.ForeignKey(EconomicAgent,
         verbose_name=_('agent'), related_name='agent_resource_roles')
-    resource = models.ForeignKey(EconomicResource, 
+    resource = models.ForeignKey(EconomicResource,
         verbose_name=_('resource'), related_name='agent_resource_roles')
-    role = models.ForeignKey(AgentResourceRoleType, 
+    role = models.ForeignKey(AgentResourceRoleType,
         verbose_name=_('role'), related_name='agent_resource_roles')
     is_contact = models.BooleanField(_('is contact'), default=False)
     owner_percentage = models.IntegerField(_('owner percentage'), null=True)
 
     def __unicode__(self):
         return " ".join([self.agent.name, self.role.name, self.resource.__unicode__()])
-        
+
 
 #todo: rename to CommitmentType
 class ProcessTypeResourceType(models.Model):
     process_type = models.ForeignKey(ProcessType,
         verbose_name=_('process type'), related_name='resource_types')
-    resource_type = models.ForeignKey(EconomicResourceType, 
+    resource_type = models.ForeignKey(EconomicResourceType,
         verbose_name=_('resource type'), related_name='process_types')
     event_type = models.ForeignKey(EventType,
         verbose_name=_('event type'), related_name='process_resource_types')
@@ -5612,11 +5617,11 @@ class ProcessTypeResourceType(models.Model):
         rt_name = self.resource_type.name
         if self.stage:
             rt_name = "".join([rt_name, "@", self.stage.name])
-        return " ".join([self.process_type.name, relname, str(self.quantity), rt_name])        
+        return " ".join([self.process_type.name, relname, str(self.quantity), rt_name])
 
     def inverse_label(self):
         return self.event_type.inverse_label
-        
+
     def cycle_id(self):
         stage_id = ""
         if self.stage:
@@ -5625,10 +5630,10 @@ class ProcessTypeResourceType(models.Model):
         if self.state:
             state_id = str(self.state.id)
         return "-".join([str(self.resource_type.id), stage_id, state_id])
-       
+
     def is_change_related(self):
         return self.event_type.is_change_related()
-        
+
     def follow_stage_chain(self, chain):
         #import pdb; pdb.set_trace()
         if self.event_type.is_change_related():
@@ -5646,7 +5651,7 @@ class ProcessTypeResourceType(models.Model):
                         event_type__resource_effect="~>")
                 if next_in_chain:
                     next_in_chain[0].follow_stage_chain(chain)
-                
+
     def follow_stage_chain_beyond_workflow(self, chain):
         #import pdb; pdb.set_trace()
         chain.append(self)
@@ -5660,7 +5665,7 @@ class ProcessTypeResourceType(models.Model):
                     event_type__resource_effect="~>")
             if next_in_chain:
                 next_in_chain[0].follow_stage_chain_beyond_workflow(chain)
-                    
+
     def create_commitment_for_process(self, process, user, inheritance):
         #pr changed
         if self.event_type.relationship == "out":
@@ -5690,7 +5695,7 @@ class ProcessTypeResourceType(models.Model):
             created_by=user)
         commitment.save()
         return commitment
-        
+
     def create_commitment(self, due_date, user):
         unit = self.resource_type.directional_unit(self.event_type.relationship)
         #import pdb; pdb.set_trace()
@@ -5710,7 +5715,7 @@ class ProcessTypeResourceType(models.Model):
             created_by=user)
         commitment.save()
         return commitment
-        
+
     def stream_label(self):
         relname = ""
         if self.event_type:
@@ -5721,8 +5726,8 @@ class ProcessTypeResourceType(models.Model):
         abbrev = ""
         if self.unit_of_quantity:
             abbrev = self.unit_of_quantity.abbrev
-        return " ".join([relname, str(self.quantity), abbrev, rt_name]) 
-                        
+        return " ".join([relname, str(self.quantity), abbrev, rt_name])
+
     def xbill_label(self):
         if self.event_type.relationship == 'out':
             #return self.inverse_label()
@@ -5790,13 +5795,13 @@ class ProcessManager(models.Manager):
 
     def finished(self):
         return Process.objects.filter(finished=True)
-    
+
     def current(self):
         return Process.objects.filter(finished=False).filter(start_date__lte=datetime.date.today()).filter(end_date__gte=datetime.date.today())
-    
+
     def current_or_future(self):
         return Process.objects.filter(finished=False).filter(end_date__gte=datetime.date.today())
-    
+
     def current_or_future_with_use(self):
         #import pdb; pdb.set_trace()
         processes = Process.objects.current_or_future()
@@ -5810,7 +5815,7 @@ class ProcessManager(models.Manager):
 
 class Process(models.Model):
     name = models.CharField(_('name'), max_length=128)
-    parent = models.ForeignKey('self', blank=True, null=True, 
+    parent = models.ForeignKey('self', blank=True, null=True,
         verbose_name=_('parent'), related_name='sub_processes', editable=False)
     process_pattern = models.ForeignKey(ProcessPattern,
         blank=True, null=True,
@@ -5875,15 +5880,15 @@ class Process(models.Model):
             if order_name:
                 answer = " ".join([self.name, "for", order_name])
         return answer
-    
+
     def class_label(self):
         return "Process"
-    
+
     @models.permalink
     def get_absolute_url(self):
         return ('process_details', (),
             { 'process_id': str(self.id),})
-    
+
     def save(self, *args, **kwargs):
         pt_name = ""
         if self.process_type:
@@ -5919,7 +5924,7 @@ class Process(models.Model):
         if self.events.all():
             return False
         return True
-        
+
     def set_started(self, date, user):
         if not self.started:
             self.started = date
@@ -5930,7 +5935,7 @@ class Process(models.Model):
         if self.context_agent:
             return self.context_agent.default_agent()
         return None
-        
+
     def flow_type(self):
         return "Process"
 
@@ -5962,7 +5967,7 @@ class Process(models.Model):
             if ics:
                 return ics[0].order_item
         return None
-        
+
     def timeline_title(self):
         #return " ".join([self.name, "Process"])
         return self.name
@@ -6002,7 +6007,7 @@ class Process(models.Model):
     def production_events(self):
         return self.events.filter(
             event_type__relationship='out')
-            
+
     def production_quantity(self):
         return sum(pe.quantity for pe in self.production_events())
 
@@ -6020,7 +6025,7 @@ class Process(models.Model):
         return self.events.filter(
             event_type__relationship='use',
             commitment=None)
-            
+
     def uncommitted_process_expense_events(self):
         return self.events.filter(
             event_type__relationship='payexpense',
@@ -6042,7 +6047,7 @@ class Process(models.Model):
         return self.events.filter(
             event_type__relationship='work',
             commitment=None)
-            
+
     def has_events(self):
         #import pdb; pdb.set_trace()
         if self.events.count() > 0:
@@ -6058,7 +6063,7 @@ class Process(models.Model):
         if cts:
             return cts[0]
         return None
-        
+
     def input_includes_resource(self, resource):
         inputs = self.incoming_events()
         answer = False
@@ -6102,7 +6107,7 @@ class Process(models.Model):
                                 if evt.process not in answer:
                                     answer.append(evt.process)
         return answer
-        
+
     def previous_processes_for_order(self, order):
         #this is actually previous_processes_for_order_item
         answer = []
@@ -6137,7 +6142,7 @@ class Process(models.Model):
             visited.append(output.cycle_id())
             for process in self.previous_processes():
                 process.all_previous_processes(ordered_processes, visited, depth)
-                
+
     def all_previous_processes_for_order(self, order, ordered_processes, visited, depth):
         #this is actually all_previous_processes_for_order_item
         #import pdb; pdb.set_trace()
@@ -6190,7 +6195,7 @@ class Process(models.Model):
                                     if evt.process not in answer:
                                         answer.append(evt.process)
         return answer
-        
+
     def next_processes_for_order(self, order):
         answer = []
         #import pdb; pdb.set_trace()
@@ -6226,7 +6231,7 @@ class Process(models.Model):
         return self.commitments.filter(
             event_type__relationship='cite',
         )
-    
+
     def work_requirements(self):
         return self.commitments.filter(
             event_type__relationship='work',
@@ -6237,7 +6242,7 @@ class Process(models.Model):
             finished=False,
             event_type__relationship='work',
         )
-        
+
     def finished_work_requirements(self):
         return self.commitments.filter(
             finished=True,
@@ -6248,22 +6253,22 @@ class Process(models.Model):
         return self.commitments.exclude(
             event_type__relationship='work',
         )
-        
+
     def create_changeable_requirements(self):
         return self.commitments.filter(
-        event_type__name="Create Changeable")        
-        
+        event_type__name="Create Changeable")
+
     def to_be_changed_requirements(self):
         return self.commitments.filter(
             event_type__name="To Be Changed")
-        
+
     def changeable_requirements(self):
         return self.commitments.filter(
             event_type__name="Change")
-            
+
     def paired_change_requirements(self):
         return self.to_be_changed_requirements(), self.changeable_requirements()
-        
+
     def is_staged(self):
         if self.create_changeable_requirements() or self.changeable_requirements():
             return True
@@ -6277,7 +6282,7 @@ class Process(models.Model):
     def work_events(self):
         return self.events.filter(
             event_type__relationship='work')
-            
+
     def unplanned_work_events(self):
         return self.work_events().filter(commitment__isnull=True)
 
@@ -6387,7 +6392,7 @@ class Process(models.Model):
             created_by=user)
         ct.save()
         return ct
-        
+
     def add_stream_commitments(self, last_process, user): #for adding to the end of the order
         last_commitment = last_process.main_outgoing_commitment()
         ets = self.process_pattern.change_event_types()
@@ -6399,18 +6404,18 @@ class Process(models.Model):
                 stage = last_process.process_type
                 order = None
             ct = self.add_commitment(
-                resource_type=last_commitment.resource_type, 
+                resource_type=last_commitment.resource_type,
                 demand=last_commitment.independent_demand,
                 order_item=last_commitment.order_item,
                 order=order,
                 description="",
-                quantity=last_commitment.quantity, 
+                quantity=last_commitment.quantity,
                 event_type=et,
-                unit=last_commitment.unit_of_quantity, 
+                unit=last_commitment.unit_of_quantity,
                 user=user,
                 stage=stage,
             )
-            
+
     def insert_stream_commitments(self, last_process, user): #for inserting in order (not first and not last process in order)
         last_commitment = last_process.main_outgoing_commitment()
         ets = self.process_pattern.change_event_types()
@@ -6420,17 +6425,17 @@ class Process(models.Model):
             else:
                 stage = last_process.process_type
             ct = self.add_commitment(
-                resource_type=last_commitment.resource_type, 
+                resource_type=last_commitment.resource_type,
                 demand=last_commitment.independent_demand,
                 order_item=last_commitment.order_item,
-                quantity=last_commitment.quantity, 
+                quantity=last_commitment.quantity,
                 description="",
                 event_type=et,
-                unit=last_commitment.unit_of_quantity, 
+                unit=last_commitment.unit_of_quantity,
                 user=user,
                 stage=stage,
             )
-            
+
     def insert_first_stream_commitments(self, next_commitment, user): #for inserting as first process in order
         ets = self.process_pattern.change_event_types()
         for et in ets:
@@ -6439,17 +6444,17 @@ class Process(models.Model):
             else:
                 stage = None
             ct = self.add_commitment(
-                resource_type=next_commitment.resource_type, 
+                resource_type=next_commitment.resource_type,
                 demand=next_commitment.independent_demand,
                 order_item=next_commitment.order_item,
-                quantity=next_commitment.quantity, 
+                quantity=next_commitment.quantity,
                 event_type=et,
                 description="",
-                unit=next_commitment.unit_of_quantity, 
+                unit=next_commitment.unit_of_quantity,
                 user=user,
                 stage=stage,
             )
-            
+
     def change_context_agent(self, context_agent):
         #import pdb; pdb.set_trace()
         self.context_agent = context_agent
@@ -6462,7 +6467,7 @@ class Process(models.Model):
             event.save()
 
     def explode_demands(self, demand, user, visited, inheritance):
-        """This method assumes the output commitment from this process 
+        """This method assumes the output commitment from this process
 
             has already been created.
 
@@ -6483,7 +6488,7 @@ class Process(models.Model):
                 #if output.resource_type == ptrt.resource_type:
                 qty = output.quantity
             else:
-                multiplier = output.quantity 
+                multiplier = output.quantity
                 if output.process:
                     if output.process.process_type:
                         main_ptr = output.process.process_type.main_produced_resource_type_relationship()
@@ -6529,7 +6534,7 @@ class Process(models.Model):
                     #todo: shd commitment.generate_producing_process?
                     #no, this an input commitment
                     #shd pt create process?
-                    #shd pptr create next_commitment, and then 
+                    #shd pptr create next_commitment, and then
                     #shd next_commitment.generate_producing_process?
                     #import pdb; pdb.set_trace()
                     #pr changed
@@ -6544,7 +6549,7 @@ class Process(models.Model):
                                 resource_type = inheritance.substitute(resource_type)
                         next_pt = pptr.process_type
                         start_date = self.start_date - datetime.timedelta(minutes=next_pt.estimated_duration)
-                        next_process = Process(          
+                        next_process = Process(
                             name=next_pt.name,
                             notes=next_pt.description or "",
                             process_type=next_pt,
@@ -6638,7 +6643,7 @@ class Process(models.Model):
 
     def bumped_processes(self):
         return [p for p in self.next_processes() if self.end_date > p.start_date]
-        
+
     def plan_form_prefix(self):
         return "-".join(["PCF", str(self.id)])
 
@@ -6646,18 +6651,18 @@ class Process(models.Model):
         from valuenetwork.valueaccounting.forms import ScheduleProcessForm
         init = {"start_date": self.start_date, "end_date": self.end_date, "notes": self.notes}
         return ScheduleProcessForm(prefix=str(self.id),initial=init)
-        
+
     def plan_change_form(self):
         from valuenetwork.valueaccounting.forms import PlanProcessForm
         init = {"start_date": self.start_date, "end_date": self.end_date, "name": self.name}
-        return PlanProcessForm(prefix=self.plan_form_prefix(),initial=init)      
-        
+        return PlanProcessForm(prefix=self.plan_form_prefix(),initial=init)
+
     def insert_process_form(self):
         #import pdb; pdb.set_trace()
         from valuenetwork.valueaccounting.forms import WorkflowProcessForm
         init = {"start_date": self.start_date, "end_date": self.start_date}
         return WorkflowProcessForm(prefix=str(self.id),initial=init, order_item=self.order_item())
-        
+
     def roll_up_value(self, path, depth, visited):
         #process method
         #todo rollup
@@ -6795,7 +6800,7 @@ class Process(models.Model):
                                 #todo exchange redesign fallout
                                 #resource_value was 0
                                 resource_value = ip.resource.roll_up_value(path, depth, new_visited, value_equation)
-                                ip.resource.compute_income_shares_for_use(value_equation, ip, ip_value, resource_value, events, visited) 
+                                ip.resource.compute_income_shares_for_use(value_equation, ip, ip_value, resource_value, events, visited)
                         elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
                             #consume events are not contributions, but their resources may have contributions
                             ##todo ve test: is this a bug? how does consumption event value get set?
@@ -6826,7 +6831,7 @@ class Process(models.Model):
                                 path = []
                                 depth = 0
                                 resource_value = ip.resource.roll_up_value(path, depth, new_visited, value_equation)
-                                ip.resource.compute_income_shares_for_use(value_equation, ip, ip_value, resource_value, events, visited) 
+                                ip.resource.compute_income_shares_for_use(value_equation, ip, ip_value, resource_value, events, visited)
 
 
 class TransferType(models.Model):
@@ -6842,7 +6847,7 @@ class TransferType(models.Model):
     is_currency = models.BooleanField(_('is currency'), default=False)
     give_agent_is_context = models.BooleanField(_('give agent is context'), default=False)
     receive_agent_is_context = models.BooleanField(_('receive agent is context'), default=False)
-    give_agent_association_type = models.ForeignKey(AgentAssociationType, 
+    give_agent_association_type = models.ForeignKey(AgentAssociationType,
         blank=True, null=True,
         verbose_name=_('give agent association type'), related_name='transfer_types_give')
     receive_agent_association_type = models.ForeignKey(AgentAssociationType,
@@ -6856,11 +6861,11 @@ class TransferType(models.Model):
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
 
     def __unicode__(self):
-        return self.name        
+        return self.name
 
     class Meta:
         ordering = ('sequence',)
-        
+
     def is_deletable(self):
         if self.transfers.all():
             return False
@@ -6868,9 +6873,9 @@ class TransferType(models.Model):
 
     def facets(self):
         facets = [ttfv.facet_value.facet for ttfv in self.facet_values.all()]
-        return list(set(facets))   
-        
-    def get_resource_types(self):       
+        return list(set(facets))
+
+    def get_resource_types(self):
         #import pdb; pdb.set_trace()
         tt_facet_values = self.facet_values.all()
         facet_values = [ttfv.facet_value for ttfv in tt_facet_values]
@@ -6878,8 +6883,8 @@ class TransferType(models.Model):
         for fv in facet_values:
             if fv.facet not in facets:
                 facets[fv.facet] = []
-            facets[fv.facet].append(fv.value)  
-           
+            facets[fv.facet].append(fv.value)
+
         fv_ids = [fv.id for fv in facet_values]
         rt_facet_values = ResourceTypeFacetValue.objects.filter(facet_value__id__in=fv_ids)
 
@@ -6889,10 +6894,10 @@ class TransferType(models.Model):
             if rt not in rts:
                 rts[rt] = []
             rts[rt].append(rtfv.facet_value)
-            
+
         #import pdb; pdb.set_trace()
         matches = []
-        
+
         for rt, facet_values in rts.iteritems():
             match = True
             for facet, values in facets.iteritems():
@@ -6905,27 +6910,27 @@ class TransferType(models.Model):
                     match = False
             if match:
                 matches.append(rt)
-                
-        answer_ids = [a.id for a in matches]        
-        answer = EconomicResourceType.objects.filter(id__in=answer_ids)       
+
+        answer_ids = [a.id for a in matches]
+        answer = EconomicResourceType.objects.filter(id__in=answer_ids)
         return answer
 
-    def to_agents(self, context_agent):            
+    def to_agents(self, context_agent):
         #import pdb; pdb.set_trace()
         if self.receive_agent_association_type:
             return context_agent.has_associates_self_or_inherited(self.receive_agent_association_type.identifier)
         else:
             return EconomicAgent.objects.all()
-        
+
     def from_agents(self, context_agent):
         if self.give_agent_association_type:
             return context_agent.has_associates_self_or_inherited(self.give_agent_association_type.identifier)
         else:
             return EconomicAgent.objects.all()
-        
+
     def form_prefix(self):
         return "-".join(["TT", str(self.id)])
-    
+
     def change_form(self):
         from valuenetwork.valueaccounting.forms import TransferTypeForm
         prefix=self.form_prefix()
@@ -6933,7 +6938,7 @@ class TransferType(models.Model):
 
 
 class TransferTypeFacetValue(models.Model):
-    transfer_type = models.ForeignKey(TransferType, 
+    transfer_type = models.ForeignKey(TransferType,
         verbose_name=_('transfer type'), related_name='facet_values')
     facet_value = models.ForeignKey(FacetValue,
         verbose_name=_('facet value'), related_name='transfer_types')
@@ -6944,7 +6949,7 @@ class TransferTypeFacetValue(models.Model):
 
     def __unicode__(self):
         return ": ".join([self.transfer_type.name, self.facet_value.facet.name, self.facet_value.value])
-    
+
 
 class ExchangeManager(models.Manager):
 
@@ -6958,7 +6963,7 @@ class ExchangeManager(models.Manager):
         #exchs.sort(lambda x, y: cmp(y.start_date, x.start_date))
         #return exchs
         return exchanges
-              
+
     def supply_exchanges(self, start=None, end=None):
         if start and end:
             exchanges = Exchange.objects.filter(use_case__identifier="supply_xfer").filter(start_date__range=[start, end])
@@ -6968,14 +6973,14 @@ class ExchangeManager(models.Manager):
         #exchs.sort(lambda x, y: cmp(y.start_date, x.start_date))
         #return exchs
         return exchanges
-    
+
     def internal_exchanges(self, start=None, end=None):
         if start and end:
             exchanges = Exchange.objects.filter(use_case__identifier="intrnl_xfer").filter(start_date__range=[start, end])
         else:
             exchanges = Exchange.objects.filter(use_case__identifier="intrnl_xfer")
         return exchanges
-     
+
 class Exchange(models.Model):
     name = models.CharField(_('name'), blank=True, max_length=128)
     process_pattern = models.ForeignKey(ProcessPattern,
@@ -7037,7 +7042,7 @@ class Exchange(models.Model):
 
     @models.permalink
     def get_absolute_url(self):
-        return ('exchange_logging', (),{ 
+        return ('exchange_logging', (),{
             'exchange_type_id': "0",
             'exchange_id': str(self.id),
             })
@@ -7052,7 +7057,7 @@ class Exchange(models.Model):
         ])
         unique_slugify(self, slug)
         super(Exchange, self).save(*args, **kwargs)
-            
+
     def class_label(self):
         return "Exchange"
 
@@ -7087,7 +7092,7 @@ class Exchange(models.Model):
                 if transfer.is_reciprocal():
                     default_from_agent = transfer.to_agent()
                 else:
-                    default_from_agent = transfer.from_agent()            
+                    default_from_agent = transfer.from_agent()
         for slot in slots:
             slot.xfers = []
             slot.total = 0
@@ -7111,19 +7116,19 @@ class Exchange(models.Model):
                 if not slot.receive_agent_is_context:
                     slot.default_to_agent = None #logged on agent
         return slots
-        
+
 
     def work_events(self):
         return self.events.filter(
             event_type__relationship='work')
-        
+
     def events(self):
         events = []
         for transfer in self.transfers.all():
             for event in transfer.events.all():
                 events.append(event)
-        return events        
-                        
+        return events
+
     def transfer_events(self):
         #todo exchange redesign fallout?
         #obsolete? or just used wrong?
@@ -7135,7 +7140,7 @@ class Exchange(models.Model):
                 for event in transfer.events.all():
                     events.append(event)
         return events
-            
+
     def reciprocal_transfer_events(self):
         #todo exchange redesign fallout?
         #exchange method
@@ -7144,7 +7149,7 @@ class Exchange(models.Model):
             if transfer.is_reciprocal():
                 for event in transfer.events.all():
                     events.append(event)
-        return events 
+        return events
 
     def can_have_reciprocal_transfers(self):
         ext = self.exchange_type
@@ -7163,7 +7168,7 @@ class Exchange(models.Model):
                     if event.event_type == et_give:
                         events.append(event)
         return events
-     
+
     #todo:not tested
     def transfer_receive_events(self):
         #not reciprocal
@@ -7175,7 +7180,7 @@ class Exchange(models.Model):
                     if event.event_type == et_receive:
                         events.append(event)
         return events
-    
+
     #todo:not tested
     def reciprocal_transfer_give_events(self):
         events = []
@@ -7186,11 +7191,11 @@ class Exchange(models.Model):
                     if event.event_type == et_give:
                         events.append(event)
         return events
-    
+
     def payment_events(self):
         events = self.reciprocal_transfer_give_events()
         return [evt for evt in events if evt.transfer.transfer_type.is_currency]
-     
+
     #todo:not tested
     def reciprocal_transfer_receive_events(self):
         events = []
@@ -7201,54 +7206,54 @@ class Exchange(models.Model):
                     if event.event_type == et_receive:
                         events.append(event)
         return events
-        
+
     #todo: do we need these?  if not, delete
     #def uncommitted_transfer_events(self):
     #    return self.events.filter(
     #        event_type__name='Transfer',
     #        commitment=None)
-    
+
     #def uncommitted_rec_transfer_events(self):
     #    return self.events.filter(
     #        event_type__name='Reciprocal Transfer',
     #        commitment=None)
-          
+
     def sorted_events(self):
         events = self.events().order_by("event_type__name")
         return events
-        
+
     def flow_type(self):
         return "Exchange"
 
     def flow_class(self):
         return "exchange"
-        
+
     def flow_description(self):
         return self.__unicode__()
-        
+
     def resource_receive_events(self):
         #todo exchange redesign fallout
         if self.use_case.name=="Incoming Exchange":
-            return [evt for evt in self.transfer_receive_events() if evt.resource]         
+            return [evt for evt in self.transfer_receive_events() if evt.resource]
         else:
             return []
-        
+
     def expense_events(self):
         #todo exchange redesign fallout
         if self.use_case.name=="Incoming Exchange":
-            return [evt for evt in self.transfer_receive_events() if not evt.resource]         
+            return [evt for evt in self.transfer_receive_events() if not evt.resource]
         else:
             return []
-        
+
     def roll_up_value(self, trigger_event, path, depth, visited, value_equation=None):
         """ Rolling up value from an exchange for a resource.
-        
+
             trigger_event is a receipt for a resource.
             All of the expenses and work contributions in the Exchange
             must be spread among all of the receipts, with this receipt
             getting its share.
         """
-        
+
         #exchange method
         #import pdb; pdb.set_trace()
         values = Decimal("0.0")
@@ -7328,7 +7333,7 @@ class Exchange(models.Model):
                     path.append(exp)
                     depth -= 1
                 depth -= 1
-                        
+
             for evt in self.work_events():
                 #import pdb; pdb.set_trace()
                 value = evt.quantity
@@ -7343,13 +7348,13 @@ class Exchange(models.Model):
                 path.append(evt)
         event_value = values
         return event_value
-        
+
     def compute_income_shares(self, value_equation, trigger_event, quantity, events, visited):
         #exchange method
         #import pdb; pdb.set_trace()
         if trigger_event not in visited:
             visited.add(trigger_event)
-            
+
             trigger_fraction = 1
             share =  quantity / trigger_event.quantity
             #todo exchange redesign fallout
@@ -7389,7 +7394,7 @@ class Exchange(models.Model):
                         events.append(ct)
                 if not contributions:
                     #if contributions were credited,
-                    # do not give credit for payment. 
+                    # do not give credit for payment.
                     #import pdb; pdb.set_trace()
                     br = evt.bucket_rule(value_equation)
                     if br:
@@ -7398,7 +7403,7 @@ class Exchange(models.Model):
                     evt.save()
                     evt.share = value * share * trigger_fraction
                     events.append(evt)
-                    
+
             elif len(payments) > 1:
                 total = sum(p.quantity for p in payments)
                 for evt in payments:
@@ -7423,7 +7428,7 @@ class Exchange(models.Model):
                         evt.share = value * share * fraction * trigger_fraction
                         #evt.share = value * fraction * trigger_fraction
                         events.append(evt)
-                        
+
             expenses = self.expense_events()
             for ex in expenses:
                 exp_payments = [evt for evt in self.payment_events() if evt.to_agent==ex.from_agent]
@@ -7433,7 +7438,7 @@ class Exchange(models.Model):
                     if br:
                         #import pdb; pdb.set_trace()
                         value = br.compute_claim_value(exp)
-                    exp.value = value 
+                    exp.value = value
                     exp.save()
                     exp.share = value * share * trigger_fraction
                     events.append(exp)
@@ -7452,7 +7457,7 @@ class Exchange(models.Model):
                     evt.share = value * share * trigger_fraction
                     #evt.share = value * trigger_fraction
                     events.append(evt)
-                
+
     def compute_income_shares_for_use(self, value_equation, use_event, use_value, resource_value, events, visited):
         #exchange method
         #import pdb; pdb.set_trace()
@@ -7473,7 +7478,7 @@ class Exchange(models.Model):
                     #trigger_fraction = use_event.value / rsum
                 #payments = self.payment_events().filter(to_agent=trigger_event.from_agent)
                 #share =  quantity / trigger_event.quantity
-            """    
+            """
             else:
                 #todo exchange redesign fallout
                 xfers = self.transfers.all()
@@ -7534,7 +7539,7 @@ class Exchange(models.Model):
                             if existing_ct:
                                 #import pdb; pdb.set_trace()
                                 existing_ct.share += share_addition
-                                
+
                             else:
                                 ct.share = share_addition
                                 events.append(ct)
@@ -7569,7 +7574,7 @@ class Exchange(models.Model):
                 max_share.share = (max_share.share + delta)
                 #local_total = sum(lo.share for lo in locals)
                 #print "local_total:", local_total
-            
+
 
 class Transfer(models.Model):
     name = models.CharField(_('name'), blank=True, max_length=128)
@@ -7637,7 +7642,7 @@ class Transfer(models.Model):
                 qty = str(commit.quantity)
                 if commit.unit_of_quantity:
                     unit = commit.unit_of_quantity.name
-                
+
         return " ".join([
         #    name,
             show_name,
@@ -7794,7 +7799,7 @@ class Transfer(models.Model):
                 from_to,
                 ])
         return text
-    
+
     def commit_description(self):
         #import pdb; pdb.set_trace()
         commits = self.commitments.all()
@@ -7802,7 +7807,7 @@ class Transfer(models.Model):
             return commits[0].description
         else:
             return None
-        
+
     def save(self, *args, **kwargs):
         if self.id:
             if not self.transfer_type:
@@ -7810,23 +7815,23 @@ class Transfer(models.Model):
                 assert False, msg
         if self.transfer_type:
             super(Transfer, self).save(*args, **kwargs)
-    
+
     def is_reciprocal(self):
-        return self.transfer_type.is_reciprocal 
-        
+        return self.transfer_type.is_reciprocal
+
     def give_event(self):
         #import pdb; pdb.set_trace()
         try:
             return self.events.get(event_type__name="Give")
         except EconomicEvent.DoesNotExist:
             return None
-            
+
     def receive_event(self):
         try:
             return self.events.get(event_type__name="Receive")
         except EconomicEvent.DoesNotExist:
             return None
-    
+
     def quantity(self):
         events = self.events.all()
         if events:
@@ -7836,13 +7841,13 @@ class Transfer(models.Model):
             if commits:
                 return commits[0].quantity
         return Decimal("0.0")
-    
+
     def actual_quantity(self):
         events = self.events.all()
         if events:
             return events[0].quantity
         return Decimal("0.0")
-    
+
     def unit_of_quantity(self):
         events = self.events.all()
         if events:
@@ -7852,7 +7857,7 @@ class Transfer(models.Model):
             if commits:
                 return commits[0].unit_of_quantity
         return None
-        
+
     def value(self):
         events = self.events.all()
         if events:
@@ -7862,13 +7867,13 @@ class Transfer(models.Model):
             if commits:
                 return commits[0].value
         return None
-           
+
     def actual_value(self):
         events = self.events.all()
         if events:
             return events[0].value
         return Decimal("0.0")
-     
+
     def unit_of_value(self):
         events = self.events.all()
         if events:
@@ -7888,7 +7893,7 @@ class Transfer(models.Model):
             if commits:
                 return commits[0].from_agent
         return None
-    
+
     def to_agent(self):
         events = self.events.all()
         if events:
@@ -7909,7 +7914,7 @@ class Transfer(models.Model):
             if commits:
                 return commits[0].resource_type
         return None
-    
+
     def resource_name(self):
         events = self.events.all()
         if events:
@@ -7926,23 +7931,23 @@ class Transfer(models.Model):
         if events:
             resource = events[0].resource
         return resource
-        
+
     def is_deletable(self):
         if self.commitments.all():
             return False
         if self.events.all():
             return False
         return True
-        
+
     def flow_type(self):
         return "Transfer"
 
     def flow_class(self):
         return "transfer"
-        
+
     def flow_description(self):
         return self.__unicode__()
-    
+
     def give_and_receive_resources(self):
         events = self.events.all()
         give_resource = None
@@ -7958,7 +7963,7 @@ class Transfer(models.Model):
 
     def form_prefix(self):
         return "TR" + str(self.id)
-        
+
     def commit_transfer_form(self):
         from valuenetwork.valueaccounting.forms import TransferForm
         prefix=self.form_prefix()
@@ -7978,7 +7983,7 @@ class Transfer(models.Model):
         #import pdb; pdb.set_trace()
         from valuenetwork.valueaccounting.views import resource_role_agent_formset
         return resource_role_agent_formset(prefix=self.form_prefix(), data=data)
-    
+
     def change_commitments_form(self):
         from valuenetwork.valueaccounting.forms import TransferCommitmentForm
         prefix = self.form_prefix() + "C"
@@ -7998,7 +8003,7 @@ class Transfer(models.Model):
                 }
             return TransferCommitmentForm(initial=init, transfer_type=self.transfer_type, context_agent=self.context_agent, posting=False, prefix=prefix)
         return None
-        
+
     def change_events_form(self):
         #import pdb; pdb.set_trace()
         from valuenetwork.valueaccounting.forms import TransferForm
@@ -8026,7 +8031,7 @@ class Transfer(models.Model):
                 }
             return TransferForm(initial=init, transfer_type=self.transfer_type, context_agent=self.context_agent, resource_type=event.resource_type, posting=False, prefix=prefix)
         return None
-        
+
 
 class Feature(models.Model):
     name = models.CharField(_('name'), max_length=128)
@@ -8036,7 +8041,7 @@ class Feature(models.Model):
     #    blank=True, null=True,
     #    help_text=_("option selections will be limited to this category"),
     #    limit_choices_to=Q(applies_to='Anything') | Q(applies_to='EconomicResourceType'))
-    product = models.ForeignKey(EconomicResourceType, 
+    product = models.ForeignKey(EconomicResourceType,
         related_name="features", verbose_name=_('product'))
     process_type = models.ForeignKey(ProcessType,
         blank=True, null=True,
@@ -8109,9 +8114,9 @@ class Feature(models.Model):
 
 
 class Option(models.Model):
-    feature = models.ForeignKey(Feature, 
+    feature = models.ForeignKey(Feature,
         related_name="options", verbose_name=_('feature'))
-    component = models.ForeignKey(EconomicResourceType, 
+    component = models.ForeignKey(EconomicResourceType,
         related_name="options", verbose_name=_('component'))
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='options_created', blank=True, null=True, editable=False)
@@ -8198,7 +8203,7 @@ class Commitment(models.Model):
     order_item = models.ForeignKey("self",
         blank=True, null=True,
         related_name="stream_commitments", verbose_name=_('order item'))
-    event_type = models.ForeignKey(EventType, 
+    event_type = models.ForeignKey(EventType,
         related_name="commitments", verbose_name=_('event type'))
     stage = models.ForeignKey(ProcessType, related_name="commitments_at_stage",
         verbose_name=_('stage'), blank=True, null=True)
@@ -8219,7 +8224,7 @@ class Commitment(models.Model):
     to_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
         related_name="taken_commitments", verbose_name=_('to'))
-    resource_type = models.ForeignKey(EconomicResourceType, 
+    resource_type = models.ForeignKey(EconomicResourceType,
         blank=True, null=True,
         verbose_name=_('resource type'), related_name='commitments')
     resource = models.ForeignKey(EconomicResource,
@@ -8232,7 +8237,7 @@ class Commitment(models.Model):
         blank=True, null=True,
         verbose_name=_('exchange'), related_name='commitments')
     transfer = models.ForeignKey(Transfer,
-        blank=True, null=True, 
+        blank=True, null=True,
         related_name="commitments")
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
@@ -8244,7 +8249,7 @@ class Commitment(models.Model):
     unit_of_quantity = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit'), related_name="commitment_qty_units")
     quality = models.DecimalField(_('quality'), max_digits=3, decimal_places=0, default=Decimal("0"))
-    value = models.DecimalField(_('value'), max_digits=8, decimal_places=2, 
+    value = models.DecimalField(_('value'), max_digits=8, decimal_places=2,
         default=Decimal("0.0"))
     unit_of_value = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit of value'), related_name="commitment_value_units")
@@ -8296,7 +8301,7 @@ class Commitment(models.Model):
                 quantity_string,
                 abbrev,
                 resource_name,
-                self.due_date.strftime('%Y-%m-%d'),          
+                self.due_date.strftime('%Y-%m-%d'),
                 prep,
                 name2,
             ])
@@ -8307,7 +8312,7 @@ class Commitment(models.Model):
                 quantity_string,
                 abbrev,
                 resource_name,
-                self.due_date.strftime('%Y-%m-%d'),          
+                self.due_date.strftime('%Y-%m-%d'),
         ])
 
     def shorter_label(self):
@@ -8321,9 +8326,9 @@ class Commitment(models.Model):
         return ' '.join([
             quantity_string,
             abbrev,
-            resource_name,         
+            resource_name,
         ])
-        
+
     def save(self, *args, **kwargs):
         from_id = "Unassigned"
         if self.from_agent:
@@ -8339,10 +8344,10 @@ class Commitment(models.Model):
 
     def label(self):
         return self.event_type.get_relationship_display()
-        
+
     def class_label(self):
         return " ".join(["Commitment for", self.label()])
-        
+
     def cycle_id(self):
         stage_id = ""
         if self.stage:
@@ -8351,7 +8356,7 @@ class Commitment(models.Model):
         if self.state:
             state_id = str(self.state.id)
         return "-".join([str(self.resource_type.id), stage_id, state_id])
-        
+
     def resource_type_node_id(self):
         answer = "-".join(["ProcessResource", self.cycle_id()])
         return answer
@@ -8386,7 +8391,7 @@ class Commitment(models.Model):
         prefix = "with option"
         if len(selected_options) > 1:
               prefix = "with options"
-        return " ".join([prefix, names])    
+        return " ".join([prefix, names])
 
     def timeline_title(self):
         quantity_string = str(self.quantity)
@@ -8406,7 +8411,7 @@ class Commitment(models.Model):
 
     def form_prefix(self):
         return "-".join(["CT", str(self.id)])
-        
+
     def invite_form_prefix(self):
         return "-".join(["invite", str(self.id)])
 
@@ -8414,10 +8419,10 @@ class Commitment(models.Model):
         from valuenetwork.valueaccounting.forms import CommitmentForm
         prefix=self.form_prefix()
         return CommitmentForm(instance=self, prefix=prefix)
-    
+
     def join_form_prefix(self):
         return "-".join(["JOIN", str(self.id)])
-        
+
     def join_form(self):
         from valuenetwork.valueaccounting.forms import CommitmentForm
         prefix = self.join_form_prefix()
@@ -8427,7 +8432,7 @@ class Commitment(models.Model):
             "description": "Explain how you propose to help.",
             }
         return CommitmentForm(initial=init, prefix=prefix)
-   
+
     def change_form(self):
         from valuenetwork.valueaccounting.forms import ChangeCommitmentForm
         prefix=self.form_prefix()
@@ -8455,7 +8460,7 @@ class Commitment(models.Model):
         if self.process:
             pattern = self.process.process_pattern
         return WorkCommitmentForm(instance=self, pattern=pattern, prefix=prefix)
-        
+
     def invite_collaborator_form(self):
         from valuenetwork.valueaccounting.forms import InviteCollaboratorForm
         prefix=self.invite_form_prefix()
@@ -8466,12 +8471,12 @@ class Commitment(models.Model):
             unit_string = unit.abbrev
             qty_help = " ".join(["Type of work:", rt_name, ", unit:", unit.abbrev, ", up to 2 decimal places"])
         form = InviteCollaboratorForm(
-            qty_help=qty_help, 
+            qty_help=qty_help,
             prefix=prefix)
-            
+
         #import pdb; pdb.set_trace()
         return form
-    
+
     def can_add_to_resource(self):
         #todo: figure out how to allow for workflow stream resources
         #easy way: edit previous change event
@@ -8486,7 +8491,7 @@ class Commitment(models.Model):
             if self.onhand():
                 return True
         return False
-        
+
     def resource_create_form(self, data=None):
         #import pdb; pdb.set_trace()
         if self.resource_type.inventory_rule == "yes":
@@ -8509,7 +8514,7 @@ class Commitment(models.Model):
                 unit_string = unit.abbrev
                 qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
             return UninventoriedProductionEventForm(qty_help=qty_help, prefix=self.form_prefix(), initial=init, data=data)
-            
+
     def resource_transform_form(self, data=None):
         #import pdb; pdb.set_trace()
         from valuenetwork.valueaccounting.forms import TransformEconomicResourceForm
@@ -8528,7 +8533,7 @@ class Commitment(models.Model):
             unit_string = unit.abbrev
             qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
         return TransformEconomicResourceForm(qty_help=qty_help, prefix=self.form_prefix(), initial=init, data=data)
-        
+
     def select_resource_form(self, data=None):
         from valuenetwork.valueaccounting.forms import SelectResourceForm
         init = {
@@ -8549,8 +8554,8 @@ class Commitment(models.Model):
         from valuenetwork.valueaccounting.forms import TodoForm
         prefix=self.form_prefix()
         return TodoForm(instance=self, prefix=prefix)
-        
-    def work_todo_change_form(self): 
+
+    def work_todo_change_form(self):
         #import pdb; pdb.set_trace()
         from work.forms import WorkTodoForm
         agent=self.to_agent #poster of todo
@@ -8565,7 +8570,7 @@ class Commitment(models.Model):
 
     #obsolete?
     """
-    def work_event_form(self, data=None):   
+    def work_event_form(self, data=None):
         from valuenetwork.valueaccounting.forms import TimeEventForm, InputEventForm
         prefix=self.form_prefix()
         unit = self.resource_type.unit
@@ -8575,13 +8580,13 @@ class Commitment(models.Model):
             qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
             return InputDistributionEventForm(qty_help=qty_help, prefix=prefix, data=data)
     """
-            
+
     def input_event_form(self, data=None):
         from valuenetwork.valueaccounting.forms import InputEventForm
         prefix=self.form_prefix()
         qty_help = " ".join(["unit:", self.unit_of_quantity.abbrev, ", up to 2 decimal places"])
         return InputEventForm(qty_help=qty_help, prefix=prefix, data=data)
-            
+
     def input_event_form_init(self, init=None, data=None):
         #import pdb; pdb.set_trace()
         from valuenetwork.valueaccounting.forms import InputEventAgentForm
@@ -8598,15 +8603,15 @@ class Commitment(models.Model):
             return InputEventAgentForm(qty_help=qty_help, prefix=prefix, initial=init, data=data)
         else:
             return InputEventAgentForm(qty_help=qty_help, prefix=prefix, data=data)
-    
-    def consumption_event_form(self):        
+
+    def consumption_event_form(self):
         from valuenetwork.valueaccounting.forms import InputEventForm
         prefix=self.form_prefix()
         qty_help = " ".join(["unit:", self.unit_of_quantity.abbrev, ", up to 2 decimal places"])
         return InputEventForm(qty_help=qty_help, prefix=prefix)
 
     #obsolete
-    def old_use_event_form(self):        
+    def old_use_event_form(self):
         from valuenetwork.valueaccounting.forms import TimeEventForm, InputEventForm
         prefix=self.form_prefix()
         unit = self.resource_type.directional_unit("use")
@@ -8615,14 +8620,14 @@ class Commitment(models.Model):
         else:
             qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
             return InputEventForm(qty_help=qty_help, prefix=prefix)
-            
-    def use_event_form(self, data=None):        
+
+    def use_event_form(self, data=None):
         from valuenetwork.valueaccounting.forms import InputEventForm
         prefix=self.form_prefix()
         unit = self.resource_type.directional_unit("use")
         qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
         return InputEventForm(qty_help=qty_help, prefix=prefix, data=data)
-            
+
     def resources_ready_to_be_changed(self):
         #import pdb; pdb.set_trace()
         resources = []
@@ -8637,10 +8642,10 @@ class Commitment(models.Model):
                     stage=self.stage,
                     order_item=self.order_item)
         return resources
-        
+
     def fulfilling_events(self):
-        return self.fulfillment_events.all()    
-    
+        return self.fulfillment_events.all()
+
     def fulfilling_events_condensed(self):
         #import pdb; pdb.set_trace()
         event_list = self.fulfillment_events.all()
@@ -8650,17 +8655,17 @@ class Commitment(models.Model):
             for event in event_list:
                 try:
                     key = "-".join([
-                        str(event.from_agent.id), 
-                        str(event.context_agent.id), 
-                        str(event.resource_type.id), 
+                        str(event.from_agent.id),
+                        str(event.context_agent.id),
+                        str(event.resource_type.id),
                         str(event.event_type.id)
                         ])
                     if not key in summaries:
                         summaries[key] = EventSummary(
-                            event.from_agent, 
-                            event.context_agent, 
-                            event.resource_type, 
-                            event.event_type, 
+                            event.from_agent,
+                            event.context_agent,
+                            event.resource_type,
+                            event.event_type,
                             Decimal('0.0'))
                     summaries[key].quantity += event.quantity
                 except AttributeError:
@@ -8668,12 +8673,12 @@ class Commitment(models.Model):
                     assert False, msg
             condensed_events = summaries.values()
         return condensed_events
-        
-        
-    #obsolete        
+
+
+    #obsolete
     def fulfilling_shipment_events(self):
         return self.fulfillment_events.filter(event_type__name="Shipment")
-     
+
     def todo_event(self):
         events = self.fulfilling_events()
         if events:
@@ -8696,7 +8701,7 @@ class Commitment(models.Model):
         for proc in trash:
             if proc.outgoing_commitments().count() <= 1:
                 proc.delete()
-            
+
     def fulfilling_events_from_agent(self, agent):
         return self.fulfillment_events.filter(from_agent=agent)
 
@@ -8723,7 +8728,7 @@ class Commitment(models.Model):
 
     def unfilled_quantity(self):
         return self.quantity - self.fulfilled_quantity()
-    
+
     def remaining_formatted_quantity(self):
         qty = self.unfilled_quantity()
         unit = self.unit_of_quantity
@@ -8735,7 +8740,7 @@ class Commitment(models.Model):
         else:
             answer = str(qty)
         return answer
-        
+
     def is_fulfilled(self):
         if self.unfilled_quantity():
             return False
@@ -8794,7 +8799,7 @@ class Commitment(models.Model):
         oh_qty = rt.onhand_qty_for_commitment(self)
         if oh_qty >= self.quantity:
             return 0
-        sked_qty = rt.scheduled_qty_for_commitment(self)      
+        sked_qty = rt.scheduled_qty_for_commitment(self)
         if self.event_type.resource_effect == "-":
             remainder = self.quantity - oh_qty
             if sked_qty >= remainder:
@@ -8803,11 +8808,11 @@ class Commitment(models.Model):
         else:
             if oh_qty + sked_qty:
                 return Decimal("0")
-            elif self.event_type.resource_effect == "=":   
+            elif self.event_type.resource_effect == "=":
                 return Decimal("1")
-            else: 
+            else:
                 return self.quantity
-                
+
     def net_for_order(self):
         #this method does netting after an order has been scheduled
         #see tiddler Bug 2105-01-25
@@ -8834,7 +8839,7 @@ class Commitment(models.Model):
         if not rt.substitutable:
             sked_qty = sum(sr.quantity for sr in sked_rcts if sr.order_item==self.order_item)
         else:
-            sked_qty = sum(sr.quantity for sr in sked_rcts) 
+            sked_qty = sum(sr.quantity for sr in sked_rcts)
         sked_qty = sked_qty - sum(p.quantity for p in priors)
         avail = oh_qty + sked_qty
         remainder = self.quantity - avail
@@ -8845,29 +8850,29 @@ class Commitment(models.Model):
         else:
             if not remainder:
                 return Decimal("0")
-            elif self.event_type.resource_effect == "=":   
+            elif self.event_type.resource_effect == "=":
                 return Decimal("1")
-            else: 
+            else:
                 return remainder
-                
+
     def needs_production_process(self):
         #I know > 0 is unnecessary, just being explicit
         if self.net_for_order() > 0:
             return True
         return False
-  
+
     def creates_resources(self):
         return self.event_type.creates_resources()
 
     def consumes_resources(self):
         return self.event_type.consumes_resources()
-        
+
     def is_change_related(self):
         return self.event_type.is_change_related()
-            
+
     def applies_stage(self):
         return self.event_type.applies_stage()
-        
+
     def changes_stage(self):
         return self.event_type.changes_stage()
 
@@ -8886,7 +8891,7 @@ class Commitment(models.Model):
                 event = events[0]
                 answer = event.resource
         return answer
-        
+
     def is_shipment(self):
         if self.order:
             if self.order.order_type == "customer":
@@ -8898,10 +8903,10 @@ class Commitment(models.Model):
         return False
 
     def generate_producing_process(self, user, visited, inheritance=None, explode=False):
-        
+
         """ This method is usually used in recipe explosions.
-        
-            inheritance is optional, can be positional or keyword arg. It means 
+
+            inheritance is optional, can be positional or keyword arg. It means
             the recipe in use was inherited from a parent.
             explode is also optional. If used by a caller, and inheritance is not used,
             explode must be a keyword arg.
@@ -8979,7 +8984,7 @@ class Commitment(models.Model):
         agents = [agent for agent in srcs if agent in members]
         users = [a.user() for a in agents if a.user()]
         return [u.user for u in users]
-        
+
     def workers(self):
         answer = []
         if self.event_type.relationship=="work":
@@ -9003,8 +9008,8 @@ class Commitment(models.Model):
             if oi != self:
                 if oi.resource_type == self.resource_type:
                     if oi.stage == self.stage:
-                        oi.order.reschedule_forward(delta_days, user)        
-            
+                        oi.order.reschedule_forward(delta_days, user)
+
     def reschedule_forward_from_source(self, lead_time, user):
         lag = datetime.date.today() - self.due_date
         delta_days = lead_time + lag.days + 1
@@ -9026,8 +9031,8 @@ class Commitment(models.Model):
             producers = self.resource_type.producing_commitments().exclude(id=self.id)
         #todo: this shd just be a filter, but need to test the change, so do later
         return [ct for ct in producers if ct.order_item == self.order_item]
-        
-    def active_producing_commitments(self):   
+
+    def active_producing_commitments(self):
         if self.stage:
             return self.resource_type.active_producing_commitments().filter(
                 stage=self.stage)
@@ -9041,27 +9046,27 @@ class Commitment(models.Model):
             return self.active_producing_commitments()
         else:
             return self.associated_producing_commitments()
-            
+
     def is_change_related(self):
         return self.event_type.is_change_related()
-        
+
     def is_work(self):
         return self.event_type.is_work()
-        
+
     def remove_order(self):
         self.order = None
         self.save()
-        
+
     def update_stage(self, process_type):
         self.stage = process_type
         self.save()
-        
+
     def process_chain(self):
         #import pdb; pdb.set_trace()
         processes = []
         self.process.all_previous_processes(processes, [], 0)
         return processes
-        
+
     def find_order_item(self):
         #this is a temporary method for data migration after the flows branch is deployed
         answer = None
@@ -9072,7 +9077,7 @@ class Commitment(models.Model):
                     return ois[0]
                 else:
                     return ois
-                    
+
     def unique_processes_for_order_item(self, visited):
         unique_processes = []
         all_processes = self.all_processes_in_my_order_item()
@@ -9081,7 +9086,7 @@ class Commitment(models.Model):
                 visited.add(process)
                 unique_processes.append(process)
         return unique_processes
-       
+
     def all_processes_in_my_order_item(self):
         ordered_processes = []
         order_item = self.order_item
@@ -9093,33 +9098,33 @@ class Commitment(models.Model):
                     if p.order_item() == order_item:
                         ordered_processes.append(p)
         return ordered_processes
-            
+
     def last_process_in_my_order_item(self):
         processes = self.all_processes_in_my_order_item()
         if processes:
             return processes[-1]
         else:
             return None
-         
+
     def is_order_item(self):
         if self.order:
             return True
         else:
             return False
-            
+
     def is_workflow_order_item(self):
         if self.process and self.order:
             return self.process.is_staged()
         else:
             return False
-            
+
     def process_types(self):
         pts = []
         for process in self.all_processes_in_my_order_item():
             if process.process_type:
                 pts.append(process.process_type)
         return list(set(pts))
-        
+
     def available_workflow_process_types(self):
         all_pts = ProcessType.objects.workflow_process_types()
         my_pts = self.process_types()
@@ -9128,19 +9133,19 @@ class Commitment(models.Model):
             if pt not in my_pts:
                 available_pt_ids.append(pt.id)
         return ProcessType.objects.filter(id__in=available_pt_ids)
-        
+
     def workflow_quantity(self):
         if self.is_workflow_order_item():
             return self.quantity
         else:
             return None
-        
+
     def workflow_unit(self):
         if self.is_workflow_order_item():
             return self.unit_of_quantity
         else:
-            return None  
-    
+            return None
+
     def change_commitment_quantities(self, qty):
         #import pdb; pdb.set_trace()
         if self.is_workflow_order_item():
@@ -9155,7 +9160,7 @@ class Commitment(models.Model):
                             commitment.quantity = qty
                             commitment.save()
         return self
-            
+
     def change_workflow_project(self, project):
         #import pdb; pdb.set_trace()
         if self.is_workflow_order_item():
@@ -9165,15 +9170,15 @@ class Commitment(models.Model):
                 #process.save()
                 process.change_context_agent(context_agent=project)
         return self
-        
+
     def adjust_workflow_commitments_process_added(self, process, user): #process added to the end of the order item
         #import pdb; pdb.set_trace()
-        last_process = self.last_process_in_my_order_item() 
+        last_process = self.last_process_in_my_order_item()
         process.add_stream_commitments(last_process=last_process, user=user)
         last_commitment = last_process.main_outgoing_commitment()
         last_commitment.remove_order()
         return self
-        
+
     def adjust_workflow_commitments_process_inserted(self, process, next_process, user):
         #import pdb; pdb.set_trace()
         all_procs = self.all_processes_in_my_order_item()
@@ -9189,7 +9194,7 @@ class Commitment(models.Model):
             process.insert_first_stream_commitments(next_commitment=next_commitment, user=user)
         next_commitment.update_stage(process.process_type)
         return self
-        
+
     def adjust_workflow_commitments_process_deleted(self, process, user):
         #import pdb; pdb.set_trace()
         all_procs = self.all_processes_in_my_order_item()
@@ -9214,20 +9219,20 @@ class Commitment(models.Model):
         else:
             next_process = all_procs[process_index + 1]
             next_commitment = next_process.to_be_changed_requirements()[0]
-        if last_process and next_commitment:    
+        if last_process and next_commitment:
             next_commitment.update_stage(last_process.process_type)
         return None
-        
+
     def compute_income_fractions(self, value_equation):
-        """Returns a list of contribution events for an order_item, 
-        
+        """Returns a list of contribution events for an order_item,
+
         where each event has event.share and event.fraction.
-        event.share is that event's share based on its 
+        event.share is that event's share based on its
         proportional contribution to the order_item's resource value.
         event.fraction is that event's fraction of the total shares.
-        
+
         Commitment (order_item) method.
-        
+
         """
         events = self.fulfilling_events()
         resources = []
@@ -9257,7 +9262,7 @@ class Commitment(models.Model):
         #import pdb; pdb.set_trace()
         #print "total shares:", total
         return shares
-        
+
     def compute_income_fractions_for_resource(self, value_equation, resource):
         #print "*** rollup up resource value"
         visited = set()
@@ -9272,7 +9277,7 @@ class Commitment(models.Model):
         #import pdb; pdb.set_trace()
         resource.compute_income_shares(value_equation, self.quantity, shares, visited)
         return shares
-        
+
     def compute_income_fractions_for_process(self, value_equation):
         #Commitment (order_item) method
         shares = []
@@ -9298,7 +9303,7 @@ class Commitment(models.Model):
                 if p:
                     visited = set()
                     p.compute_income_shares(value_equation, self, self.quantity, shares, visited)
-                    
+
         return shares
 
     def get_production_commitments_for_shipment(self):
@@ -9309,14 +9314,14 @@ class Commitment(models.Model):
                 event_type__relationship="out",
                 resource_type=self.resource_type)
         return production_commitments
-        
+
 
 #todo: not used.
 class Reciprocity(models.Model):
     """One Commitment reciprocating another.
 
     The EconomicAgents in the reciprocal commitments
-    must be opposites.  
+    must be opposites.
     That is, the from_agent of one commitment must be
     the to-agent of the other commitment, and vice versa.
     Reciprocal commitments have a M:M relationship:
@@ -9324,9 +9329,9 @@ class Reciprocity(models.Model):
     and the other commitment can reciprocate many initiating commitments.
 
     """
-    initiating_commitment = models.ForeignKey(Commitment, 
+    initiating_commitment = models.ForeignKey(Commitment,
         related_name="initiated_commitments", verbose_name=_('initiating commitment'))
-    reciprocal_commitment = models.ForeignKey(Commitment, 
+    reciprocal_commitment = models.ForeignKey(Commitment,
         related_name="reciprocal_commitments", verbose_name=_('reciprocal commitment'))
     reciprocity_date = models.DateField(_('reciprocity date'), default=datetime.date.today)
 
@@ -9351,9 +9356,9 @@ class Reciprocity(models.Model):
 
 
 class SelectedOption(models.Model):
-    commitment = models.ForeignKey(Commitment, 
+    commitment = models.ForeignKey(Commitment,
         related_name="options", verbose_name=_('commitment'))
-    option = models.ForeignKey(Option, 
+    option = models.ForeignKey(Option,
         related_name="commitments", verbose_name=_('option'))
 
     class Meta:
@@ -9361,7 +9366,7 @@ class SelectedOption(models.Model):
 
     def __unicode__(self):
         return " ".join([self.option.name, "option for", self.commitment.resource_type.name])
-        
+
 def check_summary(agent, context_agent, resource_type, event_type):
     events = EconomicEvent.objects.filter(
         from_agent=agent,
@@ -9378,7 +9383,7 @@ def check_summary(agent, context_agent, resource_type, event_type):
             event_type=event_type)
         if summary.count() > 1:
             sids = [str(s.id) for s in summary]
-            sidstring = ",".join(sids)    
+            sidstring = ",".join(sids)
             return " ".join(["More than one Summary. Ids:", sidstring, "Event total:", str(total)])
         summary = summary[0]
         if summary.quantity != total:
@@ -9398,7 +9403,7 @@ def check_events_for_summary(summary):
     if summary.quantity != total:
         return " ".join(["summary.quantity:", str(summary.quantity), "event total:", str(total)])
     return "ok"
-    
+
 def update_summary(agent, context_agent, resource_type, event_type):
     events = EconomicEvent.objects.filter(
         from_agent=agent,
@@ -9414,7 +9419,7 @@ def update_summary(agent, context_agent, resource_type, event_type):
         event_type=event_type)
     summary.quantity = total
     if summary.quantity:
-        summary.save() 
+        summary.save()
     else:
         summary.delete()
 
@@ -9424,7 +9429,7 @@ def update_summary(agent, context_agent, resource_type, event_type):
     """One EconomicEvent compensating another.
 
     The EconomicAgents in the exchanging events
-    must be opposites.  
+    must be opposites.
     That is, the from_agent of one event must be
     the to-agent of the other event, and vice versa.
     Both events must use the same unit of value.
@@ -9435,9 +9440,9 @@ def update_summary(agent, context_agent, resource_type, event_type):
     Compensation is an REA Duality.
 
     """
-#    initiating_event = models.ForeignKey(EconomicEvent, 
+#    initiating_event = models.ForeignKey(EconomicEvent,
 #        related_name="initiated_compensations", verbose_name=_('initiating event'))
-#    compensating_event = models.ForeignKey(EconomicEvent, 
+#    compensating_event = models.ForeignKey(EconomicEvent,
 #        related_name="compensations", verbose_name=_('compensating event'))
 #    compensation_date = models.DateField(_('compensation date'), default=datetime.date.today)
 #    compensating_value = models.DecimalField(_('compensating value'), max_digits=8, decimal_places=2)
@@ -9465,7 +9470,7 @@ def update_summary(agent, context_agent, resource_type, event_type):
 #        #if self.initiating_event.unit_of_value.id != self.compensating_event.unit_of_value.id:
 #        #    raise ValidationError('Initiating event and compensating event must have the same units of value.')
 
-        
+
 PERCENTAGE_BEHAVIOR_CHOICES = (
     ('remaining', _('Remaining percentage')),
     ('straight', _('Straight percentage')),
@@ -9475,9 +9480,9 @@ class ValueEquation(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=True)
     context_agent = models.ForeignKey(EconomicAgent,
         limit_choices_to={"is_context": True,},
-        related_name="value_equations", verbose_name=_('context agent'))  
+        related_name="value_equations", verbose_name=_('context agent'))
     description = models.TextField(_('description'), null=True, blank=True)
-    percentage_behavior = models.CharField(_('percentage behavior'), 
+    percentage_behavior = models.CharField(_('percentage behavior'),
         max_length=12, choices=PERCENTAGE_BEHAVIOR_CHOICES, default='straight',
         help_text=_('Remaining percentage uses the %% of the remaining amount to be distributed.  Straight percentage uses the %% of the total distribution amount.'))
     live = models.BooleanField(_('live'), default=False,
@@ -9485,21 +9490,21 @@ class ValueEquation(models.Model):
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='value_equations_created', blank=True, null=True)
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
-    
+
     def __unicode__(self):
         return self.name
-        
+
     @models.permalink
     def get_absolute_url(self):
         return ('edit_value_equation', (),
             { 'value_equation_id': str(self.id),})
-            
+
     def is_deletable(self):
         if self.distributions.all() or self.live:
             return False
         else:
             return True
-    
+
     def run_value_equation_and_save(self, distribution, money_resource, amount_to_distribute, serialized_filters, events_to_distribute=None):
         #import pdb; pdb.set_trace()
         distribution_events, contribution_events = self.run_value_equation(
@@ -9524,8 +9529,8 @@ class ValueEquation(models.Model):
                 if va:
                     if va.resource_type != money_resource.resource_type:
                         raise ValidationError(" ".join([
-                            money_resource.identifier, 
-                            va.identifier, 
+                            money_resource.identifier,
+                            va.identifier,
                             "digital currencies do not match."]))
 
                 else:
@@ -9536,7 +9541,7 @@ class ValueEquation(models.Model):
                     va = to_agent.faircoin_resource()
                 if va:
                     dist_event.resource = va
-                    dist_event.resource_type = va.resource_type 
+                    dist_event.resource_type = va.resource_type
                     dist_event.unit_of_quantity = va.resource_type.unit
                 else:
                     raise ValidationError(dist_event.to_agent.nick + ' needs faircoin address, unable to create one.')
@@ -9551,7 +9556,7 @@ class ValueEquation(models.Model):
                     va = dist_event.to_agent.create_virtual_account(resource_type=money_resource.resource_type)
                 if va:
                     dist_event.resource = va
-                    dist_event.resource_type = va.resource_type 
+                    dist_event.resource_type = va.resource_type
                     dist_event.unit_of_quantity = va.resource_type.unit
                 else:
                     raise ValidationError(dist_event.to_agent.nick + ' needs a virtual account, unable to create one.')
@@ -9579,14 +9584,14 @@ class ValueEquation(models.Model):
             buckets[bucket.id] = bucket_dict
         #import pdb; pdb.set_trace()
         content = {"buckets": buckets}
-        json = simplejson.dumps(content, ensure_ascii=False, indent=4)    
+        json = simplejson.dumps(content, ensure_ascii=False, indent=4)
         #dist_ve = DistributionValueEquation(
         #    distribution_date = exchange.start_date,
         #   exchange = exchange,
         #    value_equation_link = self,
         #    value_equation_content = json, #todo
         #)
-        #dist_ve.save() 
+        #dist_ve.save()
         distribution.value_equation_link = self
         distribution.value_equation_content = json
         distribution.save()
@@ -9598,7 +9603,7 @@ class ValueEquation(models.Model):
         disbursement_event = EconomicEvent(
             event_type=et,
             event_date=distribution.distribution_date,
-            from_agent=fa, 
+            from_agent=fa,
             to_agent=self.context_agent,
             context_agent=self.context_agent,
             distribution=distribution,
@@ -9680,11 +9685,11 @@ class ValueEquation(models.Model):
                     claim_from_contribution.unit_of_value = dist_event.unit_of_quantity
                     claim_from_contribution.date = distribution.distribution_date
                     claim_from_contribution.save()
-                    ce_for_contribution = dist_claim_event.claim.claim_event 
+                    ce_for_contribution = dist_claim_event.claim.claim_event
                     ce_for_contribution.claim = claim_from_contribution
                     ce_for_contribution.unit_of_value = dist_event.unit_of_quantity
                     ce_for_contribution.claim_event_date = distribution.distribution_date
-                    ce_for_contribution.save() 
+                    ce_for_contribution.save()
                 dist_claim_event.claim = claim_from_contribution
                 dist_claim_event.event = dist_event
                 dist_claim_event.unit_of_value = dist_event.unit_of_quantity
@@ -9692,7 +9697,7 @@ class ValueEquation(models.Model):
                 dist_claim_event.save()
 
         return distribution
-        
+
     def run_value_equation(self, amount_to_distribute, serialized_filters):
         #import pdb; pdb.set_trace()
         #start_time = time.time()
@@ -9737,11 +9742,11 @@ class ValueEquation(models.Model):
         et = EventType.objects.get(name='Distribution')
         distribution_events = []
         #import pdb; pdb.set_trace()
-        for agent_id in agent_amounts:   
+        for agent_id in agent_amounts:
             distribution_event = EconomicEvent(
                 event_type = et,
                 event_date = datetime.date.today(),
-                from_agent = self.context_agent, 
+                from_agent = self.context_agent,
                 to_agent = EconomicAgent.objects.get(id=int(agent_id)),
                 context_agent = self.context_agent,
                 quantity = agent_amounts[agent_id].quantize(Decimal('.01'), rounding=ROUND_HALF_UP),
@@ -9777,10 +9782,10 @@ class ValueEquation(models.Model):
         #end_time = time.time()
         #print("run_value_equation elapsed time was %g seconds" % (end_time - start_time))
         return distribution_events, contribution_events
-    
-    
+
+
 class DistributionManager(models.Manager):
-    
+
     def distributions(self, start=None, end=None):
         if start and end:
             dists = Distribution.objects.filter(distribution_date__range=[start, end])
@@ -9810,7 +9815,7 @@ class Distribution(models.Model):
         related_name='distributions_changed', blank=True, null=True, editable=False)
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
-    slug = models.SlugField(_("Page name"), editable=False) 
+    slug = models.SlugField(_("Page name"), editable=False)
 
     objects = DistributionManager()
 
@@ -9829,10 +9834,10 @@ class Distribution(models.Model):
             "starting",
             self.distribution_date.strftime('%Y-%m-%d'),
             ])
-   
+
     def deserialize_value_equation_content(self):
         return simplejson.loads(self.value_equation_content)
-        
+
     def buckets(self):
         dict = self.deserialize_value_equation_content()
         bucket_dict = dict["buckets"]
@@ -9842,7 +9847,7 @@ class Distribution(models.Model):
             bucket.value = value
             buckets.append(bucket)
         return buckets
-        
+
     def bucket_rules(self):
         buckets = self.buckets()
         answer = []
@@ -9868,7 +9873,7 @@ class Distribution(models.Model):
                         for oid in oids:
                             orders.append(Order.objects.get(id=oid))
         return orders
-        
+
     def shipments(self):
         buckets = self.buckets()
         shipments = []
@@ -9882,39 +9887,39 @@ class Distribution(models.Model):
                         for sid in ship_ids:
                             shipments.append(EconomicEvent.objects.get(id=sid))
         return shipments
-  
+
     def distribution_events(self):
         return self.events.filter(
             event_type__relationship='distribute')
-            
+
     def disbursement_events(self):
         return self.events.filter(
             event_type__relationship='disburse')
-    
+
     def distribution_total(self):
         dists = self.distribution_events()
         total = 0
         for dist in dists:
             total += dist.quantity
         return total
-    
+
     def disbursement_total(self):
         disbs = self.disbursement_events()
         total = 0
         for disb in disbs:
             total += disb.quantity
         return total
-    
+
     def flow_type(self):
         return "Distribution"
 
     def flow_class(self):
         return "distribution"
-        
-    def flow_description(self):
-        return self.__unicode__()    
 
-      
+    def flow_description(self):
+        return self.__unicode__()
+
+
 class EconomicEventManager(models.Manager):
 
     def virtual_account_events(self, start_date=None, end_date=None):
@@ -9927,19 +9932,19 @@ class EconomicEventManager(models.Manager):
         else:
             events = EconomicEvent.objects.filter(resource__resource_type__behavior="account")
         return events
-        
+
     def contributions(self):
         return EconomicEvent.objects.filter(is_contribution=True)
-        
+
 TX_STATE_CHOICES = (
     ('new', _('New')),
     ('pending', _('Pending')),
     ('broadcast', _('Broadcast')),
     ('confirmed', _('Confirmed')),
 )
-    
+
 class EconomicEvent(models.Model):
-    event_type = models.ForeignKey(EventType, 
+    event_type = models.ForeignKey(EventType,
         related_name="events", verbose_name=_('event type'))
     event_date = models.DateField(_('event date'))
     from_agent = models.ForeignKey(EconomicAgent,
@@ -9948,9 +9953,9 @@ class EconomicEvent(models.Model):
     to_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
         related_name="taken_events", verbose_name=_('to'))
-    resource_type = models.ForeignKey(EconomicResourceType, 
+    resource_type = models.ForeignKey(EconomicResourceType,
         verbose_name=_('resource type'), related_name='events')
-    resource = models.ForeignKey(EconomicResource, 
+    resource = models.ForeignKey(EconomicResource,
         blank=True, null=True,
         verbose_name=_('resource'), related_name='events')
     exchange_stage = models.ForeignKey(ExchangeType, related_name="events_creating_exchange_stage",
@@ -9964,29 +9969,29 @@ class EconomicEvent(models.Model):
         verbose_name=_('exchange'), related_name='events',
         on_delete=models.SET_NULL)
     transfer = models.ForeignKey(Transfer,
-        blank=True, null=True, 
+        blank=True, null=True,
         related_name="events", verbose_name=_('transfer'),
         on_delete=models.SET_NULL)
     distribution = models.ForeignKey(Distribution,
-        blank=True, null=True, 
+        blank=True, null=True,
         related_name="events", verbose_name=_('distribution'),
         on_delete=models.SET_NULL)
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
         limit_choices_to={"is_context": True,},
         related_name="events", verbose_name=_('context agent'),
-        on_delete=models.SET_NULL)        
+        on_delete=models.SET_NULL)
     url = models.CharField(_('url'), max_length=255, blank=True)
     description = models.TextField(_('description'), null=True, blank=True)
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2)
     unit_of_quantity = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit'), related_name="event_qty_units")
     quality = models.DecimalField(_('quality'), max_digits=3, decimal_places=0, default=Decimal("0"))
-    value = models.DecimalField(_('value'), max_digits=8, decimal_places=2, 
+    value = models.DecimalField(_('value'), max_digits=8, decimal_places=2,
         default=Decimal("0.0"))
     unit_of_value = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit of value'), related_name="event_value_units")
-    price = models.DecimalField(_('price'), max_digits=8, decimal_places=2, 
+    price = models.DecimalField(_('price'), max_digits=8, decimal_places=2,
         default=Decimal("0.0"))
     unit_of_price = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit of price'), related_name="event_price_units")
@@ -10001,16 +10006,16 @@ class EconomicEvent(models.Model):
     event_reference = models.CharField(_('reference'), max_length=128, blank=True, null=True)
     digital_currency_tx_hash = models.CharField(_("digital currency transaction hash"), max_length=96,
         blank=True, null=True, editable=False)
-    digital_currency_tx_state = models.CharField(_('digital currency transaction hash'), 
+    digital_currency_tx_state = models.CharField(_('digital currency transaction hash'),
         max_length=12, choices=TX_STATE_CHOICES,
         blank=True, null=True, editable=False)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='events_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
         related_name='events_changed', blank=True, null=True, editable=False)
-    
+
     slug = models.SlugField(_("Page name"), editable=False)
-    
+
     objects = EconomicEventManager()
 
     class Meta:
@@ -10043,7 +10048,7 @@ class EconomicEvent(models.Model):
             quantity_string,
             resource_string,
         ])
-   
+
     def undistributed_description(self):
         if self.unit_of_quantity:
             quantity_string = " ".join([str(self.undistributed_amount()), self.unit_of_quantity.abbrev])
@@ -10078,13 +10083,13 @@ class EconomicEvent(models.Model):
         resource_type = self.resource_type
         event_type = self.event_type
         delta = self.quantity
-        
+
         agent_change = False
         project_change = False
         resource_type_change = False
         context_agent_change = False
         event_type_change = False
-        
+
         if self.pk:
             prev_agent = self.from_agent
             prev_context_agent = self.context_agent
@@ -10098,7 +10103,7 @@ class EconomicEvent(models.Model):
                 prev_agent = prev.from_agent
             if prev.context_agent != self.context_agent:
                 context_agent_change = True
-                prev_context_agent = prev.context_agent 
+                prev_context_agent = prev.context_agent
             if prev.resource_type != self.resource_type:
                 resource_type_change = True
                 prev_resource_type = prev.resource_type
@@ -10124,7 +10129,7 @@ class EconomicEvent(models.Model):
                         art = arts[0]
                     art.score += delta
                     art.save()
-        
+
         slug = "-".join([
             str(self.event_type.name),
             from_agt,
@@ -10135,12 +10140,12 @@ class EconomicEvent(models.Model):
         update_summary(agent, context_agent, resource_type, event_type)
         if agent_change or resource_type_change or context_agent_change or event_type_change:
             update_summary(prev_agent, prev_context_agent, prev_resource_type, prev_event_type)
-            
+
         #for handling faircoin
         #if self.resource:
         #    if self.resource.resource_type.is_virtual_account():
                 #call the faircoin method here, pass the event info needed
-                
+
 
     def delete(self, *args, **kwargs):
         if self.is_contribution:
@@ -10157,13 +10162,13 @@ class EconomicEvent(models.Model):
                         event_type=event_type)
                     summary.quantity -= self.quantity
                     if summary.quantity:
-                        summary.save() 
+                        summary.save()
                     else:
                         summary.delete()
                 except CachedEventSummary.DoesNotExist:
                     pass
         super(EconomicEvent, self).delete(*args, **kwargs)
-        
+
     def previous_events(self):
         """ Experimental method:
         Trying to use properties of events to determine event sequence.
@@ -10196,7 +10201,7 @@ class EconomicEvent(models.Model):
                 if self.transfer:
                     prevs = prevs.exclude(transfer=self.transfer)
         return prevs
-        
+
     def next_events(self):
         nexts = []
         resource = self.resource
@@ -10204,7 +10209,7 @@ class EconomicEvent(models.Model):
             candidates = resource.events.all()
             nexts = candidates.filter(from_agent=self.to_agent).exclude(id=self.id)
         return nexts
-        
+
     def transaction_state(self):
         #import pdb; pdb.set_trace()
         state = self.digital_currency_tx_state
@@ -10224,10 +10229,10 @@ class EconomicEvent(models.Model):
             self.digital_currency_tx_state = new_state
             self.save()
         return state
-        
+
     def seniority(self):
         return (datetime.date.today() - self.event_date).days
-        
+
     def value_per_unit(self):
         #import pdb; pdb.set_trace()
         if self.resource:
@@ -10242,7 +10247,7 @@ class EconomicEvent(models.Model):
                 if art.value_per_unit:
                     return art.value_per_unit
         return self.resource_type.value_per_unit
-       
+
     #obsolete
     def value_explanation(self):
         if self.process:
@@ -10334,7 +10339,7 @@ class EconomicEvent(models.Model):
         elif self.event_type.relationship == "out":
             return "Value per unit is composed of the value of the inputs on the next level:"
         return ""
-        
+
     def incoming_value_flows_dfs(self, flows, visited, depth):
         # EconomicEvent method
         #todo dhen_bug:
@@ -10359,7 +10364,7 @@ class EconomicEvent(models.Model):
                     prev.depth = depth
                     flows.append(prev)
                     prev.incoming_value_flows_dfs(flows, visited, depth)
-        
+
     def roll_up_value(self, path, depth, visited, value_equation):
         # EconomicEvent method
         #rollup stage change
@@ -10371,7 +10376,7 @@ class EconomicEvent(models.Model):
             self.resource.historical_stage = stage
         #todo 3d:
         return self.resource.roll_up_value(path, depth, visited, value_equation)
-        
+
     def compute_income_shares(self, value_equation, d_qty, events, visited):
         # EconomicEvent method
         #income_shares stage change
@@ -10383,7 +10388,7 @@ class EconomicEvent(models.Model):
             self.resource.historical_stage = stage
         #todo 3d:
         return self.resource.compute_income_shares(value_equation, d_qty, events, visited)
-        
+
     def bucket_rule(self, value_equation):
         brs = ValueEquationBucketRule.objects.filter(
             value_equation_bucket__value_equation=value_equation,
@@ -10447,7 +10452,7 @@ class EconomicEvent(models.Model):
                 return best_fit[0]
             return best_fit[0]
         return None
-        
+
     def bucket_rule_for_context_agent(self):
         bucket_rule = None
         if self.context_agent:
@@ -10457,17 +10462,17 @@ class EconomicEvent(models.Model):
                 if bucket_rule:
                     break
         return bucket_rule
-           
+
     def claims(self):
         claim_events = self.claim_events.all()
         claims = [ce.claim for ce in claim_events]
-        return list(set(claims))    
-         
+        return list(set(claims))
+
     def outstanding_claims(self):
         claim_events = self.claim_events.all()
         claims = [ce.claim for ce in claim_events if ce.claim.value > Decimal("0.0")]
         return list(set(claims))
-        
+
     def created_claim(self):
         cc = None
         claim_events = self.claim_events.all()
@@ -10477,11 +10482,11 @@ class EconomicEvent(models.Model):
                 cc.claim_event = ce
                 break
         return cc
-        
+
     def outstanding_claims_for_bucket_rule(self, bucket_rule):
         claims = self.outstanding_claims()
         return [claim for claim in claims if claim.value_equation_bucket_rule==bucket_rule]
-               
+
     def create_claim(self, bucket_rule):
         #import pdb; pdb.set_trace()
         #claims = self.outstanding_claims_for_bucket_rule(bucket_rule)
@@ -10520,7 +10525,7 @@ class EconomicEvent(models.Model):
             claim_event.save()
             #claim_event.update_claim()
             return claim
-               
+
     def get_unsaved_contribution_claim(self, bucket_rule):
         #import pdb; pdb.set_trace()
         claim = self.created_claim()
@@ -10554,7 +10559,7 @@ class EconomicEvent(models.Model):
             claim.claim_event = claim_event
             claim.new = True
             return claim
-            
+
     def get_unsaved_context_agent_claim(self, against_agent, bucket_rule):
         #import pdb; pdb.set_trace()
         #changed for contextAgentDistributions
@@ -10587,8 +10592,8 @@ class EconomicEvent(models.Model):
         )
         claim.claim_event = claim_event
         claim.new = True
-        return claim         
-        
+        return claim
+
     def undistributed_amount(self):
         #import pdb; pdb.set_trace()
         #todo: partial
@@ -10599,7 +10604,7 @@ class EconomicEvent(models.Model):
             return self.quantity - crd_amounts
         else:
             return Decimal("0.0")
-    
+
     def is_undistributed(self):
         #import pdb; pdb.set_trace()
         #todo: partial
@@ -10617,7 +10622,7 @@ class EconomicEvent(models.Model):
             return True
         else:
             return False
-            
+
     def shorter_label(self):
         if self.unit_of_quantity:
             quantity_string = " ".join([str(self.quantity), self.unit_of_quantity.abbrev])
@@ -10640,12 +10645,12 @@ class EconomicEvent(models.Model):
             rname,
             quantity_string,
         ])
-        
+
     def default_agent(self):
         if self.context_agent:
             return self.context_agent.default_agent()
-        return None 
-        
+        return None
+
     def cycle_id(self):
         stage_id = ""
         state_id = ""
@@ -10655,10 +10660,10 @@ class EconomicEvent(models.Model):
             if self.resource.state:
                 state_id = str(self.resource.state.id)
         return "-".join([str(self.resource_type.id), stage_id, state_id])
-        
+
     def class_label(self):
         return "Economic Event"
-        
+
     def recipient(self):
         return self.to_agent or self.default_agent()
 
@@ -10712,7 +10717,7 @@ class EconomicEvent(models.Model):
             quantity_string,
             resource_string,
         ])
-    
+
     #compensation methods obsolete
     #def my_compensations(self):
     #    return self.initiated_compensations.all()
@@ -10727,7 +10732,7 @@ class EconomicEvent(models.Model):
     #    if self.value_due() > 0:
     #        return False
     #    return True
-    
+
     def claimed_amount(self): #for contribution events
         if self.is_contribution:
             if self.created_claim():
@@ -10736,7 +10741,7 @@ class EconomicEvent(models.Model):
                 return None
         else:
             return None
-        
+
     def owed_amount(self): #for contribution events
         if self.is_contribution:
             if self.claimed_amount():
@@ -10744,21 +10749,21 @@ class EconomicEvent(models.Model):
             else:
                 return None
         else:
-            return None   
-        
+            return None
+
     def distributed_amount(self): #for contribution events
         if self.is_contribution:
             if self.created_claim():
                 return self.created_claim().original_value - self.created_claim().value
         else:
             return Decimal("0.0")
-        
+
     def unit(self):
         if self.unit_of_quantity:
             return self.unit_of_quantity.abbrev
         else:
             return self.resource_type.unit.abbrev
-            
+
     def own_or_resource_type_unit(self):
         if self.unit_of_quantity:
             return self.unit_of_quantity
@@ -10770,7 +10775,7 @@ class EconomicEvent(models.Model):
             str(self.quantity.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)),
             self.unit(),
             ])
-            
+
     def distribution_quantity_formatted(self):
         unit = self.own_or_resource_type_unit()
         qty_string = str(self.quantity.quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
@@ -10784,7 +10789,7 @@ class EconomicEvent(models.Model):
                 qty_string,
                 unit,
                 ])
-    
+
     def value_formatted_decimal(self):
         #import pdb; pdb.set_trace()
         val = self.value.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
@@ -10796,7 +10801,7 @@ class EconomicEvent(models.Model):
         else:
             value_string = str(val)
         return value_string
-    
+
     def price_formatted_decimal(self):
         #import pdb; pdb.set_trace()
         val = self.price.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
@@ -10808,7 +10813,7 @@ class EconomicEvent(models.Model):
         else:
             price_string = str(val)
         return price_string
-        
+
     def form_prefix(self):
         return "-".join(["EVT", str(self.id)])
 
@@ -10816,7 +10821,7 @@ class EconomicEvent(models.Model):
         from valuenetwork.valueaccounting.forms import WorkEventChangeForm
         prefix = self.form_prefix()
         return WorkEventChangeForm(instance=self, prefix=prefix, )
-        
+
     def change_form_old(self, data=None):
         #import pdb; pdb.set_trace()
         from valuenetwork.valueaccounting.forms import TimeEventForm, InputEventForm
@@ -10829,7 +10834,7 @@ class EconomicEvent(models.Model):
         else:
             qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
             return InputEventForm(qty_help=qty_help, instance=self, prefix=prefix, data=data)
-            
+
     def change_form(self, data=None):
         #import pdb; pdb.set_trace()
         from valuenetwork.valueaccounting.forms import InputEventForm
@@ -10839,19 +10844,19 @@ class EconomicEvent(models.Model):
         prefix = self.form_prefix()
         qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
         return InputEventForm(qty_help=qty_help, instance=self, prefix=prefix, data=data)
-            
+
     def distribution_change_form(self, data=None):
         #import pdb; pdb.set_trace()
         from valuenetwork.valueaccounting.forms import DistributionEventForm
         prefix = self.form_prefix()
         return DistributionEventForm(instance=self, prefix=prefix, data=data)
-            
+
     def disbursement_change_form(self, data=None):
         #import pdb; pdb.set_trace()
         from valuenetwork.valueaccounting.forms import DisbursementEventForm
         prefix = self.form_prefix()
         return DisbursementEventForm(instance=self, prefix=prefix, data=data)
-    
+
     #def exchange_change_form(self, data=None):
     #    #import pdb; pdb.set_trace()
     #    from valuenetwork.valueaccounting.forms import ExchangeEventForm
@@ -10861,7 +10866,7 @@ class EconomicEvent(models.Model):
     #    prefix = self.form_prefix()
     #    qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
     #    return ExchangeEventForm(qty_help=qty_help, instance=self, prefix=prefix, data=data)
-    
+
     def unplanned_work_event_change_form(self):
         from valuenetwork.valueaccounting.forms import UnplannedWorkEventForm
         return UnplannedWorkEventForm(instance=self, prefix=str(self.id))
@@ -10891,19 +10896,19 @@ class EconomicEvent(models.Model):
 
     def consumes_resources(self):
         return self.event_type.consumes_resources()
-        
+
     def is_change_related(self):
         return self.event_type.is_change_related()
-            
+
     def applies_stage(self):
         return self.event_type.applies_stage()
-        
+
     def changes_stage(self):
         return self.event_type.changes_stage()
-        
+
     def follow_process_chain_beyond_workflow(self, chain, all_events):
         #import pdb; pdb.set_trace()
-        #todo: this was created for a DHen report 
+        #todo: this was created for a DHen report
         # but does not work yet because the converted data
         # has no commitments
         # Plus, it can't be tested and so probably won't work.
@@ -10925,12 +10930,12 @@ class EconomicEvent(models.Model):
                             event_type__relationship="out")
                     if next_in_chain:
                         next_in_chain[0].follow_stage_chain_beyond_workflow(chain)
-                        
+
     def compute_income_fractions_for_process(self, value_equation):
         #EconomicEvent (shipment) method
         #import pdb; pdb.set_trace()
         shares = []
-        #todo exchange redesign fallout 
+        #todo exchange redesign fallout
         # shipment events are no longer event_type.name == "Shipment"
         # they are et.name == "Give"
         if self.event_type.name == "Give":
@@ -10949,15 +10954,15 @@ class EconomicEvent(models.Model):
                     if p:
                         visited = set()
                         p.compute_income_shares(value_equation, self, self.quantity, shares, visited)
-                        
+
         return shares
-        
+
     def get_shipment_commitment_for_production_event(self):
         if self.event_type.relationship == "out":
             if self.commitment:
                 return self.commitment.order_item
         return None
-        
+
     def get_shipment_commitment_for_distribution_event(self):
         if self.event_type.name == "Distribution":
             claims = self.claims()
@@ -10966,7 +10971,7 @@ class EconomicEvent(models.Model):
                 event = claim.creating_event()
                 return event.get_shipment_commitment_for_production_event()
         return None
-        
+
     def get_shipment_for_distribution(self):
         the_shipment = None
         if self.event_type.name == "Distribution":
@@ -10980,7 +10985,7 @@ class EconomicEvent(models.Model):
                         if ship_ct == se.commitment:
                             the_shipment = se
         return the_shipment
-        
+
     def get_order_for_distribution(self):
         the_order = None
         if self.event_type.name == "Distribution":
@@ -10990,40 +10995,40 @@ class EconomicEvent(models.Model):
             if orders:
                 the_order = orders[0]
         return the_order
-        
+
     def independent_demand(self):
         if self.commitment:
             return self.commitment.independent_demand
         else:
             return self.process.independent_demand()
-            
+
     def order_item(self):
         if self.commitment:
             return self.commitment.order_item
         else:
             return self.process.order_item()
-        
-#obsolete        
+
+#obsolete
 class DistributionValueEquation(models.Model):
     '''
     Distribution itself is currently implemented using Exchange.  This is not totally correct from an REA point
     of view.  It groups events that apply to many earlier exchanges. If we were using subclasses, it might be that
     EconomicInteraction is the superclass of Process, Exchange, and Distribution.
-    
+
     This class holds the remaining information for a Distribution.
     '''
     distribution_date = models.DateField(_('distribution date'))
     exchange = models.ForeignKey(Exchange,
         blank=True, null=True,
-        verbose_name=_('exchange'), related_name='value_equation')    
+        verbose_name=_('exchange'), related_name='value_equation')
     value_equation_link = models.ForeignKey(ValueEquation,
         blank=True, null=True,
-        verbose_name=_('value equation link'), related_name='distributions_ve') 
+        verbose_name=_('value equation link'), related_name='distributions_ve')
     value_equation_content = models.TextField(_('value equation formulas used'), null=True, blank=True)
-    
+
     def deserialize_value_equation_content(self):
         return simplejson.loads(self.value_equation_content)
-        
+
     def buckets(self):
         dict = self.deserialize_value_equation_content()
         bucket_dict = dict["buckets"]
@@ -11033,7 +11038,7 @@ class DistributionValueEquation(models.Model):
             bucket.value = value
             buckets.append(bucket)
         return buckets
-        
+
     def bucket_rules(self):
         buckets = self.buckets()
         answer = []
@@ -11059,7 +11064,7 @@ class DistributionValueEquation(models.Model):
                         for oid in oids:
                             orders.append(Order.objects.get(id=oid))
         return orders
-        
+
     def shipments(self):
         buckets = self.buckets()
         shipments = []
@@ -11073,7 +11078,7 @@ class DistributionValueEquation(models.Model):
                         for sid in ship_ids:
                             shipments.append(EconomicEvent.objects.get(id=sid))
         return shipments
-        
+
 
 FILTER_METHOD_CHOICES = (
     ('order', _('Order')),
@@ -11082,30 +11087,30 @@ FILTER_METHOD_CHOICES = (
     ('process', _('Process')),
 )
 
-class ValueEquationBucket(models.Model): 
+class ValueEquationBucket(models.Model):
     name = models.CharField(_('name'), max_length=32)
-    sequence = models.IntegerField(_('sequence'), default=0)  
+    sequence = models.IntegerField(_('sequence'), default=0)
     value_equation = models.ForeignKey(ValueEquation,
         verbose_name=_('value equation'), related_name='buckets')
-    filter_method =  models.CharField(_('filter method'), null=True, blank=True, 
+    filter_method =  models.CharField(_('filter method'), null=True, blank=True,
         max_length=12, choices=FILTER_METHOD_CHOICES)
     percentage = models.DecimalField(_('bucket percentage'), max_digits=8, decimal_places=2, default=Decimal("0.0"))
     distribution_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
-        related_name="value_equation_buckets", verbose_name=_('distribution agent')) 
+        related_name="value_equation_buckets", verbose_name=_('distribution agent'))
     filter_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
-        related_name="value_equation_filter_buckets", verbose_name=_('filter agent'))     
+        related_name="value_equation_filter_buckets", verbose_name=_('filter agent'))
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='buckets_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
         related_name='buckets_changed', blank=True, null=True, editable=False)
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
-    
+
     class Meta:
         ordering = ('sequence',)
-        
+
     def __unicode__(self):
         return ' '.join([
             'Bucket',
@@ -11115,7 +11120,7 @@ class ValueEquationBucket(models.Model):
             '-',
             self.name,
         ])
-            
+
     def run_bucket_value_equation(self, amount_to_distribute, context_agent, serialized_filter):
         #import pdb; pdb.set_trace()
         #start_time = time.time()
@@ -11131,7 +11136,7 @@ class ValueEquationBucket(models.Model):
             #hours = sum(e.quantity for e in vebr_events)
             #print vebr.filter_rule_deserialized(), "hours:", hours
             #tot += hours
-            
+
         #print "total vebr hours:", tot
         claims = self.claims_from_events(contribution_events)
         #import pdb; pdb.set_trace()
@@ -11141,7 +11146,7 @@ class ValueEquationBucket(models.Model):
                 total_amount = total_amount + claim.share
             if total_amount > 0:
                 #import pdb; pdb.set_trace()
-                portion_of_amount = amount_to_distribute / total_amount 
+                portion_of_amount = amount_to_distribute / total_amount
             else:
                 portion_of_amount = Decimal("0.0")
             #import pdb; pdb.set_trace()
@@ -11153,8 +11158,8 @@ class ValueEquationBucket(models.Model):
             claim_events.extend(ces)
         #end_time = time.time()
         #print("run_bucket_value_equation elapsed time was %g seconds" % (end_time - start_time))
-        return claim_events, contribution_events    
-       
+        return claim_events, contribution_events
+
     def gather_bucket_events(self, context_agent, serialized_filter):
         #import pdb; pdb.set_trace()
         #start_time = time.time()
@@ -11238,7 +11243,7 @@ class ValueEquationBucket(models.Model):
             from valuenetwork.valueaccounting.forms import ShipmentMultiSelectForm
             form = ShipmentMultiSelectForm(context_agent=context_agent)
             bucket_filter = form.deserialize(serialized_filter)
-            shipment_events = bucket_filter["shipments"] 
+            shipment_events = bucket_filter["shipments"]
             if shipment_events:
                 ship_string = ", ".join([str(s.id) for s in shipment_events])
                 filter = "".join([
@@ -11260,7 +11265,7 @@ class ValueEquationBucket(models.Model):
                 #hours = sum(e.quantity for e in events)
                 #print ship, "hours:", hours
                 #tot += hours
-                
+
             #print "total event hours:", tot
         elif self.filter_method == 'process':
             #todo exchange redesign fallout
@@ -11292,7 +11297,7 @@ class ValueEquationBucket(models.Model):
         #end_time = time.time()
         #print("gather_bucket_events elapsed time was %g seconds" % (end_time - start_time))
         return events
-       
+
     def claims_from_events(self, events):
         #import pdb; pdb.set_trace()
         claims = []
@@ -11315,7 +11320,7 @@ class ValueEquationBucket(models.Model):
                 else:
                     claim = event.get_unsaved_contribution_claim(event.vebr)
                 if claim.value:
-                    claim.share = claim.original_value * fraction 
+                    claim.share = claim.original_value * fraction
                     claim.event = event
                     claims.append(claim)
         return claims
@@ -11359,14 +11364,14 @@ class ValueEquationBucket(models.Model):
             if share < claim.value:
                 reason = " The reason the value added is less than the contribution value is that the contribution's value was not all used for this deliverable."
             claim.event.explanation = "".join([
-                "This contribution added ", str(share), " ", unit_of_value, 
+                "This contribution added ", str(share), " ", unit_of_value,
                 " of value",
                 sel,
                 excuse,
                 ".",
                 reason,
                 ])
-                
+
             claim_event = ClaimEvent(
                 claim = claim,
                 value = distr_amt,
@@ -11374,16 +11379,16 @@ class ValueEquationBucket(models.Model):
                 event_effect = "-",
             )
             claim_events.append(claim_event)
-        return claim_events    
-                       
+        return claim_events
+
     def change_form(self):
         from valuenetwork.valueaccounting.forms import ValueEquationBucketForm
         return ValueEquationBucketForm(instance=self, prefix=str(self.id))
-        
+
     def rule_form(self):
         from valuenetwork.valueaccounting.forms import ValueEquationBucketRuleForm
         return ValueEquationBucketRuleForm(prefix=str(self.id))
-         
+
     def rule_filter_form(self):
         from valuenetwork.valueaccounting.forms import BucketRuleFilterSetForm
         ca = None
@@ -11396,7 +11401,7 @@ class ValueEquationBucket(models.Model):
         if patterns.count() > 0:
             pattern = patterns[0]
         return BucketRuleFilterSetForm(prefix=str(self.id), context_agent=ca, event_type=None, pattern=pattern)
-        
+
     def filter_entry_form(self, data=None):
         #import pdb; pdb.set_trace()
         form = None
@@ -11421,12 +11426,12 @@ class ValueEquationBucket(models.Model):
         elif self.filter_method == "dates":
             from valuenetwork.valueaccounting.forms import DateRangeForm
             if data == None:
-                form = DateRangeForm(prefix=str(self.id)) 
+                form = DateRangeForm(prefix=str(self.id))
             else:
-                form = DateRangeForm(prefix=str(self.id), data=data) 
+                form = DateRangeForm(prefix=str(self.id), data=data)
         return form
 
-        
+
 DIVISION_RULE_CHOICES = (
     ('percentage', _('Percentage')),
     ('fifo', _('Oldest first')),
@@ -11438,26 +11443,26 @@ CLAIM_RULE_CHOICES = (
     ('once', _('One distribution')),
 )
 
-class ValueEquationBucketRule(models.Model): 
+class ValueEquationBucketRule(models.Model):
     value_equation_bucket = models.ForeignKey(ValueEquationBucket,
         verbose_name=_('value equation bucket'), related_name='bucket_rules')
-    event_type = models.ForeignKey(EventType, 
-        related_name="bucket_rules", verbose_name=_('event type')) 
+    event_type = models.ForeignKey(EventType,
+        related_name="bucket_rules", verbose_name=_('event type'))
     filter_rule = models.TextField(_('filter rule'), null=True, blank=True)
     #todo: thinking we can get rid of division_rule, see if we have requirement
-    division_rule =  models.CharField(_('division rule'), 
+    division_rule =  models.CharField(_('division rule'),
         max_length=12, choices=DIVISION_RULE_CHOICES)
-    claim_rule_type = models.CharField(_('claim rule type'), 
+    claim_rule_type = models.CharField(_('claim rule type'),
         max_length=12, choices=CLAIM_RULE_CHOICES)
-    claim_creation_equation = models.TextField(_('claim creation equation'), 
+    claim_creation_equation = models.TextField(_('claim creation equation'),
         null=True, blank=True)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='rules_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
         related_name='rules_changed', blank=True, null=True, editable=False)
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
-    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)    
-    
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+
     def __unicode__(self):
         return ' '.join([
             'rule for:',
@@ -11474,7 +11479,7 @@ class ValueEquationBucketRule(models.Model):
             return form.deserialize(json=self.filter_rule)
         else:
             return self.filter_rule
-        
+
     def filter_events(self, events):
         #import pdb; pdb.set_trace()
         json = self.filter_rule_deserialized()
@@ -11495,7 +11500,7 @@ class ValueEquationBucketRule(models.Model):
             e.vebr = self
             e.vebr.filter = vebr_filter + " " + e.filter
         return events
-        
+
     def normalize_equation(self):
         eq = self.claim_creation_equation.split(" ")
         for i, x in enumerate(eq):
@@ -11507,7 +11512,7 @@ class ValueEquationBucketRule(models.Model):
                 continue
         s = " "
         return s.join(eq)
-         
+
     def compute_claim_value(self, event):
         #import pdb; pdb.set_trace()
         equation = self.normalize_equation()
@@ -11525,11 +11530,11 @@ class ValueEquationBucketRule(models.Model):
         #safe_dict['seniority'] = Decimal(event.seniority())
         value = eval(equation, {"__builtins__":None}, safe_dict)
         return value
-       
+
     def default_equation(self):
         et = self.event_type
         return et.default_event_value_equation()
-        
+
     def filter_rule_display_list(self):
         json = self.filter_rule_deserialized()
         pts = []
@@ -11550,7 +11555,7 @@ class ValueEquationBucketRule(models.Model):
         elif rts:
             filter = ", ".join([rt.name for rt in rts])
         return filter
-        
+
     def test_results(self):
         #import pdb; pdb.set_trace()
         fr = self.filter_rule_deserialized()
@@ -11566,11 +11571,11 @@ class ValueEquationBucketRule(models.Model):
         if rts:
             events = events.filter(resource_type__in=rts)
         return events
-        
+
     def change_form(self):
         from valuenetwork.valueaccounting.forms import ValueEquationBucketRuleForm
         return ValueEquationBucketRuleForm(prefix="vebr" + str(self.id), instance=self)
-         
+
     def change_filter_form(self):
         from valuenetwork.valueaccounting.forms import BucketRuleFilterSetForm
         ca = None
@@ -11585,7 +11590,7 @@ class ValueEquationBucketRule(models.Model):
         json = self.filter_rule_deserialized()
         return BucketRuleFilterSetForm(prefix="vebrf" + str(self.id), initial=json, context_agent=ca, event_type=self.event_type, pattern=pattern)
 
-        
+
 class IncomeEventDistribution(models.Model):
     distribution_date = models.DateField(_('distribution date'))
     #next field obsolete
@@ -11593,19 +11598,19 @@ class IncomeEventDistribution(models.Model):
         blank=True, null=True,
         verbose_name=_('distribution'), related_name='cash_receipts', default=None)
     distribution_ref = models.ForeignKey(Distribution,
-        blank=True, null=True, 
+        blank=True, null=True,
         verbose_name=_('distribution'), related_name='income_events')
     income_event = models.ForeignKey(EconomicEvent,
         related_name="distributions", verbose_name=_('income event'))
-    quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, 
+    quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2,
         default=Decimal("0.0"))
     unit_of_quantity = models.ForeignKey(Unit, blank=True, null=True,
-        verbose_name=_('unit'), related_name="units")  
-              
-            
+        verbose_name=_('unit'), related_name="units")
+
+
 class Claim(models.Model):
     value_equation_bucket_rule = models.ForeignKey(ValueEquationBucketRule,
-        blank=True, null=True, 
+        blank=True, null=True,
         related_name="claims", verbose_name=_('value equation bucket rule'))
     claim_date = models.DateField(_('claim date'))
     has_agent = models.ForeignKey(EconomicAgent,
@@ -11618,15 +11623,15 @@ class Claim(models.Model):
         blank=True, null=True,
         limit_choices_to={"is_context": True,},
         related_name="claims", verbose_name=_('context agent'),
-        on_delete=models.SET_NULL)        
-    value = models.DecimalField(_('value'), max_digits=8, decimal_places=2, 
+        on_delete=models.SET_NULL)
+    value = models.DecimalField(_('value'), max_digits=8, decimal_places=2,
         default=Decimal("0.0"))
     unit_of_value = models.ForeignKey(Unit, blank=True, null=True,
-        verbose_name=_('unit of value'), related_name="claim_value_units")        
-    original_value = models.DecimalField(_('original value'), max_digits=8, decimal_places=2, 
+        verbose_name=_('unit of value'), related_name="claim_value_units")
+    original_value = models.DecimalField(_('original value'), max_digits=8, decimal_places=2,
         default=Decimal("0.0"))
     claim_creation_equation = models.TextField(_('creation equation'), null=True, blank=True)
-    
+
     slug = models.SlugField(_("Page name"), editable=False)
 
     class Meta:
@@ -11656,7 +11661,7 @@ class Claim(models.Model):
             'from',
             self.claim_date.strftime('%Y-%m-%d'),
         ])
-        
+
     def creating_event(self):
         event = None
         claim_events = self.claim_events.all()
@@ -11665,7 +11670,7 @@ class Claim(models.Model):
                 event = ce.event
                 break
         return event
-        
+
     def format_value(self, value):
         if self.unit_of_value:
             if self.unit_of_value.symbol:
@@ -11675,37 +11680,37 @@ class Claim(models.Model):
         else:
             value_string = str(value)
         return value_string
-        
+
     def original_value_formatted(self):
         value = self.original_value
         return self.format_value(value)
-        
+
     def value_formatted(self):
         value = self.value
         return self.format_value(value)
-        
+
     def distribution_events(self):
         return self.claim_events.filter(event__event_type__name="Distribution")
-        
+
 
 EVENT_EFFECT_CHOICES = (
     ('+', _('increase')),
     ('-', _('decrease')),
  )
- 
+
 class ClaimEvent(models.Model):
-    event = models.ForeignKey(EconomicEvent, 
+    event = models.ForeignKey(EconomicEvent,
         blank=True, null=True,
         related_name="claim_events", verbose_name=_('claim event'))
-    claim = models.ForeignKey(Claim, 
+    claim = models.ForeignKey(Claim,
         related_name="claim_events", verbose_name=_('claims'))
     claim_event_date = models.DateField(_('claim event date'), default=datetime.date.today)
     value = models.DecimalField(_('value'), max_digits=8, decimal_places=2)
     unit_of_value = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit of value'), related_name="claim_event_value_units")
-    event_effect = models.CharField(_('event effect'), 
-        max_length=12, choices=EVENT_EFFECT_CHOICES)       
-    
+    event_effect = models.CharField(_('event effect'),
+        max_length=12, choices=EVENT_EFFECT_CHOICES)
+
     class Meta:
         ordering = ('claim_event_date',)
 
@@ -11726,14 +11731,14 @@ class ClaimEvent(models.Model):
             'value:',
             value_string,
         ])
-       
+
     def update_claim(self):
         if self.event_effect == "+":
             self.claim.value += self.value
         else:
             self.claim.value -= self.value
         self.claim.save()
-        
+
     def value_formatted(self):
         #import pdb; pdb.set_trace()
         value = self.value
@@ -11745,7 +11750,7 @@ class ClaimEvent(models.Model):
         else:
             value_string = str(value)
         return value_string
-            
+
 
 class EventSummary(object):
     def __init__(self, agent, context_agent, resource_type, event_type, quantity, value=Decimal('0.0')):
@@ -11758,7 +11763,7 @@ class EventSummary(object):
 
     def key(self):
         return "-".join([
-            str(self.agent.id), 
+            str(self.agent.id),
             str(self.resource_type.id),
             str(self.project.id),
             str(self.event_type.id),
@@ -11784,11 +11789,11 @@ class CachedEventSummary(models.Model):
         verbose_name=_('event type'), related_name='cached_events')
     resource_type_rate = models.DecimalField(_('resource type rate'), max_digits=8, decimal_places=2, default=Decimal("1.0"))
     importance = models.DecimalField(_('importance'), max_digits=3, decimal_places=0, default=Decimal("1"))
-    reputation = models.DecimalField(_('reputation'), max_digits=8, decimal_places=2, 
+    reputation = models.DecimalField(_('reputation'), max_digits=8, decimal_places=2,
         default=Decimal("1.00"))
-    quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, 
+    quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2,
         default=Decimal("0.0"))
-    value = models.DecimalField(_('value'), max_digits=8, decimal_places=2, 
+    value = models.DecimalField(_('value'), max_digits=8, decimal_places=2,
         default=Decimal("0.0"))
 
     class Meta:
@@ -11854,17 +11859,17 @@ class CachedEventSummary(models.Model):
                 event.save()
             try:
                 key = "-".join([
-                    str(event.from_agent.id), 
-                    str(event.context_agent.id), 
-                    str(event.resource_type.id), 
+                    str(event.from_agent.id),
+                    str(event.context_agent.id),
+                    str(event.resource_type.id),
                     str(event.event_type.id)
                     ])
                 if not key in summaries:
                     summaries[key] = EventSummary(
-                        event.from_agent, 
-                        event.context_agent, 
-                        event.resource_type, 
-                        event.event_type, 
+                        event.from_agent,
+                        event.context_agent,
+                        event.resource_type,
+                        event.event_type,
                         Decimal('0.0'))
                 summaries[key].quantity += event.quantity
             except AttributeError:
@@ -11889,9 +11894,7 @@ class CachedEventSummary(models.Model):
 
     def value_formatted(self):
         return self.value.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
-        
+
     def quantity_label(self):
         #return " ".join([self.resource_type.name, self.resource_type.unit.abbrev])
         return self.resource_type.name
-
-

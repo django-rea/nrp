@@ -28,10 +28,10 @@ if "notification" in settings.INSTALLED_APPS:
     from notification import models as notification
 else:
     notification = None
-    
+
 def get_site_name():
     return Site.objects.get_current().name
-    
+
 def get_url_starter():
     return "".join(["https://", Site.objects.get_current().domain])
 
@@ -39,10 +39,10 @@ def work_home(request):
 
     return render_to_response("work_home.html", {
         "help": get_help("work_home"),
-    }, 
+    },
         context_instance=RequestContext(request))
 
-    
+
 @login_required
 def my_dashboard(request):
     #import pdb; pdb.set_trace()
@@ -57,21 +57,21 @@ def my_dashboard(request):
             from_agent=agent)
         skill_ids = agent.resource_types.values_list('resource_type__id', flat=True)
         my_skillz = Commitment.objects.unfinished().filter(
-            from_agent=None, 
+            from_agent=None,
             context_agent__id__in=context_ids,
             event_type__relationship="todo",
             resource_type__id__in=skill_ids)
         other_unassigned = Commitment.objects.unfinished().filter(
-            from_agent=None, 
+            from_agent=None,
             context_agent__id__in=context_ids,
-            event_type__relationship="work").exclude(resource_type__id__in=skill_ids)  
+            event_type__relationship="work").exclude(resource_type__id__in=skill_ids)
         todos = Commitment.objects.unfinished().filter(
-            from_agent=None, 
+            from_agent=None,
             context_agent__id__in=context_ids,
-            event_type__relationship="todo")  
+            event_type__relationship="todo")
     else:
         other_unassigned = Commitment.objects.unfinished().filter(
-            from_agent=None, 
+            from_agent=None,
             event_type__relationship="work")
     #import pdb; pdb.set_trace()
     my_todos = Commitment.objects.todos().filter(from_agent=agent)
@@ -93,7 +93,7 @@ def my_dashboard(request):
         "work_now": work_now,
         "help": get_help("proc_log"),
     }, context_instance=RequestContext(request))
-    
+
 def map(request):
     agent = get_agent(request)
     locations = Location.objects.all()
@@ -129,7 +129,7 @@ def profile(request):
     upload_form = UploadAgentForm(instance=agent)
     has_associations = agent.all_has_associates()
     is_associated_with = agent.all_is_associates()
-          
+
     return render_to_response("work/profile.html", {
         "agent": agent,
         "photo_size": (128, 128),
@@ -172,14 +172,14 @@ def project_work(request):
                 if proj_id.isdigit:
                     context_id = proj_id
                     chosen_context_agent = EconomicAgent.objects.get(id=proj_id)
-    
+
     start_date = start.strftime('%Y_%m_%d')
     end_date = end.strftime('%Y_%m_%d')
     #processes, context_agents = assemble_schedule(start, end, chosen_context_agent)
     #my_context_agents = []
     #for ca in context_agents:
     #    if ca in projects:
-    #        my_context_agents.append(ca)    
+    #        my_context_agents.append(ca)
     todos = Commitment.objects.todos().filter(due_date__range=(start, end))
     if chosen_context_agent:
         todos = todos.filter(context_agent=chosen_context_agent)
@@ -201,8 +201,8 @@ def project_work(request):
         "next": next,
         "help": get_help("project_work"),
     }, context_instance=RequestContext(request))
-    
-    
+
+
 @login_required
 def change_personal_info(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
@@ -226,10 +226,10 @@ def upload_picture(request, agent_id):
     form = UploadAgentForm(instance=agent, data=request.POST, files=request.FILES)
     if form.is_valid():
         data = form.cleaned_data
-        agt = form.save(commit=False)                    
+        agt = form.save(commit=False)
         agt.changed_by=request.user
         agt.save()
-    
+
     return HttpResponseRedirect('/%s/'
         % ('work/profile'))
 
@@ -265,10 +265,10 @@ def update_skills(request, agent_id):
                 created_by=request.user,
             )
             art.save()
-    
+
     return HttpResponseRedirect('/%s/'
         % ('work/profile'))
-        
+
 @login_required
 def add_worker_to_location(request, location_id, agent_id):
     if location_id and agent_id:
@@ -305,8 +305,8 @@ def add_location_to_worker(request, agent_id):
     else:
         return HttpResponseRedirect('/%s/'
             % ('work/map'))
-        
-@login_required    
+
+@login_required
 def process_logging(request, process_id):
     process = get_object_or_404(Process, id=process_id)
     pattern = process.process_pattern
@@ -336,12 +336,12 @@ def process_logging(request, process_id):
     work_now = settings.USE_WORK_NOW
     to_be_changed_requirement = None
     changeable_requirement = None
-    
+
     work_reqs = process.work_requirements()
     consume_reqs = process.consumed_input_requirements()
     use_reqs = process.used_input_requirements()
     unplanned_work = process.uncommitted_work_events()
-    
+
     if agent and pattern:
         slots = pattern.slots()
         event_types = pattern.event_types()
@@ -354,8 +354,8 @@ def process_logging(request, process_id):
             req.changeform = req.change_work_form()
             if agent == req.from_agent:
                 logger = True
-                worker = True  
-            init = {"from_agent": agent, 
+                worker = True
+            init = {"from_agent": agent,
                 "event_date": todays_date,
                 "is_contribution": True,}
             req.input_work_form_init = req.input_event_form_init(init=init)
@@ -367,9 +367,9 @@ def process_logging(request, process_id):
             event.changeform = UnplannedWorkEventForm(
                 pattern=pattern,
                 context_agent=context_agent,
-                instance=event, 
+                instance=event,
                 prefix=str(event.id))
-        output_resource_types = pattern.output_resource_types()        
+        output_resource_types = pattern.output_resource_types()
         unplanned_output_form = UnplannedOutputForm(prefix='unplannedoutput')
         unplanned_output_form.fields["resource_type"].queryset = output_resource_types
         role_formset = resource_role_agent_formset(prefix="resource")
@@ -393,7 +393,7 @@ def process_logging(request, process_id):
                 work_init = {
                     "from_agent": agent,
                     "is_contribution": True,
-                } 
+                }
                 work_resource_types = pattern.work_resource_types()
                 if work_resource_types:
                     work_unit = work_resource_types[0].unit
@@ -402,7 +402,7 @@ def process_logging(request, process_id):
                         "from_agent": agent,
                         "unit_of_quantity": work_unit,
                         "is_contribution": True,
-                    } 
+                    }
                     unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned", context_agent=context_agent, initial=work_init)
                     unplanned_work_form.fields["resource_type"].queryset = work_resource_types
                     #if logger:
@@ -419,7 +419,7 @@ def process_logging(request, process_id):
             if context_agent.unit_of_claim_value:
                 cite_unit = context_agent.unit_of_claim_value
             if logger:
-                add_citation_form = ProcessCitationForm(prefix='citation', pattern=pattern)   
+                add_citation_form = ProcessCitationForm(prefix='citation', pattern=pattern)
         if "consume" in slots:
             unplanned_consumption_form = UnplannedInputEventForm(prefix='unplannedconsumption', pattern=pattern)
             if logger:
@@ -430,7 +430,7 @@ def process_logging(request, process_id):
                 add_usable_form = ProcessUsableForm(prefix='usable', pattern=pattern)
         if "payexpense" in slots:
             process_expense_form = ProcessExpenseEventForm(prefix='processexpense', pattern=pattern)
-    
+
     cited_ids = [c.resource.id for c in process.citations()]
     #import pdb; pdb.set_trace()
     citation_requirements = process.citation_requirements()
@@ -440,9 +440,9 @@ def process_logging(request, process_id):
             resource = evt.resource
             resource.event = evt
             cr.resources.append(resource)
-    
+
     output_resource_ids = [e.resource.id for e in process.production_events() if e.resource]
-    
+
     return render_to_response("work/process_logging.html", {
         "process": process,
         "change_process_form": change_process_form,
@@ -469,7 +469,7 @@ def process_logging(request, process_id):
         "slots": slots,
         "to_be_changed_requirement": to_be_changed_requirement,
         "changeable_requirement": changeable_requirement,
-        "work_reqs": work_reqs,        
+        "work_reqs": work_reqs,
         "consume_reqs": consume_reqs,
         "uncommitted_consumption": process.uncommitted_consumption_events(),
         "use_reqs": use_reqs,
@@ -486,7 +486,7 @@ def non_process_logging(request):
     if not member:
         return HttpResponseRedirect('/%s/'
             % ('work/work-home'))
-        
+
     TimeFormSet = modelformset_factory(
         EconomicEvent,
         form=CasualTimeContributionForm,
@@ -534,7 +534,7 @@ def non_process_logging(request):
             else:
                 return HttpResponseRedirect('/%s/'
                     % ('work/my-history'))
-    
+
     return render_to_response("work/non_process_logging.html", {
         "member": member,
         "time_formset": time_formset,
@@ -594,14 +594,14 @@ def my_history(request):
     other_distro_evts = [d for d in all_distro_evts if d not in claim_distro_events]
     other_distributions = sum(de.quantity for de in other_distro_evts)
     #took off csv export for now
-    #event_ids = ",".join([str(event.id) for event in event_list]) 
-                    
+    #event_ids = ",".join([str(event.id) for event in event_list])
+
     if paid_filter == "U":
         event_list = list(event_list)
         for evnt in event_list:
             if evnt.owed_amount() == 0:
                     event_list.remove(evnt)
-    
+
     paginator = Paginator(event_list, 25)
     page = request.GET.get('page')
     try:
@@ -612,7 +612,7 @@ def my_history(request):
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         events = paginator.page(paginator.num_pages)
-    
+
     #import pdb; pdb.set_trace()
     return render_to_response("work/my_history.html", {
         "agent": agent,
@@ -661,7 +661,7 @@ def change_history_event(request, event_id):
     return render_to_response("work/change_history_event.html", {
         "event_form": event_form,
         "page": page,
-    }, context_instance=RequestContext(request)) 
+    }, context_instance=RequestContext(request))
 
 '''
 @login_required
@@ -669,7 +669,7 @@ def register_skills(request):
     #import pdb; pdb.set_trace()
     agent = get_agent(request)
     skills = EconomicResourceType.objects.filter(behavior="work")
-    
+
     return render_to_response("work/register_skills.html", {
         "agent": agent,
         "skills": skills,
@@ -677,7 +677,7 @@ def register_skills(request):
 '''
 
 def create_worktimer_context(
-        request, 
+        request,
         process,
         agent,
         commitment):
@@ -694,7 +694,7 @@ def create_worktimer_context(
         is_contribution=True,
         created_by = request.user,
     )
-        
+
     if commitment:
         event.commitment = commitment
         event.event_type = commitment.event_type
@@ -715,7 +715,7 @@ def create_worktimer_context(
     else:
         wb_form = WorkbookForm()
     #if event.quantity > 0:
-    event.save()    
+    event.save()
     others_working = []
     other_work_reqs = []
     wrqs = process.work_requirements()
@@ -745,18 +745,18 @@ def work_timer(
         process_id,
         commitment_id=None):
     process = get_object_or_404(Process, id=process_id)
-    agent = get_agent(request) 
-    ct = None  
+    agent = get_agent(request)
+    ct = None
     if commitment_id:
-        ct = get_object_or_404(Commitment, id=commitment_id)    
+        ct = get_object_or_404(Commitment, id=commitment_id)
         #if not request.user.is_superuser:
         #    if agent != ct.from_agent:
         #        return render_to_response('valueaccounting/no_permission.html')
     template_params = create_worktimer_context(
-        request, 
+        request,
         process,
         agent,
-        ct, 
+        ct,
     )
     return render_to_response("work/work_timer.html",
         template_params,
@@ -766,7 +766,7 @@ def work_timer(
 def save_timed_work_now(request, event_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
-        event = get_object_or_404(EconomicEvent, id=event_id)      
+        event = get_object_or_404(EconomicEvent, id=event_id)
         form = WorkbookForm(instance=event, data=request.POST)
         if form.is_valid():
             data = form.cleaned_data
@@ -777,7 +777,7 @@ def save_timed_work_now(request, event_id):
             if not process.started:
                 process.started = event.event_date
                 process.changed_by=request.user
-                process.save()            
+                process.save()
             data = "ok"
         else:
             data = form.errors
@@ -816,7 +816,7 @@ def manage_faircoin_account(request, resource_id):
         "send_coins_form": send_coins_form,
         "limit": limit,
     }, context_instance=RequestContext(request))
-    
+
 def validate_faircoin_address_for_worker(request):
     #import pdb; pdb.set_trace()
     from valuenetwork.valueaccounting.faircoin_utils import is_valid
@@ -827,7 +827,7 @@ def validate_faircoin_address_for_worker(request):
         answer = "Invalid FairCoin address"
     response = simplejson.dumps(answer, ensure_ascii=False)
     return HttpResponse(response, content_type="text/json-comment-filtered")
-    
+
 @login_required
 def change_faircoin_account(request, resource_id):
     #import pdb; pdb.set_trace()
@@ -847,7 +847,7 @@ def change_faircoin_account(request, resource_id):
                 extra=4,
                 )
             role_formset = RraFormSet(
-                prefix="role", 
+                prefix="role",
                 queryset=resource.agent_resource_roles.all(),
                 data=request.POST
                 )
@@ -918,9 +918,9 @@ def transfer_faircoins(request, resource_id):
                         name="Send Faircoins",
                         )
                     transfer.save()
-                    
+
                 # network_fee is subtracted from quantity
-                # so quantity is correct for the giving event 
+                # so quantity is correct for the giving event
                 # but receiving event will get quantity - network_fee
                 state =  "new"
                 event = EconomicEvent(
@@ -931,7 +931,7 @@ def transfer_faircoins(request, resource_id):
                     resource_type=resource.resource_type,
                     resource=resource,
                     digital_currency_tx_state = state,
-                    quantity = quantity, 
+                    quantity = quantity,
                     transfer=transfer,
                     event_reference=address_end,
                     )
@@ -948,19 +948,19 @@ def transfer_faircoins(request, resource_id):
                         resource_type=to_resource.resource_type,
                         resource=to_resource,
                         digital_currency_tx_state = state,
-                        quantity = quantity, 
+                        quantity = quantity,
                         transfer=transfer,
                         event_reference=address_end,
                         )
                     event.save()
                     #print "receive event:", event
-                        
+
                 return HttpResponseRedirect('/%s/%s/'
                     % ('work/faircoin-history', resource.id))
 
         return HttpResponseRedirect('/%s/%s/'
                 % ('work/manage-faircoin-account', resource.id))
-                    
+
 @login_required
 def transfer_faircoins_old(request, resource_id):
     if request.method == "POST":
@@ -1020,9 +1020,9 @@ def transfer_faircoins_old(request, resource_id):
                             name="Send Faircoins",
                             )
                         transfer.save()
-                     
+
                     # network_fee is subtracted from quantity
-                    # so quantity is correct for the giving event 
+                    # so quantity is correct for the giving event
                     # but receiving event will get quantity - network_fee
                     state = "pending"
                     if not broadcasted:
@@ -1041,7 +1041,7 @@ def transfer_faircoins_old(request, resource_id):
                         resource=resource,
                         digital_currency_tx_hash = tx_hash,
                         digital_currency_tx_state = state,
-                        quantity = quantity, 
+                        quantity = quantity,
                         transfer=transfer,
                         event_reference=address_end,
                         )
@@ -1066,12 +1066,12 @@ def transfer_faircoins_old(request, resource_id):
                             resource=to_resource,
                             digital_currency_tx_hash = tx_hash,
                             digital_currency_tx_state = state,
-                            quantity = quantity, 
+                            quantity = quantity,
                             transfer=transfer,
                             )
                         event.save()
                         print "receive event:", event
-                        
+
                     return HttpResponseRedirect('/%s/%s/'
                         % ('work/faircoin-history', resource.id))
 
@@ -1084,7 +1084,7 @@ def faircoin_history(request, resource_id):
     agent = get_agent(request)
     init = {"quantity": resource.quantity,}
     unit = resource.resource_type.unit
-    
+
     paginator = Paginator(event_list, 25)
 
     page = request.GET.get('page')
@@ -1096,14 +1096,14 @@ def faircoin_history(request, resource_id):
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         events = paginator.page(paginator.num_pages)
-    
+
     return render_to_response("work/faircoin_history.html", {
         "resource": resource,
         "agent": agent,
         "unit": unit,
         "events": events,
     }, context_instance=RequestContext(request))
-    
+
 def membership_request(request):
     membership_form = MembershipRequestForm(data=request.POST or None)
     if request.method == "POST":
@@ -1116,7 +1116,7 @@ def membership_request(request):
             type_of_membership = data["type_of_membership"]
             description = data["description"]
             mbr_req = membership_form.save()
-            
+
             event_type = EventType.objects.get(relationship="todo")
             description = "Create an Agent and User for the Membership Request from "
             description += name
@@ -1131,7 +1131,7 @@ def membership_request(request):
                 rt = rts[0]
             else:
                 rt = resource_types[0]
-            
+
             task = Commitment(
                 event_type=event_type,
                 description=description,
@@ -1142,15 +1142,15 @@ def membership_request(request):
                 quantity=Decimal("1")
                 )
             task.save()
-            
-            
+
+
             if notification:
                 users = User.objects.filter(is_staff=True)
                 if users:
                     site_name = get_site_name()
                     notification.send(
-                        users, 
-                        "work_membership_request", 
+                        users,
+                        "work_membership_request",
                         {"name": name,
                         "surname": surname,
                         "type_of_membership": type_of_membership,
@@ -1159,7 +1159,7 @@ def membership_request(request):
                         "membership_url": membership_url,
                         }
                     )
-               
+
             return HttpResponseRedirect('/%s/'
                 % ('membershipthanks'))
     return render_to_response("work/membership_request.html", {
@@ -1201,14 +1201,14 @@ def add_todo(request):
                             if user:
                                 #import pdb; pdb.set_trace()
                                 notification.send(
-                                    [user.user,], 
-                                    "valnet_new_todo", 
+                                    [user.user,],
+                                    "valnet_new_todo",
                                     {"description": todo.description,
                                     "creator": agent,
                                     "site_name": site_name,
                                     }
                                 )
-            
+
     return HttpResponseRedirect(next)
 
 def membership_discussion(request, membership_request_id):
@@ -1220,13 +1220,13 @@ def membership_discussion(request, membership_request_id):
             allowed = True
     if not allowed:
         return render_to_response('valueaccounting/no_permission.html')
-    
+
     return render_to_response("work/membership_request_with_comments.html", {
         "help": get_help("membership_request"),
         "mbr_req": mbr_req,
         "user_agent": user_agent,
     }, context_instance=RequestContext(request))
-    
+
 @login_required
 def work_todo_done(request, todo_id):
     #import pdb; pdb.set_trace()
@@ -1244,7 +1244,7 @@ def work_todo_done(request, todo_id):
                 event.save()
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
-    
+
 @login_required
 def work_add_todo(request):
     if request.method == "POST":
@@ -1279,16 +1279,16 @@ def work_add_todo(request):
                             if user:
                                 #import pdb; pdb.set_trace()
                                 notification.send(
-                                    [user.user,], 
-                                    "valnet_new_todo", 
+                                    [user.user,],
+                                    "valnet_new_todo",
                                     {"description": todo.description,
                                     "creator": agent,
                                     "site_name": site_name,
                                     }
                                 )
-            
+
     return HttpResponseRedirect(next)
-    
+
 @login_required
 def work_todo_delete(request, todo_id):
     #import pdb; pdb.set_trace()
@@ -1307,8 +1307,8 @@ def work_todo_delete(request, todo_id):
                         if user:
                             #import pdb; pdb.set_trace()
                             notification.send(
-                                [user.user,], 
-                                "valnet_deleted_todo", 
+                                [user.user,],
+                                "valnet_deleted_todo",
                                 {"description": todo.description,
                                 "creator": agent,
                                 "site_name": site_name,
@@ -1334,7 +1334,7 @@ def work_todo_change(request, todo_id):
 
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
-    
+
 @login_required
 def work_todo_decline(request, todo_id):
     #import pdb; pdb.set_trace()
@@ -1391,7 +1391,7 @@ def work_todo_mine(request, todo_id):
         return HttpResponseRedirect(next)
     return HttpResponseRedirect('/%s/'
         % ('work/my-dashboard'))
-        
+
 @login_required
 def work_todo_description(request):
     #import pdb; pdb.set_trace()
@@ -1445,7 +1445,7 @@ def work_commit_to_task(request, commitment_id):
     return HttpResponseRedirect('/%s/'
         % ('work/my-dashboard'))
 
-@login_required        
+@login_required
 def work_delete_event(request, event_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
@@ -1479,9 +1479,28 @@ def work_delete_event(request, event_id):
                 resource.save()
         else:
             event.delete()
-            
+
     next = request.POST.get("next")
     if next:
         return HttpResponseRedirect(next)
     return HttpResponseRedirect('/%s/'
         % ('work/my-history'))
+
+@login_required
+def your_projects(request):
+    #import pdb; pdb.set_trace()
+    agent = get_agent(request)
+    projects = agent.related_contexts()
+    next = "/work/projects/"
+    allowed = False
+    if agent:
+        if agent.is_active_freedom_coop_member or request.user.is_staff:
+            allowed = True
+    if not allowed:
+        return render_to_response('valueaccounting/no_permission.html')
+
+    return render_to_response("work/projects.html", {
+        "help": get_help("projects"),
+        "agent": agent,
+        "projects": projects,
+    }, context_instance=RequestContext(request))

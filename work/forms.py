@@ -44,7 +44,8 @@ class WorkProjectSelectionFormOptional(forms.Form):
 class WorkTodoForm(forms.ModelForm):
     from_agent = forms.ModelChoiceField(
         required=False,
-        queryset=EconomicAgent.objects.individuals(),
+        #queryset=EconomicAgent.objects.individuals(),
+        queryset=EconomicAgent.objects.with_user(),
         label="Assigned to",  
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))

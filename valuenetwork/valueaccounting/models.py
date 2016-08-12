@@ -380,6 +380,14 @@ class AgentManager(models.Manager):
                 ua_ids.append(agent.id)
         return all_agents.exclude(id__in=ua_ids)
         
+    def with_user(self):
+        all_agents = EconomicAgent.objects.all()
+        ua_ids = []
+        for agent in all_agents:
+            if agent.users.all():
+                ua_ids.append(agent.id)
+        return EconomicAgent.objects.filter(id__in=ua_ids)      
+        
     def without_membership_request(self):
         from work.models import MembershipRequest
         reqs = MembershipRequest.objects.all()

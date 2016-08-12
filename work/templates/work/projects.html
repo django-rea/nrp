@@ -1,0 +1,217 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Projects" %}{% endblock %}
+
+{% block extra_head %}
+
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+
+<style>
+
+.description {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-style: italic;
+}
+.indent {
+    margin-left: 1.2em;
+}
+.assoc_group {
+    color: green;
+    font-weight: bold;
+    margin-left: 1em;
+}
+.showhide {
+    color: gray;
+    margin-left: 4px;
+}
+
+.showhide:hover {
+    cursor: pointer;
+}
+
+</style>
+
+{% endblock %}
+
+{% block body_class %}projects{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+	<div>
+
+	    <legend>
+	        {% trans "Your Projects" %}
+
+	        {% if agent %}
+                &nbsp;&nbsp;&nbsp;
+                <a href="#create-agent" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Create New Agent" %}</a>
+
+                <div class="modal hide fade" id="create-agent" tabindex="-1" role="dialog" aria-labelledby="agent-label" aria-hidden="true">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                        <h3 id="agent-label">{% trans "Create a New Agent" %}</h3>
+                    </div>
+                    <div class="modal-body">
+                        <form class="validateMe" id="agentForm" enctype="multipart/form-data" action="{% url "create_agent" %}" method="POST" >
+                            {% csrf_token %}
+                            {{ agent_form|as_bootstrap }}
+                            <div class="modal-footer">
+                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            {% endif %}
+
+
+            <a class="indent" href="{% url "agents" %}">{% trans "All Agents" %}</a>
+            <a class="indent" href="{% url "locations" %}">{% trans "Locations" %}</a>
+            <a class="indent" href="{% url "all_contributions" %}">{% trans "All contributions" %}</a>
+{% comment %}
+            <a class="indent" href="{% url "demand_exchanges" %}">{% trans "All demand exchanges" %}</a>
+{% endcomment %}
+
+
+            <a class="indent" href="{% url "project_network" %}">{% trans "Network diagram" %}</a>
+            <a class="indent" href="{% url "cash_report" %}">{% trans "Cash Flow Report" %}</a>
+            <a class="indent" href="{% url "value_equations" %}">{% trans "Value Equations" %}</a>
+
+        </legend>
+
+        {% for root in roots %}
+
+            {% for node in root.nodes %}
+
+                {% if not node.open and not node.close %}
+                    </li>
+                {% endif %}
+
+                {% if node.open %}
+                    <ul>
+                {% endif %}
+
+                <li>
+                    <b><a href="{{ node.get_absolute_url }}">{{ node.name }}</a></b>
+                    <a class="indent" href="{% url "contributions" project_id=node.id %}">{% trans "Contributions" %}: {{ node.contributions_count }}</a>
+                    {% if node.wip %}
+                        <a class="indent" href="{% url "project_wip" project_id=node.id %}">{% trans "Work in process" %}: {{ node.wip.count }}</a>
+                    {% endif %}
+                    {% if node.supply_exchange_count > 0 %}
+                        <a class="indent" href="{% url "exchanges" agent_id=node.id %}">{% trans "Incoming Exchanges" %}: {{ node.supply_exchange_count }}</a>
+                    {% endif %}
+                    {% if node.demand_exchange_count > 0 %}
+                        <a class="indent" href="{% url "demand_exchanges" agent_id=node.id %}">{% trans "Outgoing Exchanges" %}: {{ node.demand_exchange_count }}</a>
+                    {% endif %}
+                    {% if node.internal_exchange_count > 0 %}
+                        <a class="indent" href="{% url "internal_exchanges" agent_id=node.id %}">{% trans "Internal Exchanges" %}: {{ node.internal_exchange_count }}</a>
+                    {% endif %}
+                    {% if node.distributions_count > 0 %}
+                        <a class="indent" href="{% url "distributions" agent_id=node.id %}">{% trans "Distributions" %}: {{ node.distributions_count }}</a>
+                    {% endif %}
+                    {% if node.description %}
+                        <div class="description" >{{ node.description|urlize|linebreaks }}</div>
+                    {% endif %}
+                    {% for aat in node.aats %}
+                        {% if aat.identifier != "child" %}
+                            <div class="assoc_group"> {{ aat.plural_name }}: {{ aat.assoc_count }}
+                                <span class="showhide" id="sh-{{ node.id }}{{ aat.id }}" >(Show)</span>
+                            </div>
+                            <div class="list" id="list-{{ node.id }}{{ aat.id }}" >
+                                <ul>
+                                    {% for assoc in aat.assoc_list %}
+                                        <li class="indent"><a href="{{ assoc.get_absolute_url }}">{{ assoc.name }} </a>
+                                        {% if assoc.state == "potential" %} (potential) {% endif%} </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif%}
+                    {% endfor %}
+                </li>
+
+                {% for close in node.close %}
+                    </ul>
+                {% endfor %}
+
+            {% endfor %}
+
+        {% endfor %}
+
+
+	</div>
+    </div>
+{% endblock %}
+
+{% block extra_script %}
+	<script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+{% endblock %}
+
+
+{% block extra_body %}
+    {{ block.super }}
+    <script type="text/javascript">
+
+	$(document).ready(function(){
+
+		$('#projects').addClass('active');
+
+		$( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" );
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
+        })
+
+        function html_unescape(text) {
+            // Unescape a string that was escaped using django.utils.html.escape.
+            text = text.replace(/&lt;/g, '<');
+            text = text.replace(/&gt;/g, '>');
+            text = text.replace(/&quot;/g, '"');
+            text = text.replace(/&#39;/g, "'");
+            text = text.replace(/&amp;/g, '&');
+            return text;
+        }
+
+        var nickArray = html_unescape("{{ nicks }}").split("~");
+
+        jQuery.validator.addMethod("unique", function(value, element, param) {
+            return this.optional(element) || $.inArray(value, param) < 0; // <-- Check if the value is not in the array.
+        }, "ID is not unique.");
+
+        $('#agentForm').validate(
+        {
+            rules: {
+                nick: {
+                    required: true,
+                    maxlength: 32,
+                    unique: nickArray
+                }
+            },
+            highlight: function(label) {
+                $(label).closest('.control-group').addClass('error');
+            }
+
+        });
+
+        $(".list").hide();
+
+        $(".showhide").click(function(event)
+        {
+            var id = event.target.id;
+            var listId = '#list-' + id.split('-')[1];
+            $(listId).slideToggle(200);
+            $(this).text($(this).text() == '(Show)' ? '(Hide)' : '(Show)');
+        });
+
+	}); // end document.ready
+
+    </script>
+{% endblock %}

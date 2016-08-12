@@ -163,12 +163,12 @@ th, td {
         {% include "_messages.html" %}
 	    <div>
 		    <legend>
-		        {% trans "Work in Process" %}
+		        {% trans "Your tasks" %}
 	        </legend>
 
 	        <form id="dateForm" action="." method="POST" >
                 {% csrf_token %}
-                <div id="div_id_start_date" class="control-group" style="display: inline;" >     
+                <div id="div_id_start_date" class="control-group" style="display: inline;" >
                     <label for="id_start_date" class="control-label required-field" style="display: inline; vertical-align: text-bottom;" >
                         {% trans "Show work scheduled during " %}
                     </label>
@@ -176,7 +176,7 @@ th, td {
                         {{ date_form.start_date }}
                     </div>
                 </div>
-                <div id="div_id_end_date" class="control-group" style="display: inline;" >     
+                <div id="div_id_end_date" class="control-group" style="display: inline;" >
                     <label for="id_end_date" class="control-label required-field" style="display: inline;  vertical-align: text-bottom; " >
                         {% trans " through " %}
                     </label>
@@ -190,7 +190,7 @@ th, td {
                     </label>
                     <div class="controls" style="display: inline;" >
                         {{ ca_form.context_agent }}
-                    </div>                    
+                    </div>
                 </div>&nbsp;
                 <input type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Reload' %}" />
 {% comment %}
@@ -202,7 +202,7 @@ th, td {
             {% if context_agents %}
 
                 {% for context_agent, processes in context_agents.items %}
-                    <div class="context-agent-line"> 
+                    <div class="context-agent-line">
                         {% trans "Project" %}: {% if context_agent %} {{ context_agent.name }} {% else %} {% trans "No project" %} {% endif %}
                     </div>
 
@@ -211,11 +211,11 @@ th, td {
                             <div class="span9 schedule process">
                                 <div class="row-fluid">
                                   <div class="span12" >
-                                    
-                                    <span class="prefix process-prefix"  >{% trans "Process" %}:</span> 
+
+                                    <span class="prefix process-prefix"  >{% trans "Process" %}:</span>
 
                                     <a href="{{ process.get_absolute_url }}">
-                                        {{ process.name_with_order }} {% trans "starting" %} <span id="start-dt{{ process.id }}">{{ process.start_date|date:"Y-m-d" }}</span> 
+                                        {{ process.name_with_order }} {% trans "starting" %} <span id="start-dt{{ process.id }}">{{ process.start_date|date:"Y-m-d" }}</span>
                                         {% trans "ending" %} <span id="end-dt{{ process.id }}"> {{ process.end_date|date:"Y-m-d" }}
                                     </a>
 	                                {% if agent %}
@@ -240,7 +240,7 @@ th, td {
                                         </div>
 						            </div>
                                     {% endif %}
-                                    
+
                                   </div>
                                 </div>
                                 <div class="row-fluid">
@@ -251,15 +251,15 @@ th, td {
                                         {% if process.notes %}
                                             {{ process.notes|urlize|linebreaks }}
                                         {% endif %}
-                                    </div>                                  
+                                    </div>
                                 </div>
-                            
+
                             </div>
                             <div class="span3 prevnext">
 			                    <h4>{% trans "Previous processes" %}</h4>
 			                    {% for proc in process.previous_processes %}
 				                    <p>
-				                        <a href="{{ proc.get_absolute_url }}">{{ proc }}</a> 
+				                        <a href="{{ proc.get_absolute_url }}">{{ proc }}</a>
 				                        {% if proc in all_processes %}
 				                            <a href="#{{ proc.id }}" title="go to" ><i class="icon-search"></i></a>
 				                        {% endif %}
@@ -268,7 +268,7 @@ th, td {
 			                    <h4>{% trans "Next processes" %}</h4>
 			                    {% for proc in process.next_processes %}
 				                    <p>
-				                        <a href="{{ proc.get_absolute_url }}">{{ proc }}</a> 
+				                        <a href="{{ proc.get_absolute_url }}">{{ proc }}</a>
 				                        {% if proc in all_processes %}
 				                            <a href="#{{ proc.id }}" title="go to" ><i class="icon-search"></i></a>
 				                        {% endif %}
@@ -286,7 +286,7 @@ th, td {
                 No processes scheduled for this date range and project selection
             {% endif %}
 {% endcomment %}
-	   
+
 	        <div class="row-fluid" id="todos">
 			    <div class="span12 todos">
 			        <h3>
@@ -372,14 +372,14 @@ th, td {
                                         {% if agent and agent == todo.from_agent %}
                                             {% with todo.todo_event as event %}
 	                                            <td class="did" >
-	                                                <textarea class="input-block-level did" id="{{ todo.id }}-didId" name="{{ todo.id }}-did" rows="3" 
+	                                                <textarea class="input-block-level did" id="{{ todo.id }}-didId" name="{{ todo.id }}-did" rows="3"
 	                                                />{% if event %}{{ event.description }}{% endif %}</textarea>
 	                                            </td>
 
 	                                            <td class="todo-input" >
 	                                                <form class="timeForm"id="timeForm-{{ todo.id }}" action="{% url "todo_time" %}" method="POST" >
 								                        {% csrf_token %}
-	                                                    <input class="input-mini optional-quantity" id="{{ todo.id }}-timeId" name="{{ todo.id }}-time" type="text" size="6" 
+	                                                    <input class="input-mini optional-quantity" id="{{ todo.id }}-timeId" name="{{ todo.id }}-time" type="text" size="6"
 	                                                        {% if event %} value="{{ event.quantity }}" {% else %} value="0" {% endif %}
 	                                                    />
                                                     </form>
@@ -391,7 +391,7 @@ th, td {
 	                                                    <input type="submit" name="submit" class="btn btn-primary btn-mini"  title="Done" value="{% trans 'Done' %}" />
                                                     </form>
 	                                            </td>
-	                                       
+
 	                                        {% endwith %}
                                         {% else %}
                                             <td>&nbsp;</td>
@@ -400,7 +400,7 @@ th, td {
 	                                    {% endif %}
 
 	                                <td>
-	                                    
+
                                         {% if agent and agent == todo.from_agent %}
                                             {% if todo.is_deletable %}
                                                 {% if agent != todo.to_agent %}
@@ -414,9 +414,9 @@ th, td {
                                                 {% endif %}
                                             {% endif %}
                                         {% endif %}
-                                        
+
                                         {% if agent == todo.to_agent %}
- 
+
                                                 <a href="#changeModal-{{ todo.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
 					                                {% trans "Change" %}
 				                                </a>
@@ -431,7 +431,7 @@ th, td {
 
 
                                         {% endif %}
-                                        
+
                                         {% if agent  %}
                                             {% if not todo.from_agent %}
                                                 <form style="display: inline;" class="mineForm" id="mineForm-{{ todo.id }}" action="{% url "todo_mine" todo_id=todo.id %}" method="POST" >
@@ -460,9 +460,9 @@ th, td {
 					                                </form>
 			                                  </div>
 		                                    </div>
-                                         {% endif %}                                            
+                                         {% endif %}
 	                                 </td>
-                                </tr>   
+                                </tr>
 
 		                    {% endfor %}
 		                </tbody>
@@ -493,10 +493,10 @@ th, td {
 		$("textarea").resizable();
 
 		$( "#help" ).toggle( function(){
-            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $('#help-content').show("slide", { direction: "right" }, "slow" );
             $( "#help" ).text("Hide Help");
         }, function() {
-            $('#help-content').hide("slide", { direction: "right" }, "slow"); 
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
             $( "#help" ).text("Show Help");
         })
 
@@ -515,9 +515,9 @@ th, td {
                     return false;
                 }
             }
-        }); 
+        });
 
-		jQuery.validator.setDefaults({ 
+		jQuery.validator.setDefaults({
 		    success: function(label) {
 					label
 						.text('').addClass('valid')
@@ -526,14 +526,14 @@ th, td {
 		});
 
 
-		$.validator.addClassRules("quantity", { 
-		    required: true, 
+		$.validator.addClassRules("quantity", {
+		    required: true,
 		    number: true,
-		    max: 999999.99 
+		    max: 999999.99
 	    });
-	    $.validator.addClassRules("optional-quantity", { 
+	    $.validator.addClassRules("optional-quantity", {
 		    number: true,
-		    max: 999999.99 
+		    max: 999999.99
 	    });
 		$.validator.addClassRules("url", { url: true });
 
@@ -577,7 +577,7 @@ th, td {
 		            var notes = "<p>";
 		            for (var i=0; i < note.length; i++)
 		            {
-                        var code = note.charCodeAt(i); 
+                        var code = note.charCodeAt(i);
                         if (code==10)
                         {
                             notes += "</p><p>";
@@ -601,8 +601,8 @@ th, td {
                             $(modalId).modal('hide');
                             $form.trigger( "reset" );
 			            })
-			            .fail(function() 
-			            { 
+			            .fail(function()
+			            {
 				            alert("Process save failed.");
 			            }
 		            );
@@ -666,18 +666,18 @@ th, td {
             var hours = timeInput.value;
             notifySaving();
 		    var jqxhr = $.post("{% url "todo_time"  %}",  { todoId: id, hours: hours },
-			    function( data ) 
+			    function( data )
 			    {
 				    notifySaved();
 			    })
-			    .fail(function() 
-			    { 
-				    notifyProblem(); 
+			    .fail(function()
+			    {
+				    notifyProblem();
 			    }
 		    );
-        }      
+        }
 	}
-	
+
     function saveDescription(event)
 	{
         var didInput = event.target;
@@ -685,48 +685,48 @@ th, td {
         var did = didInput.value;
         notifySaving();
 	    var jqxhr = $.post("{% url "todo_description"  %}",  { todoId: id, did: did },
-		    function( data ) 
+		    function( data )
 		    {
 			    notifySaved();
 		    })
-		    .fail(function() 
-		    { 
-			    notifyProblem(); 
+		    .fail(function()
+		    {
+			    notifyProblem();
 		    }
-	    );   
+	    );
 	}
 
 	function notifySaving()
 	{
-		$("#saving").css("color","green"); 
+		$("#saving").css("color","green");
 		$("#saving").text("Saving...");
 	}
 
 	function notifySaved()
 	{
-		$("#saving").css("color","green"); 
+		$("#saving").css("color","green");
 		$("#saving").text("Saved");
 	}
 
 	function notifyProblem()
 	{
-		$("#saving").css("color","red"); 
+		$("#saving").css("color","red");
 		$("#saving").text("Problem saving");
 	}
 
-	$(document).ajaxSend(function(event, xhr, settings) 
+	$(document).ajaxSend(function(event, xhr, settings)
 	{
-		function getCookie(name) 
+		function getCookie(name)
 		{
 		    var cookieValue = null;
-		    if (document.cookie && document.cookie != '') 
+		    if (document.cookie && document.cookie != '')
 			{
 		        var cookies = document.cookie.split(';');
-		        for (var i = 0; i < cookies.length; i++) 
+		        for (var i = 0; i < cookies.length; i++)
 				{
 		            var cookie = jQuery.trim(cookies[i]);
 		            // Does this cookie string begin with the name we want?
-		            if (cookie.substring(0, name.length + 1) == (name + '=')) 
+		            if (cookie.substring(0, name.length + 1) == (name + '='))
 					{
 		                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
 		                break;
@@ -736,7 +736,7 @@ th, td {
 		    return cookieValue;
     	}
 
-		function sameOrigin(url) 
+		function sameOrigin(url)
 		{
 		    // url could be relative or scheme relative or absolute
 		    var host = document.location.host; // host + port
@@ -750,17 +750,17 @@ th, td {
 		        !(/^(\/\/|http:|https:).*/.test(url));
 		}
 
-		function safeMethod(method) 
+		function safeMethod(method)
 		{
 		    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
 		}
 
-		if (!safeMethod(settings.type) && sameOrigin(settings.url)) 
+		if (!safeMethod(settings.type) && sameOrigin(settings.url))
 		{
 		    xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
 		}
 	});
-	
+
     </script>
 
 {% endblock %}

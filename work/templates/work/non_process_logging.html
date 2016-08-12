@@ -12,7 +12,6 @@
 
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 <link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
-<link rel="stylesheet" href="{% static "css/coopOcp.css" %}" />
 
 <style>
 
@@ -44,7 +43,7 @@
 
 {% block body_base %}
 <div class="container">
-	<legend>{% trans "Log Extra Tasks for " %} {{ member.name }}</legend>
+	<legend>{% trans "Log extra tasks for " %} {{ member.name }}</legend>
 	<p>Both Date and Time spent are required for logged work to be saved.</p>
 
     <form id="contributionsForm" method="POST" action=".">

@@ -16,6 +16,7 @@
             <link href="{% static "bootstrap/css/bootstrap.css" %}" rel="stylesheet">
             <link href="{% static "bootstrap/css/bootstrap-responsive.css" %}" rel="stylesheet">
 			<link href="{% static "css/buttons.css" %}" rel="stylesheet">
+      <link rel="stylesheet" href="{% static "css/coopOcp.css" %}" />
 	    <style>
 		#site-menu {
 		    /*display: table;*/
@@ -64,21 +65,26 @@
                     <li id="my-projects" class="dropdown">
                       <a href="#" class="dropdown-toggle" data-toggle="dropdown">{% trans 'Projects' %} <b class="caret"></b></a>
                       <ul class="subnav dropdown-menu" id="tasks-menu">
-                        <li id="tutorial" >
-                          <a href="#" class="disabled"
-                          title="{% trans 'How to create a project in OCP' %}"
-                          >{% trans 'Tutorial' %}</a>
-                        </li>
-                        <li id="new-project" >
-                          <a href="#" class="disabled"
-                          title="{% trans 'Create a new project' %}"
-                          >{% trans 'New Project' %}</a>
-                        </li>
                         <li id="my-projects" >
                           <a href="#" class="disabled"
                           title="{% trans 'My projects list' %}"
-                          >{% trans 'My Projects' %}</a>
+                          >{% trans 'Your projects' %}</a>
                         </li>
+                        <li id="project-tasks" >
+                          <a href="#" class="disabled"
+                          title="{% trans 'Plan process tasks for your project' %}"
+                          >{% trans 'Plan project tasks' %}</a>
+                        </li>
+                        <li id="tutorial" >
+                          <a href="#" class="disabled"
+                          title="{% trans 'How to create a project in OCP' %}"
+                          >{% trans "OCP project's tutorial" %}</a>
+                        </li>
+                        <!-- <li id="new-project" >
+                          <a href="#" class="disabled"
+                          title="{% trans 'Create a new project' %}"
+                          >{% trans 'New Project' %}</a>
+                        </li> -->
                       </ul>
                     </li>
                     {% endif %}
@@ -88,17 +94,17 @@
 						            <li id="project-work" >
                           <a href="{% url 'project_work' %}"
                           title="{% trans 'List of related tasks' %}"
-                          >{% trans 'My tasks' %}</a>
+                          >{% trans 'Your tasks' %}</a>
+                        </li>
+                        <li id="my-dashboard" >
+                          <a href="{% url 'my_dashboard' %}"
+                          title="{% trans 'Take new tasks for your skills' %}"
+                          >{% trans 'Take a new task' %}</a>
                         </li>
                         <li id="my-dashboard" >
                           <a href="{% url 'my_dashboard' %}"
                           title="{% trans 'Do your planned tasks' %}"
-                          >{% trans 'Do tasks' %}</a>
-                        </li>
-						            <li id="my-dashboard" >
-                          <a href="{% url 'my_dashboard' %}"
-                          title="{% trans 'Take new tasks for your skills' %}"
-                          >{% trans 'Take new task' %}</a>
+                          >{% trans 'Log planned tasks' %}</a>
                         </li>
                         <li id="non-process-logging" >
                           <a href="{% url 'non_process_logging' %}"

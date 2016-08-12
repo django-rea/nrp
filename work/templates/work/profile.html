@@ -53,7 +53,6 @@ label {
 
 </style>
 
-<link rel="stylesheet" href="{% static "css/coopOcp.css" %}" />
 
 {% endblock %}
 
@@ -64,14 +63,14 @@ label {
         {% include "_messages.html" %}
 
 		<legend>
-			Profile for {{ agent.name }}
+			{% trans "Profile for " %} {{ agent.name }}
 
 		</legend>
 
 		<div class="row-fluid">
 
 		    <div class="span4">
-                <h3>Personal Information
+                <h3>{% trans "Personal Information" %}
                     {% if agent and change_form %}
                         <a href="#agentChangeForm" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Change" %}</a>
                     {% endif %}
@@ -184,7 +183,7 @@ label {
 
             <div class="span4">
                 <form class="register" name="register" enctype="multipart/form-data" action="{% url "update_skills" agent_id=agent.id %}" method="POST" >
-                    <h3>Registered Skills
+                    <h3>{% trans "Registered Skills" %}
                         {% if agent %}
                             <button class="btn btn-primary indent">{% trans "Save" %}</button>
                         {% endif %}
@@ -199,7 +198,7 @@ label {
             </div>
 
             <div class="span4">
-                <h3>Picture
+                <h3>{% trans "Picture" %}
                     {% if agent %}
                         <a href="#uploadPicture" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Upload" %}</a>
                     {% endif %}

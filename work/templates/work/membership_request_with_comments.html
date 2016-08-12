@@ -10,7 +10,6 @@
 {% block extra_head %}
 
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
-<link rel="stylesheet" href="{% static "css/coopOcp.css" %}" />
 
 <style>
 
@@ -61,7 +60,7 @@ th
         {% include "_messages.html" %}
     <div>
         <legend>
-            {% trans "Freedom Coop Membership Request for " %} {{ mbr_req.name }}
+            {% trans "Freedom Coop membership request for " %} {{ mbr_req.name }}
         </legend>
 
       <div id="member-request-block">
@@ -140,7 +139,7 @@ th
 
     <div id="member-request-comments">
       <legend>
-          {% trans "Comments about the membership process for " %} {{ mbr_req.name }}
+          {% trans "Comments about the membership of " %} {{ mbr_req.name }}
       </legend>
 
       {% get_comment_count for mbr_req as num_comm  %}

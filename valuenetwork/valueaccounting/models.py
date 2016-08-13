@@ -1689,6 +1689,7 @@ class EconomicResourceType(models.Model):
             return False
             
     def is_work(self):
+        #import pdb; pdb.set_trace() 
         if self.behavior == "work":
             return True
         else:
@@ -2184,21 +2185,6 @@ class EconomicResourceType(models.Model):
     def is_purchased(self):
         rts = all_purchased_resource_types()
         return self in rts
-        
-    def is_work(self):
-        #import pdb; pdb.set_trace()
-        #todo: does this still return false positives?
-        fvs = self.facets.all()
-        for fv in fvs:
-            pfvs = fv.facet_value.patterns.filter(
-                event_type__related_to="process",
-                event_type__relationship="work")
-            if pfvs:
-                for pf in pfvs:
-                    pattern = pf.pattern
-                    if self in pattern.work_resource_types():
-                        return True
-        return False
         
     def consuming_process_type_relationships(self):
         #todo pr: shd this be own or own_or_parent_recipes?

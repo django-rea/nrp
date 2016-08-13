@@ -1201,6 +1201,7 @@ class EconomicAgent(models.Model):
         return EconomicEvent.objects.filter(id__in=id_ids)
         
     def is_deletable(self):
+        #import pdb; pdb.set_trace()
         if self.given_events.filter(quantity__gt=0):
             return False
         if self.taken_events.filter(quantity__gt=0):
@@ -1214,6 +1215,8 @@ class EconomicAgent(models.Model):
         if self.exchanges_as_supplier.all():
             return False
         if self.virtual_accounts():
+            return False
+        if self.faircoin_resource():
             return False
         return True
         

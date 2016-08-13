@@ -420,6 +420,13 @@ class AgentManager(models.Manager):
         #return EconomicAgent.objects.filter(Q(is_context=True)|Q(agent_type__party_type="individual"))
         #todo: should there be some limits?  Ran into condition where we needed an organization, therefore change to below.
         return EconomicAgent.objects.all()
+        
+    def freedom_coop(self):
+        try:
+            fc = EconomicAgent.objects.get(name="Freedom Coop")
+        except EconomicAgent.DoesNotExist:
+            raise ValidationError("Freedom Coop does not exist by that name")
+        return fc
     
 class EconomicAgent(models.Model):
     name = models.CharField(_('name'), max_length=255)
@@ -592,10 +599,7 @@ class EconomicAgent(models.Model):
         return False
         
     def is_active_freedom_coop_member(self):
-        try:
-            fc = EconomicAgent.objects.get(name="Freedom Coop")
-        except EconomicAgent.DoesNotExist:
-            raise ValidationError("Freedom Coop does not exist by that name")
+        fc = EconomicAgent.objects.freedom_coop()
         fcaas = self.is_associate_of.filter(
             association_type__association_behavior="member",
             has_associate=fc,
@@ -986,6 +990,22 @@ class EconomicAgent(models.Model):
     def is_associated_with_groups(self):
         afgs = self.is_associate_of.exclude(has_associate__agent_type__party_type="individual")
         return afgs
+        
+    def association_with(self, context):
+        associations = self.is_associate_of.filter(has_associate=context)
+        if associations:
+            return associations[0]
+        else:
+            return []
+            
+    def is_manager_of(self, context):
+        if self is context:
+            return True
+        association = self.association_with(context)
+        if association:
+            if association.association_type.association_behavior == "manager":
+                return True
+        return False
         
     def exchange_firm(self):
         xs = self.exchange_firms()

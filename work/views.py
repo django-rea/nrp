@@ -807,7 +807,7 @@ def manage_faircoin_account(request, resource_id):
     if agent:
         if agent.owns(resource):
             send_coins_form = SendFairCoinsForm()
-            from valuenetwork.valueaccounting.faircoin_utils import network_fee
+            #from valuenetwork.valueaccounting.faircoin_utils import network_fee
             limit = resource.spending_limit()
     return render_to_response("work/faircoin_account.html", {
         "resource": resource,

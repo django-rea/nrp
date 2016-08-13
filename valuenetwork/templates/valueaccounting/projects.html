@@ -128,7 +128,7 @@
                                 <ul>
                                     {% for assoc in aat.assoc_list %}
                                         <li class="indent"><a href="{{ assoc.get_absolute_url }}">{{ assoc.name }} </a>
-                                        {% if assoc.state == "potential" %} (potential) {% endif%} </li>
+                                        {% if assoc.state == "potential" %} ({{ assoc.get_state_display }}) {% endif%} </li>
                                     {% endfor %}
                                 </ul>
                             </div>

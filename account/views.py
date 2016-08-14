@@ -748,7 +748,7 @@ class WorkSettingsView(LoginRequiredMixin, FormView):
                 self.messages["settings_updated"]["level"],
                 self.messages["settings_updated"]["text"]
             )
-        return redirect(self.get_success_url())
+        return redirect(self.get_success_url(fallback_url="work_account_settings"))
     
     def update_settings(self, form):
         self.update_email(form)

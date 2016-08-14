@@ -379,7 +379,15 @@ class AgentManager(models.Manager):
             if agent.users.all():
                 ua_ids.append(agent.id)
         return all_agents.exclude(id__in=ua_ids)
-
+        
+    def with_user(self):
+        all_agents = EconomicAgent.objects.all()
+        ua_ids = []
+        for agent in all_agents:
+            if agent.users.all():
+                ua_ids.append(agent.id)
+        return EconomicAgent.objects.filter(id__in=ua_ids)      
+        
     def without_membership_request(self):
         from work.models import MembershipRequest
         reqs = MembershipRequest.objects.all()
@@ -1198,6 +1206,7 @@ class EconomicAgent(models.Model):
         return EconomicEvent.objects.filter(id__in=id_ids)
 
     def is_deletable(self):
+        #import pdb; pdb.set_trace()
         if self.given_events.filter(quantity__gt=0):
             return False
         if self.taken_events.filter(quantity__gt=0):
@@ -1211,6 +1220,8 @@ class EconomicAgent(models.Model):
         if self.exchanges_as_supplier.all():
             return False
         if self.virtual_accounts():
+            return False
+        if self.faircoin_resource():
             return False
         return True
 
@@ -1683,6 +1694,7 @@ class EconomicResourceType(models.Model):
             return False
 
     def is_work(self):
+        #import pdb; pdb.set_trace() 
         if self.behavior == "work":
             return True
         else:
@@ -2178,22 +2190,7 @@ class EconomicResourceType(models.Model):
     def is_purchased(self):
         rts = all_purchased_resource_types()
         return self in rts
-
-    def is_work(self):
-        #import pdb; pdb.set_trace()
-        #todo: does this still return false positives?
-        fvs = self.facets.all()
-        for fv in fvs:
-            pfvs = fv.facet_value.patterns.filter(
-                event_type__related_to="process",
-                event_type__relationship="work")
-            if pfvs:
-                for pf in pfvs:
-                    pattern = pf.pattern
-                    if self in pattern.work_resource_types():
-                        return True
-        return False
-
+        
     def consuming_process_type_relationships(self):
         #todo pr: shd this be own or own_or_parent_recipes?
         return self.process_types.filter(event_type__resource_effect='-')

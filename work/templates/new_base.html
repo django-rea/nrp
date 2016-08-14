@@ -65,9 +65,9 @@
                     <li id="my-projects" class="dropdown">
                       <a href="#" class="dropdown-toggle" data-toggle="dropdown">{% trans 'Projects' %} <b class="caret"></b></a>
                       <ul class="subnav dropdown-menu" id="tasks-menu">
-                        <li id="my-projects" >
-                          <a href="#" class="disabled"
-                          title="{% trans 'My projects list' %}"
+                        <li id="your-projects" >
+                          <a href="{% url 'your_projects' %}"
+                          title="{% trans 'Your projects list' %}"
                           >{% trans 'Your projects' %}</a>
                         </li>
                         <li id="project-tasks" >

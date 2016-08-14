@@ -23,8 +23,24 @@ a.disabled:hover {
 	background-color: #fff;
 }
 
+/*   G E N E R A L   */
 
-/*  M E M B E R S H I P   P R O C E S S   P A G E   */
+div.pull-right {
+	margin-top: 5px;
+}
+a {
+	color: #375B5B;
+}
+a:hover {
+	color: #666;
+}
+
+li > h4 {
+  display: inline-block;
+}
+
+
+/*   M E M B E R S H I P   P R O C E S S   P A G E   */
 
 #member-request-block th {
 	text-align: right;
@@ -66,12 +82,4 @@ textarea#id_comment {
 	font-weight: normal;
 }
 
-div.pull-right {
-	margin-top: 5px;
-}
-a.help-link {
-	color: #476B6B;
-}
-a.help-link:hover {
-	color: #333;
-}
+

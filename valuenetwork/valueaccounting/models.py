@@ -570,6 +570,26 @@ class EconomicAgent(models.Model):
         else:
             return None
             
+    def candidate_membership(self):
+        aas = self.is_associate_of.all()
+        if aas:
+            aa = aas[0]
+            if aa.state == "potential":
+                return aa.has_associate
+        return None
+        
+    def number_of_shares(self):
+        if self.agent_type.party_type == "individual":
+            return 1
+        else:
+            return 2
+            
+    def share_price(self):
+        if self.agent_type.party_type == "individual":
+            return 600
+        else:
+            return 1200
+            
     def owns(self, resource):
         if self in resource.owners():
             return True
@@ -4124,11 +4144,14 @@ class EconomicResource(models.Model):
         bal = 0
         address = self.digital_currency_address
         if address:
-            from valuenetwork.valueaccounting.faircoin_utils import get_address_balance
-            balance = get_address_balance(address)
-            balance = balance[0]
-            if balance:
-                bal = Decimal(balance) / FAIRCOIN_DIVISOR
+            try:
+                from valuenetwork.valueaccounting.faircoin_utils import get_address_balance
+                balance = get_address_balance(address)
+                balance = balance[0]
+                if balance:
+                    bal = Decimal(balance) / FAIRCOIN_DIVISOR
+            except InvalidOperation:
+                bal = "Not accessible now"
         return bal
         
     def spending_limit(self):

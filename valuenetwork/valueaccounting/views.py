@@ -1031,6 +1031,7 @@ def resource_type(request, resource_type_id):
             files=request.FILES or None,
             initial=init)
         create_role_formset = resource_role_agent_formset(prefix="resource")
+        #import pdb; pdb.set_trace()
         if request.method == "POST":
             if create_form.is_valid():
                 resource = create_form.save(commit=False)
@@ -2232,8 +2233,8 @@ def view_stream_recipe(request, resource_type_id):
 def change_resource_type(request, resource_type_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
-        rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
-        form = EconomicResourceTypeChangeForm(request.POST, request.FILES, instance=rt)
+        rtype = get_object_or_404(EconomicResourceType, pk=resource_type_id)
+        form = EconomicResourceTypeChangeForm(request.POST, request.FILES, instance=rtype)
         if form.is_valid():
             data = form.cleaned_data
             rt = form.save(commit=False)

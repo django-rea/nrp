@@ -25,7 +25,7 @@ This is a howto for installing ocp in a debian/ubuntu system.
     sudo ./valuenetwork/faircoin_nrp/daemon/daemon_service start
     sudo ./valuenetwork/faircoin_nrp/daemon/daemon_service status
 
-If daemon runs ok, *daemon_service status* returns *Running*
+If daemon runs ok, *daemon_service status* returns *Running*. For ocp instances in production, better to move daemon_service to */etc/init.d/* and daemon.conf to */etc/*
 
 - Create virtual enviroment and update pip and setuptools: ::
 
@@ -47,11 +47,11 @@ If daemon runs ok, *daemon_service status* returns *Running*
     ./manage.py makemigrations
     ./manage.py migrate
     
-***Note: these fixtures are broken now. Will be fixed,
-but in the meantime, get a test database from somebody.***
+(Note: these fixtures are broken now. Will be fixed, but in the meantime, get a test database from somebody.) ::
+
     ./manage.py loaddata ./fixtures/starters.json
     ./manage.py loaddata ./fixtures/help.json
-***
+
     ./manage.py test valuenetwork.valueaccounting.tests
     ./manage.py runserver
 

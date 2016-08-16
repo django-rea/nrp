@@ -112,7 +112,7 @@
                             {% endif %}
                         </td>
                         {% if resource.digital_currency_address %}
-                            <td>{{ event.event_reference }}</td>
+                            <td>{{ event.to_faircoin_address }}</td>
                             <td>{{ event.transaction_state }}</td>
                             <td>
                             {% if event.digital_currency_tx_hash %}

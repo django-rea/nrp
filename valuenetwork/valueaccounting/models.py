@@ -10265,6 +10265,16 @@ class EconomicEvent(models.Model):
             self.save()
         return state
         
+    def to_faircoin_address(self):
+        if self.resource.is_digital_currency_resource():
+            event_reference = self.event_reference
+            if event_reference:
+                answer = event_reference
+                to_resources = EconomicResource.objects.filter(digital_currency_address=event_reference)
+                if to_resources:
+                    answer = to_resources[0].identifier
+        return answer
+        
     def seniority(self):
         return (datetime.date.today() - self.event_date).days
         

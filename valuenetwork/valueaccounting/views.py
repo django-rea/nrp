@@ -233,8 +233,10 @@ def projects(request):
                     aat.assoc_count = node.associate_count_of_type(aat.identifier)
                     assoc_list = node.all_has_associates_by_type(aat.identifier)
                     for assoc in assoc_list:
-                        association = AgentAssociation.objects.get(is_associate=assoc, has_associate=node, association_type=aat)
-                        assoc.state = association.get_state_display()
+                        associations = AgentAssociation.objects.filter(is_associate=assoc, has_associate=node, association_type=aat)
+                        if associations:
+                            association = associations[0]
+                            assoc.state = association.get_state_display()
                     aat.assoc_list = assoc_list
                     aats.append(aat)
             node.aats = aats

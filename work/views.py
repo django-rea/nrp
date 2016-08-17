@@ -1491,7 +1491,7 @@ def your_projects(request):
     #import pdb; pdb.set_trace()
     agent = get_agent(request)
     projects = agent.related_contexts()
-    next = "/work/projects/"
+    next = "/work/your-projects/"
     allowed = False
     if agent:
         if agent.is_active_freedom_coop_member or request.user.is_staff:
@@ -1499,8 +1499,8 @@ def your_projects(request):
     if not allowed:
         return render_to_response('valueaccounting/no_permission.html')
 
-    return render_to_response("work/projects.html", {
-        "help": get_help("projects"),
+    return render_to_response("work/your_projects.html", {
+        "help": get_help("your_projects"),
         "agent": agent,
         "projects": projects,
     }, context_instance=RequestContext(request))

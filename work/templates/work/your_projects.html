@@ -93,7 +93,7 @@
                 {% for manager in node.managers %}
                   {% if manager.id = agent.id %}
                     <h3>
-                      {% trans "Your managed projects:" %}
+                      {% trans "Projects coordinated by you:" %}
                     </h3>
                     <ul id="manager-projects">
                      <li><h4><b><a href="{{ node.get_absolute_url }}">{{ node.name }}</a></b></h4>
@@ -190,7 +190,7 @@
             {% endif %}
             {% endfor %}
           <h3>
-            {% trans "Your projects:" %}
+            {% trans "Projects where you participate:" %}
           </h3>
           <ul id="member-projects">
             <li><b>

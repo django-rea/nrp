@@ -77,6 +77,7 @@ LOGIN_EXEMPT_URLS = (
     r'^account/password_reset_sent/',
     r'^captcha/image/',
     r'^i18n/',
+    r'^robots.txt$',
 ) 
 
 

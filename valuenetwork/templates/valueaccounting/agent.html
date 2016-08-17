@@ -367,6 +367,7 @@ legend {
                             <h4>{{ assoc.association_type.inverse_label }}: </h4>
                         {% endifchanged %}   
                         <li><a href="{{ assoc.is_associate.get_absolute_url }}">{{ assoc.is_associate.name }}</a> 
+                            {% if assoc.state == "potential" %} ({{ assoc.get_state_display }}) {% endif %}
                             {% with assoc.is_associate.membership_request_id as id %}
                                 {% if id %}
                                     &nbsp;

@@ -295,8 +295,9 @@ def share_payment(request, agent_id):
         
         #import pdb; pdb.set_trace()
         aa = agent.candidate_association()
-        aa.state = "active"
-        aa.save()
+        if aa:
+            aa.state = "active"
+            aa.save()
         
         association_type = AgentAssociationType.objects.get(name="Member")
         fc_aa = AgentAssociation(

@@ -587,10 +587,15 @@ class EconomicAgent(models.Model):
         
     def number_of_shares(self):
         if self.agent_type.party_type == "individual":
-            return 1
+            shares = 1
         else:
-            return 2
-            
+            shares = 2
+        req = self.membership_request()
+        if req:
+            req_shares = req.number_of_shares
+            shares = req_shares if req_shares>shares else shares
+        return shares
+
     def owns(self, resource):
         if self in resource.owners():
             return True

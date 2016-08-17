@@ -220,6 +220,10 @@ CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 
 BROADCAST_FAIRCOINS_LOCK_WAIT_TIMEOUT = None
+#id of the group to send payments to
+#NOTE: this is now the ID of the Membership Requests group in testocp
+#The ID in prod ocp is different.
+SEND_MEMBERSHIP_PAYMENT_TO = "FC_MembershipRequests"
 
 import re
 IGNORABLE_404_URLS = (

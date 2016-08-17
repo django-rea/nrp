@@ -132,6 +132,7 @@ def profile(request):
     is_associated_with = agent.all_is_associates()
     faircoin_account = agent.faircoin_resource()
     balance = faircoin_account.digital_currency_balance()
+    #balance = 2
     candidate_membership = agent.candidate_membership()
     share = EconomicResourceType.objects.membership_share()
     share_price = share.price_per_unit
@@ -166,29 +167,31 @@ def share_payment(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     agent_account = agent.faircoin_resource()
     balance = agent_account.digital_currency_balance()
+    #balance = 2
     candidate_membership = agent.candidate_membership()
     share = EconomicResourceType.objects.membership_share()
     share_price = share.price_per_unit
     number_of_shares = agent.number_of_shares()
     share_price = share_price * number_of_shares
     
-    
     if share_price <= balance:
-        fc = EconomicAgent.objects.freedom_coop()
-        fc_account = fc.faircoin_resource()
+        pay_to_id = settings.SEND_MEMBERSHIP_PAYMENT_TO
+        pay_to_agent = EconomicAgent.objects.get(nick=pay_to_id)
+        pay_to_account = pay_to_agent.faircoin_resource()
         quantity = Decimal(share_price)
         address_origin = agent_account.digital_currency_address
-        address_end = fc_account.digital_currency_address
+        address_end = pay_to_account.digital_currency_address
         xt = ExchangeType.objects.membership_share_exchange_type()
         tts = xt.transfer_types.all()
         tt_share = tts.get(name__contains="Share")
         tt_fee = tts.get(name__contains="Fee")
         from_agent = agent
-        to_resource = fc_account
-        to_agent = fc
+        to_resource = pay_to_account
+        to_agent = pay_to_agent
         et_give = EventType.objects.get(name="Give")
         et_receive = EventType.objects.get(name="Receive")
         date = datetime.date.today()
+        fc = EconomicAgent.objects.freedom_coop()
         
         exchange = Exchange(
             exchange_type=xt,

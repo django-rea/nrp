@@ -1040,7 +1040,8 @@ class TodoForm(forms.ModelForm):
     from_agent = forms.ModelChoiceField(
         required=False,
         #queryset=EconomicAgent.objects.individuals(),
-        queryset=EconomicAgent.objects.with_user(),
+        #queryset=EconomicAgent.objects.with_user(),
+        queryset=None,
         label="Assigned to",  
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
@@ -1068,6 +1069,7 @@ class TodoForm(forms.ModelForm):
     def __init__(self, pattern=None, agent=None, *args, **kwargs):
         super(TodoForm, self).__init__(*args, **kwargs)
         #import pdb; pdb.set_trace()    
+        self.fields["from_agent"].queryset = EconomicAgent.objects.with_user()
         if pattern:
             self.pattern = pattern
             self.fields["resource_type"].choices = [(rt.id, rt) for rt in pattern.todo_resource_types()]

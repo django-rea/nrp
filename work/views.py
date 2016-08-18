@@ -1486,10 +1486,12 @@ def work_delete_event(request, event_id):
     return HttpResponseRedirect('/%s/'
         % ('work/my-history'))
 
+# bum2
 @login_required
 def your_projects(request):
     #import pdb; pdb.set_trace()
     agent = get_agent(request)
+    agent_form = AgentCreateForm()
     projects = agent.related_contexts()
     next = "/work/your-projects/"
     allowed = False
@@ -1499,8 +1501,150 @@ def your_projects(request):
     if not allowed:
         return render_to_response('valueaccounting/no_permission.html')
 
+    roots = [p for p in projects if not p.is_root()] # if p.is_root()
+
+    for root in roots:
+        root.nodes = root.child_tree()
+        annotate_tree_properties(root.nodes)
+        #import pdb; pdb.set_trace()
+        for node in root.nodes:
+            aats = []
+            for aat in node.agent_association_types():
+                if aat.association_behavior != "child":
+                    aat.assoc_count = node.associate_count_of_type(aat.identifier)
+                    assoc_list = node.all_has_associates_by_type(aat.identifier)
+                    for assoc in assoc_list:
+                        association = AgentAssociation.objects.get(is_associate=assoc, has_associate=node, association_type=aat)#
+                        assoc.state = association.state
+                    aat.assoc_list = assoc_list
+                    aats.append(aat)
+            node.aats = aats
+
     return render_to_response("work/your_projects.html", {
+        "roots": roots,
         "help": get_help("your_projects"),
         "agent": agent,
-        "projects": projects,
+        "agent_form": agent_form,
+        #"projects": projects,
+    }, context_instance=RequestContext(request))
+
+# bum2
+@login_required
+def members_agent(request, agent_id):
+    #import pdb; pdb.set_trace()
+    agent = get_object_or_404(EconomicAgent, id=agent_id)
+    user_agent = get_agent(request)
+    user_is_agent = False
+    if agent == user_agent:
+        user_is_agent = True
+    change_form = AgentCreateForm(instance=agent)
+    nav_form = InternalExchangeNavForm(data=request.POST or None)
+    if agent:
+        if request.method == "POST":
+            #import pdb; pdb.set_trace()
+            if nav_form.is_valid():
+                data = nav_form.cleaned_data
+                ext = data["exchange_type"]
+            return HttpResponseRedirect('/%s/%s/%s/%s/'
+                % ('work/exchange', ext.id, 0, agent.id))
+    user_form = None
+
+    if not agent.username():
+        init = {"username": agent.nick,}
+        user_form = UserCreationForm(initial=init)
+    has_associations = agent.all_has_associates()
+    is_associated_with = agent.all_is_associates()
+
+    headings = []
+    member_hours_recent = []
+    member_hours_stats = []
+    individual_stats = []
+    member_hours_roles = []
+    roles_height = 400
+
+    membership_request = agent.membership_request()
+
+    if agent.is_individual():
+        contributions = agent.given_events.filter(is_contribution=True)
+        agents_stats = {}
+        for ce in contributions:
+            agents_stats.setdefault(ce.resource_type, Decimal("0"))
+            agents_stats[ce.resource_type] += ce.quantity
+        for key, value in agents_stats.items():
+            individual_stats.append((key, value))
+        individual_stats.sort(lambda x, y: cmp(y[1], x[1]))
+
+    elif agent.is_context_agent():
+
+        subs = agent.with_all_sub_agents()
+        end = datetime.date.today()
+        #end = end - datetime.timedelta(days=77)
+        start =  end - datetime.timedelta(days=60)
+        events = EconomicEvent.objects.filter(
+            event_type__relationship="work",
+            context_agent__in=subs,
+            event_date__range=(start, end))
+
+        if events:
+            agents_stats = {}
+            for event in events:
+                agents_stats.setdefault(event.from_agent.name, Decimal("0"))
+                agents_stats[event.from_agent.name] += event.quantity
+            for key, value in agents_stats.items():
+                member_hours_recent.append((key, value))
+            member_hours_recent.sort(lambda x, y: cmp(y[1], x[1]))
+
+        #import pdb; pdb.set_trace()
+
+        ces = CachedEventSummary.objects.filter(
+            event_type__relationship="work",
+            context_agent__in=subs)
+
+        if ces.count():
+            agents_stats = {}
+            for ce in ces:
+                agents_stats.setdefault(ce.agent.name, Decimal("0"))
+                agents_stats[ce.agent.name] += ce.quantity
+            for key, value in agents_stats.items():
+                member_hours_stats.append((key, value))
+            member_hours_stats.sort(lambda x, y: cmp(y[1], x[1]))
+
+            agents_roles = {}
+            roles = [ce.quantity_label() for ce in ces]
+            roles = list(set(roles))
+            for ce in ces:
+                if ce.quantity:
+                    name = ce.agent.name
+                    row = [name, ]
+                    for i in range(0, len(roles)):
+                        row.append(Decimal("0.0"))
+                        key = ce.agent.name
+                    agents_roles.setdefault(key, row)
+                    idx = roles.index(ce.quantity_label()) + 1
+                    agents_roles[key][idx] += ce.quantity
+            headings = ["Member",]
+            headings.extend(roles)
+            for row in agents_roles.values():
+                member_hours_roles.append(row)
+            member_hours_roles.sort(lambda x, y: cmp(x[0], y[0]))
+            roles_height = len(member_hours_roles) * 20
+
+    return render_to_response("work/members_agent.html", {
+        "agent": agent,
+        "membership_request": membership_request,
+        "photo_size": (128, 128),
+        "change_form": change_form,
+        "user_form": user_form,
+        "nav_form": nav_form,
+        "user_agent": user_agent,
+        "user_is_agent": user_is_agent,
+        "has_associations": has_associations,
+        "is_associated_with": is_associated_with,
+        "headings": headings,
+        "member_hours_recent": member_hours_recent,
+        "member_hours_stats": member_hours_stats,
+        "member_hours_roles": member_hours_roles,
+        "individual_stats": individual_stats,
+        "roles_height": roles_height,
+        "help": get_help("agent"),
     }, context_instance=RequestContext(request))

@@ -3,7 +3,7 @@
 {% load i18n %}
 {% load bootstrap_tags %}
 
-{% block head_title %}{% trans "Projects" %}{% endblock %}
+{% block head_title %}{% trans "Your Projects" %}{% endblock %}
 
 {% block extra_head %}
 
@@ -47,7 +47,7 @@
 	    <legend>
 	        {% trans "Your Projects" %}
 
-	        {% if agent %}
+	        {% if agent and user.is_staff %}
                 &nbsp;&nbsp;&nbsp;
                 <a href="#create-agent" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Create New Agent" %}</a>
 
@@ -85,150 +85,123 @@
 
         </legend>
 
-
-        {% if projects %}
-          {% for node in projects %}
+      {% if roots %}
+        {% for root in roots %}
+          {% for node in root.nodes %}
             {% if not node.name = 'Freedom Coop' %}
-              {% if node.managers %}
-                {% for manager in node.managers %}
-                  {% if manager.id = agent.id %}
-                    <h3>
-                      {% trans "Projects coordinated by you:" %}
-                    </h3>
-                    <ul id="manager-projects">
-                     <li><h4><b><a href="{{ node.get_absolute_url }}">{{ node.name }}</a></b></h4>
-                      <a class="indent" href="{% url "contributions" project_id=node.id %}">{% trans "Contributions" %}: {{ node.contributions_count }}</a>
-                      {% if node.wip %}
-                        <a class="indent" href="{% url "project_wip" project_id=node.id %}">{% trans "Work in process" %}: {{ node.wip.count }}</a>
-                      {% endif %}
-                      {% if node.supply_exchange_count > 0 %}
-                        <a class="indent" href="{% url "exchanges" agent_id=node.id %}">{% trans "Incoming Exchanges" %}: {{ node.supply_exchange_count }}</a>
-                      {% endif %}
-                      {% if node.demand_exchange_count > 0 %}
-                        <a class="indent" href="{% url "demand_exchanges" agent_id=node.id %}">{% trans "Outgoing Exchanges" %}: {{ node.demand_exchange_count }}</a>
-                      {% endif %}
-                      {% if node.internal_exchange_count > 0 %}
-                        <a class="indent" href="{% url "internal_exchanges" agent_id=node.id %}">{% trans "Internal Exchanges" %}: {{ node.internal_exchange_count }}</a>
-                      {% endif %}
-                      {% if node.distributions_count > 0 %}
-                        <a class="indent" href="{% url "distributions" agent_id=node.id %}">{% trans "Distributions" %}: {{ node.distributions_count }}</a>
-                      {% endif %}
-                      {% if node.description %}
-                        <div class="description" >{{ node.description|urlize|linebreaks }}</div>
-                      {% endif %}
-                      {% for aat in node.aats %}
-                        {% if aat.identifier != "child" %}
-                            <div class="assoc_group"> {{ aat.plural_name }}: {{ aat.assoc_count }}
-                                <span class="showhide" id="sh-{{ node.id }}{{ aat.id }}" >(Show)</span>
-                            </div>
-                            <div class="list" id="list-{{ node.id }}{{ aat.id }}" >
-                                <ul>
-                                    {% for assoc in aat.assoc_list %}
-                                        <li class="indent"><a href="{{ assoc.get_absolute_url }}">{{ assoc.name }} </a>
-                                        {% if assoc.state == "candidate" %} (candidate) {% endif%} </li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                        {% endif%}
-                      {% endfor %}
-
-                      {% if node.members %}
-                        <ul>
-                        {% for agent in node.managers %}
-                          <li><b><a href="{{ agent.get_absolute_url }}">{{ agent.name }}</a></b> (coordinator)
-                            <a class="indent" href="{% url "contributions" project_id=agent.id %}">{% trans "Contributions" %}: {{ agent.contributions_count }}</a>
-                            {% if agent.wip %}
-                              <a class="indent" href="{% url "project_wip" project_id=agent.id %}">{% trans "Work in process" %}: {{ agent.wip.count }}</a>
-                            {% endif %}
-                            {% if agent.supply_exchange_count > 0 %}
-                              <a class="indent" href="{% url "exchanges" agent_id=agent.id %}">{% trans "Incoming Exchanges" %}: {{ agent.supply_exchange_count }}</a>
-                            {% endif %}
-                            {% if agent.demand_exchange_count > 0 %}
-                              <a class="indent" href="{% url "demand_exchanges" agent_id=agent.id %}">{% trans "Outgoing Exchanges" %}: {{ agent.demand_exchange_count }}</a>
-                            {% endif %}
-                            {% if agent.internal_exchange_count > 0 %}
-                              <a class="indent" href="{% url "internal_exchanges" agent_id=agent.id %}">{% trans "Internal Exchanges" %}: {{ agent.internal_exchange_count }}</a>
-                            {% endif %}
-                            {% if agent.distributions_count > 0 %}
-                              <a class="indent" href="{% url "distributions" agent_id=agent.id %}">{% trans "Distributions" %}: {{ agent.distributions_count }}</a>
-                            {% endif %}
-                            {% if agent.description %}
-                              <div class="description" >{{ agent.description|urlize|linebreaks }}</div>
-                            {% endif %}
-                          </li>
-                        {% endfor %}
-                        {% for agent in node.members %}
-                        <li><b><a href="{{ agent.get_absolute_url }}">{{ agent.name }}</a></b>
-                            <a class="indent" href="{% url "contributions" project_id=agent.id %}">{% trans "Contributions" %}: {{ agent.contributions_count }}</a>
-                            {% if agent.wip %}
-                              <a class="indent" href="{% url "project_wip" project_id=agent.id %}">{% trans "Work in process" %}: {{ agent.wip.count }}</a>
-                            {% endif %}
-                            {% if agent.supply_exchange_count > 0 %}
-                              <a class="indent" href="{% url "exchanges" agent_id=agent.id %}">{% trans "Incoming Exchanges" %}: {{ agent.supply_exchange_count }}</a>
-                            {% endif %}
-                            {% if agent.demand_exchange_count > 0 %}
-                              <a class="indent" href="{% url "demand_exchanges" agent_id=agent.id %}">{% trans "Outgoing Exchanges" %}: {{ agent.demand_exchange_count }}</a>
-                            {% endif %}
-                            {% if agent.internal_exchange_count > 0 %}
-                              <a class="indent" href="{% url "internal_exchanges" agent_id=agent.id %}">{% trans "Internal Exchanges" %}: {{ agent.internal_exchange_count }}</a>
-                            {% endif %}
-                            {% if agent.distributions_count > 0 %}
-                              <a class="indent" href="{% url "distributions" agent_id=agent.id %}">{% trans "Distributions" %}: {{ agent.distributions_count }}</a>
-                            {% endif %}
-                            {% if agent.description %}
-                              <div class="description" >{{ agent.description|urlize|linebreaks }}</div>
-                            {% endif %}
-                          </li>
-                        {% endfor %}
-                      </ul>
+              {% if agent in node.managers %}
+                <h3>
+                  {% trans "Project coordinated by you:" %}
+                </h3>
+                <ul class="managed-project">
+                  <li><h4><b><a href="../agent/{{ node.id }}">{{ node.name }}</a></b></h4>
+                    <a class="indent" href="{% url "contributions" project_id=node.id %}">{% trans "Contributions" %}: {{ node.contributions_count }}</a>
+                    {% if node.wip %}
+                    <a class="indent" href="{% url "project_wip" project_id=node.id %}">{% trans "Work in process" %}: {{ node.wip.count }}</a>
                     {% endif %}
+                    {% if node.supply_exchange_count > 0 %}
+                    <a class="indent" href="{% url "exchanges" agent_id=node.id %}">{% trans "Incoming Exchanges" %}: {{ node.supply_exchange_count }}</a>
+                    {% endif %}
+                    {% if node.demand_exchange_count > 0 %}
+                    <a class="indent" href="{% url "demand_exchanges" agent_id=node.id %}">{% trans "Outgoing Exchanges" %}: {{ node.demand_exchange_count }}</a>
+                    {% endif %}
+                    {% if node.internal_exchange_count > 0 %}
+                    <a class="indent" href="{% url "internal_exchanges" agent_id=node.id %}">{% trans "Internal Exchanges" %}: {{ node.internal_exchange_count }}</a>
+                    {% endif %}
+                    {% if node.distributions_count > 0 %}
+                    <a class="indent" href="{% url "distributions" agent_id=node.id %}">{% trans "Distributions" %}: {{ node.distributions_count }}</a>
+                    {% endif %}
+                    {% if node.description %}
+                    <div class="description" >{{ node.description|urlize|linebreaks }}</div>
+                    {% endif %}
+                    {% for aat in node.aats %}
+                      {% if aat.identifier != "child" %}
+                        <div class="assoc_group"> {{ aat.plural_name }}: {{ aat.assoc_count }}
+                          <span class="showhide" id="sh-{{ node.id }}{{ aat.id }}" >(Show)</span>
+                        </div>
+                        <div class="list" id="list-{{ node.id }}{{ aat.id }}" >
+                          <ul>
+                            {% for assoc in aat.assoc_list %}
+                            <li class="indent">
+                              <b><a href="../agent/{{ assoc.id }}">{{ assoc.name }}</a>: </b>
+                              {% if assoc.state == "candidate" %} (candidate) {% endif%}
+                              <a class="indent" href="{% url "contributions" project_id=assoc.id %}">{% trans "Contributions" %}: {{ assoc.contributions_count }}</a>
+                              {% if assoc.wip %}
+                              <a class="indent" href="{% url "project_wip" project_id=assoc.id %}">{% trans "Work in process" %}: {{ assoc.wip.count }}</a>
+                              {% endif %}
+                              {% if assoc.supply_exchange_count > 0 %}
+                              <a class="indent" href="{% url "exchanges" agent_id=assoc.id %}">{% trans "Incoming Exchanges" %}: {{ assoc.supply_exchange_count }}</a>
+                              {% endif %}
+                              {% if assoc.demand_exchange_count > 0 %}
+                              <a class="indent" href="{% url "demand_exchanges" agent_id=assoc.id %}">{% trans "Outgoing Exchanges" %}: {{ assoc.demand_exchange_count }}</a>
+                              {% endif %}
+                              {% if assoc.internal_exchange_count > 0 %}
+                              <a class="indent" href="{% url "internal_exchanges" agent_id=assoc.id %}">{% trans "Internal Exchanges" %}: {{ assoc.internal_exchange_count }}</a>
+                              {% endif %}
+                              {% if assoc.distributions_count > 0 %}
+                              <a class="indent" href="{% url "distributions" agent_id=assoc.id %}">{% trans "Distributions" %}: {{ assoc.distributions_count }}</a>
+                              {% endif %}
+                              {% if assoc.description %}
+                              <div class="description" >{{ assoc.description|urlize|linebreaks }}</div>
+                              {% endif %}
+                            </li>
+                            {% endfor %}
+                          </ul>
+                        </div>
+                      {% endif %}
+                    {% endfor %}
                    </li>
                   </ul>
-                  {% endif %}
-                {% endfor %}
               {% endif %}
-            {% endif %}
-            {% endfor %}
-          <h3>
-            {% trans "Projects where you participate:" %}
-          </h3>
-          <ul id="member-projects">
-            <li><b>
-            {% with request.user.agent.agent.membership_request.id as id %}
-              {% if id %}
-                <a href="{% url 'membership_discussion' membership_request_id=id %}"
-                   title="{% trans 'Membership feedback' %}">{% trans "Freedom Coop's active member" %}</a>
-              {% else %}
-                {% trans "Freedom Coop's active member" %}
-              {% endif %}
-            {% endwith %}
-            </b></li>
-            {% for node in projects %}
-             {% if not node.name = 'Freedom Coop' and not agent in node.managers %}
-            <li><b><a href="{{ node.get_absolute_url }}">{{ node.name }}</a></b>
-              {% if node.description %}
-                <div class="description" >{{ node.description|urlize|linebreaks }}</div>
-              {% endif %}
-              {% for aat in node.aats %}
-                {% if aat.identifier != "child" %}
-                <div class="assoc_group"> {{ aat.plural_name }}: {{ aat.assoc_count }}
-                  <span class="showhide" id="sh-{{ node.id }}{{ aat.id }}" >(Show)</span>
-                </div>
-                <div class="list" id="list-{{ node.id }}{{ aat.id }}" >
-                  <ul>
-                    {% for assoc in aat.assoc_list %}
-                    <li class="indent"><a href="{{ assoc.get_absolute_url }}">{{ assoc.name }} </a>
-                      {% if assoc.state == "potential" %} (potential) {% endif%} </li>
-                    {% endfor %}
-                  </ul>
-                </div>
-                {% endif%}
-              {% endfor %}
-              </li>
             {% endif %}
           {% endfor %}
-          </ul>
-        {% endif %}
+        {% endfor %}
+
+      <p>  &nbsp; </p>
+
+      <h3>
+        {% trans "Projects where you participate:" %}
+      </h3>
+      <ul id="member-projects">
+        <li><b>
+          {% with request.user.agent.agent.membership_request.id as id %}
+          {% if id %}
+          <a href="{% url 'membership_discussion' membership_request_id=id %}"
+             title="{% trans 'Membership feedback' %}">{% trans "Freedom Coop's active member" %}</a>
+          {% else %}
+          {% trans "Freedom Coop's active member" %}
+          {% endif %}
+          {% endwith %}
+          </b></li>
+
+        {% for root in roots %}
+          {% for node in root.nodes %}
+            {% if not node.name = 'Freedom Coop' and not agent in node.managers and agent in node.members %}
+            <li><b><a href="../agent/{{ node.id }}">{{ node.name }}</a></b>
+              {% if node.description %}
+              <div class="description" >{{ node.description|urlize|linebreaks }}</div>
+              {% endif %}
+              {% for aat in node.aats %}
+              {% if aat.identifier != "child" %}
+              <div class="assoc_group"> {{ aat.plural_name }}: {{ aat.assoc_count }}
+                <span class="showhide" id="sh-{{ node.id }}{{ aat.id }}" >(Show)</span>
+              </div>
+              <div class="list" id="list-{{ node.id }}{{ aat.id }}" >
+                <ul>
+                  {% for assoc in aat.assoc_list %}
+                  <li class="indent"><a href="../agent/{{ assoc.id }}">{{ assoc.name }}</a>
+                    {% if assoc.state == "potential" %} (potential) {% endif%} </li>
+                  {% endfor %}
+                </ul>
+              </div>
+              {% endif%}
+              {% endfor %}
+            </li>
+            {% endif %}
+          {% endfor %}
+        {% endfor %}
+      </ul>
+      {% endif %}
 
   	</div>
 </div>

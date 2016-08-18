@@ -41,5 +41,7 @@ urlpatterns = patterns("",
         name="work_commit_to_task"),
     url(r"^work-delete-event/(?P<event_id>\d+)/$", 'work.views.work_delete_event',
         name="work_delete_event"),
+    # bum2
     url(r"^your-projects/$", 'work.views.your_projects', name="your_projects"),
+    url(r"^agent/(?P<agent_id>\d+)/$", 'work.views.members_agent', name="members_agent"),
 )

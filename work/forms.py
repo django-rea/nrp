@@ -78,11 +78,8 @@ class WorkTodoForm(forms.ModelForm):
         from_agent_choices = [('', 'Unassigned'), (agent.id, agent),]
         #import pdb; pdb.set_trace()
         for context in contexts:
-            associations = agent.is_associate_of.filter(has_associate=context)
-            if associations:
-                association = associations[0]
-                if association.association_type.association_behavior == "manager":
-                    peeps.extend(context.task_assignment_candidates())
+            if agent.is_manager_of(context):
+                peeps.extend(context.task_assignment_candidates())
         if len(peeps) > 1:
             peeps = list(OrderedDict.fromkeys(peeps))
         from_agent_choices = [('', 'Unassigned')] + [(peep.id, peep) for peep in peeps]

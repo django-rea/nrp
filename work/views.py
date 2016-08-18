@@ -807,7 +807,7 @@ def manage_faircoin_account(request, resource_id):
     if agent:
         if agent.owns(resource):
             send_coins_form = SendFairCoinsForm()
-            from valuenetwork.valueaccounting.faircoin_utils import network_fee
+            #from valuenetwork.valueaccounting.faircoin_utils import network_fee
             limit = resource.spending_limit()
     return render_to_response("work/faircoin_account.html", {
         "resource": resource,
@@ -1121,7 +1121,7 @@ def membership_request(request):
             description = "Create an Agent and User for the Membership Request from "
             description += name
             membership_url= get_url_starter() + "/accounting/membership-request/" + str(mbr_req.id) + "/"
-            context_agent=EconomicAgent.objects.get(nick="Freedom Coop")
+            context_agent=EconomicAgent.objects.get(name__icontains="Membership Request")
             resource_types = EconomicResourceType.objects.filter(behavior="work")
             rts = resource_types.filter(
                 Q(name__icontains="Admin")|

@@ -10,34 +10,37 @@
             </a>
             <ul class="dropdown-menu">
                 {% if user.is_staff or user.is_superuser %}
-                    <li><a href="{% url "start" %}"><i class="icon-wrench"></i> {% trans 'Coop Node App' %}</a></li>
+                    <li><a href="{% url "start" %}"><i class="icon-wrench"></i> {% trans 'Coop Admin App' %}</a></li>
                     <li class="divider"></li>
                 {% endif %}
-
-                {% if request.user.agent.agent.is_active_freedom_coop_member %}
-                  <li id="my-profile" >
-                      <a href="{% url 'profile' %}"
-                      title="{% trans 'My personal information and skills' %}"
-                      ><i class="icon-user"></i> {% trans 'Your Profile' %}</a>
-                  </li>
-                  {% if request.user.agent.agent.faircoin_resource %}
+		
+		{% if request.user.agent.agent.faircoin_resource %}
                     <li id="my-wallet" >
                       <a href="{% url "manage_faircoin_account" resource_id=request.user.agent.agent.faircoin_resource.id %}"
-                      title="{% trans 'My personal faircoin wallet' %}"
-                      ><i class="icon-tasks"></i> {% trans 'Your Wallet' %}</a>
+                      title="{% trans 'Your personal faircoin wallet in OCP' %}"
+                      ><i class="icon-tasks"></i> {% trans 'Wallet' %}</a>
                     </li>
-                  {% endif %}
-                  {% with request.user.agent.agent.membership_request.id as id %}
-                    {% if id %}
+                {% endif %}
+
+                
+                <li id="my-profile" >
+                      <a href="{% url 'profile' %}"
+                      title="{% trans 'Your profile information and skills' %}"
+                      ><i class="icon-user"></i> {% trans 'Profile' %}</a>
+                </li>
+
+		<li><a href="{% url "work_account_settings" %}"><i class="icon-cog"></i> {% trans "Settings" %}</a></li>
+
+                {% with request.user.agent.agent.membership_request.id as id %}
+                   {% if id %}
                       <li id="membership" >
                         <a href="{% url 'membership_discussion' membership_request_id=id %}"
-                        title="{% trans 'Membership process' %}"
+                        title="{% trans 'Your membership process' %}"
                         ><i class="icon-time"></i> {% trans 'Membership' %}</a>
                       </li>
-                    {% endif %}
-                  {% endwith %}
-                {% endif %}
-                <li><a href="{% url "work_account_settings" %}"><i class="icon-cog"></i> {% trans "Settings" %}</a></li>
+                   {% endif %}
+                {% endwith %}
+
                 <li class="divider"></li>
                 <li><a href="{% url "account_logout" %}?next={% firstof request.path '/' %}"><i class="icon-off"></i> {% trans 'Log Out' %}</a></li>
             </ul>

@@ -88,14 +88,16 @@
                       </ul>
                     </li>
                     {% endif %}
-						        <li id="my-tasks" class="dropdown">
-						          <a href="#" class="dropdown-toggle" data-toggle="dropdown">{% trans 'Tasks' %} <b class="caret"></b></a>
-						          <ul class="subnav dropdown-menu" id="tasks-menu">
-						            <li id="project-work" >
+		    <li id="my-tasks" class="dropdown">
+		      <a href="#" class="dropdown-toggle" data-toggle="dropdown">{% trans 'Tasks' %} <b class="caret"></b></a>
+		      <ul class="subnav dropdown-menu" id="tasks-menu">
+			{% if request.user.agent.agent.is_active_freedom_coop_member %}
+	                <li id="project-work" >
                           <a href="{% url 'project_work' %}"
                           title="{% trans 'List of related tasks' %}"
                           >{% trans 'Your tasks' %}</a>
                         </li>
+			{% endif %}
                         <li id="my-dashboard" >
                           <a href="{% url 'my_dashboard' %}"
                           title="{% trans 'Take new tasks for your skills' %}"
@@ -116,18 +118,26 @@
                           title="{% trans 'Your work history with payments' %}"
                           >{% trans 'Tasks history' %}</a>
                         </li>
-						          </ul>
-						        </li>
+                      </ul>
+                    </li>
                     {% if not request.user.agent.agent.is_active_freedom_coop_member %}
-						          {% with request.user.agent.agent.membership_request.id as id %}
-                				{% if id %}
-                				<li id="membership" >
-                          <a href="{% url 'membership_discussion' membership_request_id=id %}"
-                            title="{% trans 'Membership process' %}"
-                          >{% trans 'Membership' %}</a>
-                        </li>
+                      {% with request.user.agent.agent.membership_request.id as id %}
+                        {% if id %}
+                          <li id="membership" >
+                            <a href="{% url 'membership_discussion' membership_request_id=id %}"
+                              title="{% trans 'Your membership process' %}"
+                              >{% trans 'Membership' %}</a>
+                          </li>
                         {% endif %}
                       {% endwith %}
+                      {% if request.user.agent.agent.faircoin_resource %}
+                        <li id="my-wallet" >
+                          <a href="{% url "manage_faircoin_account" resource_id=request.user.agent.agent.faircoin_resource.id %}"
+                          title="{% trans 'Your personal faircoin wallet in OCP' %}"
+                          >{% trans 'Wallet' %}</a>
+                        </li>
+                      {% endif %}
+
                     {% endif %}
 
                     {% if request.user.agent.agent.is_active_freedom_coop_member %}
@@ -136,24 +146,7 @@
                       <ul class="subnav dropdown-menu" id="tasks-menu">
 
                         <li id="legal-services" class="dropdown">
-                          <a href="#" class="disabled" >{% trans 'Legal Services' %}</a>
-                          <ul class="subnavsub">
-                            <li id="self-employment" >
-                              <a href="#" class="disabled"
-                              title="{% trans 'Self-employment invocing system' %}"
-                              >{% trans 'Invoicing' %}</a>
-                            </li>
-                            <li id="contracts" >
-                              <a href="#" class="disabled"
-                              title="{% trans 'Contracting service' %}"
-                              >{% trans 'Contracting' %}</a>
-                            </li>
-                            <li id="titularity" >
-                              <a href="#" class="disabled"
-                              title="{% trans 'Titularity service' %}"
-                              >{% trans 'Titularity' %}</a>
-                            </li>
-                          </ul>
+                          <a href="#" class="disabled" >{% trans 'Legal Tools' %}</a>
                         </li>
 
                       </ul>
@@ -170,8 +163,8 @@
                     {% if not request.user.agent.agent.is_active_freedom_coop_member %}
                     <li id="profile" >
                       <a href="{% url 'profile' %}"
-                      title="{% trans 'My personal information and skills' %}"
-                      >{% trans 'My Profile' %}</a>
+                      title="{% trans 'Your personal information and skills' %}"
+                      >{% trans 'Profile' %}</a>
                     </li>
                     {% endif %}
                   {% endif %}

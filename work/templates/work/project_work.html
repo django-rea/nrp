@@ -163,7 +163,7 @@ th, td {
         {% include "_messages.html" %}
 	    <div>
 		    <legend>
-		        {% trans "Your tasks" %}
+		        {% trans "Your project tasks" %}
 	        </legend>
 
 	        <form id="dateForm" action="." method="POST" >
@@ -340,6 +340,7 @@ th, td {
 		                </thead>
 		                <tbody>
 		                    {% for todo in todos %}
+                          {% if not todo.context_agent.name = 'Freedom Coop' %}
 		                        {% if agent and agent == todo.from_agent %}
 	                                <tr class="my-row" >
                                 {% else %}
@@ -463,7 +464,7 @@ th, td {
                                          {% endif %}
 	                                 </td>
                                 </tr>
-
+                             {% endif %}
 		                    {% endfor %}
 		                </tbody>
 		            </table>

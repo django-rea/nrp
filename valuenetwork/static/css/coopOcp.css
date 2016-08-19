@@ -83,3 +83,9 @@ textarea#id_comment {
 }
 
 
+/*   M Y   T A S K S   P A G E   */
+
+div#my_tasks, div#take-new-task {
+  width: 100%;
+  margin-left: 0;
+}

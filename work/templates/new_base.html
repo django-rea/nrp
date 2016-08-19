@@ -70,10 +70,15 @@
                           title="{% trans 'Your projects list' %}"
                           >{% trans 'Your projects' %}</a>
                         </li>
+                        <li id="project-work" >
+                          <a href="{% url 'project_work' %}"
+                          title="{% trans 'List of project related tasks' %}"
+                          >{% trans 'Your project tasks' %}</a>
+                        </li>
                         <li id="project-tasks" >
                           <a href="#" class="disabled"
                           title="{% trans 'Plan process tasks for your project' %}"
-                          >{% trans 'Plan project tasks' %}</a>
+                          >{% trans 'Plan project process' %}</a>
                         </li>
                         <li id="tutorial" >
                           <a href="#" class="disabled"
@@ -91,22 +96,16 @@
 		    <li id="my-tasks" class="dropdown">
 		      <a href="#" class="dropdown-toggle" data-toggle="dropdown">{% trans 'Tasks' %} <b class="caret"></b></a>
 		      <ul class="subnav dropdown-menu" id="tasks-menu">
-			{% if request.user.agent.agent.is_active_freedom_coop_member %}
-	                <li id="project-work" >
-                          <a href="{% url 'project_work' %}"
-                          title="{% trans 'List of related tasks' %}"
+
+                        <li id="my-dashboard" >
+                          <a href="{% url 'my_tasks' %}"
+                          title="{% trans 'Do your planned tasks' %}"
                           >{% trans 'Your tasks' %}</a>
                         </li>
-			{% endif %}
                         <li id="my-dashboard" >
-                          <a href="{% url 'my_dashboard' %}"
+                          <a href="{% url 'take_new_tasks' %}"
                           title="{% trans 'Take new tasks for your skills' %}"
                           >{% trans 'Take a new task' %}</a>
-                        </li>
-                        <li id="my-dashboard" >
-                          <a href="{% url 'my_dashboard' %}"
-                          title="{% trans 'Do your planned tasks' %}"
-                          >{% trans 'Log planned tasks' %}</a>
                         </li>
                         <li id="non-process-logging" >
                           <a href="{% url 'non_process_logging' %}"
@@ -153,13 +152,6 @@
                     </li>
                     {% endif %}
 
-                    {% if request.user.agent.agent.is_staff %}
-                    <li id="map" >
-                      <a href="{% url 'map' %}"
-                      title="{% trans 'Map of worker locations' %}"
-                      >{% trans 'Map' %}</a>
-                    </li>
-                    {% endif %}
                     {% if not request.user.agent.agent.is_active_freedom_coop_member %}
                     <li id="profile" >
                       <a href="{% url 'profile' %}"
@@ -167,6 +159,15 @@
                       >{% trans 'Profile' %}</a>
                     </li>
                     {% endif %}
+
+                    {% if request.user.agent.agent.is_staff %}
+                    <li id="map" >
+                      <a href="{% url 'map' %}"
+                      title="{% trans 'Map of worker locations' %}"
+                      >{% trans 'Map' %}</a>
+                    </li>
+                    {% endif %}
+
                   {% endif %}
                 </ul>
                 {% endblock %}

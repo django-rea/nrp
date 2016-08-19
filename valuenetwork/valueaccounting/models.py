@@ -381,6 +381,9 @@ class AgentManager(models.Manager):
         return all_agents.exclude(id__in=ua_ids)
         
     def with_user(self):
+        #better version from django-users
+        #needs testing
+        #return EconomicAgent.objects.filter(users__isnull=False).distinct() 
         all_agents = EconomicAgent.objects.all()
         ua_ids = []
         for agent in all_agents:

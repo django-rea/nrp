@@ -41,5 +41,5 @@ urlpatterns = patterns("",
         name="work_commit_to_task"),
     url(r"^work-delete-event/(?P<event_id>\d+)/$", 'work.views.work_delete_event', 
         name="work_delete_event"),
-        
+    url(r'^share-payment/(?P<agent_id>\d+)/$', 'work.views.share_payment', name="share_payment"),
 )

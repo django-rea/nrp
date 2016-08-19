@@ -4,6 +4,7 @@ from django.db.models import Q
 from django.http import HttpResponse, HttpResponseServerError, Http404, HttpResponseNotFound, HttpResponseRedirect
 from django.shortcuts import render_to_response, get_object_or_404
 from django.core.urlresolvers import reverse
+from django.contrib import messages
 from django.contrib.auth.models import User
 from django.template import RequestContext
 from django.core import serializers
@@ -129,6 +130,18 @@ def profile(request):
     upload_form = UploadAgentForm(instance=agent)
     has_associations = agent.all_has_associates()
     is_associated_with = agent.all_is_associates()
+    faircoin_account = agent.faircoin_resource()
+    balance = faircoin_account.digital_currency_balance()
+    balance = 2
+    candidate_membership = agent.candidate_membership()
+    share = EconomicResourceType.objects.membership_share()
+    share_price = share.price_per_unit
+    number_of_shares = agent.number_of_shares()
+    share_price = share_price * number_of_shares
+    payment_due = False
+    if not agent.owns_resource_of_type(share):
+        payment_due = True
+    can_pay = balance >= share_price
           
     return render_to_response("work/profile.html", {
         "agent": agent,
@@ -138,9 +151,168 @@ def profile(request):
         "skills": skills,
         "has_associations": has_associations,
         "is_associated_with": is_associated_with,
+        "faircoin_account": faircoin_account,
+        "balance": balance,
+        "payment_due": payment_due,
+        "candidate_membership": candidate_membership,
         "help": get_help("profile"),
+        "share_price": share_price,
+        "number_of_shares": number_of_shares,
+        "can_pay": can_pay,
     }, context_instance=RequestContext(request))
 
+@login_required
+def share_payment(request, agent_id):
+    #import pdb; pdb.set_trace()
+    agent = get_object_or_404(EconomicAgent, id=agent_id)
+    agent_account = agent.faircoin_resource()
+    balance = agent_account.digital_currency_balance()
+    balance = 2
+    candidate_membership = agent.candidate_membership()
+    share = EconomicResourceType.objects.membership_share()
+    share_price = share.price_per_unit
+    number_of_shares = agent.number_of_shares()
+    share_price = share_price * number_of_shares
+    
+    if share_price <= balance:
+        pay_to_id = settings.SEND_MEMBERSHIP_PAYMENT_TO
+        pay_to_agent = EconomicAgent.objects.get(nick=pay_to_id)
+        pay_to_account = pay_to_agent.faircoin_resource()
+        quantity = Decimal(share_price)
+        address_origin = agent_account.digital_currency_address
+        address_end = pay_to_account.digital_currency_address
+        xt = ExchangeType.objects.membership_share_exchange_type()
+        tts = xt.transfer_types.all()
+        tt_share = tts.get(name__contains="Share")
+        tt_fee = tts.get(name__contains="Fee")
+        from_agent = agent
+        to_resource = pay_to_account
+        to_agent = pay_to_agent
+        et_give = EventType.objects.get(name="Give")
+        et_receive = EventType.objects.get(name="Receive")
+        date = datetime.date.today()
+        fc = EconomicAgent.objects.freedom_coop()
+        
+        exchange = Exchange(
+            exchange_type=xt,
+            use_case=xt.use_case,
+            name="Transfer Faircoins",
+            start_date=date,
+            )
+        exchange.save()
+        
+        transfer_fee = Transfer(
+            transfer_type=tt_fee,
+            exchange=exchange,
+            transfer_date=date,
+            name="Transfer Faircoins",
+            )
+        transfer_fee.save()
+        
+        transfer_membership = Transfer(
+            transfer_type=tt_share,
+            exchange=exchange,
+            transfer_date=date,
+            name="Transfer Membership",
+            )
+        transfer_membership.save()
+
+        # network_fee is subtracted from quantity
+        # so quantity is correct for the giving event 
+        # but receiving event will get quantity - network_fee
+        state =  "new"
+        resource = agent_account
+        event = EconomicEvent(
+            event_type = et_give,
+            event_date = date,
+            from_agent=from_agent,
+            to_agent=to_agent,
+            resource_type=resource.resource_type,
+            resource=resource,
+            digital_currency_tx_state = state,
+            quantity = quantity, 
+            transfer=transfer_fee,
+            event_reference=address_end,
+            )
+        event.save()
+
+        from valuenetwork.valueaccounting.faircoin_utils import network_fee
+        quantity = quantity - Decimal(float(network_fee()) / 1.e6)
+        
+        event = EconomicEvent(
+            event_type = et_receive,
+            event_date = date,
+            from_agent=from_agent,
+            to_agent=to_agent,
+            resource_type=to_resource.resource_type,
+            resource=to_resource,
+            digital_currency_tx_state = state,
+            quantity = quantity, 
+            transfer=transfer_fee,
+            event_reference=address_end,
+            )
+        event.save()
+        
+        #import pdb; pdb.set_trace()
+        quantity = Decimal(number_of_shares)
+        resource = EconomicResource(
+            resource_type=share,
+            quantity=quantity,
+            identifier=" ".join([from_agent.name, share.name]),
+            )
+        resource.save()
+        
+        owner_role = AgentResourceRoleType.objects.owner_role()
+        
+        arr = AgentResourceRole(
+            agent=from_agent,
+            resource=resource,
+            role=owner_role,
+            is_contact=True,
+            )
+        arr.save()
+            
+        event = EconomicEvent(
+            event_type = et_give,
+            event_date = date,
+            from_agent=to_agent,
+            to_agent=from_agent,
+            resource_type=resource.resource_type,
+            resource=resource,
+            quantity = quantity, 
+            transfer=transfer_membership,
+            )
+        event.save()
+        
+        event = EconomicEvent(
+            event_type = et_receive,
+            event_date = date,
+            from_agent=to_agent,
+            to_agent=from_agent,
+            resource_type=resource.resource_type,
+            resource=resource,
+            quantity = quantity, 
+            transfer=transfer_membership,
+            )
+        event.save()
+        
+        #import pdb; pdb.set_trace()
+        aa = agent.candidate_association()
+        if aa.has_associate == pay_to_agent:
+            aa.delete()
+        
+        association_type = AgentAssociationType.objects.get(name="Member")
+        fc_aa = AgentAssociation(
+            is_associate=agent,
+            has_associate=fc,
+            association_type=association_type,
+            state="active",
+            )
+        fc_aa.save()
+    
+    return HttpResponseRedirect('/%s/'
+        % ('work/profile'))
+    
 @login_required
 def project_work(request):
     #import pdb; pdb.set_trace()

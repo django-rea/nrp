@@ -208,7 +208,7 @@ ACCOUNT_REQUIRED_EMAIL = False
 ACCOUNT_EMAIL_VERIFICATION = False
 ACCOUNT_EMAIL_AUTHENTICATION = False
 ACCOUNT_LOGIN_REDIRECT_URL = "/accounting/start/"
-WORKER_LOGIN_REDIRECT_URL = "/work/my-dashboard/"
+WORKER_LOGIN_REDIRECT_URL = "/work/profile/"
 WORKER_LOGOUT_REDIRECT_URL = "/work/work-home/"
 ACCOUNT_LOGOUT_REDIRECT_URL = "home"
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 2
@@ -221,9 +221,7 @@ CORS_ALLOW_CREDENTIALS = True
 
 BROADCAST_FAIRCOINS_LOCK_WAIT_TIMEOUT = None
 #id of the group to send payments to
-#NOTE: this is now the ID of the Membership Requests group in testocp
-#The ID in prod ocp is different.
-SEND_MEMBERSHIP_PAYMENT_TO = "FC_MembershipRequests"
+SEND_MEMBERSHIP_PAYMENT_TO = "FC MembershipRequest"
 
 import re
 IGNORABLE_404_URLS = (

@@ -101,9 +101,9 @@ legend {
 		<legend>
 			{{ agent.agent_type }}: <b>{{ agent.name }}</b>
         {% if user_agent.is_staff or user_agent in agent.managers %}
-            {% if agent.is_individual %}
+            <!-- {% if agent.is_individual %}
                     <a class="indent smaller" href="{% url "contribution_history" agent_id=agent.id %}">{% trans "Contributions" %}: {{ agent.contributions_count }}</a>
-                {% else %}
+            {% else %}
                     <a class="indent smaller" href="{% url "contributions" project_id=agent.id %}">{% trans "Contributions" %}: {{ agent.contributions_count }}</a>
             {% endif %}
                 {% if agent.is_context_agent %}
@@ -113,12 +113,12 @@ legend {
                 {% endif %}
             <a class="indent smaller" href="{% url "radial_graph" agent_id=agent.id %}">{% trans "Association Graph" %}</a>
             <a class="indent smaller" href="{% url "agent_associations" agent_id=agent.id %}">{% trans "Maintain Associations" %}</a>
-            <!-- <a class="indent smaller" href="{% url "agents" %}">{% trans "All Agents" %}</a> -->
+            <a class="indent smaller" href="{% url "agents" %}">{% trans "All Agents" %}</a> -->
         {% endif %}
 		</legend>
 		<div class="button-row">
 
-            {% if user_agent.is_staff or user_agent in agent.managers %}
+            {% if user_agent.is_staff %}
                 <a href="#agentChangeForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
                 {% if not agent.faircoin_address %}
                     <form
@@ -151,7 +151,7 @@ legend {
                 <a href="#createUserForm" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Create User" %}</a>
             {% endif %}
 
-            {% if agent.is_context and user_agent in agent.managers %}
+            {% if False and agent.is_context and user_agent in agent.managers %}
                 <form style="display: inline;" class="indent" id="exchangeForm" method="POST" action="">
                     {% csrf_token %}
                     Create an internal exchange in this context: <span style="vertical-align: middle;">{{ nav_form.exchange_type }}</span>
@@ -202,14 +202,14 @@ legend {
         </div>
 		<div class="row-fluid">
 
-		    <div class="span4">
+		    <div class="span4" id="agent-table-block" style="width: 48%;">
 
 	            <table class="table table-bordered" >
 	                <tr>
-                        <th style="text-align: right;">{% trans "Username" %}</th>
+                        <th style="width: 150px; text-align: right;">{% trans "Username" %}</th>
                         <td>{{ agent.nick }}</td>
                     </tr>
-                    {% if false and user_agent and agent.username %}
+                    {% if False and user_agent and agent.username %}
                         <tr>
                             <th style="text-align: right;">{% trans "Username" %}</th>
                             <td>{{ agent.username }}</td>
@@ -372,19 +372,10 @@ legend {
                     </ul>
                 {% endif %}
 
-	        </div>
+	          </div>
 
-	        <div class="span4">
 
-{% comment %}
-                <h3 class="hdg">{% trans "Virtual Account for" %} {{ agent.name }}:</h3>
-                <span id="balance">{% trans "Current balance" %}: 1750.63</span>
-                <a href="#">{% trans "Details</a><br />
-                <button class="btn btn-primary down" title="Request a payout from your virtual account" >{% trans "Request a Payout" %}</button>
-{% endcomment %}
-            </div>
-
-            {% if agent.is_individual %}
+            {% if agent.is_individual and user.is_staff %}
                 <div class="span8">
                     <h4 class="hdg"> {% trans "Cumulative Contributions" %}</h4>
                     <div id="chart_div0"></div>
@@ -392,7 +383,7 @@ legend {
             {% endif %}
 
 		      </div>
-
+        {% if user.is_staff %}
           <div class="row-fluid" tyle="margin-top:2em;">
             <div class="span6">
               <h3 class="hdg">{% trans "Resources" %}:</h3>
@@ -443,7 +434,7 @@ legend {
 
             </div>
           </div>
-
+          {% endif %}
          <div class="row-fluid" tyle="margin-bottom:2em;">
         <hr />
         <h3>{% trans "Cumulative Time" %}</h3>

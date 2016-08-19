@@ -143,7 +143,7 @@ def profile(request):
     if not agent.owns_resource_of_type(share):
         payment_due = True
     can_pay = balance >= share_price
-          
+
     return render_to_response("work/profile.html", {
         "agent": agent,
         "photo_size": (128, 128),
@@ -174,7 +174,7 @@ def share_payment(request, agent_id):
     share_price = share.price_per_unit
     number_of_shares = agent.number_of_shares()
     share_price = share_price * number_of_shares
-    
+
     if share_price <= balance:
         pay_to_id = settings.SEND_MEMBERSHIP_PAYMENT_TO
         pay_to_agent = EconomicAgent.objects.get(nick=pay_to_id)
@@ -193,7 +193,7 @@ def share_payment(request, agent_id):
         et_receive = EventType.objects.get(name="Receive")
         date = datetime.date.today()
         fc = EconomicAgent.objects.freedom_coop()
-        
+
         exchange = Exchange(
             exchange_type=xt,
             use_case=xt.use_case,
@@ -201,7 +201,7 @@ def share_payment(request, agent_id):
             start_date=date,
             )
         exchange.save()
-        
+
         transfer_fee = Transfer(
             transfer_type=tt_fee,
             exchange=exchange,
@@ -209,7 +209,7 @@ def share_payment(request, agent_id):
             name="Transfer Faircoins",
             )
         transfer_fee.save()
-        
+
         transfer_membership = Transfer(
             transfer_type=tt_share,
             exchange=exchange,
@@ -219,7 +219,7 @@ def share_payment(request, agent_id):
         transfer_membership.save()
 
         # network_fee is subtracted from quantity
-        # so quantity is correct for the giving event 
+        # so quantity is correct for the giving event
         # but receiving event will get quantity - network_fee
         state =  "new"
         resource = agent_account
@@ -231,7 +231,7 @@ def share_payment(request, agent_id):
             resource_type=resource.resource_type,
             resource=resource,
             digital_currency_tx_state = state,
-            quantity = quantity, 
+            quantity = quantity,
             transfer=transfer_fee,
             event_reference=address_end,
             )
@@ -239,7 +239,7 @@ def share_payment(request, agent_id):
 
         from valuenetwork.valueaccounting.faircoin_utils import network_fee
         quantity = quantity - Decimal(float(network_fee()) / 1.e6)
-        
+
         event = EconomicEvent(
             event_type = et_receive,
             event_date = date,
@@ -248,12 +248,12 @@ def share_payment(request, agent_id):
             resource_type=to_resource.resource_type,
             resource=to_resource,
             digital_currency_tx_state = state,
-            quantity = quantity, 
+            quantity = quantity,
             transfer=transfer_fee,
             event_reference=address_end,
             )
         event.save()
-        
+
         #import pdb; pdb.set_trace()
         quantity = Decimal(number_of_shares)
         resource = EconomicResource(
@@ -262,9 +262,9 @@ def share_payment(request, agent_id):
             identifier=" ".join([from_agent.name, share.name]),
             )
         resource.save()
-        
+
         owner_role = AgentResourceRoleType.objects.owner_role()
-        
+
         arr = AgentResourceRole(
             agent=from_agent,
             resource=resource,
@@ -272,7 +272,7 @@ def share_payment(request, agent_id):
             is_contact=True,
             )
         arr.save()
-            
+
         event = EconomicEvent(
             event_type = et_give,
             event_date = date,
@@ -280,11 +280,11 @@ def share_payment(request, agent_id):
             to_agent=from_agent,
             resource_type=resource.resource_type,
             resource=resource,
-            quantity = quantity, 
+            quantity = quantity,
             transfer=transfer_membership,
             )
         event.save()
-        
+
         event = EconomicEvent(
             event_type = et_receive,
             event_date = date,
@@ -292,17 +292,17 @@ def share_payment(request, agent_id):
             to_agent=from_agent,
             resource_type=resource.resource_type,
             resource=resource,
-            quantity = quantity, 
+            quantity = quantity,
             transfer=transfer_membership,
             )
         event.save()
-        
+
         #import pdb; pdb.set_trace()
         aa = agent.candidate_association()
         if aa:
             aa.state = "active"
             aa.save()
-        
+
         association_type = AgentAssociationType.objects.get(name="Member")
         fc_aa = AgentAssociation(
             is_associate=agent,
@@ -311,10 +311,10 @@ def share_payment(request, agent_id):
             state="active",
             )
         fc_aa.save()
-    
+
     return HttpResponseRedirect('/%s/'
         % ('work/profile'))
-    
+
 @login_required
 def project_work(request):
     #import pdb; pdb.set_trace()
@@ -1684,7 +1684,7 @@ def your_projects(request):
         for node in root.nodes:
             aats = []
             for aat in node.agent_association_types():
-                if aat.association_behavior != "child":
+                #if aat.association_behavior != "child":
                     aat.assoc_count = node.associate_count_of_type(aat.identifier)
                     assoc_list = node.all_has_associates_by_type(aat.identifier)
                     for assoc in assoc_list:
@@ -1820,5 +1820,5 @@ def members_agent(request, agent_id):
         "member_hours_roles": member_hours_roles,
         "individual_stats": individual_stats,
         "roles_height": roles_height,
-        "help": get_help("agent"),
+        "help": get_help("members_agent"),
     }, context_instance=RequestContext(request))

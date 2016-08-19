@@ -95,7 +95,7 @@
                 </h3>
                 <ul class="managed-project">
                   <li><h4><b><a href="../agent/{{ node.id }}">{{ node.name }}</a></b></h4>
-                    <a class="indent" href="{% url "contributions" project_id=node.id %}">{% trans "Contributions" %}: {{ node.contributions_count }}</a>
+                    <!-- <a class="indent" href="{% url "contributions" project_id=node.id %}">{% trans "Contributions" %}: {{ node.contributions_count }}</a>
                     {% if node.wip %}
                     <a class="indent" href="{% url "project_wip" project_id=node.id %}">{% trans "Work in process" %}: {{ node.wip.count }}</a>
                     {% endif %}
@@ -110,7 +110,7 @@
                     {% endif %}
                     {% if node.distributions_count > 0 %}
                     <a class="indent" href="{% url "distributions" agent_id=node.id %}">{% trans "Distributions" %}: {{ node.distributions_count }}</a>
-                    {% endif %}
+                    {% endif %} -->
                     {% if node.description %}
                     <div class="description" >{{ node.description|urlize|linebreaks }}</div>
                     {% endif %}
@@ -123,9 +123,9 @@
                           <ul>
                             {% for assoc in aat.assoc_list %}
                             <li class="indent">
-                              <b><a href="../agent/{{ assoc.id }}">{{ assoc.name }}</a>: </b>
+                              <b><a href="../agent/{{ assoc.id }}">{{ assoc.name }}</a> </b>
                               {% if assoc.state == "candidate" %} (candidate) {% endif%}
-                              <a class="indent" href="{% url "contributions" project_id=assoc.id %}">{% trans "Contributions" %}: {{ assoc.contributions_count }}</a>
+                              <!-- <a class="indent" href="{% url "contributions" project_id=assoc.id %}">{% trans "Contributions" %}: {{ assoc.contributions_count }}</a>
                               {% if assoc.wip %}
                               <a class="indent" href="{% url "project_wip" project_id=assoc.id %}">{% trans "Work in process" %}: {{ assoc.wip.count }}</a>
                               {% endif %}
@@ -140,7 +140,7 @@
                               {% endif %}
                               {% if assoc.distributions_count > 0 %}
                               <a class="indent" href="{% url "distributions" agent_id=assoc.id %}">{% trans "Distributions" %}: {{ assoc.distributions_count }}</a>
-                              {% endif %}
+                              {% endif %} -->
                               {% if assoc.description %}
                               <div class="description" >{{ assoc.description|urlize|linebreaks }}</div>
                               {% endif %}

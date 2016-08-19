@@ -42,9 +42,9 @@ li > h4 {
 
 /*   M E M B E R S H I P   P R O C E S S   P A G E   */
 
-#member-request-block th {
+#member-request-block th, #agent-table-block th {
 	text-align: right;
-	background-color: #f5f7f7;
+	background-color: #f3f5f5;
 }
 #member-request-block td {
 	padding: 5px 8px 4px 10px;

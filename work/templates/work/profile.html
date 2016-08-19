@@ -51,6 +51,18 @@ label {
     display: inline;
 }
 
+.share-explanation {
+    margin-bottom: 1em;
+    color: green;
+    font-weight: bold;
+    border: 2px solid green;
+    padding: 4px;
+    
+}
+.pay_for_shares {
+    margin: 2px;
+}
+
 </style>
 
 
@@ -62,14 +74,14 @@ label {
     <div class="container">
         {% include "_messages.html" %}
 
-		<legend>
-			{% trans "Profile for " %} {{ agent.name }}
+        <legend>
+            {% trans "Profile for " %} {{ agent.name }}
 
-		</legend>
+        </legend>
 
-		<div class="row-fluid">
+        <div class="row-fluid">
 
-		    <div class="span4">
+            <div class="span4">
                 <h3>{% trans "Personal Information" %}
                     {% if agent and change_form %}
                         <a href="#agentChangeForm" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Change" %}</a>
@@ -96,8 +108,8 @@ label {
                     </div>
                 {% endif %}
 
-	            <table class="table table-bordered" >
-	                <tr>
+                <table class="table table-bordered" >
+                    <tr>
                         <th style="text-align: right;">{% trans "Identifier" %}</th>
                         <td>{{ agent.nick }}</td>
                     </tr>
@@ -115,12 +127,12 @@ label {
                         <th style="text-align: right;">{% trans "Type" %}</th>
                         <td>{{ agent.agent_type.name }}</td>
                     </tr>
-                    {% if agent.faircoin_resource %}
+                    {% if faircoin_account %}
                         <tr>
                             <th style="text-align: right; vertical-align: top; ">{% trans "FairCoin account" %}</th>
                             <td>
-                                <a href="{% url "manage_faircoin_account" resource_id=agent.faircoin_resource.id %}">{% trans "Manage Account" %}</a></br>
-                                {% trans "Balance" %}: {{ agent.faircoin_resource.digital_currency_balance }}
+                                <a href="{% url "manage_faircoin_account" resource_id=faircoin_account.id %}">{% trans "Manage Account" %}</a></br>
+                                {% trans "Balance" %}: {{ balance }}
                             </td>
                         </tr>
                     {% endif %}
@@ -130,10 +142,10 @@ label {
                             <td>{{ agent.unit_of_claim_value }}</td>
                         </tr>
                     {% endif %}
-	                {% if agent.url %}
-	                    <tr>
-	                        <th style="text-align: right;">{% trans "URL" %}</th>
-	                        <td><a href="{{ agent.url }}">{% trans "Open" %}</a></td>
+                    {% if agent.url %}
+                        <tr>
+                            <th style="text-align: right;">{% trans "URL" %}</th>
+                            <td><a href="{{ agent.url }}">{% trans "Open" %}</a></td>
                         </tr>
                     {% endif %}
                     {% if agent %}
@@ -156,18 +168,18 @@ label {
                         </tr>
 
                     {% endif %}
-	                {% if agent.description %}
-	                    <tr>
-	                        <th style="text-align: right;">{% trans "More about me" %}</th>
-	                        <td>{{ agent.description|urlize|linebreaks }}</td>
+                    {% if agent.description %}
+                        <tr>
+                            <th style="text-align: right;">{% trans "More about me" %}</th>
+                            <td>{{ agent.description|urlize|linebreaks }}</td>
                         </tr>
                     {% endif %}
 
 {% comment %}
                     {% if agent.reputation %}
                         <tr>
-	                        <th style="text-align: right; vertical-align: top; ">{% trans "Reputation" %}</th>
-	                        <td>{{ agent.reputation }}</td>
+                            <th style="text-align: right; vertical-align: top; ">{% trans "Reputation" %}</th>
+                            <td>{{ agent.reputation }}</td>
                         </tr>
                     {% endif %}
                     <tr>
@@ -180,9 +192,9 @@ label {
                     </tr>
 {% endcomment %}
 
-	            </table>
+                </table>
 
-	        </div>
+            </div>
 
             <div class="span4">
                 <form class="register" name="register" enctype="multipart/form-data" action="{% url "update_skills" agent_id=agent.id %}" method="POST" >
@@ -201,6 +213,41 @@ label {
             </div>
 
             <div class="span4">
+                {% if payment_due %}
+                    <div class="share-explanation">
+                        {% trans "You are now a candidate member."  %}</br>
+                        {% trans "If you pay" %} {{ share_price }} {% trans "Fairs from your FairCoin account, "  %}</br>
+                        {% trans "you will own" %} {{ number_of_shares }} 
+                        {% if number_of_shares == 1 %}
+                            {% trans "Share" %}
+                        {% else %}
+                            {% trans "Shares" %}
+                        {% endif %}
+                        {% trans "and you will become a full member of Freedom Coop." %}
+                        
+                        {% if can_pay %}
+                            <form 
+                                class="pay_for_shares" 
+                                id="sharePaymentForm" 
+                                action="{% url "share_payment" agent_id=agent.id %}" 
+                                method="POST" >
+                                {% csrf_token %}
+                                <button style="display: inline;"  class="btn btn-primary" title="Pay for shares" >
+                                    {% trans "Pay for shares"  %}
+                                </button>
+                            </form> 
+                        {% else %}
+                            </br></br>
+                            {% blocktrans %}
+                                Your FairCoin account balance of {{ balance }} 
+                                is too low to be able to pay {{ share_price }} Fairs now.</br>
+                                If you transfer enough Fairs into your account, you can become a full member.</br>
+                            {% endblocktrans %}
+                        {% endif %}
+                    </div>
+                        
+                {% endif %}
+                
                 <h3>{% trans "Picture" %}
                     {% if agent %}
                         <a href="#uploadPicture" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Upload" %}</a>
@@ -225,6 +272,7 @@ label {
                             </form>
                         </div>
                     </div>
+                    
                 {% endif %}
 
                 {% if agent.photo %}
@@ -232,6 +280,8 @@ label {
                 {% elif agent.photo_url %}
                     <img src="{{ agent.photo_url }}" width="128" height="96" />
                 {% endif %}
+                
+                
 
                 <div class="assoc">
                     <h4 class="hdg"> {{ agent.name }} {% trans "is associated with " %}: </h4>
@@ -261,9 +311,9 @@ label {
                             <li>{{ assoc.is_associate.name }}</li>
                         {% endfor %}
                         </ul>
-                    {% endif %}
 
                 </div>
+                {% endif %}
 
             </div>
 
@@ -275,22 +325,22 @@ label {
 {% endblock %}
 
 {% block extra_script %}
-	<script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
-	<script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 {% endblock %}
 
 
 {% block extra_body %}
-	{{ block.super }}
+    {{ block.super }}
 
     <script type="text/javascript">
 
     $(document).ready(function(){
 
-		$('#projects').addClass('active');
+        $('#projects').addClass('active');
 
-		$( "#help" ).toggle( function(){
+        $( "#help" ).toggle( function(){
             $('#help-content').show("slide", { direction: "right" }, "slow" );
             $( "#help" ).text("Hide Help");
         }, function() {

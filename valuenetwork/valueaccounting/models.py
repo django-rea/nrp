@@ -427,6 +427,7 @@ class AgentManager(models.Manager):
         except EconomicAgent.DoesNotExist:
             raise ValidationError("Freedom Coop does not exist by that name")
         return fc
+        
     
 
 class EconomicAgent(models.Model):
@@ -572,30 +573,44 @@ class EconomicAgent(models.Model):
             return None
             
     def candidate_membership(self):
-        aas = self.is_associate_of.all()
-        if aas:
-            aa = aas[0]
+        aa = self.candidate_association()
+        if aa:
             if aa.state == "potential":
                 return aa.has_associate
         return None
         
+    def candidate_association(self):
+        aas = self.is_associate_of.all()
+        if aas:
+            aa = aas[0]
+            if aa.state == "potential":
+                return aa
+        
     def number_of_shares(self):
         if self.agent_type.party_type == "individual":
-            return 1
+            shares = 1
         else:
-            return 2
-            
-    def share_price(self):
-        if self.agent_type.party_type == "individual":
-            return 600
-        else:
-            return 1200
-            
+            shares = 2
+        req = self.membership_request()
+        if req:
+            req_shares = req.number_of_shares
+            shares = req_shares if req_shares>shares else shares
+        return shares
+
     def owns(self, resource):
         if self in resource.owners():
             return True
         else:
             return False
+            
+    def owns_resource_of_type(self, resource_type):
+        answer = False
+        arrs = self.agent_resource_roles.filter(
+            role__is_owner=True,
+            resource__resource_type=resource_type)
+        if arrs:
+            answer = True
+        return answer
 
     def my_user(self):
         #import pdb; pdb.set_trace()
@@ -1647,6 +1662,17 @@ class ResourceClass(models.Model):
     def __unicode__(self):
         return self.name
 
+        
+class EconomicResourceTypeManager(models.Manager):
+    
+    def membership_share(self):
+        try:
+            share = EconomicResourceType.objects.get(name="Membership Share")
+        except EconomicResourceType.DoesNotExist:
+            raise ValidationError("Membership Share does not exist by that name")
+        return share
+    
+    
 INVENTORY_RULE_CHOICES = (
     ('yes', _('Keep inventory')),
     ('no', _('Not worth it')),
@@ -1661,6 +1687,7 @@ BEHAVIOR_CHOICES = (
     ('dig_wallet', _('Digital Currency Wallet')),
     ('other', _('Other')),
 )
+
 
 class EconomicResourceType(models.Model):
     name = models.CharField(_('name'), max_length=128, unique=True)
@@ -1708,6 +1735,8 @@ class EconomicResourceType(models.Model):
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
     slug = models.SlugField(_("Page name"), editable=False)
+    
+    objects = EconomicResourceTypeManager()
 
     class Meta:
         ordering = ('name',)
@@ -3940,6 +3969,14 @@ class ExchangeTypeManager(models.Manager):
 
     def demand_exchange_types(self):
         return ExchangeType.objects.filter(use_case__identifier='demand_xfer')
+        
+    def membership_share_exchange_type(self):
+        try:
+            xt = ExchangeType.objects.get(name='Membership Contribution')
+        except EconomicAgent.DoesNotExist:
+            raise ValidationError("Membership Contribution does not exist by that name")
+        return xt
+
 
 class ExchangeType(models.Model):
     name = models.CharField(_('name'), max_length=128)
@@ -5598,13 +5635,25 @@ class AgentResourceType(models.Model):
             "Min: ", str(min(scores).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)),
             ", Average: ", average,
             ", Max: ", str(max(scores).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)),
-            ])
+            ]) 
+   
+class AgentResourceRoleTypeManager(models.Manager):
+    
+    def owner_role(self):
+        role_types = AgentResourceRoleType.objects.filter(is_owner=True)
+        owner_role_type = None
+        if role_types:
+            return role_types[0]
+        else:
+            raise ValidationError("No owner AgentResourceRoleType")
 
-
+            
 class AgentResourceRoleType(models.Model):
     name = models.CharField(_('name'), max_length=128)
     description = models.TextField(_('description'), blank=True, null=True)
     is_owner = models.BooleanField(_('is owner'), default=False)
+    
+    objects = AgentResourceRoleTypeManager()
 
     def __unicode__(self):
         return self.name
@@ -10047,9 +10096,9 @@ class EconomicEvent(models.Model):
     event_reference = models.CharField(_('reference'), max_length=128, blank=True, null=True)
     digital_currency_tx_hash = models.CharField(_("digital currency transaction hash"), max_length=96,
         blank=True, null=True, editable=False)
-    digital_currency_tx_state = models.CharField(_('digital currency transaction hash'),
+    digital_currency_tx_state = models.CharField(_('digital currency transaction state'), 
         max_length=12, choices=TX_STATE_CHOICES,
-        blank=True, null=True, editable=False)
+        blank=True, null=True)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='events_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),

@@ -132,7 +132,7 @@ def profile(request):
     is_associated_with = agent.all_is_associates()
     faircoin_account = agent.faircoin_resource()
     balance = faircoin_account.digital_currency_balance()
-    balance = 2
+    #balance = 2
     candidate_membership = agent.candidate_membership()
     share = EconomicResourceType.objects.membership_share()
     share_price = share.price_per_unit
@@ -167,7 +167,7 @@ def share_payment(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     agent_account = agent.faircoin_resource()
     balance = agent_account.digital_currency_balance()
-    balance = 2
+    #balance = 2
     candidate_membership = agent.candidate_membership()
     share = EconomicResourceType.objects.membership_share()
     share_price = share.price_per_unit

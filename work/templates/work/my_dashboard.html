@@ -173,436 +173,31 @@ th, td {
 {% block body_class %}work{% endblock %}
 
 {% block body_base %}
-    <div class="container">
-        {% include "_messages.html" %}
+<div class="container">
+  {% include "_messages.html" %}
 
-		<legend>
+	<legend>
       {% if agent.is_active_freedom_coop_member %}
-		    {% trans "Log planned tasks for " %} {{ agent.name }}
+		    {% trans "Welcome to the Freedom Coop!" %}
       {% else %}
         {% trans "Welcome to the Open Collaborative Platform!" %}
       {% endif %}
-	    </legend>
+  </legend>
 
-		<div class="row-fluid">
-      {% if agent.is_active_freedom_coop_member %}
-          <div class="span6">
-            <div class="my-work">
-				<h3 style="margin-bottom: 4px;" >{% trans "My tasks" %}:
-
-                    {% if agent %}
-                        {% if agent.related_contexts %}
-                            &nbsp;&nbsp;&nbsp;&nbsp;
-                            <div style="display: inline;" >
-                                <a href="#todoModal" role="button" class="btn btn-primary" data-toggle="modal">
-                                    {% trans "Add a task" %}
-                                </a>
-                            </div>
-
-                            <div class="modal hide fade todoModal" id="todoModal" tabindex="-1" role="dialog" aria-labelledby="todo-label" aria-hidden="true">
-                                <div class="modal-header">
-                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                    <h3 id="todo-label">{% trans "Add a task" %}</h3>
-                                </div>
-                                <div class="modal-body">
-
-                                    <form class="todoForm" id="todoForm" action="{% url "work_add_todo" %}" method="POST" >
-                                        {% csrf_token %}
-                                        {{ todo_form|as_bootstrap }}
-                                        <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
-                                    <div class="modal-footer">
-                                        <input type="cancel" class="btn cancel" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
-                                        <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Add" %}' />
-                                    </div>
-                                    </form>
-                            </div>
-                            </div>
-                        {% else %}
-                            <div class="error">
-                                {% trans "You don't have a group context to work in, so you can't add or take tasks. Please ask an administrator to assign you to a group." %}
-                            </div>
-                        {% endif %}
-                    {% endif %}
-                </h3>
-                <div class="todos">
-                <table class="todo-table" >
-                    <thead>
-                        <tr>
-                            <th>{% trans "Due" %}</th>
-                            <th>{% trans "Poster" %}</th>
-                            <th>&nbsp;</th>
-                            <th>{% trans "What" %}</th>
-                            <th>&nbsp;</th>
-                            {% comment %}
-                            <th>{% trans "Project" %}</th>
-                            {% endcomment %}
-                            <th>{% trans "Url" %}</th>
-                            <th>&nbsp;</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for todo in my_todos %}
-                            {% if agent == todo.from_agent %}
-                                <tr class="my-row {% cycle 'odd' 'even' as rowcolors %}" >
-                            {% else %}
-                                <tr class="not-my-row" >
-                            {% endif %}
-                                <td class="date">
-                                    {{ todo.due_date|date:"Y-m-d"  }}
-                                </td>
-                                <td class="who">
-                                    {{ todo.to_agent }}
-                                </td>
-                                <td colspan="3" class="description">
-                                    {% if todo.description %}
-                                        {{ todo.description|urlize|linebreaks }}
-                                    {% else %}
-                                        &nbsp;
-                                    {% endif %}
-                                </td>
-                                {% comment %}
-                                <td>
-                                    {{ todo.context_agent }}
-                                </td>
-                                {% endcomment %}
-                                <td>
-                                    {% if todo.url %}
-                                        <a href="{{ todo.url }}" target="_blank">{% trans "Open" %}</a>
-                                    {% endif %}
-                                </td>
-                                <td>
-
-                                    {% if agent == todo.to_agent %}
-                                        <div class="entry-buttons" >
-                                            <a href="#changeModal-{{ todo.id }}" role="button" class="btn btn-info btn-mini edit-button" data-toggle="modal">
-                                                <i class="icon-edit"></i>
-                                            </a>
-                                            {% if todo.is_deletable %}
-                                                <form style="display: inline;" class="deleteForm" id="deleteForm-{{ todo.id }}" action="{% url "work_todo_delete" todo_id=todo.id %}" method="POST" >
-                                                    {% csrf_token %}
-                                                    <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
-                                                    <button style="display: inline;" class="btn btn-warning btn-mini del-button" title="Delete" >X</button>
-                                                </form>
-                                            {% endif %}
-                                        </div>
-
-                                        <div class="modal hide fade changeModal" id="changeModal-{{ todo.id }}" tabindex="-1" role="dialog" aria-labelledby="change-label" aria-hidden="true">
-                                            <div class="modal-header">
-                                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                                <h3 id="change-label">{% trans "Change task" %}</h3>
-                                            </div>
-                                            <div class="modal-body">
-
-                                                <form class="changeForm" id="changeForm-{{ todo.id }}" action="{% url "work_todo_change" todo_id=todo.id %}" method="POST" >
-                                                    {% csrf_token %}
-                                                    {{ todo.work_todo_change_form|as_bootstrap }}
-                                                    <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
-                                                  <div class="modal-footer">
-                                                    <input type="cancel" class="btn cancel" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
-                                                    <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Change" %}' />
-                                                  </div>
-                                                </form>
-                                          </div>
-                                        </div>
-
-                                    {% else %}
-                                        {% if todo.is_deletable %}
-                                            <div class="entry-buttons">
-                                                <form class="declineForm" id="declineForm-{{ todo.id }}" action="{% url "work_todo_decline" todo_id=todo.id %}" method="POST" >
-                                                    {% csrf_token %}
-                                                    <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
-                                                    <input type="submit" name="submit" class="btn btn-warning btn-mini"  title="Decline" value="{% trans 'Decline' %}" />
-                                                </form>
-                                            </div>
-                                        {% endif %}
-                                    {% endif %}
-                                </td>
-                            </tr>
+	<div class="row-fluid">
+  {% if agent.is_active_freedom_coop_member %}
+    <p>
+      {% trans "This are the available tools for members:" %}
+    </p>
 
 
-                            {% if agent == todo.from_agent %}
-                                {% with todo.todo_event as event %}
-                                <tr class="entry-row {{ rowcolors }}" >
-                                    <th class="entry-label" >{% trans "Did" %}:</td>
-                                    <td colspan="3" class="did" >
-                                        <textarea class="input-block-level did" id="{{ todo.id }}-didId" name="{{ todo.id }}-did" rows="3"
-                                        />{% if event %}{{ event.description }}{% endif %}</textarea>
-                                    </td>
-                                    <th class="entry-label">
-                                        {% trans "Hours" %}:
-                                    </th>
-                                    <td class="todo-input" >
-                                        <form class="timeForm"id="timeForm-{{ todo.id }}" action="{% url "work_todo_time" %}" method="POST" >
-                                            {% csrf_token %}
-                                            <input class="input-mini optional-quantity" id="{{ todo.id }}-timeId" name="{{ todo.id }}-time" type="text" size="6"
-                                                {% if event %} value="{{ event.quantity }}" {% else %} value="0" {% endif %}
-                                            />
-                                        </form>
-                                    </td>
-                                    <td>
-                                        <form class="doneForm" id="timeForm-{{ todo.id }}" action="{% url "work_todo_done" todo_id=todo.id %}" method="POST" >
-                                            {% csrf_token %}
-                                            <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
-                                            <input type="submit" name="submit" class="btn btn-info btn-mini"  title="Done" value="{% trans 'Done' %}" />
-                                        </form>
-                                    </td>
-                                </tr>
-                                {% endwith %}
-                            {% endif %}
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-			</div>
-
-{% comment %}
-            <div class="other-unassigned">
-
-				<h3 style="margin-bottom: 4px;" >{% trans "Other unassigned tasks" %}:</h3>
-
-				{% if other_unassigned %}
-						<ul>
-							{% for item in other_unassigned %}
-								<li>
-									<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
-									{% if agent %}
-										<div style="display: inline;" >
-											<a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
-												{% trans "Take this task" %}
-											</a>
-										</div>
-
-										<div class="modal hide fade commitmentModal" id="commitmentModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
-											<div class="modal-header">
-												<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-												<h3 id="commitment-label">{% trans "Take this task" %}: {{ item.resource_type.name }}</h3>
-											</div>
-											<div class="modal-body">
-
-												<div class="row-fluid">
-													<div class="span12">
-														<form class="commitmentForm" enctype="multipart/form-data" action="{% url "commit_to_task" commitment_id=item.id %}" method="POST" >
-															{% csrf_token %}
-															{{ item.commitment_form|as_bootstrap }}
-															<input type="hidden" name="next" value="{% url "my_dashboard" %}" />
-														  <div class="modal-footer">
-															<input type="cancel" class="btn cancel" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
-															<input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
-															{% if work_now %}
-															    <input type="submit" class="btn btn-primary" name="start" value='{% trans "Start now" %}' />
-														    {% endif %}
-														  </div>
-														</form>
-													</div>
-
-												</div>
-										  </div>
-
-										</div>
-
-									{% endif %}
-									{% if item.description %}
-									    <ul>
-				                            <li class="work-description">{{ item.description|urlize|linebreaks|truncatewords_html:15 }}</li>
-			                            </ul>
-			                        {% endif %}
-
-								</li>
-								<p style="margin-left: 1em; margin-bottom: 0;">
-									{% trans "for process" %}: <a href="{{ process_logging process_id= }}">{{ item.process }}</a>
-								</p>
-								<p style="margin-left: 1em; margin-bottom: 0;">
-									{% trans "for order" %}: {{ item.independent_demand }}
-								</p>
-		                        <ul>
-									{% for source in item.resource_type.producing_agent_relationships %}
-										<li>
-											<b>{% trans "Possible source" %}:</b> {{ source.agent.name }}
-										</li>
-									{% endfor %}
-								</ul>
-							{% endfor %}
-						</ul>
-				{% else %}
-				None
-				{% endif %}
-
-			</div>
-{% endcomment %}
-
-          </div>
-
-          <div class="span6">
-
-            <div class="my-skills">
-
-                <h3 style="margin-bottom: 4px;" >{% trans "Unassigned tasks using my skills" %}:</h3>
-
-                {% if my_skillz %}
-                        <div class="row-fluid" id="todos">
-                <div class="span12 todos">
-                    <h3>
-                        {% trans "Tasks" %}
-
-                    </h3>
-
-                    <table class="todo-table" >
-                        <thead>
-                            <tr>
-                                <th>{% trans "Due" %}</th>
-                                <th>{% trans "Project" %}</th>
-                                <th>{% trans "Poster" %}</th>
-                                <th>{% trans "What" %}</th>
-                                <th>{% trans "Url" %}</th>
-                                <th colspan="2">&nbsp;</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for todo in my_skillz %}
-                                {% if agent and agent == todo.from_agent %}
-                                    <tr class="my-row" >
-                                {% else %}
-                                    <tr class="not-my-row" >
-                                {% endif %}
-                                    <td>
-                                        {{ todo.due_date|date:"Y-m-d"  }}
-                                    </td>
-                                    <td>
-                                        {{ todo.context_agent }}
-                                    </td>
-                                    <td>
-                                        {{ todo.to_agent }}
-                                    </td>
-                                    <td class="tddesc">
-                                        {% if todo.description %}
-                                            {{ todo.description|urlize|linebreaks }}
-                                        {% else %}
-                                            &nbsp;
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if todo.url %}
-                                            <a href="{{ todo.url }}" target="_blank">{% trans "Open" %}</a>
-                                        {% endif %}
-                                    </td>
-                                        {% comment %}
-                                        {% if agent and agent == todo.from_agent %}
-                                            {% with todo.todo_event as event %}
-                                                <td class="did" >
-                                                    <textarea class="input-block-level did" id="{{ todo.id }}-didId" name="{{ todo.id }}-did" rows="3"
-                                                    />{% if event %}{{ event.description }}{% endif %}</textarea>
-                                                </td>
-
-                                                <td class="todo-input" >
-                                                    <form class="timeForm"id="timeForm-{{ todo.id }}" action="{% url "work_todo_time" %}" method="POST" >
-                                                        {% csrf_token %}
-                                                        <input class="input-mini optional-quantity" id="{{ todo.id }}-timeId" name="{{ todo.id }}-time" type="text" size="6"
-                                                            {% if event %} value="{{ event.quantity }}" {% else %} value="0" {% endif %}
-                                                        />
-                                                    </form>
-                                                </td>
-                                                <td>
-                                                    <form class="doneForm" id="timeForm-{{ todo.id }}" action="{% url 'work_todo_done' todo_id=todo.id %}" method="POST" >
-                                                        {% csrf_token %}
-                                                        <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
-                                                        <input type="submit" name="submit" class="btn btn-primary btn-mini"  title="Done" value="{% trans 'Done' %}" />
-                                                    </form>
-                                                </td>
-
-                                            {% endwith %}
-                                        {% else %}
-                                            <td>&nbsp;</td>
-                                            <td>&nbsp;</td>
-                                            <td>&nbsp;</td>
-                                        {% endif %}
-                                        {% endcomment %}
-
-                                    <td>
-
-                                        {% if agent and agent == todo.from_agent %}
-                                            {% if todo.is_deletable %}
-                                                {% if agent != todo.to_agent %}
-
-                                                        <form class="declineForm" id="declineForm-{{ todo.id }}" action="{% url "work_todo_decline" todo_id=todo.id %}" method="POST" >
-                                                            {% csrf_token %}
-                                                            <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
-                                                            <input type="submit" name="submit" class="btn btn-warning btn-mini"  title="Decline" value="{% trans 'Decline' %}" />
-                                                        </form>
-
-                                                {% endif %}
-                                            {% endif %}
-                                        {% endif %}
-
-                                        {% if agent == todo.to_agent %}
-
-                                                <a href="#changeModal-{{ todo.id }}" role="button" class="btn btn-info btn-mini edit-button" data-toggle="modal">
-                                                    <i class="icon-edit"></i>
-                                                </a>
-                                            </a>
-                                                {% if todo.is_deletable %}
-                                                    <form style="display: inline;" id="deleteForm-{{ todo.id }}" action="{% url "work_todo_delete" todo_id=todo.id %}" method="POST" >
-                                                        {% csrf_token %}
-                                                        <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
-                                                        <button class="btn btn-warning btn-mini" title="Delete" >X</button>
-                                                    </form>
-                                                {% endif %}
-
-
-
-                                        {% endif %}
-
-                                        {% if agent  %}
-                                            {% if not todo.from_agent %}
-                                                <form style="display: inline;" class="mineForm" id="mineForm-{{ todo.id }}" action="{% url "work_todo_mine" todo_id=todo.id %}" method="POST" >
-                                                    {% csrf_token %}
-                                                    <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
-                                                    <input type="submit" name="submit" class="btn btn-primary btn-mini"  title="Mine" value="{% trans 'Mine!' %}" />
-                                                </form>
-                                            {% endif %}
-                                        {% endif %}
-                                        {% if agent == todo.to_agent %}
-                                            <div class="modal hide fade changeModal" id="changeModal-{{ todo.id }}" tabindex="-1" role="dialog" aria-labelledby="change-label" aria-hidden="true">
-                                                <div class="modal-header">
-                                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                                    <h3 id="change-label">{% trans "Change task" %}</h3>
-                                                </div>
-                                                <div class="modal-body">
-
-                                                    <form class="changeForm" id="changeForm-{{ todo.id }}" action="{% url "work_todo_change" todo_id=todo.id %}" method="POST" >
-                                                        {% csrf_token %}
-                                                        {{ todo.work_todo_change_form|as_bootstrap }}
-                                                        <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
-                                                      <div class="modal-footer">
-                                                        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-                                                        <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Change" %}' />
-                                                      </div>
-                                                    </form>
-                                              </div>
-                                            </div>
-                                         {% endif %}
-                                     </td>
-                                </tr>
-
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                None
-                {% endif %}
-
-            </div>
-
-          </div>
-
-{% else %}
+  {% else %}
 
     <p>
       {% trans "As you already received your login information you are currently a membership candidate:" %}
     </p>
     <p>
-      {% trans "To become a full member the next step is send enough Faircoins to your new OCP Faircoin account, to pay for the number of shares mentioned in your membership register form. Please transfer at least the equivalent amount of Faircoins to your new online Faircoin address in the 'Faircoin account' page." %}
+      {% trans "To become a full member <b>the next step</b> is send enough Faircoins to your new OCP Faircoin account, to pay for the number of shares mentioned in your membership register form. Please transfer at least the equivalent amount of Faircoins to your new online Faircoin address in the <b>Faircoin account</b> page." %}
     </p>
     <p>
       {% trans "When you have enough Faircoins in your new online account, you will see a button to make the transaction for your shares. Once pushed you'll become a full member of Freedom Coop and will have more tools available." %}
@@ -610,9 +205,34 @@ th, td {
     <p>
       {% trans "The options you already have in OCP are:" %}
     </p>
+  {% endif %}
+
+
+  {% if agent.is_active_freedom_coop_member %}
+    <div id="home-projects" class="home-block" >
+      <h3>
+        {% trans "Projects:" %}
+      </h3>
+      <ul>
+        <li><h3><a href="{% url 'your_projects' %}">{% trans 'Your projects' %}</a></h3>
+          {% trans "Here you can see the projects you are involved in and their structure. If you are a project coordinator you can manage your project also here." %}
+        </li>
+        <li><h3><a href="{% url 'project_work' %}">{% trans 'Your project tasks' %}</a></h3>
+          {% trans "A complet list of tasks related to the projects you are involved in." %}
+        </li>
+        <li><h3><a href="#">{% trans 'Plan project proceses' %}</a> <small><em>{% trans "(coming soon)" %}</em></small></h3>
+          {% trans "Here you can define a work plan for your managed project and setup the needed process with work orders and tasks." %}
+        </li>
+        <li><h3><a href="#">{% trans "OCP project's tutorial" %}</a> <small><em>{% trans "(coming soon)" %}</em></small></h3>
+          {% trans "To learn how to use OCP and structure your project and create process plans for it" %}
+        </li>
+      </ul>
+    </div>
+  {% endif %}
+
     <div id="home-tasks" class="home-block" >
       <h3>
-        {% trans "Tasks" %}
+        {% trans "Tasks:" %}
       </h3>
       <ul>
         <li><h3><a href="{% url 'my_tasks' %}">{% trans "Your tasks" %}</a></h3>
@@ -654,7 +274,7 @@ th, td {
       </p>
     </div>
 
-{% endif %}
+
   </div>
 
 </div>

@@ -90,6 +90,9 @@ div#my_tasks, div#take-new-task {
   margin-left: 0;
 }
 
+div#my_tasks table, div#take-new-task table {
+  width: 100%;
+}
 
 /*   H O M E - D A S H B O A R D   */
 

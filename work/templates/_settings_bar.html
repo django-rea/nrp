@@ -13,16 +13,16 @@
                     <li><a href="{% url "start" %}"><i class="icon-wrench"></i> {% trans 'Coop Admin App' %}</a></li>
                     <li class="divider"></li>
                 {% endif %}
-		
+
 		{% if request.user.agent.agent.faircoin_resource %}
                     <li id="my-wallet" >
                       <a href="{% url "manage_faircoin_account" resource_id=request.user.agent.agent.faircoin_resource.id %}"
-                      title="{% trans 'Your personal faircoin wallet in OCP' %}"
-                      ><i class="icon-tasks"></i> {% trans 'Wallet' %}</a>
+                      title="{% trans 'Your personal faircoin account in OCP' %}"
+                      ><i class="icon-tasks"></i> {% trans 'Faircoin Account' %}</a>
                     </li>
                 {% endif %}
 
-                
+
                 <li id="my-profile" >
                       <a href="{% url 'profile' %}"
                       title="{% trans 'Your profile information and skills' %}"

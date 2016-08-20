@@ -89,3 +89,24 @@ div#my_tasks, div#take-new-task {
   width: 100%;
   margin-left: 0;
 }
+
+
+/*   H O M E - D A S H B O A R D   */
+
+.home-block {
+  background-color: #f0f0da;
+  padding: 7px 15px;
+  max-width: 540px;
+  float: left;
+  margin-right: 13px;
+  margin-top: 13px;
+
+  border: 1px solid #CACAC6;
+  -moz-border-radius: 7px;
+  -webkit-border-radius: 7px;
+  border-radius: 7px;
+}
+
+.home-block li {
+  margin-top: 8px;
+}

@@ -340,7 +340,7 @@ th, td {
 		                </thead>
 		                <tbody>
 		                    {% for todo in todos %}
-                          {% if not todo.context_agent.name = 'Freedom Coop' %}
+                          {% if not todo.context_agent.name = 'Freedom Coop' or user in todo.context_agent.managers or user.is_staff %}
 		                        {% if agent and agent == todo.from_agent %}
 	                                <tr class="my-row" >
                                 {% else %}

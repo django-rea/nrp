@@ -177,11 +177,15 @@ th, td {
         {% include "_messages.html" %}
 
 		<legend>
-		    {% trans "Log planned tasks for " %} {{ agent.name }} 
+      {% if agent.is_active_freedom_coop_member %}
+		    {% trans "Log planned tasks for " %} {{ agent.name }}
+      {% else %}
+        {% trans "Welcome to the Open Collaborative Platform!" %}
+      {% endif %}
 	    </legend>
 
 		<div class="row-fluid">
-
+      {% if agent.is_active_freedom_coop_member %}
           <div class="span6">
             <div class="my-work">
 				<h3 style="margin-bottom: 4px;" >{% trans "My tasks" %}:
@@ -591,9 +595,69 @@ th, td {
             </div>
 
           </div>
-        </div>
 
+{% else %}
+
+    <p>
+      {% trans "As you already received your login information you are currently a membership candidate:" %}
+    </p>
+    <p>
+      {% trans "To become a full member the next step is send enough Faircoins to your new OCP Faircoin account, to pay for the number of shares mentioned in your membership register form. Please transfer at least the equivalent amount of Faircoins to your new online Faircoin address in the 'Faircoin account' page." %}
+    </p>
+    <p>
+      {% trans "When you have enough Faircoins in your new online account, you will see a button to make the transaction for your shares. Once pushed you'll become a full member of Freedom Coop and will have more tools available." %}
+    </p>
+    <p>
+      {% trans "The options you already have in OCP are:" %}
+    </p>
+    <div id="home-tasks" class="home-block" >
+      <h3>
+        {% trans "Tasks" %}
+      </h3>
+      <ul>
+        <li><h3><a href="{% url 'my_tasks' %}">{% trans "Your tasks" %}</a></h3>
+          {% trans "The list of active tasks assigned to you by project proceses or simple tasks that you can also create by yourself. Here you can log the work you are doing." %}
+        </li>
+        <li><h3><a href="{% url 'take_new_tasks' %}">{% trans "Take a new task" %}</a></h3>
+          {% trans "Here a list of unassigned tasks using your skills, so you can take some of them if you want. After that, these tasks will be assigned to you in 'your tasks' page." %}
+        </li>
+        <li><h3><a href="{% url 'non_process_logging' %}">{% trans "Log extra tasks" %}</a></h3>
+          {% trans "Here you can log other tasks you did related to a project, but are not part of a defined project process." %}
+        </li>
+        <li><h3><a href="{% url 'my_history' %}">{% trans "History of tasks" %}</a></h3>
+          {% trans "The list of all the tasks you already did and log in the platform." %}
+        </li>
+      </ul>
     </div>
+
+    {% if request.user.agent.agent.faircoin_resource %}
+    <div id="home-account" class="home-block" >
+      <h3><a href="{% url "manage_faircoin_account" resource_id=request.user.agent.agent.faircoin_resource.id %}">{% trans "Faircoin Account" %}</a></h3>
+      <p>{% trans "Here you can manage your online Faircoin account in the OCP. In this account you will receive internal payments for the tasks you did. You can see your Faircoin address and you can send here external Faircoins from your personal wallet (or from Euros using <a href='https://getfaircoin.net' target='_blank'>https://getfaircoin.net</a>) if you need to pay something in OCP and have not earned enough Faircoins doing tasks." %}
+      </p>
+    </div>
+    {% endif %}
+
+    {% with request.user.agent.agent.membership_request.id as id %}
+    {% if id %}
+    <div id="home-membership" class="home-block" >
+      <h3><a href="{% url 'membership_discussion' membership_request_id=id %}">{% trans "Membership" %}</a></h3>
+      <p>{% trans "Your FreedomCoop membership request data and a comments thread to comunicate with the Welcome Team about your particular case or project." %}
+      </p>
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div id="home-profile" class="home-block" >
+      <h3><a href="{% url "profile" %}">{% trans "Profile" %}</a></h3>
+      <p>{% trans "In this page you can see and edit your personal data and image, see your relations to projects, and also define your working skills." %}
+      </p>
+    </div>
+
+{% endif %}
+  </div>
+
+</div>
 {% endblock %}
 {% block extra_script %}
 	<script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>

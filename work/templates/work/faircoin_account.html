@@ -67,7 +67,7 @@
 
 		<legend>
 			{% trans "FairCoin Account" %}: {{ resource.identifier }} &nbsp;
-            {% if agent %}
+            {% if agent and request.user.agent.agent.is_staff %}
                 <a href="#resourceChangeForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>&nbsp;&nbsp;
             {% endif %}
 

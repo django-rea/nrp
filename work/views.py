@@ -47,11 +47,11 @@ def work_home(request):
 @login_required
 def my_dashboard(request):
     #import pdb; pdb.set_trace()
-    my_work = []
-    my_skillz = []
-    other_wip = []
+    #my_work = []
+    #my_skillz = []
+    #other_wip = []
     agent = get_agent(request)
-    if agent:
+    ''' if agent:
         context_ids = [c.id for c in agent.related_contexts()]
         my_work = Commitment.objects.unfinished().filter(
             event_type__relationship="todo",
@@ -83,16 +83,17 @@ def my_dashboard(request):
         todo_form = WorkTodoForm(agent=agent, pattern=pattern, initial=init)
     else:
         todo_form = WorkTodoForm(agent=agent, initial=init)
-    work_now = settings.USE_WORK_NOW
+    work_now = settings.USE_WORK_NOW '''
+
     return render_to_response("work/my_dashboard.html", {
         "agent": agent,
-        "my_work": my_work,
-        "my_skillz": my_skillz,
-        "other_unassigned": other_unassigned,
-        "my_todos": my_todos,
-        "todo_form": todo_form,
-        "work_now": work_now,
-        "help": get_help("proc_log"),
+        #"my_work": my_work,
+        #"my_skillz": my_skillz,
+        #"other_unassigned": other_unassigned,
+        #"my_todos": my_todos,
+        #"todo_form": todo_form,
+        #"work_now": work_now,
+        #"help": get_help("proc_log"),
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -138,7 +139,7 @@ def my_tasks(request):
     return render_to_response("work/my_tasks.html", {
         "agent": agent,
         "my_work": my_work,
-        "my_skillz": my_skillz,
+        #"my_skillz": my_skillz,
         "other_unassigned": other_unassigned,
         "my_todos": my_todos,
         "todo_form": todo_form,
@@ -188,11 +189,11 @@ def take_new_tasks(request):
     work_now = settings.USE_WORK_NOW
     return render_to_response("work/take_new_tasks.html", {
         "agent": agent,
-        "my_work": my_work,
+        #"my_work": my_work,
         "my_skillz": my_skillz,
         "other_unassigned": other_unassigned,
-        "my_todos": my_todos,
-        "todo_form": todo_form,
+        #"my_todos": my_todos,
+        #"todo_form": todo_form,
         "work_now": work_now,
         "help": get_help("proc_log"),
     }, context_instance=RequestContext(request))
@@ -237,14 +238,14 @@ def profile(request):
     balance = faircoin_account.digital_currency_balance()
     #balance = 2
     candidate_membership = agent.candidate_membership()
-    share = EconomicResourceType.objects.membership_share()
-    share_price = share.price_per_unit
-    number_of_shares = agent.number_of_shares()
-    share_price = share_price * number_of_shares
-    payment_due = False
-    if not agent.owns_resource_of_type(share):
-        payment_due = True
-    can_pay = balance >= share_price
+    #share = EconomicResourceType.objects.membership_share()
+    #share_price = share.price_per_unit
+    #number_of_shares = agent.number_of_shares()
+    #share_price = share_price * number_of_shares
+    #payment_due = False
+    #if not agent.owns_resource_of_type(share):
+    #    payment_due = True
+    #can_pay = balance >= share_price
 
     return render_to_response("work/profile.html", {
         "agent": agent,
@@ -256,12 +257,12 @@ def profile(request):
         "is_associated_with": is_associated_with,
         "faircoin_account": faircoin_account,
         "balance": balance,
-        "payment_due": payment_due,
+        #"payment_due": payment_due,
         "candidate_membership": candidate_membership,
         "help": get_help("profile"),
-        "share_price": share_price,
-        "number_of_shares": number_of_shares,
-        "can_pay": can_pay,
+        #"share_price": share_price,
+        #"number_of_shares": number_of_shares,
+        #"can_pay": can_pay,
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -405,7 +406,7 @@ def share_payment(request, agent_id):
         if aa:
             if aa.has_associate == pay_to_agent:
                 aa.delete()
-        
+
         association_type = AgentAssociationType.objects.get(name="Member")
         fc_aa = AgentAssociation(
             is_associate=agent,
@@ -1081,17 +1082,50 @@ def manage_faircoin_account(request, resource_id):
     agent = get_agent(request)
     send_coins_form = None
     limit = 0
+
+    payment_due = False
+    candidate_membership = None
+    share_price = False
+    number_of_shares = False
+    can_pay = False
+    faircoin_account = False
+    balance = False
+
     if agent:
         if agent.owns(resource):
             send_coins_form = SendFairCoinsForm()
             #from valuenetwork.valueaccounting.faircoin_utils import network_fee
             limit = resource.spending_limit()
+
+        candidate_membership = agent.candidate_membership()
+        if candidate_membership:
+          faircoin_account = agent.faircoin_resource()
+          balance = faircoin_account.digital_currency_balance()
+          share = EconomicResourceType.objects.membership_share()
+          share_price = share.price_per_unit
+          number_of_shares = agent.number_of_shares()
+          share_price = share_price * number_of_shares
+          payment_due = False
+          if not agent.owns_resource_of_type(share):
+              payment_due = True
+          can_pay = balance >= share_price
+
     return render_to_response("work/faircoin_account.html", {
         "resource": resource,
         "photo_size": (128, 128),
         "agent": agent,
         "send_coins_form": send_coins_form,
         "limit": limit,
+
+        "payment_due": payment_due,
+        "candidate_membership": candidate_membership,
+        "help": get_help("profile"),
+        "share_price": share_price,
+        "number_of_shares": number_of_shares,
+        "can_pay": can_pay,
+        "faircoin_account": faircoin_account,
+        "balance": balance,
+
     }, context_instance=RequestContext(request))
 
 def validate_faircoin_address_for_worker(request):

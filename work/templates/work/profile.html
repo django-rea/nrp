@@ -57,7 +57,7 @@ label {
     font-weight: bold;
     border: 2px solid green;
     padding: 4px;
-    
+
 }
 .pay_for_shares {
     margin: 2px;
@@ -213,41 +213,7 @@ label {
             </div>
 
             <div class="span4">
-                {% if payment_due %}
-                    <div class="share-explanation">
-                        {% trans "You are now a candidate member."  %}</br>
-                        {% trans "If you pay" %} {{ share_price }} {% trans "Fairs from your FairCoin account, "  %}</br>
-                        {% trans "you will own" %} {{ number_of_shares }} 
-                        {% if number_of_shares == 1 %}
-                            {% trans "Share" %}
-                        {% else %}
-                            {% trans "Shares" %}
-                        {% endif %}
-                        {% trans "and you will become a full member of Freedom Coop." %}
-                        
-                        {% if can_pay %}
-                            <form 
-                                class="pay_for_shares" 
-                                id="sharePaymentForm" 
-                                action="{% url "share_payment" agent_id=agent.id %}" 
-                                method="POST" >
-                                {% csrf_token %}
-                                <button style="display: inline;"  class="btn btn-primary" title="Pay for shares" >
-                                    {% trans "Pay for shares"  %}
-                                </button>
-                            </form> 
-                        {% else %}
-                            </br></br>
-                            {% blocktrans %}
-                                Your FairCoin account balance of {{ balance }} 
-                                is too low to be able to pay {{ share_price }} Fairs now.</br>
-                                If you transfer enough Fairs into your account, you can become a full member.</br>
-                            {% endblocktrans %}
-                        {% endif %}
-                    </div>
-                        
-                {% endif %}
-                
+
                 <h3>{% trans "Picture" %}
                     {% if agent %}
                         <a href="#uploadPicture" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Upload" %}</a>
@@ -272,7 +238,7 @@ label {
                             </form>
                         </div>
                     </div>
-                    
+
                 {% endif %}
 
                 {% if agent.photo %}
@@ -280,8 +246,8 @@ label {
                 {% elif agent.photo_url %}
                     <img src="{{ agent.photo_url }}" width="128" height="96" />
                 {% endif %}
-                
-                
+
+
 
                 <div class="assoc">
                     <h4 class="hdg"> {{ agent.name }} {% trans "is associated with " %}: </h4>

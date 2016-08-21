@@ -29,7 +29,7 @@
 }
 #id_notes, #id_access_rules {
   width: 500px;
-  height: 100px;    
+  height: 100px;
 }
 .modal {
     width: 600px;
@@ -42,6 +42,19 @@
     margin-top: 0;
     padding-top: 0;
 }
+
+.share-explanation {
+    margin-bottom: 2em;
+    /*color: green;
+    font-weight: bold;
+    border: 2px solid green;*/
+    padding: 13px 16px;
+    background-color: khaki;
+}
+.pay_for_shares {
+    margin: 2px;
+}
+
 </style>
 
 {% endblock %}
@@ -62,7 +75,7 @@
 
             <a href="https://chain.fair-coin.org/address/{{ resource.digital_currency_address }}" target="_blank" >{% trans "Follow Chain" %}</a>
 		</legend>
-		
+
         {% if agent %}
 		    <div class="modal hide fade" id="resourceChangeForm" tabindex="-1" role="dialog" aria-labelledby="resource-change-label" aria-hidden="true">
 			    <div class="modal-header">
@@ -83,7 +96,7 @@
                                 <td>{% trans "Delete" %}</td>
                             </tr>
 	                        {% for form in role_formset %}
-                                {{ form.id }}  
+                                {{ form.id }}
 	                            <tr class="role-row">
 	                                <td class="td-role">{{ form.role }}</td>
 	                                <td class="td-agent">{{ form.agent }}</td>
@@ -100,14 +113,14 @@
 				    </form>
                 </div>
             </div>
-		      
+
 
 	    {% endif %}
 
 		<div class="row-fluid">
-		
+
 		    <div class="span6 resource">
-		
+
 	            <table class="table table-bordered" >
 	                <tr>
                         <th style="text-align: right;">{% trans "Balance" %}</th>
@@ -172,7 +185,7 @@
 	                        <th style="text-align: right; vertical-align: top; ">{% trans "Assignments" %}</th>
 	                        <td>
                                 {% for item in resource.agent_resource_roles.all %}
-                                    {{ item.role.name }} : {{ item.agent.nick }} 
+                                    {{ item.role.name }} : {{ item.agent.nick }}
                                     {% if item.is_contact %} (Contact) {% endif %} <br />
                                 {% endfor %}
                             </td>
@@ -188,10 +201,43 @@
                     </tr>
 
 	            </table>
-	        
+
 	        </div>
 
 	        <div id="coins" class="span6 info">
+
+                {% if payment_due %}
+                    <div class="share-explanation">
+                        <h3>{% trans "Get your membership shares:"  %}</h3>
+                        <p>{% trans "You've requested to initially contribute buying" %} <b>{{ number_of_shares }}
+                        {% if number_of_shares == 1 %}{% trans "Share" %}{% else %}{% trans "Shares" %}{% endif %}</b>
+                        {% trans "in the Freedom Coop's membership form. This means"  %} <b>{{ share_price }} ƒ</b> {% trans "(faircoins)." %}
+                        {% trans "As soon as you have this amount here in your Faircoin account at OCP, you'll see below the <b>button to pay your shares</b>,$
+
+                        {% if can_pay %}
+                            <form
+                                class="pay_for_shares"
+                                id="sharePaymentForm"
+                                action="{% url "share_payment" agent_id=agent.id %}"
+                                method="POST" >
+                                {% csrf_token %}
+                                <button style="display: inline;"  class="btn btn-primary" title="Pay for shares" >
+                                    {% trans "Pay your shares with" %} {{ share_price }} ƒ
+                                </button>
+                            </form>
+                        {% else %}
+                            <br/>
+                            <p><em><b>
+                            {% blocktrans %}
+                                Your FairCoin account balance of {{ balance }} ƒ
+                                is too low to pay {{ share_price }} ƒ now.
+                                If you transfer enough Faircoins into your account, you'll see here the button to pay your shares.
+                            {% endblocktrans %}
+                            </em></b></p>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
                 {% if send_coins_form %}
                     <h3 id="coinHeader" >{% trans "Send Faircoins" %}</h3>
                     <form id="sendCoinsForm" action="{% url "transfer_faircoins" resource_id=resource.id %}" method="POST" >
@@ -200,12 +246,12 @@
                         <button class="btn btn-primary" name="sendCoins" value="coins">{% trans "Send" %}</button>
                     </form>
                 {% endif %}
-                
+
 	        </div>
 
 		</div>
 
-        
+
     </div>
 {% endblock %}
 
@@ -223,19 +269,19 @@
     $(document).ready(function(){
 
 		$('#inventory').addClass('active');
-		
+
 		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
 
 		$( "#help" ).toggle( function(){
-            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $('#help-content').show("slide", { direction: "right" }, "slow" );
             $( "#help" ).text("Hide Help");
         }, function() {
             $('#help-content').hide("slide", { direction: "right" }, "slow");
             $( "#help" ).text("Show Help");
         })
 
-        //$('td.td-role > select').addClass('select-role');   
-        //$('td.td-agent > select').addClass('select-agent');  
+        //$('td.td-role > select').addClass('select-role');
+        //$('td.td-agent > select').addClass('select-agent');
 
         $.validator.addMethod("agentRequired", function (value, element) {
             var parent = element.parentElement;
@@ -249,7 +295,7 @@
             }
             return this.optional(element) || sibValue;
         }, "Both role and agent must be selected.");
-        
+
         $.validator.addMethod("roleRequired", function (value, element) {
             var parent = element.parentElement;
             var parentSib = parent.previousElementSibling;
@@ -262,10 +308,10 @@
             }
             return this.optional(element) || sibValue;
         }, "Both role and agent must be selected.");
-        
+
         $.validator.addClassRules("select-role", { agentRequired: true });
         $.validator.addClassRules("select-agent", { roleRequired: true });
-        
+
         jQuery.validator.addMethod("quantity",
             function(value, element) {
                 var isValidQuantity = /^\d{0,6}(\.\d{0,2})?$/.test(value);
@@ -275,19 +321,19 @@
         );
 
         $.validator.addClassRules("quantity", { quantity: true });
-        
+
         // limit must include network fee
         var limit = parseFloat({{ limit }});
-        
+
         jQuery.validator.addMethod("notMoreThanLimit", function(value, element) {
             return this.optional(element) || (parseFloat(value) <= limit );
         }, "Cannot be more than balance - network fee, " + limit );
-        
+
         jQuery.validator.addMethod("notLessThanMinimum", function(value, element) {
             return this.optional(element) || (parseFloat(value) >= 1.0 );
         }, "Must be at least 1 FairCoin");
 
-            
+
         $('#resource-change-form').validate(
         {
             highlight: function(label) {
@@ -295,7 +341,7 @@
             }
 
         });
-        
+
         $('#sendCoinsForm').validate(
         {
             onkeyup: false,
@@ -308,17 +354,17 @@
                     number: true,
                     notMoreThanLimit: true,
                     notLessThanMinimum: true
-                    
-                },               
+
+                },
             },
             highlight: function(label) {
                 $(label).closest('.control-group').addClass('error');
             }
 
         });
-    
+
     }); // end document.ready
 
     </script>
-    
+
 {% endblock %}

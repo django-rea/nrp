@@ -16,10 +16,18 @@ This is a howto for installing ocp in a debian/ubuntu system.
 
 (this gives you seed to keep in safe place, and ask for password to encript the wallet. All the electrum-fair data will be created in /home/user/.electrum-fair/ directory)
 
-- Download from github and setup the daemon: ::
+- Download from github and copy daemon sample files: ::
 
     cd [installation dir]
     git clone https://github.com/FreedomCoop/valuenetwork.git
+    cp valuenetwork/faircoin_nrp/daemon/daemon_service.sample valuenetwork/faircoin_nrp/daemon/daemon_service
+    chmod a+x valuenetwork/faircoin_nrp/daemon/daemon_service
+    cp valuenetwork/faircoin_nrp/daemon/daemon.py.sample valuenetwork/faircoin_nrp/daemon/daemon.py
+    chmod a+x valuenetwork/faircoin_nrp/daemon/daemon.py
+    cp valuenetwork/faircoin_nrp/daemon/daemon.conf.sample valuenetwork/faircoin_nrp/daemon/daemon.conf
+
+- Setup daemon: ::
+
     vim valuenetwork/faircoin_nrp/daemon/daemon_service #Set paths and user for starting the daemon.
     vim valuenetwork/faircoin_nrp/daemon/daemon.conf #Set wallet config
     sudo ./valuenetwork/faircoin_nrp/daemon/daemon_service start

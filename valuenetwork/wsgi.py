@@ -17,6 +17,10 @@ import os
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "valuenetwork.settings")
 
+import sys 
+sys.path.append('/home/ocp/webapp/env/lib/python2.7/site-packages')
+sys.path.append('/home/ocp/webapp/valuenetwork/')
+
 # This application object is used by any WSGI server configured to use this
 # file. This includes Django's development server, if the WSGI_APPLICATION
 # setting points here.

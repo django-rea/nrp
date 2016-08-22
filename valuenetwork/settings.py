@@ -247,7 +247,7 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 USE_I18N = True
 USE_L10N = True
 LOCALE_PATHS = [
-    os.path.join(PACKAGE_ROOT, "locale"),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), '..', "locale")),
 ]
 LANGUAGE_CODE = 'en'
 LANGUAGES = (

@@ -47,6 +47,7 @@ urlpatterns = patterns("",
     url(r"^agent/(?P<agent_id>\d+)/$", 'work.views.members_agent', name="members_agent"),
     url(r'^my-tasks/$', 'work.views.my_tasks', name="my_tasks"),
     url(r'^take-new-tasks/$', 'work.views.take_new_tasks', name="take_new_tasks"),
+    url(r'^home/$', 'work.views.my_dashboard', name="home"),
 
     url(r'^share-payment/(?P<agent_id>\d+)/$', 'work.views.share_payment', name="share_payment"),
 

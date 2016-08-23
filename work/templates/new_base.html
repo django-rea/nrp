@@ -62,7 +62,7 @@
                 <ul class="nav" id="site-menu">
                   {% if request.user.is_authenticated %}
                     <li id="your-dashboard">
-                      <a href="{% url 'my_dashboard' %}"
+                      <a href="{% url 'home' %}"
                           title="{% trans 'Dashboard page with your available options' %}"
                           >{% trans 'Home' %}</a>
                     </li>

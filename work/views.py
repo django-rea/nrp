@@ -417,7 +417,7 @@ def share_payment(request, agent_id):
         fc_aa.save()
 
     return HttpResponseRedirect('/%s/'
-        % ('work/profile'))
+        % ('work/home'))
 
 @login_required
 def project_work(request):
@@ -1423,7 +1423,7 @@ def membership_request(request):
             human = True
             data = membership_form.cleaned_data
             type_of_membership = data["type_of_membership"]
-            number_of_shares = data["number_of_shares"]                    
+            number_of_shares = data["number_of_shares"]
             name = data["name"]
             surname = data["surname"]
             description = data["description"]

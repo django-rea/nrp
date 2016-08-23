@@ -28,12 +28,23 @@ class MembershipRequestForm(forms.ModelForm):
     class Meta:
         model = MembershipRequest
         exclude = ('agent',)
+        
+    def clean(self):
+        #import pdb; pdb.set_trace()
+        data = super(MembershipRequestForm, self).clean()
+        type_of_membership = data["type_of_membership"]
+        number_of_shares = data["number_of_shares"]
+        if type_of_membership == "collective":
+            if int(number_of_shares) < 2:
+                msg = "Number of shares must be at least 2 for a collective."
+                self.add_error('number_of_shares', msg)
 
     def _clean_fields(self):
         super(MembershipRequestForm, self)._clean_fields()
         for name, value in self.cleaned_data.items():
             self.cleaned_data[name] = bleach.clean(value) 
 
+            
 class WorkProjectSelectionFormOptional(forms.Form):
     context_agent = forms.ChoiceField()
 

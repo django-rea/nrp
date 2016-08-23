@@ -1422,9 +1422,10 @@ def membership_request(request):
         if membership_form.is_valid():
             human = True
             data = membership_form.cleaned_data
+            type_of_membership = data["type_of_membership"]
+            number_of_shares = data["number_of_shares"]                    
             name = data["name"]
             surname = data["surname"]
-            type_of_membership = data["type_of_membership"]
             description = data["description"]
             mbr_req = membership_form.save()
 

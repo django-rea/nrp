@@ -195,10 +195,12 @@
                         <th style="text-align: right;">{% trans "Record created date" %}</th>
                         <td>{{ resource.created_date }}</td>
                     </tr>
+                    {% if request.user.agent.agent.is_staff %}
                     <tr>
                         <th style="text-align: right;">{% trans "Record created by" %}</th>
                         <td>{{ resource.created_by }}</td>
                     </tr>
+                    {% endif %}
 
 	            </table>
 
@@ -240,10 +242,15 @@
 
                 {% if send_coins_form %}
                     <h3 id="coinHeader" >{% trans "Send Faircoins" %}</h3>
-                    <form id="sendCoinsForm" action="{% url "transfer_faircoins" resource_id=resource.id %}" method="POST" >
-                        {% csrf_token %}
-                        {{ send_coins_form|as_bootstrap }}
-                        <button class="btn btn-primary" name="sendCoins" value="coins">{% trans "Send" %}</button>
+                    <form id="sendCoinsForm" method="POST" action={% if payment_due %}"#" class="disabled" style="color:#888;" {% else %}"{% url "transfer_faircoins" resource_id=resource.id %}" {% endif %}>
+                        {% if payment_due %}
+                          {{ send_coins_form|as_bootstrap }}
+                          <em>{% trans "(available when full member)" %}</em>
+                        {% else %}
+                          {% csrf_token %}
+                          {{ send_coins_form|as_bootstrap }}
+                          <button class="btn btn-primary" name="sendCoins" value="coins">{% trans "Send" %}</button>
+                        {% endif %}
                     </form>
                 {% endif %}
 
@@ -267,6 +274,10 @@
     <script type="text/javascript">
 
     $(document).ready(function(){
+
+    if($('#sendCoinsForm.disabled')){
+        $('#sendCoinsForm input').attr('disabled', 'True');//.parent().parent().find('label').css('color', '#999');
+    }
 
 		$('#inventory').addClass('active');
 

@@ -1,4 +1,4 @@
-
+{% extends "work_base.html" %}
 
 {% load url from future %}
 {% load i18n %}
@@ -36,12 +36,12 @@ legend {
 {% block body %}
     <div class="row">
         <div class="span12">
-            <form method="POST" action="{% url "account_logout" %}" class="form-horizontal">
-                <legend>{% trans "Log out of OCP" %}</legend>
+            <form method="POST" action="{% url "account_logout" %}" class="">
+                <h2>{% trans "Log out of OCP" %}</h2>
                 <fieldset>
                     {% csrf_token %}
                     <p>{% trans "Are you sure you want to log out?" %}</p>
-                    <div class="form-actions">
+                    <div class="">
                         <button type="submit" class="btn btn-primary">{% trans "Log out" %}</button>
                     </div>
                 </fieldset>

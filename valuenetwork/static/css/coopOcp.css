@@ -37,6 +37,7 @@ a:hover {
 legend {
   color: #476B6B;
   font-weight: bold;
+  border-bottom: 2px solid #678B8B;
 }
 h3, h4 {
   color: #476B6B;

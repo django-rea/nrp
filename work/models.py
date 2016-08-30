@@ -88,3 +88,5 @@ class SkillSuggestion(models.Model):
         related_name='skill_suggestion', blank=True, null=True, editable=False)
     suggestion_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     
+    def __unicode__(self):
+        return self.skill

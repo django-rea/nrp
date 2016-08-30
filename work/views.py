@@ -236,6 +236,8 @@ def profile(request):
 
     faircoin_account = agent.faircoin_resource()
     balance = faircoin_account.digital_currency_balance()
+    other_form = SkillSuggestionForm()
+    suggestions = request.user.skill_suggestion.all()
     #balance = 2
     candidate_membership = agent.candidate_membership()
     #share = EconomicResourceType.objects.membership_share()
@@ -259,6 +261,8 @@ def profile(request):
         "balance": balance,
         #"payment_due": payment_due,
         "candidate_membership": candidate_membership,
+        "other_form": other_form,
+        "suggestions": suggestions,
         "help": get_help("profile"),
         #"share_price": share_price,
         #"number_of_shares": number_of_shares,
@@ -513,36 +517,43 @@ def upload_picture(request, agent_id):
 
 @login_required
 def update_skills(request, agent_id):
-    agent = get_object_or_404(EconomicAgent, id=agent_id)
-    user_agent = get_agent(request)
-    if not user_agent:
-        return render_to_response('valueaccounting/no_permission.html')
-    #import pdb; pdb.set_trace()
-    et_work = EventType.objects.get(name="Time Contribution")
-    arts = agent.resource_types.filter(event_type=et_work)
-    old_skill_rts = []
-    for art in arts:
-        old_skill_rts.append(art.resource_type)
-    new_skills_list = request.POST.getlist('skill')
-    new_skill_rts = []
-    for rt_id in new_skills_list:
-        skill = EconomicResourceType.objects.get(id=int(rt_id))
-        new_skill_rts.append(skill)
-    for skill in old_skill_rts:
-        if skill not in new_skill_rts:
-            arts = AgentResourceType.objects.filter(agent=agent).filter(resource_type=skill)
-            if arts:
-                art = arts[0]
-                art.delete()
-    for skill in new_skill_rts:
-        if skill not in old_skill_rts:
-            art = AgentResourceType(
-                agent=agent,
-                resource_type=skill,
-                event_type=et_work,
-                created_by=request.user,
-            )
-            art.save()
+    if request.method == "POST":
+        agent = get_object_or_404(EconomicAgent, id=agent_id)
+        user_agent = get_agent(request)
+        if not user_agent:
+            return render_to_response('valueaccounting/no_permission.html')
+        #import pdb; pdb.set_trace()
+        et_work = EventType.objects.get(name="Time Contribution")
+        arts = agent.resource_types.filter(event_type=et_work)
+        old_skill_rts = []
+        for art in arts:
+            old_skill_rts.append(art.resource_type)
+        new_skills_list = request.POST.getlist('skillChoice')
+        new_skill_rts = []
+        for rt_id in new_skills_list:
+            skill = EconomicResourceType.objects.get(id=int(rt_id))
+            new_skill_rts.append(skill)
+        for skill in old_skill_rts:
+            if skill not in new_skill_rts:
+                arts = AgentResourceType.objects.filter(agent=agent).filter(resource_type=skill)
+                if arts:
+                    art = arts[0]
+                    art.delete()
+        for skill in new_skill_rts:
+            if skill not in old_skill_rts:
+                art = AgentResourceType(
+                    agent=agent,
+                    resource_type=skill,
+                    event_type=et_work,
+                    created_by=request.user,
+                )
+                art.save()
+        other_form = SkillSuggestionForm(data=request.POST)
+        #import pdb; pdb.set_trace()
+        if other_form.is_valid():
+            suggestion = other_form.save(commit=False)
+            suggestion.suggested_by = request.user
+            suggestion.save()
 
     return HttpResponseRedirect('/%s/'
         % ('work/profile'))

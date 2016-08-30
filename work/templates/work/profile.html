@@ -206,10 +206,19 @@ label {
                     {% csrf_token %}
                     <ul>
                     {% for skill in skills %}
-                        <li><input type="checkbox" name="skill" value="{{ skill.id }}" {% if skill.checked %} checked="checked" {% endif %} /> {{ skill }}</li>
+                        <li><input type="checkbox" name="skillChoice" value="{{ skill.id }}" {% if skill.checked %} checked="checked" {% endif %} /> {{ skill }}</li>
                     {% endfor %}
+                        <li> {{ other_form|as_bootstrap }} </li>
                     </ul>
                 </form>
+                {% if suggestions %}
+                    <h4>{% trans "You previously suggested" %}:</h4>
+                    <ul>
+                        {% for suggestion in suggestions %}
+                            <li>{{ suggestion }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
             </div>
 
             <div class="span4">

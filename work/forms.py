@@ -21,6 +21,17 @@ class UploadAgentForm(forms.ModelForm):
         model = EconomicAgent
         fields = ('photo', 'photo_url')
 
+        
+class SkillSuggestionForm(forms.ModelForm):
+    skill = forms.CharField(
+        label = "Other",
+        help_text = _("Your skill suggestions will be sent to Freedom Coop Admins"),
+        )
+    
+    class Meta:
+        model = SkillSuggestion
+        fields = ('skill',)
+
 
 class MembershipRequestForm(forms.ModelForm):
     captcha = CaptchaField()

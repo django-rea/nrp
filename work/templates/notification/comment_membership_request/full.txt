@@ -1,0 +1,6 @@
+{% load i18n %}{% blocktrans %}New comment from {{ name }}:
+
+{{ comment }}
+
+The new comment is at {{ membership_url }}
+

@@ -1,0 +1,489 @@
+{% extends "work_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "My Process Tasks" %}{% endblock %}
+
+{% block extra_head %}
+
+
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
+
+<style>
+
+.btn {
+	margin-right: 2em;
+}
+.my-work {
+    background-color: whitesmoke;
+
+}
+.my-skills {
+    background-color: #FAFAEE;
+}
+.other-unassigned, .unassigned-todos {
+    background-color: #FAFAEE;
+}
+.todos {
+    background-color: whitesmoke;
+}
+.my-work, .my-skills, .other-unassigned, .todos, .unassigned-todos {
+    padding: 2px 6px 3px 6px;
+    margin-bottom: 12px;
+    border: 1px solid gainsboro;
+}
+
+.work-description {
+    font-size: .8em;
+    font-style: italic;
+    font-weight: normal;
+    margin-bottom: 0;
+}
+
+#todoModal textarea {
+  width: 400px;
+  height: 200px;
+}
+
+.changeModal textarea {
+  width: 400px;
+  height: 200px;
+}
+
+.commitmentModal textarea {
+  width: 400px;
+  height: 200px;
+}
+
+.entry-label {
+    text-align: right;
+    vertical-align: middle;
+}
+
+.entry-buttons {
+    padding-top: 4px;
+    text-align: left;
+}
+
+.btn-mini {
+    margin-bottom: 3px;
+}
+
+.todo-input {
+    vertical-align: bottom;
+}
+
+.todo-table {
+    margin-top: 1em;
+}
+
+th, td {
+    padding-left:10px;
+    padding-right:10px;
+}
+
+.did {
+    padding: 0;
+    height: 46px;
+}
+
+.my-row {
+    border-top-style: solid;
+    border-top-width: thin;
+    border-top-color: lightgrey;
+}
+
+.odd {
+    background-color: #F9F9F7;
+}
+
+.even {
+    background-color: #EDEDE6;
+}
+
+.not-my-row {
+    border-top-style: solid;
+    border-top-width: thin;
+    border-top-color: lightgrey;
+    border-bottom-style: solid;
+    border-bottom-width: thin;
+    border-bottom-color: lightgrey;
+}
+
+.entry-row {
+    border-bottom-style: solid;
+    border-bottom-width: thin;
+    border-bottom-color: lightgrey;
+}
+
+.who {
+    font-size: 90%;
+    white-space:nowrap;
+}
+.input-mini {
+    width: 2em;
+    margin-right: 0;
+}
+.top-buttons a {
+    margin-right: 30px;
+}
+.cancel {
+    width: 80px;
+}
+.description {
+    color: firebrick;
+    font-weight: bold;
+}
+.date {
+    font-weight: bold;
+}
+.deleteForm {
+    margin-bottom: 0;
+    margin-right: 0;
+}
+.edit-button {
+    margin-right: 2px;
+    display: inline;
+    margin-top: 0;
+}
+.del-button {
+    margin-right: 0;
+}
+*/
+</style>
+{% endblock %}
+
+{% block body_class %}work{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+	
+		<legend>
+		    {% trans "My Process Tasks" %}
+	    </legend>
+
+		<div class="row-fluid">
+		
+          <div class="span6">
+            <div class="my-work">
+				<h3 style="margin-bottom: 4px;" >{% trans "My unfinished work" %}:</h3>
+
+				{% if my_work %}
+                    <ul>
+                        {% for item in my_work %}
+                            <li>
+                                <b>Task: {{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+                            </li>
+                            {% if item.description %}
+                                <ul>
+                                    <li class="work-description">
+                                        {{ item.description|urlize|linebreaks }}
+                                    </li>
+                                </ul>
+                            {% endif %}
+                            <div style="margin-left: 1em; margin-bottom: 0;">
+                                {% trans "Context" %}: {{ item.context_agent }}</br>
+                                {% trans "Order" %}: {{ item.independent_demand }}</br>
+                                {% trans "Process" %}: {{ item.process }}
+                                {% if item.process.started %} <b>{% trans "Started" %} {{ item.process.started }}</b> {% endif %} </br>
+{% comment %}
+                                {% if work_now %}
+                                    <a href="{% url "work_timer" process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Work Now" %}</a>
+                                {% endif %}
+{% endcomment %}
+                                <a href="{% url "process_logging" process_id=item.process.id %}" role="button" class="btn btn-primary btn-mini">{% trans "Log work on process" %}</a>
+                                <form
+                                    style="display: inline;" 
+                                    class="finish-form" 
+                                    id="finishForm{{ item.id }}" 
+                                    action="{% url "commitment_finished" commitment_id=item.id %}" 
+                                    method="POST" >
+                                    {% csrf_token %}
+                                    <input type="hidden" id="next" name="next" value="work-start" />
+                                    <button style="display: inline;"  class="btn btn-info btn-mini" title="Close" >{% trans "Close task" %}</button>
+                                </form>
+                                <form
+                                    style="display: inline;" 
+                                    class="uncommit-form" 
+                                    id="uncommitForm{{ item.id }}" 
+                                    action="{% url "uncommit" commitment_id=item.id %}" 
+                                    method="POST" >
+                                    {% csrf_token %}
+                                    <input type="hidden" id="next" name="next" value="work-start" />
+                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Uncommit" >{% trans "Unassign" %}</button>
+                                </form>
+                            </div>
+
+
+                        {% endfor %}
+                    </ul>
+				{% else %}
+                    None
+				{% endif %}
+
+			</div>
+          </div>
+
+          <div class="span6">
+ 
+            <div class="my-skills">
+
+                <h3 style="margin-bottom: 4px;" >{% trans "Unassigned tasks using my skills" %}:</h3>
+
+                {% if my_skillz %}
+                        <ul>
+                            {% for item in my_skillz %}
+                                <li>
+                                    <b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+                                    {% if agent %}
+                                        <div style="display: inline;" >
+                                            <a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-primary btn-mini" data-toggle="modal">
+                                                {% trans "Take this task" %}
+                                            </a>
+                                        </div>
+
+                                        <div class="modal hide fade commitmentModal" id="commitmentModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                                <h3 id="commitment-label">{% trans "Take this task" %}: {{ item.resource_type.name }}</h3>
+                                            </div>
+                                            <div class="modal-body">
+
+                                                <div class="row-fluid">
+                                                    <div class="span12">
+                                                        <form class="commitmentForm" enctype="multipart/form-data" action="{% url "commit_to_task" commitment_id=item.id %}" method="POST" >
+                                                            {% csrf_token %}
+                                                            {{ item.commitment_form|as_bootstrap }}
+                                                            <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
+                                                          <div class="modal-footer">
+                                                            <input type="cancel" class="btn cancel" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+                                                            <input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
+                                                            {% if work_now %}
+                                                                <input type="submit" class="btn btn-primary" name="work-start" value='{% trans "Start now" %}' />
+                                                            {% endif %}
+                                                          </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                          </div>
+
+                                        </div>
+
+                                    {% endif %}
+                                    {% if item.description %}
+                                        <ul>
+                                            <li class="work-description">{{ item.description|urlize|linebreaks|truncatewords_html:15 }}</li>
+                                        </ul>
+                                    {% endif %}
+                                </li>
+                                <p style="margin-left: 1em; margin-bottom: 0;">
+                                    {% trans "for process" %}: <a href="{% url "process_logging" process_id=item.process.id %}">{{ item.process }}</a>
+                                </p>
+                                <p style="margin-left: 1em; margin-bottom: 0;">
+                                    {% trans "for order" %}: {{ item.independent_demand }}
+                                </p>
+
+
+                            {% endfor %}
+                        </ul>
+                {% else %}
+                None
+                {% endif %}
+
+            </div>
+
+          </div>
+        </div>
+   
+    </div>
+{% endblock %}
+{% block extra_script %}
+	<script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script src="{% static 'js/chosen.jquery.js' %}"></script>
+{% endblock %}
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+	$(document).ready(function(){
+
+		$('#my-work').addClass('active');
+
+		$( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
+        })
+
+		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+
+		$(".chzn-select").chosen();
+		$("textarea").resizable();
+
+		jQuery.validator.setDefaults({ 
+		    success: function(label) {
+					label
+						.text('').addClass('valid')
+						.closest('.control-group').addClass('success');
+				}
+		});
+
+
+		$.validator.addClassRules("quantity", { 
+		    required: true, 
+		    number: true,
+		    max: 999999.99 
+	    });
+	    $.validator.addClassRules("optional-quantity", { 
+		    number: true,
+		    max: 999999.99 
+	    });
+		$.validator.addClassRules("url", { url: true });
+
+		$('.commitmentForm').each( function(){
+			var form = $(this);
+
+			form.validate({
+				highlight: function(label) {
+					$(label).closest('.control-group').addClass('error');
+				},
+
+			});
+		});
+
+		$('.timeForm').each( function(){
+			var form = $(this);
+
+			form.validate({
+				highlight: function(label) {
+					$(label).closest('.control-group').addClass('error');
+				},
+
+			});
+		});
+
+		$('.optional-quantity').blur(saveTime);
+		$('.did').blur(saveDescription);
+
+	}); // end document.ready
+
+	function saveTime(event)
+	{
+        var timeInput = event.target;
+        var id = timeInput.id.split('-')[0];;
+        formId = "#timeForm-" + id;
+        var fieldSelector = "#" + id + "-timeId";
+        var isValid = $(formId).validate().element(fieldSelector);
+        if (isValid)
+        {
+            var hours = timeInput.value;
+            notifySaving();
+		    var jqxhr = $.post("{% url "todo_time"  %}",  { todoId: id, hours: hours },
+			    function( data ) 
+			    {
+				    notifySaved();
+			    })
+			    .fail(function() 
+			    { 
+				    notifyProblem(); 
+			    }
+		    );
+        }      
+	}
+	
+    function saveDescription(event)
+	{
+        var didInput = event.target;
+        var id = didInput.id.split('-')[0];;
+        var did = didInput.value;
+        notifySaving();
+	    var jqxhr = $.post("{% url "todo_description"  %}",  { todoId: id, did: did },
+		    function( data ) 
+		    {
+			    notifySaved();
+		    })
+		    .fail(function() 
+		    { 
+			    notifyProblem(); 
+		    }
+	    );   
+	}
+
+	function notifySaving()
+	{
+		$("#saving").css("color","green"); 
+		$("#saving").text("Saving...");
+	}
+
+	function notifySaved()
+	{
+		$("#saving").css("color","green"); 
+		$("#saving").text("Saved");
+	}
+
+	function notifyProblem()
+	{
+		$("#saving").css("color","red"); 
+		$("#saving").text("Problem saving");
+	}
+
+	$(document).ajaxSend(function(event, xhr, settings) 
+	{
+		function getCookie(name) 
+		{
+		    var cookieValue = null;
+		    if (document.cookie && document.cookie != '') 
+			{
+		        var cookies = document.cookie.split(';');
+		        for (var i = 0; i < cookies.length; i++) 
+				{
+		            var cookie = jQuery.trim(cookies[i]);
+		            // Does this cookie string begin with the name we want?
+		            if (cookie.substring(0, name.length + 1) == (name + '=')) 
+					{
+		                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+		                break;
+		            }
+		        }
+		    }
+		    return cookieValue;
+    	}
+
+		function sameOrigin(url) 
+		{
+		    // url could be relative or scheme relative or absolute
+		    var host = document.location.host; // host + port
+		    var protocol = document.location.protocol;
+		    var sr_origin = '//' + host;
+		    var origin = protocol + sr_origin;
+		    // Allow absolute or scheme relative URLs to same origin
+		    return (url == origin || url.slice(0, origin.length + 1) == origin + '/') ||
+		        (url == sr_origin || url.slice(0, sr_origin.length + 1) == sr_origin + '/') ||
+		        // or any other URL that isn't scheme relative or absolute i.e relative.
+		        !(/^(\/\/|http:|https:).*/.test(url));
+		}
+
+		function safeMethod(method) 
+		{
+		    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+		}
+
+		if (!safeMethod(settings.type) && sameOrigin(settings.url)) 
+		{
+		    xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+		}
+	});
+
+      
+    </script>
+
+{% endblock %}

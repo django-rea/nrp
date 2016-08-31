@@ -3,6 +3,7 @@ from django.views.generic import TemplateView
 
 urlpatterns = patterns("",
     url(r'^my-dashboard/$', 'work.views.my_dashboard', name="my_dashboard"),
+    url(r'^my-process-tasks/$', 'work.views.my_process_tasks', name="my_process_tasks"),
     url(r'^non-process-logging/$', 'work.views.non_process_logging', name="non_process_logging"),
     url(r'^work-timer/(?P<process_id>\d+)/(?P<commitment_id>\d+)/$', 'work.views.work_timer', name="work_timer"),
     url(r'^process-logging/(?P<process_id>\d+)/$', 'work.views.process_logging', name="process_logging"),

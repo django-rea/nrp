@@ -17,7 +17,8 @@ def comment_notification(sender, comment, **kwargs):
             if users:
                 from django.contrib.sites.models import Site
                 site_name = Site.objects.get_current().name
-                membership_url= "https://" + Site.objects.get_current().domain + "/accounting/membership-request/" + str(comment.content_object.id) + "/"
+                membership_url= "https://" + Site.objects.get_current().domain +\
+                    "/work/membership-discussion/" + str(comment.content_object.id) + "/"
                 notification.send(
                     users,
                     "comment_membership_request",

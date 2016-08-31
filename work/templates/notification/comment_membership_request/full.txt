@@ -2,5 +2,5 @@
 
 {{ comment }}
 
-The new comment is at {{ membership_url }}
+The new comment is at {% endblocktrans %}{{ membership_url }}
 

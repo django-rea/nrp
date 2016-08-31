@@ -1,1 +1,1 @@
-{% load i18n %}{% trans  "New comment from {{ name }} in membership request" %}
+{% load i18n %}{% trans  "New comment in membership request" %}

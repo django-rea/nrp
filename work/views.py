@@ -235,19 +235,11 @@ def profile(request):
     is_associated_with = agent.all_is_associates()
 
     faircoin_account = agent.faircoin_resource()
-    balance = faircoin_account.digital_currency_balance()
-    other_form = SkillSuggestionForm()
-    suggestions = request.user.skill_suggestion.all()
+    balance = 0
+    if faircoin_account:
+        balance = faircoin_account.digital_currency_balance()
     #balance = 2
     candidate_membership = agent.candidate_membership()
-    #share = EconomicResourceType.objects.membership_share()
-    #share_price = share.price_per_unit
-    #number_of_shares = agent.number_of_shares()
-    #share_price = share_price * number_of_shares
-    #payment_due = False
-    #if not agent.owns_resource_of_type(share):
-    #    payment_due = True
-    #can_pay = balance >= share_price
 
     return render_to_response("work/profile.html", {
         "agent": agent,
@@ -1110,16 +1102,18 @@ def manage_faircoin_account(request, resource_id):
 
         candidate_membership = agent.candidate_membership()
         if candidate_membership:
-          faircoin_account = agent.faircoin_resource()
-          balance = faircoin_account.digital_currency_balance()
-          share = EconomicResourceType.objects.membership_share()
-          share_price = share.price_per_unit
-          number_of_shares = agent.number_of_shares()
-          share_price = share_price * number_of_shares
-          payment_due = False
-          if not agent.owns_resource_of_type(share):
-              payment_due = True
-          can_pay = balance >= share_price
+            faircoin_account = agent.faircoin_resource()
+            balance = 0
+            if faircoin_account:
+                balance = faircoin_account.digital_currency_balance()
+            share = EconomicResourceType.objects.membership_share()
+            share_price = share.price_per_unit
+            number_of_shares = agent.number_of_shares()
+            share_price = share_price * number_of_shares
+            payment_due = False
+            if not agent.owns_resource_of_type(share):
+                payment_due = True
+            can_pay = balance >= share_price
 
     return render_to_response("work/faircoin_account.html", {
         "resource": resource,

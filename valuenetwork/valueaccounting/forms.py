@@ -51,7 +51,12 @@ class ValueEquationModelChoiceField(forms.ModelChoiceField):
             label = ": ".join([obj.name , "Test Only"])
         return label
         
+from work.models import REQUEST_STATE_CHOICES
 
+class RequestStateForm(forms.Form):
+    state = forms.ChoiceField(choices=REQUEST_STATE_CHOICES, widget=forms.RadioSelect(attrs={'class': 'tog'}))
+
+    
 class SendFairCoinsForm(forms.Form):
     quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'faircoins input-small',}),min_value=Decimal('1.0'))
     to_address = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))

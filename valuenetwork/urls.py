@@ -31,6 +31,15 @@ urlpatterns = patterns("",
     url(r'^captcha/', include('captcha.urls')),
     url(r'^i18n/', include('django.conf.urls.i18n')),
     url(r'^robots.txt$', lambda r: HttpResponse("User-agent: *\nAllow: /$\nDisallow: /", content_type="text/plain")),
+    # View URLs
+    url(r'^fobi/', include('fobi.urls.view')),
+
+    # Edit URLs
+    url(r'^fobi/', include('fobi.urls.edit')),
+    
+    # DB Store plugin URLs
+    url(r'^fobi/plugins/form-handlers/db-store/',
+        include('fobi.contrib.plugins.form_handlers.db_store.urls')),
 )
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

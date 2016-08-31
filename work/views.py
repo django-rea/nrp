@@ -233,7 +233,8 @@ def profile(request):
     upload_form = UploadAgentForm(instance=agent)
     has_associations = agent.all_has_associates()
     is_associated_with = agent.all_is_associates()
-
+    other_form = SkillSuggestionForm()
+    suggestions = request.user.skill_suggestion.all()
     faircoin_account = agent.faircoin_resource()
     balance = 0
     if faircoin_account:

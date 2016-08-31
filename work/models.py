@@ -75,16 +75,16 @@ class Project(models.Model):
         verbose_name=_('agent'), related_name='project')
     joining_style = models.CharField(_('joining style'),
         max_length=12, choices=JOINING_STYLE_CHOICES,
-        default="moderated")
+        default="autojoin")
     visibility = models.CharField(_('visibility'),
         max_length=12, choices=VISIBILITY_CHOICES,
-        default="private")
-        
-        
+        default="FCmembers")
+
+
 class SkillSuggestion(models.Model):
     skill = models.CharField(_('skill'), max_length=128,
         help_text=_("A new skill that you want to offer that is not already listed"))
     suggested_by = models.ForeignKey(User, verbose_name=_('suggested by'),
         related_name='skill_suggestion', blank=True, null=True, editable=False)
     suggestion_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
-    
+

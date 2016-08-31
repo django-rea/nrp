@@ -48,6 +48,8 @@ urlpatterns = patterns("",
     url(r'^my-tasks/$', 'work.views.my_tasks', name="my_tasks"),
     url(r'^take-new-tasks/$', 'work.views.take_new_tasks', name="take_new_tasks"),
     url(r'^home/$', 'work.views.my_dashboard', name="home"),
+    url(r"^create-your-project/$", 'work.views.create_your_project', name="create_your_project"),
+    url(r"^change-your-project/(?P<agent_id>\d+)/$", 'work.views.change_your_project', name="change_your_project"),
 
     url(r'^share-payment/(?P<agent_id>\d+)/$', 'work.views.share_payment', name="share_payment"),
 

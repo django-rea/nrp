@@ -56,17 +56,17 @@
 	    <legend>
 	        {% trans "Your Projects" %}
 
-	        {% if agent and user.is_staff %}
-                &nbsp;&nbsp;&nbsp;
-                <a href="#create-agent" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Create New Agent" %}</a>
+	        {% if user.agent.agent.is_active_freedom_coop_member or user.is_staff %}
+                &nbsp; &nbsp; &nbsp;
+                <a href="#create-agent" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Create New Project" %}</a>
 
                 <div class="modal hide fade" id="create-agent" tabindex="-1" role="dialog" aria-labelledby="agent-label" aria-hidden="true">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                        <h3 id="agent-label">{% trans "Create a New Agent" %}</h3>
+                        <h3 id="agent-label">{% trans "Create a New Project" %}</h3>
                     </div>
                     <div class="modal-body">
-                        <form class="validateMe" id="agentForm" enctype="multipart/form-data" action="{% url "create_agent" %}" method="POST" >
+                        <form class="validateMe" id="projectForm" enctype="multipart/form-data" action="{% url "create_your_project" %}" method="POST" >
                             {% csrf_token %}
                             {{ agent_form|as_bootstrap }}
                             <div class="modal-footer">
@@ -94,15 +94,17 @@
 
         </legend>
 
+
       {% if roots %}
+       {% if managed_projects %}
+        <h3>
+          {% trans "Projects coordinated by you:" %}
+        </h3>
+        <ul class="managed-project">
         {% for root in roots %}
           {% for node in root.nodes %}
-            {% if not node.name = 'Freedom Coop' %}
+            {% if not node.name == 'Freedom Coop' %}
               {% if agent in node.managers %}
-                <h3>
-                  {% trans "Project coordinated by you:" %}
-                </h3>
-                <ul class="managed-project">
                   <li><h4><b><a href="../agent/{{ node.id }}">{{ node.name }}</a></b></h4>
                     <!-- <a class="indent" href="{% url "contributions" project_id=node.id %}">{% trans "Contributions" %}: {{ node.contributions_count }}</a>
                     {% if node.wip %}
@@ -160,11 +162,12 @@
                       {% endif %}
                     {% endfor %}
                    </li>
-                  </ul>
               {% endif %}
             {% endif %}
           {% endfor %}
         {% endfor %}
+       </ul>
+       {% endif %}
 
       <p>  &nbsp; </p>
 

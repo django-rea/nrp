@@ -8,3 +8,8 @@ class MembershipRequestAdmin(admin.ModelAdmin):
     list_display = ('name', 'agent', )
     
 admin.site.register(MembershipRequest, MembershipRequestAdmin)
+
+class SkillSuggestionAdmin(admin.ModelAdmin):
+    list_display = ('skill', 'suggested_by', 'suggestion_date', )
+    
+admin.site.register(SkillSuggestion, SkillSuggestionAdmin)

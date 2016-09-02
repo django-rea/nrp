@@ -81,7 +81,7 @@
     margin-bottom: 10px;
 }
 legend {
-    margin-bottom: 5px;;
+    margin-bottom: 30px;;
 }
 .membership {
     font-weight: bold;
@@ -118,9 +118,11 @@ legend {
 		</legend>
 		<div class="button-row">
 
-            {% if user_agent.is_staff %}
-                <a href="#agentChangeForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
-                {% if not agent.faircoin_address %}
+            {% if user_agent in agent.managers or user_agent.is_staff %}
+                {% if agent.is_context %}
+                  <a href="#agentChangeForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Edit Project" %}</a>
+                {% endif %}
+                {% if not agent.faircoin_address and user_agent.is_staff%}
                     <form
                         style="display: inline;"
                         class="faircoin-form indent"
@@ -166,7 +168,7 @@ legend {
                         <h3 id="agent-change-label">{% trans "Change" %} {{ agent.name }}</h3>
                     </div>
                     <div class="modal-body">
-                        <form enctype="multipart/form-data" action="{% url "change_agent" agent_id=agent.id %}" method="POST" >
+                        <form enctype="multipart/form-data" action="{% url 'change_your_project' agent_id=agent.id %}" method="POST" >
                             {% csrf_token %}
                             {{ change_form|as_bootstrap }}
                             <div class="modal-footer">
@@ -206,7 +208,7 @@ legend {
 
 	            <table class="table table-bordered" >
 	                <tr>
-                        <th style="width: 150px; text-align: right;">{% trans "Username" %}</th>
+                        <th style="width: 150px; text-align: right;">{% trans "Nickname" %}</th>
                         <td>{{ agent.nick }}</td>
                     </tr>
                     {% if False and user_agent and agent.username %}
@@ -299,6 +301,18 @@ legend {
                         <td>{{ agent.created_by }}</td>
                     </tr>
                     {% endif %}
+
+                    {% if user_agent in agent.managers and agent.project %}
+                      <tr>
+                        <th>{% trans "Project Joining Style:" %}</th>
+                        <td>{{ agent.project.joining_style }}</td>
+                      </tr>
+                      <tr>
+                        <th>{% trans "Project Visibility:" %}</th>
+                        <td>{{ agent.project.visibility }}</td>
+                      </tr>
+                    {% endif %}
+
                     {% if agent.membership_request %}
                         <tr>
                             <td colspan="2" class="membership">
@@ -338,6 +352,7 @@ legend {
 	            </table>
 
 	        </div>
+
         {% if user_agent in agent.managers or user_is_agent %}
 	        <div class="span4 assoc">
                 <h4 class="hdg"> {{ agent.name }} {% trans "is associated with " %}: </h4>

@@ -7717,7 +7717,7 @@ class Transfer(models.Model):
             if event.resource_type:
                 resource_string = event.resource_type.name
             if event.resource:
-                resource_string = str(event.resource)
+                resource_string = event.resource.__unicode__()
             qty = str(event.quantity)
             if event.unit_of_quantity:
                 unit = event.unit_of_quantity.name
@@ -8014,7 +8014,7 @@ class Transfer(models.Model):
             event = events[0]
             resource_string = event.resource_type.name
             if event.resource:
-                resource_string = str(event.resource)
+                resource_string = event.resource.__unicode__()
             return resource_string
         return None
 
@@ -10127,7 +10127,7 @@ class EconomicEvent(models.Model):
             to_agt = self.recipient().name
         resource_string = self.resource_type.name
         if self.resource:
-            resource_string = str(self.resource)
+            resource_string = event.resource.__unicode__()
         event_name = self.event_type.name
         #if self.exchange_type_item_type:
         #    event_name = self.exchange_type_item_type.name
@@ -10155,7 +10155,7 @@ class EconomicEvent(models.Model):
             to_agt = self.recipient().name
         resource_string = self.resource_type.name
         if self.resource:
-            resource_string = str(self.resource)
+            resource_string = self.resource.__unicode__()
         return ' '.join([
             self.event_type.name,
             self.event_date.strftime('%Y-%m-%d'),

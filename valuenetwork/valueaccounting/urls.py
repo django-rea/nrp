@@ -534,5 +534,6 @@ urlpatterns += patterns("",
         name="connect_agent_to_request"), 
     url(r'^create-agent-for-request/(?P<membership_request_id>\d+)/$', 'valuenetwork.valueaccounting.views.create_agent_for_request', 
         name="create_agent_for_request"),
+    url(r"^comments/$", 'valuenetwork.valueaccounting.views.comments', name="comments"),
 )
 

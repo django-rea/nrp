@@ -2,6 +2,7 @@
 
 {% load i18n %}
 {% load bootstrap_tags %}
+{% load comments %}
 
 {% block head_title %}{% trans "Your Projects" %}{% endblock %}
 
@@ -176,12 +177,23 @@
       </h3>
       <ul id="member-projects">
         <li><b>
-          {% with request.user.agent.agent.membership_request.id as id %}
-          {% if id %}
-          <a href="{% url 'membership_discussion' membership_request_id=id %}"
-             title="{% trans 'Membership feedback' %}">{% trans "Freedom Coop's active member" %}</a>
+          {% with request.user.agent.agent.membership_request as mreq %}
+          {% if mreq %}
+                <a href="{% url 'membership_discussion' membership_request_id=mreq.id %}"
+                    title="{% trans 'Membership feedback' %}">{% trans "Freedom Coop's active member" %}</a>
+                {% get_comment_count for mreq as comment_count %}
+                {% if comment_count %}
+                    <span class="comments">
+                        - {{ comment_count }} 
+                        {% if comment_count == 1 %}
+                            {% trans "comment" %}
+                        {% else %}
+                            {% trans "comments" %}
+                        {% endif %}
+                    </span>
+                {% endif %}
           {% else %}
-          {% trans "Freedom Coop's active member" %}
+            {% trans "Freedom Coop's active member" %}
           {% endif %}
           {% endwith %}
           </b></li>

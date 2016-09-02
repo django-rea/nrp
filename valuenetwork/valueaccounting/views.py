@@ -21,6 +21,7 @@ from django.utils.datastructures import SortedDict
 from django.contrib.auth.forms import UserCreationForm
 from django.conf import settings
 from django.contrib.sites.models import Site
+from django_comments.models import Comment, CommentFlag
 
 from valuenetwork.valueaccounting.models import *
 from valuenetwork.valueaccounting.forms import *
@@ -10587,6 +10588,13 @@ def resource_facet_table(request):
     return render_to_response("valueaccounting/resource_facets.html", {
         "headings": headings,
         "rows": rows,
+    }, context_instance=RequestContext(request))
+    
+@login_required
+def comments(request):
+    comments = Comment.objects.all().order_by("-submit_date")   
+    return render_to_response("valueaccounting/comments.html", {
+        "comment_list": comments,
     }, context_instance=RequestContext(request))
 
 @login_required

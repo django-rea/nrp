@@ -1,0 +1,39 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+{% load bootstrap_tags %}
+{% load thumbnail %}
+{% load comments %}
+
+{% block head_title %}{% trans "All Comments" %}{% endblock %}
+
+{% block extra_head %}
+{% endblock %}
+
+{% block body_class %}x{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+
+        <legend>
+            {% trans "All Comments" %}
+        </legend>
+        <div class="row-fluid">
+        
+            <div class="span8">
+                {% for comment in comment_list %}
+                    <p>
+                        {% trans "Posted by" %}: {{ comment.user_name }} {% trans "on" %} {{ comment.submit_date }}<br/>
+                        {% trans "About" %}: 
+                        <a href="{% url 'membership_discussion' membership_request_id=comment.object_pk %}">{% trans "Membership Request for" %} {{ comment.content_object.name }}</a>
+                    </p>
+                    <p>{% trans "Comment" %}: {{ comment.comment }}</p>
+                    <hr/>
+                    
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+            

@@ -429,11 +429,79 @@ th, td {
 
           </div> -->
 
-          <div class="span6" id="take-new-task">
+          <div class="span12" id="take-new-task">
 
             <div class="my-skills">
 
-                <h3 style="margin-bottom: 4px;" >{% trans "Unassigned tasks using my skills" %}:</h3>
+                <h3 style="margin-bottom: 4px;" >{% trans "Unassigned process tasks using my skills" %}:</h3>
+
+                {% if my_skillz %}
+                    <ul>
+                        {% for item in my_skillz %}
+                            <li>
+                                <b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+                                {% if agent %}
+                                    <div style="display: inline;" >
+                                        <a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-primary btn-mini" data-toggle="modal">
+                                            {% trans "Take this task" %}
+                                        </a>
+                                    </div>
+
+                                    <div class="modal hide fade commitmentModal" id="commitmentModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                            <h3 id="commitment-label">{% trans "Take this task" %}: {{ item.resource_type.name }}</h3>
+                                        </div>
+                                        <div class="modal-body">
+
+                                            <div class="row-fluid">
+                                                <div class="span12">
+                                                    <form class="commitmentForm" enctype="multipart/form-data" action="{% url "commit_to_task" commitment_id=item.id %}" method="POST" >
+                                                        {% csrf_token %}
+                                                        {{ item.commitment_form|as_bootstrap }}
+                                                        <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
+                                                        <div class="modal-footer">
+                                                        <input type="cancel" class="btn cancel" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+                                                        <input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
+{% comment %}
+                                                        {% if work_now %}
+                                                            <input type="submit" class="btn btn-primary" name="work-start" value='{% trans "Start now" %}' />
+                                                        {% endif %}
+{% endcomment %}
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                {% endif %}
+                                {% if item.description %}
+                                    <ul>
+                                        <li class="work-description">{{ item.description|urlize|linebreaks|truncatewords_html:15 }}</li>
+                                    </ul>
+                                {% endif %}
+                            </li>
+                            <p style="margin-left: 1em; margin-bottom: 0;">
+                                {% trans "for process" %}: <a href="{% url "process_logging" process_id=item.process.id %}">{{ item.process }}</a>
+                            </p>
+                            <p style="margin-left: 1em; margin-bottom: 0;">
+                                {% trans "for order" %}: {{ item.independent_demand }}
+                            </p>
+
+
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    None
+                {% endif %}
+
+            </div>
+
+            <div class="my-skills">
+
+                <h3 style="margin-bottom: 4px;" >{% trans "Unassigned simple tasks using my skills" %}:</h3>
 
                 {% if my_skillz %}
                         <div class="row-fluid" id="todos">

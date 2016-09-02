@@ -53,70 +53,37 @@ def my_dashboard(request):
         "agent": agent,
     }, context_instance=RequestContext(request))
 
-@login_required
-def my_process_tasks(request):
-    #import pdb; pdb.set_trace()
-    my_work = []
-    my_skillz = []
-    agent = get_agent(request)
-    if agent:        
-        context_ids = [c.id for c in agent.related_contexts()]
-        my_work = Commitment.objects.unfinished().filter(
-            event_type__relationship="work",
-            from_agent=agent)
-        skill_ids = agent.resource_types.values_list('resource_type__id', flat=True)
-        my_skillz = Commitment.objects.unfinished().filter(
-            from_agent=None,
-            context_agent__id__in=context_ids,
-            event_type__relationship="work",
-            resource_type__id__in=skill_ids)
-        other_unassigned = Commitment.objects.unfinished().filter(
-            from_agent=None, 
-            event_type__relationship="work").exclude(resource_type__id__in=skill_ids)       
-    else:
-        other_unassigned = Commitment.objects.unfinished().filter(
-            from_agent=None, 
-            event_type__relationship="work")
-    #work_now = settings.USE_WORK_NOW
-
-    return render_to_response("work/my_process_tasks.html", {
-        "agent": agent,
-        "my_work": my_work,
-        "my_skillz": my_skillz,
-        #"work_now": work_now,
-        #"help": get_help("proc_log"),
-    }, context_instance=RequestContext(request))
 
 @login_required
 def my_tasks(request):
     #import pdb; pdb.set_trace()
     my_work = []
-    my_skillz = []
+    #my_skillz = []
     other_wip = []
     agent = get_agent(request)
-    if agent:
-        context_ids = [c.id for c in agent.related_contexts()]
-        my_work = Commitment.objects.unfinished().filter(
-            event_type__relationship="todo",
-            from_agent=agent)
-        skill_ids = agent.resource_types.values_list('resource_type__id', flat=True)
-        my_skillz = Commitment.objects.unfinished().filter(
-            from_agent=None,
-            context_agent__id__in=context_ids,
-            event_type__relationship="todo",
-            resource_type__id__in=skill_ids)
-        other_unassigned = Commitment.objects.unfinished().filter(
-            from_agent=None,
-            context_agent__id__in=context_ids,
-            event_type__relationship="work").exclude(resource_type__id__in=skill_ids)
-        todos = Commitment.objects.unfinished().filter(
-            from_agent=None,
-            context_agent__id__in=context_ids,
-            event_type__relationship="todo")
-    else:
-        other_unassigned = Commitment.objects.unfinished().filter(
-            from_agent=None,
-            event_type__relationship="work")
+    #if agent:
+    context_ids = [c.id for c in agent.related_contexts()]
+    my_work = Commitment.objects.unfinished().filter(
+        event_type__relationship="work",
+        from_agent=agent)
+    #skill_ids = agent.resource_types.values_list('resource_type__id', flat=True)
+    #my_skillz = Commitment.objects.unfinished().filter(
+    #    from_agent=None,
+    #    context_agent__id__in=context_ids,
+    #    event_type__relationship="todo",
+    #    resource_type__id__in=skill_ids)
+    #other_unassigned = Commitment.objects.unfinished().filter(
+    #    from_agent=None,
+    #    context_agent__id__in=context_ids,
+    #    event_type__relationship="work").exclude(resource_type__id__in=skill_ids)
+    todos = Commitment.objects.unfinished().filter(
+        from_agent=None,
+        context_agent__id__in=context_ids,
+        event_type__relationship="todo")
+    #else:
+    #    other_unassigned = Commitment.objects.unfinished().filter(
+    #        from_agent=None,
+    #        event_type__relationship="work")
     #import pdb; pdb.set_trace()
     my_todos = Commitment.objects.todos().filter(from_agent=agent)
     init = {"from_agent": agent,}
@@ -126,48 +93,48 @@ def my_tasks(request):
         todo_form = WorkTodoForm(agent=agent, pattern=pattern, initial=init)
     else:
         todo_form = WorkTodoForm(agent=agent, initial=init)
-    work_now = settings.USE_WORK_NOW
+    #work_now = settings.USE_WORK_NOW
     return render_to_response("work/my_tasks.html", {
         "agent": agent,
         "my_work": my_work,
         #"my_skillz": my_skillz,
-        "other_unassigned": other_unassigned,
+        #"other_unassigned": other_unassigned,
         "my_todos": my_todos,
         "todo_form": todo_form,
-        "work_now": work_now,
+        #"work_now": work_now,
         "help": get_help("proc_log"),
     }, context_instance=RequestContext(request))
 
 @login_required
 def take_new_tasks(request):
     #import pdb; pdb.set_trace()
-    my_work = []
+    #my_work = []
     my_skillz = []
     other_wip = []
     agent = get_agent(request)
-    if agent:
-        context_ids = [c.id for c in agent.related_contexts()]
-        my_work = Commitment.objects.unfinished().filter(
-            event_type__relationship="todo",
-            from_agent=agent)
-        skill_ids = agent.resource_types.values_list('resource_type__id', flat=True)
-        my_skillz = Commitment.objects.unfinished().filter(
-            from_agent=None,
-            context_agent__id__in=context_ids,
-            event_type__relationship="todo",
-            resource_type__id__in=skill_ids)
-        other_unassigned = Commitment.objects.unfinished().filter(
-            from_agent=None,
-            context_agent__id__in=context_ids,
-            event_type__relationship="work").exclude(resource_type__id__in=skill_ids)
-        todos = Commitment.objects.unfinished().filter(
-            from_agent=None,
-            context_agent__id__in=context_ids,
-            event_type__relationship="todo")
-    else:
-        other_unassigned = Commitment.objects.unfinished().filter(
-            from_agent=None,
-            event_type__relationship="work")
+    #if agent:
+    context_ids = [c.id for c in agent.related_contexts()]
+    #my_work = Commitment.objects.unfinished().filter(
+    #    event_type__relationship="todo",
+    #    from_agent=agent)
+    skill_ids = agent.resource_types.values_list('resource_type__id', flat=True)
+    my_skillz = Commitment.objects.unfinished().filter(
+        from_agent=None,
+        context_agent__id__in=context_ids,
+        event_type__relationship="work",
+        resource_type__id__in=skill_ids)
+    #other_unassigned = Commitment.objects.unfinished().filter(
+    #    from_agent=None,
+    #    context_agent__id__in=context_ids,
+    #    event_type__relationship="work").exclude(resource_type__id__in=skill_ids)
+    todos = Commitment.objects.unfinished().filter(
+        from_agent=None,
+        context_agent__id__in=context_ids,
+        event_type__relationship="todo")
+    #else:
+    #    other_unassigned = Commitment.objects.unfinished().filter(
+    #        from_agent=None,
+    #        event_type__relationship="work")
     #import pdb; pdb.set_trace()
     my_todos = Commitment.objects.todos().filter(from_agent=agent)
     init = {"from_agent": agent,}
@@ -177,15 +144,15 @@ def take_new_tasks(request):
         todo_form = WorkTodoForm(agent=agent, pattern=pattern, initial=init)
     else:
         todo_form = WorkTodoForm(agent=agent, initial=init)
-    work_now = settings.USE_WORK_NOW
+    #work_now = settings.USE_WORK_NOW
     return render_to_response("work/take_new_tasks.html", {
         "agent": agent,
         #"my_work": my_work,
         "my_skillz": my_skillz,
-        "other_unassigned": other_unassigned,
+        #"other_unassigned": other_unassigned,
         #"my_todos": my_todos,
         #"todo_form": todo_form,
-        "work_now": work_now,
+        #"work_now": work_now,
         "help": get_help("proc_log"),
     }, context_instance=RequestContext(request))
 

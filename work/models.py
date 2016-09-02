@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 from django.utils.translation import ugettext_lazy as _
 
@@ -56,3 +57,36 @@ class MembershipRequest(models.Model):
 
     def __unicode__(self):
         return self.name
+
+
+JOINING_STYLE_CHOICES = (
+    ('moderated', _('moderated')),
+    ('autojoin', _('autojoin')),
+)
+
+VISIBILITY_CHOICES = (
+    ('private', _('private')),
+    ('FCmembers', _('only FC members')),
+    ('public', _('public')),
+)
+
+class Project(models.Model):
+    agent = models.OneToOneField(EconomicAgent,
+        verbose_name=_('agent'), related_name='project')
+    joining_style = models.CharField(_('joining style'),
+        max_length=12, choices=JOINING_STYLE_CHOICES,
+        default="autojoin")
+    visibility = models.CharField(_('visibility'),
+        max_length=12, choices=VISIBILITY_CHOICES,
+        default="FCmembers")
+
+
+class SkillSuggestion(models.Model):
+    skill = models.CharField(_('skill'), max_length=128,
+        help_text=_("A new skill that you want to offer that is not already listed"))
+    suggested_by = models.ForeignKey(User, verbose_name=_('suggested by'),
+        related_name='skill_suggestion', blank=True, null=True, editable=False)
+    suggestion_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+
+    def __unicode__(self):
+        return self.skill

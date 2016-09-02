@@ -142,3 +142,25 @@ div#my_tasks table, div#take-new-task table {
 .home-block li {
   margin-top: 8px;
 }
+
+
+/*   Y O U R   P R O J E C T S   P A G E   */
+
+.modal-body {
+  color: #333;
+  font-weight: normal;
+  font-size: 13px;
+  line-height: 18px;
+  max-height: 450px;
+}
+.modal-body p.help-block {
+  padding-bottom: 9px;
+}
+
+.modal {
+  width: 580px;
+}
+
+legend a.btn {
+  margin-bottom: 9px;
+}

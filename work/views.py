@@ -233,7 +233,8 @@ def profile(request):
     upload_form = UploadAgentForm(instance=agent)
     has_associations = agent.all_has_associates()
     is_associated_with = agent.all_is_associates()
-
+    other_form = SkillSuggestionForm()
+    suggestions = request.user.skill_suggestion.all()
     faircoin_account = agent.faircoin_resource()
     balance = 0
     if faircoin_account:
@@ -253,6 +254,8 @@ def profile(request):
         "balance": balance,
         #"payment_due": payment_due,
         "candidate_membership": candidate_membership,
+        "other_form": other_form,
+        "suggestions": suggestions,
         "help": get_help("profile"),
         #"share_price": share_price,
         #"number_of_shares": number_of_shares,
@@ -507,36 +510,43 @@ def upload_picture(request, agent_id):
 
 @login_required
 def update_skills(request, agent_id):
-    agent = get_object_or_404(EconomicAgent, id=agent_id)
-    user_agent = get_agent(request)
-    if not user_agent:
-        return render_to_response('valueaccounting/no_permission.html')
-    #import pdb; pdb.set_trace()
-    et_work = EventType.objects.get(name="Time Contribution")
-    arts = agent.resource_types.filter(event_type=et_work)
-    old_skill_rts = []
-    for art in arts:
-        old_skill_rts.append(art.resource_type)
-    new_skills_list = request.POST.getlist('skill')
-    new_skill_rts = []
-    for rt_id in new_skills_list:
-        skill = EconomicResourceType.objects.get(id=int(rt_id))
-        new_skill_rts.append(skill)
-    for skill in old_skill_rts:
-        if skill not in new_skill_rts:
-            arts = AgentResourceType.objects.filter(agent=agent).filter(resource_type=skill)
-            if arts:
-                art = arts[0]
-                art.delete()
-    for skill in new_skill_rts:
-        if skill not in old_skill_rts:
-            art = AgentResourceType(
-                agent=agent,
-                resource_type=skill,
-                event_type=et_work,
-                created_by=request.user,
-            )
-            art.save()
+    if request.method == "POST":
+        agent = get_object_or_404(EconomicAgent, id=agent_id)
+        user_agent = get_agent(request)
+        if not user_agent:
+            return render_to_response('valueaccounting/no_permission.html')
+        #import pdb; pdb.set_trace()
+        et_work = EventType.objects.get(name="Time Contribution")
+        arts = agent.resource_types.filter(event_type=et_work)
+        old_skill_rts = []
+        for art in arts:
+            old_skill_rts.append(art.resource_type)
+        new_skills_list = request.POST.getlist('skillChoice')
+        new_skill_rts = []
+        for rt_id in new_skills_list:
+            skill = EconomicResourceType.objects.get(id=int(rt_id))
+            new_skill_rts.append(skill)
+        for skill in old_skill_rts:
+            if skill not in new_skill_rts:
+                arts = AgentResourceType.objects.filter(agent=agent).filter(resource_type=skill)
+                if arts:
+                    art = arts[0]
+                    art.delete()
+        for skill in new_skill_rts:
+            if skill not in old_skill_rts:
+                art = AgentResourceType(
+                    agent=agent,
+                    resource_type=skill,
+                    event_type=et_work,
+                    created_by=request.user,
+                )
+                art.save()
+        other_form = SkillSuggestionForm(data=request.POST)
+        #import pdb; pdb.set_trace()
+        if other_form.is_valid():
+            suggestion = other_form.save(commit=False)
+            suggestion.suggested_by = request.user
+            suggestion.save()
 
     return HttpResponseRedirect('/%s/'
         % ('work/profile'))
@@ -1799,8 +1809,9 @@ def work_delete_event(request, event_id):
 def your_projects(request):
     #import pdb; pdb.set_trace()
     agent = get_agent(request)
-    agent_form = AgentCreateForm()
+    agent_form = ProjectCreateForm() #initial={'agent_type': 'Project'})
     projects = agent.related_contexts()
+    managed_projects = agent.managed_projects()
     next = "/work/your-projects/"
     allowed = False
     if agent:
@@ -1833,8 +1844,50 @@ def your_projects(request):
         "help": get_help("your_projects"),
         "agent": agent,
         "agent_form": agent_form,
-        #"projects": projects,
+        "managed_projects": managed_projects,
     }, context_instance=RequestContext(request))
+
+
+@login_required
+def create_your_project(request):
+    user_agent = get_agent(request)
+    if not user_agent:
+        return render_to_response('valueaccounting/no_permission.html')
+    if request.method == "POST":
+        pro_form = ProjectCreateForm(request.POST)
+        agn_form = AgentCreateForm(request.POST)
+        if pro_form.is_valid() and agn_form.is_valid():
+            agent = agn_form.save(commit=False)
+            agent.created_by=request.user
+            agent.is_context=True
+            agent.save()
+            project = pro_form.save(commit=False)
+            project.agent = agent
+            project.save()
+
+            association_type = AgentAssociationType.objects.get(identifier="manager")
+            fc_aa = AgentAssociation(
+                is_associate=user_agent,
+                has_associate=agent,
+                association_type=association_type,
+                state="active",
+                )
+            fc_aa.save()
+
+            fc = EconomicAgent.objects.freedom_coop()
+            association_type = AgentAssociationType.objects.get(identifier="child")
+            fc_aa = AgentAssociation(
+                is_associate=agent,
+                has_associate=fc,
+                association_type=association_type,
+                state="active",
+                )
+            fc_aa.save()
+
+            return HttpResponseRedirect('/%s/%s/'
+                % ('work/agent', agent.id))
+    return HttpResponseRedirect("/work/your-projects/")
+
 
 # bum2
 @login_required
@@ -1845,7 +1898,17 @@ def members_agent(request, agent_id):
     user_is_agent = False
     if agent == user_agent:
         user_is_agent = True
-    change_form = AgentCreateForm(instance=agent)
+    try:
+        project = agent.project
+    except:
+        project = False
+
+    if project:
+        init = {"joining_style": project.joining_style, "visibility": project.visibility,}
+        change_form = ProjectCreateForm(instance=agent, initial=init)
+    else:
+        change_form = ProjectCreateForm(instance=agent) #AgentCreateForm(instance=agent)
+
     nav_form = InternalExchangeNavForm(data=request.POST or None)
     if agent:
         if request.method == "POST":
@@ -1956,3 +2019,35 @@ def members_agent(request, agent_id):
         "roles_height": roles_height,
         "help": get_help("members_agent"),
     }, context_instance=RequestContext(request))
+
+
+@login_required
+def change_your_project(request, agent_id):
+    agent = get_object_or_404(EconomicAgent, id=agent_id)
+    user_agent = get_agent(request)
+    if not user_agent:
+        return render_to_response('valueaccounting/no_permission.html')
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        try:
+          project = agent.project
+        except:
+          project = False
+        if not project:
+          pro_form = ProjectCreateForm(request.POST)
+          if pro_form.is_valid():
+            project = pro_form.save(commit=False)
+            project.agent = agent
+            project.save()
+        else:
+          pro_form = ProjectCreateForm(instance=project, data=request.POST or None)
+        agn_form = AgentCreateForm(instance=agent, data=request.POST or None)
+        if pro_form.is_valid() and agn_form.is_valid():
+            project = pro_form.save()
+            #agent.project = project
+            agent = agn_form.save(commit=False)
+            agent.is_context = True
+            agent.save()
+
+    return HttpResponseRedirect('/%s/%s/'
+        % ('work/agent', agent.id))

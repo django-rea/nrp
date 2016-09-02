@@ -379,18 +379,18 @@ class AgentManager(models.Manager):
             if agent.users.all():
                 ua_ids.append(agent.id)
         return all_agents.exclude(id__in=ua_ids)
-        
+
     def with_user(self):
         #better version from django-users
         #needs testing
-        #return EconomicAgent.objects.filter(users__isnull=False).distinct() 
+        #return EconomicAgent.objects.filter(users__isnull=False).distinct()
         all_agents = EconomicAgent.objects.all()
         ua_ids = []
         for agent in all_agents:
             if agent.users.all():
                 ua_ids.append(agent.id)
-        return EconomicAgent.objects.filter(id__in=ua_ids)      
-        
+        return EconomicAgent.objects.filter(id__in=ua_ids)
+
     def without_membership_request(self):
         from work.models import MembershipRequest
         reqs = MembershipRequest.objects.all()
@@ -423,15 +423,15 @@ class AgentManager(models.Manager):
         #return EconomicAgent.objects.filter(Q(is_context=True)|Q(agent_type__party_type="individual"))
         #todo: should there be some limits?  Ran into condition where we needed an organization, therefore change to below.
         return EconomicAgent.objects.all()
-        
+
     def freedom_coop(self):
         try:
             fc = EconomicAgent.objects.get(name="Freedom Coop")
         except EconomicAgent.DoesNotExist:
             raise ValidationError("Freedom Coop does not exist by that name")
         return fc
-        
-    
+
+
 
 class EconomicAgent(models.Model):
     name = models.CharField(_('name'), max_length=255)
@@ -574,21 +574,21 @@ class EconomicAgent(models.Model):
             return candidates[0].resource
         else:
             return None
-            
+
     def candidate_membership(self):
         aa = self.candidate_association()
         if aa:
             if aa.state == "potential":
                 return aa.has_associate
         return None
-        
+
     def candidate_association(self):
         aas = self.is_associate_of.all()
         if aas:
             aa = aas[0]
             if aa.state == "potential":
                 return aa
-        
+
     def number_of_shares(self):
         if self.agent_type.party_type == "individual":
             shares = 1
@@ -605,7 +605,7 @@ class EconomicAgent(models.Model):
             return True
         else:
             return False
-            
+
     def owns_resource_of_type(self, resource_type):
         answer = False
         arrs = self.agent_resource_roles.filter(
@@ -864,6 +864,12 @@ class EconomicAgent(models.Model):
         agents.extend([ag.is_associate for ag in self.has_associates.all()])
         return [a for a in agents if a.is_context]
 
+    #  bum2
+    def managed_projects(self): #returns a list or None
+        agents = [ag.has_associate for ag in self.is_associate_of.filter(association_type__association_behavior="manager")]
+        return [a for a in agents if a.is_context] #EconomicAgent.objects.filter(pk__in=agent_ids)
+
+
     def task_assignment_candidates(self):
         answer = []
         if self.is_context:
@@ -1034,14 +1040,14 @@ class EconomicAgent(models.Model):
     def is_associated_with_groups(self):
         afgs = self.is_associate_of.exclude(has_associate__agent_type__party_type="individual")
         return afgs
-        
+
     def association_with(self, context):
         associations = self.is_associate_of.filter(has_associate=context)
         if associations:
             return associations[0]
         else:
             return []
-            
+
     def is_manager_of(self, context):
         if self is context:
             return True
@@ -1050,7 +1056,7 @@ class EconomicAgent(models.Model):
             if association.association_type.association_behavior == "manager":
                 return True
         return False
-        
+
     def exchange_firm(self):
         xs = self.exchange_firms()
         if xs:
@@ -1665,17 +1671,17 @@ class ResourceClass(models.Model):
     def __unicode__(self):
         return self.name
 
-        
+
 class EconomicResourceTypeManager(models.Manager):
-    
+
     def membership_share(self):
         try:
             share = EconomicResourceType.objects.get(name="Membership Share")
         except EconomicResourceType.DoesNotExist:
             raise ValidationError("Membership Share does not exist by that name")
         return share
-    
-    
+
+
 INVENTORY_RULE_CHOICES = (
     ('yes', _('Keep inventory')),
     ('no', _('Not worth it')),
@@ -1738,7 +1744,7 @@ class EconomicResourceType(models.Model):
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
     slug = models.SlugField(_("Page name"), editable=False)
-    
+
     objects = EconomicResourceTypeManager()
 
     class Meta:
@@ -1767,7 +1773,7 @@ class EconomicResourceType(models.Model):
             return False
 
     def is_work(self):
-        #import pdb; pdb.set_trace() 
+        #import pdb; pdb.set_trace()
         if self.behavior == "work":
             return True
         else:
@@ -2263,7 +2269,7 @@ class EconomicResourceType(models.Model):
     def is_purchased(self):
         rts = all_purchased_resource_types()
         return self in rts
-        
+
     def consuming_process_type_relationships(self):
         #todo pr: shd this be own or own_or_parent_recipes?
         return self.process_types.filter(event_type__resource_effect='-')
@@ -3972,7 +3978,7 @@ class ExchangeTypeManager(models.Manager):
 
     def demand_exchange_types(self):
         return ExchangeType.objects.filter(use_case__identifier='demand_xfer')
-        
+
     def membership_share_exchange_type(self):
         try:
             xt = ExchangeType.objects.get(name='Membership Contribution')
@@ -5638,10 +5644,10 @@ class AgentResourceType(models.Model):
             "Min: ", str(min(scores).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)),
             ", Average: ", average,
             ", Max: ", str(max(scores).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)),
-            ]) 
-   
+            ])
+
 class AgentResourceRoleTypeManager(models.Manager):
-    
+
     def owner_role(self):
         role_types = AgentResourceRoleType.objects.filter(is_owner=True)
         owner_role_type = None
@@ -5650,12 +5656,12 @@ class AgentResourceRoleTypeManager(models.Manager):
         else:
             raise ValidationError("No owner AgentResourceRoleType")
 
-            
+
 class AgentResourceRoleType(models.Model):
     name = models.CharField(_('name'), max_length=128)
     description = models.TextField(_('description'), blank=True, null=True)
     is_owner = models.BooleanField(_('is owner'), default=False)
-    
+
     objects = AgentResourceRoleTypeManager()
 
     def __unicode__(self):
@@ -10099,7 +10105,7 @@ class EconomicEvent(models.Model):
     event_reference = models.CharField(_('reference'), max_length=128, blank=True, null=True)
     digital_currency_tx_hash = models.CharField(_("digital currency transaction hash"), max_length=96,
         blank=True, null=True, editable=False)
-    digital_currency_tx_state = models.CharField(_('digital currency transaction state'), 
+    digital_currency_tx_state = models.CharField(_('digital currency transaction state'),
         max_length=12, choices=TX_STATE_CHOICES,
         blank=True, null=True)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
@@ -10322,7 +10328,7 @@ class EconomicEvent(models.Model):
             self.digital_currency_tx_state = new_state
             self.save()
         return state
-        
+
     def to_faircoin_address(self):
         if self.resource.is_digital_currency_resource():
             event_reference = self.event_reference
@@ -10332,7 +10338,7 @@ class EconomicEvent(models.Model):
                 if to_resources:
                     answer = to_resources[0].identifier
         return answer
-        
+
     def seniority(self):
         return (datetime.date.today() - self.event_date).days
 

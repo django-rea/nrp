@@ -10133,7 +10133,7 @@ class EconomicEvent(models.Model):
             to_agt = self.recipient().name
         resource_string = self.resource_type.name
         if self.resource:
-            resource_string = event.resource.__unicode__()
+            resource_string = self.resource.__unicode__()
         event_name = self.event_type.name
         #if self.exchange_type_item_type:
         #    event_name = self.exchange_type_item_type.name

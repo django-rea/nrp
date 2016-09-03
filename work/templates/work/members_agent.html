@@ -114,6 +114,14 @@ legend {
             <a class="indent smaller" href="{% url "radial_graph" agent_id=agent.id %}">{% trans "Association Graph" %}</a>
             <a class="indent smaller" href="{% url "agent_associations" agent_id=agent.id %}">{% trans "Maintain Associations" %}</a>
             <a class="indent smaller" href="{% url "agents" %}">{% trans "All Agents" %}</a> -->
+
+            <div class="subnav">
+               {% if agent.project.fobi_slug and agent.project.join_requests %}
+                  <a class="indent" href="join-requests">{% trans "Join Requests" %}</a>
+               {% endif %}
+               <a class="indent" href="{% url "your_projects" %}">{% trans "Your Projects" %}</a>
+               <a class="indent" href="{% url "project_work" %}">{% trans "Projects Tasks" %}</a>
+            </div>
         {% endif %}
 		</legend>
 		<div class="button-row">
@@ -305,12 +313,28 @@ legend {
                     {% if user_agent in agent.managers and agent.project %}
                       <tr>
                         <th>{% trans "Project Joining Style:" %}</th>
-                        <td>{{ agent.project.joining_style }}</td>
+                        <td>{{ agent.project.joining_style }}
+                          {% if agent.project.joining_style == 'moderated' %}
+                            {% if agent.project.fobi_slug %}
+                          - <a href="/work/agent/{{ agent.id }}/join-requests/">{% trans "Manage Requests" %}</a>
+                            {% endif %}
+                          {% endif %}</td>
                       </tr>
                       <tr>
                         <th>{% trans "Project Visibility:" %}</th>
                         <td>{{ agent.project.visibility }}</td>
                       </tr>
+                      {% if agent.project.joining_style == 'moderated' %}
+                        <tr>
+                          <th>{% trans "Custom Form:" %}</th>
+                          <td>{% if agent.project.fobi_slug %}
+                                {{ agent.project.fobi_slug }} {% if user_agent.is_staff %} / <a href="/fobi/view/{{ agent.project.fobi_slug }}/" target="_blank">{% trans "View Custom Form Fields" %}</a>{% endif %}
+                              {% else %}
+                                <span class="error">{% trans "None" %}</span> <em>{% trans "(custom form fields pending to setup, list your desired fields and ask an admin using the feedback page)" %}</em>
+                              {% endif %}
+                          </td>
+                        </tr>
+                      {% endif %}
                     {% endif %}
 
                     {% if agent.membership_request %}
@@ -354,6 +378,21 @@ legend {
 	        </div>
 
         {% if user_agent in agent.managers or user_is_agent %}
+          {% if agent.project and form_entries and fobi_name %}
+            <div class="span4 requests">
+              <h3>
+                {% trans "Join Requests:" %} <span style="font-weight:normal;">{{ fobi_name }}</span>
+              </h3>
+              <ul>
+                {% for req in form_entries %}
+                  <li>
+                    {{ req.name }} <!--( <a href="mailto:{{ req.email_address }}">{{ req.email_address }}</a> )-->
+                  </li>
+                {% endfor %}
+              </ul>
+              <p>&nbsp;</p>
+            </div>
+          {% endif %}
 	        <div class="span4 assoc">
                 <h4 class="hdg"> {{ agent.name }} {% trans "is associated with " %}: </h4>
                 <ul>

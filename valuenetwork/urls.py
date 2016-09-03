@@ -19,7 +19,7 @@ urlpatterns = patterns("",
     url(r"^accounting/", include("valuenetwork.valueaccounting.urls")),
     url(r"^admin/", include(admin.site.urls)),
     url(r"^account/", include("account.urls")),
-    url(r"^notification/", include("notification.urls")),    
+    url(r"^notification/", include("notification.urls")),
     url(r"^equipment/", include("valuenetwork.equipment.urls")),
     url(r"^board/", include("valuenetwork.board.urls")),
     url(r"^work/", include("work.urls")),
@@ -31,12 +31,16 @@ urlpatterns = patterns("",
     url(r'^captcha/', include('captcha.urls')),
     url(r'^i18n/', include('django.conf.urls.i18n')),
     url(r'^robots.txt$', lambda r: HttpResponse("User-agent: *\nAllow: /$\nDisallow: /", content_type="text/plain")),
+
+    url(r'^joinaproject/(?P<form_slug>.+)/$', 'work.views.joinaproject_request', name="joinaproject_request"),
+    url(r'^joinaprojectthanks/$', TemplateView.as_view(template_name='work/joinaproject_thanks.html'), name='joinaproject_thanks'),
+
     # View URLs
     url(r'^fobi/', include('fobi.urls.view')),
 
     # Edit URLs
     url(r'^fobi/', include('fobi.urls.edit')),
-    
+
     # DB Store plugin URLs
     url(r'^fobi/plugins/form-handlers/db-store/',
         include('fobi.contrib.plugins.form_handlers.db_store.urls')),

@@ -74,12 +74,14 @@ LOGIN_EXEMPT_URLS = (
     r"^$",
     r'^membership/',
     r'^membershipthanks/',
+    r'^joinaproject/',
+    r'^joinaprojectthanks/',
     r'^account/password/reset/',
     r'^account/password_reset_sent/',
     r'^captcha/image/',
     r'^i18n/',
     r'^robots.txt$',
-) 
+)
 
 
 MIDDLEWARE_CLASSES = [
@@ -117,12 +119,12 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.humanize",
     "django_comments",
-    
+
     # theme
     "pinax_theme_bootstrap_account",
     "pinax_theme_bootstrap",
     "django_forms_bootstrap",
-    
+
     # external
     #'debug_toolbar',
     'django_extensions',
@@ -133,7 +135,7 @@ INSTALLED_APPS = [
     #'django_filters',
     'rest_framework',
     'captcha',
-    
+
     # `django-fobi` core
     'fobi',
 
@@ -159,7 +161,7 @@ INSTALLED_APPS = [
     'fobi.contrib.plugins.form_elements.fields.null_boolean',
     'fobi.contrib.plugins.form_elements.fields.password',
     'fobi.contrib.plugins.form_elements.fields.radio',
-    'fobi.contrib.plugins.form_elements.fields.regex',
+    #'fobi.contrib.plugins.form_elements.fields.regex',
     'fobi.contrib.plugins.form_elements.fields.select',
     'fobi.contrib.plugins.form_elements.fields.select_model_object',
     'fobi.contrib.plugins.form_elements.fields.select_multiple',
@@ -180,7 +182,9 @@ INSTALLED_APPS = [
     'fobi.contrib.plugins.form_handlers.db_store',
     'fobi.contrib.plugins.form_handlers.http_repost',
     'fobi.contrib.plugins.form_handlers.mail',
-    
+
+    'work.fobi_form_callbacks',
+
     # project
     'valuenetwork.valueaccounting',
     'valuenetwork.equipment',
@@ -256,7 +260,7 @@ ACCOUNT_REQUIRED_EMAIL = False
 ACCOUNT_EMAIL_VERIFICATION = False
 ACCOUNT_EMAIL_AUTHENTICATION = False
 ACCOUNT_LOGIN_REDIRECT_URL = "/accounting/start/"
-WORKER_LOGIN_REDIRECT_URL = "/work/profile/"
+WORKER_LOGIN_REDIRECT_URL = "/work/home/"
 WORKER_LOGOUT_REDIRECT_URL = "/work/work-home/"
 ACCOUNT_LOGOUT_REDIRECT_URL = "home"
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 2

@@ -398,6 +398,13 @@ class AgentManager(models.Manager):
         rids = [agt.id for agt in req_agts]
         return EconomicAgent.objects.exclude(id__in=rids).order_by("name")
 
+    def without_join_request(self):
+        from work.models import JoinRequest
+        reqs = JoinRequest.objects.all()
+        req_agts = [req.agent for req in reqs if req.agent]
+        rids = [agt.id for agt in req_agts]
+        return EconomicAgent.objects.exclude(id__in=rids).order_by("name")
+
     def projects(self):
         return EconomicAgent.objects.filter(agent_type__party_type="team")
 

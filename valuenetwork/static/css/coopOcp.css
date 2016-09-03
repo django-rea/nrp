@@ -50,6 +50,23 @@ li > h4 {
   display: inline-block;
 }
 
+th {
+  background-color: #f0f0da
+}
+
+legend .subnav {
+  float: right;
+}
+legend .subnav .indent {
+  margin-left: 30px;
+  font-size: 85%;
+}
+
+span.error {
+  color: #944;
+  font-weight: bold;
+}
+
 .btn-primary {
   background-color: #a372a9;
   background-image: -ms-linear-gradient(top, #c392c9, #a372a9);
@@ -73,7 +90,7 @@ li > h4 {
 
 #member-request-block th, #agent-table-block th {
 	text-align: right;
-	background-color: #f3f5f5;
+	background-color: #f0f0da;
 }
 #member-request-block td {
 	padding: 5px 8px 4px 10px;

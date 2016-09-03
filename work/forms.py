@@ -13,7 +13,7 @@ from django.utils.translation import ugettext_lazy as _
 from valuenetwork.valueaccounting.models import *
 from work.models import *
 from valuenetwork.valueaccounting.forms import WorkModelChoiceField
-from valuenetwork.valueaccounting.forms import AgentCreateForm
+from valuenetwork.valueaccounting.forms import AgentCreateForm, AgentModelChoiceField
 
 class UploadAgentForm(forms.ModelForm):
     photo_url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
@@ -22,13 +22,13 @@ class UploadAgentForm(forms.ModelForm):
         model = EconomicAgent
         fields = ('photo', 'photo_url')
 
-        
+
 class SkillSuggestionForm(forms.ModelForm):
     skill = forms.CharField(
         label = "Other",
         help_text = _("Your skill suggestions will be sent to Freedom Coop Admins"),
         )
-    
+
     class Meta:
         model = SkillSuggestion
         fields = ('skill',)
@@ -136,5 +136,46 @@ class ProjectCreateForm(AgentCreateForm):
     class Meta: #(AgentCreateForm.Meta):
         model = Project #EconomicAgent
         #removed address and is_context
-        fields = ('name', 'nick', 'agent_type', 'description', 'url', 'email', 'joining_style', 'visibility',)
+        fields = ('name', 'nick', 'agent_type', 'description', 'url', 'email', 'joining_style', 'visibility', 'fobi_slug')
         #exclude = ('is_context',)
+
+
+#class CreateJoinRequest(forms.ModelForm):
+
+
+
+# public join form
+class JoinRequestForm(forms.ModelForm):
+    captcha = CaptchaField()
+
+    project = None
+    '''forms.ModelChoiceField(
+        queryset=Project.objects.filter(joining_style='moderated', visibility='public'),
+        empty_label=None,
+        widget=forms.Select(
+        attrs={'class': 'chzn-select'}))'''
+
+    class Meta:
+        model = JoinRequest
+        exclude = ('agent', 'project', 'fobi_data',)
+
+    def clean(self):
+        #import pdb; pdb.set_trace()
+        data = super(JoinRequestForm, self).clean()
+        type_of_user = data["type_of_user"]
+        #number_of_shares = data["number_of_shares"]
+        #if type_of_user == "collective":
+            #if int(number_of_shares) < 2:
+            #    msg = "Number of shares must be at least 2 for a collective."
+            #    self.add_error('number_of_shares', msg)
+
+    def _clean_fields(self):
+        super(JoinRequestForm, self)._clean_fields()
+        for name, value in self.cleaned_data.items():
+            self.cleaned_data[name] = bleach.clean(value)
+
+
+class JoinAgentSelectionForm(forms.Form):
+    created_agent = AgentModelChoiceField(
+        queryset=EconomicAgent.objects.without_join_request(),
+        required=False)

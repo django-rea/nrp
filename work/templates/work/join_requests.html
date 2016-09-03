@@ -1,0 +1,229 @@
+{% extends "work_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Your Project Join Requests" %}{% endblock %}
+
+{% block extra_head %}
+
+<!--<link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" /> -->
+
+<style>
+
+
+
+</style>
+
+{% endblock %}
+
+{% block body_class %}projects{% endblock %}
+
+{% block body_base %}
+<div class="container">
+        {% include "_messages.html" %}
+	 <div>
+
+	    <legend>
+	        {% trans "Your Project Join Requests" %}
+
+	        {% if user.agent.agent.is_active_freedom_coop_member or user.is_staff %}
+                <!-- &nbsp; &nbsp; &nbsp;
+                <a href="#create-agent" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Create New Project" %}</a>
+
+                <div class="modal hide fade" id="create-agent" tabindex="-1" role="dialog" aria-labelledby="agent-label" aria-hidden="true">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                        <h3 id="agent-label">{% trans "Create a New Project" %}</h3>
+                    </div>
+                    <div class="modal-body">
+                        <form class="validateMe" id="projectForm" enctype="multipart/form-data" action="{% url "create_your_project" %}" method="POST" >
+                            {% csrf_token %}
+                            {{ agent_form|as_bootstrap }}
+                            <div class="modal-footer">
+                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                            </div>
+                        </form>
+                    </div>
+                </div> -->
+
+            {% endif %}
+
+          <div class="subnav">
+
+            <a class="indent" href="../{{ agent.id }}">{% trans "View Project" %}</a>
+            <a class="indent" href="{% url "your_projects" %}">{% trans "Your Projects" %}</a>
+            <a class="indent" href="{% url "project_work" %}">{% trans "Projects Tasks" %}</a>
+
+            <!-- <a class="indent" href="{% url "demand_exchanges" %}">{% trans "All demand exchanges" %}</a>
+            <a class="indent" href="{% url "project_network" %}">{% trans "Network diagram" %}</a>
+            <a class="indent" href="{% url "cash_report" %}">{% trans "Cash Flow Report" %}</a>
+            <a class="indent" href="{% url "value_equations" %}">{% trans "Value Equations" %}</a> -->
+
+           </div>
+      </legend>
+
+      <div>
+
+        <table style="width: 100%;" class="table table-bordered table-hover table-condensed" >
+            <thead>
+                <th>{% trans "Created Agent" %}</th>
+                <th>{% trans "Date" %}</th>
+                <th>{% trans "Name" %}</th>
+                <th>{% trans "Requested username" %}</th>
+                <th>{% trans "Type" %}</th>
+                <th>{% trans "Email" %}</th>
+                <th>{% trans "Phone" %}</th>
+                <th>{% trans "Address" %}</th>
+                <th>{% trans "Website" %}</th>
+                {% for val in fobi_headers %}
+                  <th class="fobi">{{ val }}</th>
+                {% endfor %}
+                <!-- <th>{% trans "Fobi" %}</th> -->
+            </thead>
+            <tbody>
+                {% for req in requests %}
+                    <tr class="{% cycle 'odd' 'even' %}">
+                      {% comment %}
+                      <td>{{ req.agent }}</td>
+                      <td>
+                            {{ agent_form.created_agent }}
+                      </td>
+                      {% endcomment %}
+
+                      <td>
+                          <form
+                              style="display: inline;"
+                              class="agent-form"
+                              id="agent-form{{ req.id }}"
+                              action="{% url "connect_agent_to_request" membership_request_id=req.id %}"
+                              method="POST" >
+                              {% csrf_token %}
+                              {{ agent_form.created_agent }}
+                              <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Save" %}' />
+                          </form>
+                      </td>
+
+                      <td>{{ req.request_date }}</td>
+                      <td>{{ req.name }} {{ req.surname }}  </td>
+                      <td>{{ req.requested_username }}</td>
+                      <td>{{ req.type_of_user }}</td>
+
+                      <td><a href="mailto:{{ req.email_address }}">{{ req.email_address }}</a></td>
+                      <td>{{ req.phone_number }}</td>
+                      <td>{{ req.address }}</td>
+                      <td>{{ req.website }}</td>
+
+                      <!-- {% for key in fobi_keys %}
+                        {% for item in req.items %}
+                          {% if item|first == key %}
+                            {% with nom=item|slice:"1:2" %}
+                              <td>{{ nom }}</td>
+                            {% endwith %}
+                          {% endif %}
+                        {% endfor %}
+                      {% endfor %} -->
+                      {% for val in req.items_data %}
+                        <td class="fobi">{{ val }}</td>
+                      {% endfor %}
+
+                      <!-- <td>{{ req.fobi_data.pk }} - {{ fobi_data }} - {% for entry in req.entries %} {{ entry.form_data_headers }} {% endfor %}</td> -->
+
+
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+      </div>
+
+
+  	</div>
+</div>
+{% endblock %}
+
+{% block extra_script %}
+	<!-- <script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script> -->
+
+  <script src="{% static "js/jquery.expander.min.js" %}"></script>
+
+{% endblock %}
+
+
+{% block extra_body %}
+    {{ block.super }}
+
+    <script type="text/javascript">
+
+	$(document).ready(function(){
+
+    $('.fobi').each(function(e) {
+        $(this).expander({
+            slicePoint:       40,  // default is 100
+            expandSpeed: 0,
+            expandEffect: 'show',
+            collapseSpeed: 0,
+            collapseEffect: 'hide',
+            expandPrefix:     ' ', // default is '... '
+            expandText:       '[...]', // default is 'read more'
+            userCollapseText: '[^]'  // default is 'read less'
+        });
+    });
+
+		$('#projects').addClass('active');
+
+		$( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" );
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
+        })
+
+        function html_unescape(text) {
+            // Unescape a string that was escaped using django.utils.html.escape.
+            text = text.replace(/&lt;/g, '<');
+            text = text.replace(/&gt;/g, '>');
+            text = text.replace(/&quot;/g, '"');
+            text = text.replace(/&#39;/g, "'");
+            text = text.replace(/&amp;/g, '&');
+            return text;
+        }
+
+        var nickArray = html_unescape("{{ nicks }}").split("~");
+
+        jQuery.validator.addMethod("unique", function(value, element, param) {
+            return this.optional(element) || $.inArray(value, param) < 0; // <-- Check if the value is not in the array.
+        }, "ID is not unique.");
+
+        $('#agentForm').validate(
+        {
+            rules: {
+                nick: {
+                    required: true,
+                    maxlength: 32,
+                    unique: nickArray
+                }
+            },
+            highlight: function(label) {
+                $(label).closest('.control-group').addClass('error');
+            }
+
+        });
+
+        $(".list").hide();
+
+        $(".showhide").click(function(event)
+        {
+            var id = event.target.id;
+            var listId = '#list-' + id.split('-')[1];
+            $(listId).slideToggle(200);
+            $(this).text($(this).text() == '(Show)' ? '(Hide)' : '(Show)');
+        });
+
+	}); // end document.ready
+
+    </script>
+{% endblock %}

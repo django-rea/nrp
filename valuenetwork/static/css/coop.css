@@ -21,12 +21,12 @@ div.base-form {
 	max-width: 650px;
 	width: 90%;
 }
-form#membershipForm {
+form#membershipForm, form#joinForm {
 	background-color: rgba(255,255,255,0.2);
 	padding: 20px;
 	text-align: center;
 }
-#membershipForm > div {
+#membershipForm > div, #joinForm > div {
 	text-align: left;
 }
 .base-form .control-group {

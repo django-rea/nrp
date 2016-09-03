@@ -25,6 +25,8 @@ from work.forms import *
 from valuenetwork.valueaccounting.views import *
 #from valuenetwork.valueaccounting.views import get_agent, get_help, get_site_name, resource_role_agent_formset, uncommit, commitment_finished, commit_to_task
 
+from fobi.models import FormEntry
+
 if "notification" in settings.INSTALLED_APPS:
     from notification import models as notification
 else:
@@ -238,6 +240,9 @@ def profile(request):
     balance = 0
     if faircoin_account:
         balance = faircoin_account.digital_currency_balance()
+
+    other_form = SkillSuggestionForm()
+    suggestions = request.user.skill_suggestion.all()
     #balance = 2
     candidate_membership = agent.candidate_membership()
 
@@ -1933,6 +1938,8 @@ def members_agent(request, agent_id):
     roles_height = 400
 
     membership_request = agent.membership_request()
+    entries = []
+    fobi_name = 'None'
 
     if agent.is_individual():
         contributions = agent.given_events.filter(is_contribution=True)
@@ -1945,6 +1952,11 @@ def members_agent(request, agent_id):
         individual_stats.sort(lambda x, y: cmp(y[1], x[1]))
 
     elif agent.is_context_agent():
+        try:
+          fobi_name = get_object_or_404(FormEntry, slug=agent.project.fobi_slug)
+          entries = agent.project.join_requests.all
+        except:
+          entries = []
 
         subs = agent.with_all_sub_agents()
         end = datetime.date.today()
@@ -2017,6 +2029,8 @@ def members_agent(request, agent_id):
         "individual_stats": individual_stats,
         "roles_height": roles_height,
         "help": get_help("members_agent"),
+        "form_entries": entries,
+        "fobi_name": fobi_name,
     }, context_instance=RequestContext(request))
 
 
@@ -2040,7 +2054,7 @@ def change_your_project(request, agent_id):
             project.save()
         else:
           pro_form = ProjectCreateForm(instance=project, data=request.POST or None)
-        agn_form = AgentCreateForm(instance=agent, data=request.POST or None)
+          agn_form = AgentCreateForm(instance=agent, data=request.POST or None)
         if pro_form.is_valid() and agn_form.is_valid():
             project = pro_form.save()
             #agent.project = project
@@ -2050,3 +2064,308 @@ def change_your_project(request, agent_id):
 
     return HttpResponseRedirect('/%s/%s/'
         % ('work/agent', agent.id))
+
+
+
+from fobi.dynamic import assemble_form_class
+from fobi.settings import GET_PARAM_INITIAL_DATA, DEBUG
+from fobi.constants import (
+    CALLBACK_BEFORE_FORM_VALIDATION,
+    CALLBACK_FORM_VALID_BEFORE_SUBMIT_PLUGIN_FORM_DATA,
+    CALLBACK_FORM_VALID, CALLBACK_FORM_VALID_AFTER_FORM_HANDLERS,
+    CALLBACK_FORM_INVALID
+)
+from fobi.base import (
+    fire_form_callbacks, run_form_handlers, form_element_plugin_registry,
+    form_handler_plugin_registry, submit_plugin_form_data, get_theme,
+    get_processed_form_data
+)
+#from fobi.base import (
+#    FormHandlerPlugin, form_handler_plugin_registry, get_processed_form_data
+#)
+from django.utils.translation import ugettext, ugettext_lazy as _
+
+import simplejson as json
+
+def joinaproject_request(request, form_slug = False):
+    join_form = JoinRequestForm(data=request.POST or None)
+    fobi_form = False
+    form = False
+    if form_slug:
+      project = Project.objects.get(fobi_slug=form_slug)
+      fobi_slug = project.fobi_slug
+      form_entry = FormEntry.objects.get(slug=fobi_slug)
+      form_element_entries = form_entry.formelemententry_set.all()[:]
+      form_entry.project = project
+
+      # This is where the most of the magic happens. Our form is being built
+      # dynamically.
+      FormClass = assemble_form_class(
+          form_entry,
+          form_element_entries = form_element_entries,
+          request = request
+      )
+
+
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+
+        if join_form.is_valid():
+            human = True
+            data = join_form.cleaned_data
+            type_of_user = data["type_of_user"]
+            name = data["name"]
+            surname = data["surname"]
+            #description = data["description"]
+
+            jn_req = join_form.save(commit=False)
+            jn_req.project = project
+            jn_req.save()
+
+            #request.POST._mutable = True
+            #request.POST['join_request'] = str(jn_req.pk)
+
+            if form_slug:
+              fobi_form = FormClass(request.POST, request.FILES)
+
+              # Fire pre form validation callbacks
+              fire_form_callbacks(form_entry=form_entry, request=request, form=fobi_form, stage=CALLBACK_BEFORE_FORM_VALIDATION)
+              if fobi_form.is_valid():
+                #return HttpResponseRedirect('/%s/' % ('joinaprojectthanks'))
+
+                # Fire form valid callbacks, before handling submitted plugin form data.
+                fobi_form = fire_form_callbacks(
+                    form_entry = form_entry,
+                    request = request,
+                    form = fobi_form,
+                    stage = CALLBACK_FORM_VALID_BEFORE_SUBMIT_PLUGIN_FORM_DATA
+                )
+
+                # Fire plugin processors
+                fobi_form = submit_plugin_form_data(form_entry=form_entry,
+                                               request=request, form=fobi_form)
+
+                # Fire form valid callbacks
+                fobi_form = fire_form_callbacks(form_entry=form_entry,
+                                           request=request, form=fobi_form,
+                                           stage=CALLBACK_FORM_VALID)
+
+                '''# Run all handlers
+                handler_responses, handler_errors = run_form_handlers(
+                    form_entry = form_entry,
+                    request = request,
+                    form = fobi_form,
+                    form_element_entries = form_element_entries
+                )
+
+                # Warning that not everything went ok.
+                if handler_errors:
+                    for handler_error in handler_errors:
+                        messages.warning(
+                            request,
+                            _("Error occured: {0}."
+                              "").format(handler_error)
+                        )
+                '''
+
+                # Fire post handler callbacks
+                fire_form_callbacks(
+                    form_entry = form_entry,
+                    request = request,
+                    form = fobi_form,
+                    stage = CALLBACK_FORM_VALID_AFTER_FORM_HANDLERS
+                    )
+
+                #messages.info(
+                #    request,
+                #    _("Form {0} was submitted successfully.").format(form_entry.name)
+                #)
+
+                field_name_to_label_map, cleaned_data = get_processed_form_data(
+                    fobi_form,
+                    form_element_entries
+                )
+
+                #for key, value in cleaned_data.items():
+                #    if key == "join_request": #isinstance(value, (datetime.datetime, datetime.date)):
+                #        cleaned_data[key] = jn_req.pk #value.isoformat() if hasattr(value, 'isoformat') else value
+
+                saved_form_data_entry = SavedFormDataEntry(
+                    form_entry = form_entry,
+                    user = request.user if request.user and request.user.pk else None,
+                    form_data_headers = json.dumps(field_name_to_label_map),
+                    saved_data = json.dumps(cleaned_data)
+                    )
+                saved_form_data_entry.save()
+                jn = JoinRequest.objects.get(pk=jn_req.pk)
+                jn.fobi_data = saved_form_data_entry
+                #messages.info(
+                #    request,
+                #    _("JoinRequest {0} was submitted successfully. {1}").format(jn.fobi_data, saved_form_data_entry.pk)
+                #)
+                jn.save()
+
+
+            event_type = EventType.objects.get(relationship="todo")
+            description = "Create an Agent and User for the Join Request from "
+            description += name
+            join_url = get_url_starter() + "/work/agent/" + str(jn_req.project.agent.id) +"/join-request/" + str(jn_req.id) + "/"
+            context_agent = jn_req.project.agent #EconomicAgent.objects.get(name__icontains="Membership Request")
+            resource_types = EconomicResourceType.objects.filter(behavior="work")
+            rts = resource_types.filter(
+                Q(name__icontains="Admin")|
+                Q(name__icontains="Coop")|
+                Q(name__icontains="Work"))
+            if rts:
+                rt = rts[0]
+            else:
+                rt = resource_types[0]
+
+            task = Commitment(
+                event_type=event_type,
+                description=description,
+                resource_type=rt,
+                context_agent=context_agent,
+                url=join_url,
+                due_date=datetime.date.today(),
+                quantity=Decimal("1")
+                )
+            task.save()
+
+
+            if notification:
+                users = jn_req.project.agent.managers() #User.objects.filter(is_staff=True)
+                if users:
+                    site_name = get_site_name()
+                    notification.send(
+                        users,
+                        "work_join_request",
+                        {"name": name,
+                        "surname": surname,
+                        "type_of_user": type_of_user,
+                        "description": description,
+                        "site_name": site_name,
+                        "join_url": join_url,
+                        }
+                    )
+
+            return HttpResponseRedirect('/%s/'
+                % ('joinaprojectthanks'))
+
+
+    kwargs = {'initial': {'fobi_initial_data':form_slug} }
+    fobi_form = FormClass(**kwargs)
+
+    return render_to_response("work/joinaproject_request.html", {
+        "help": get_help("work_join_request"),
+        "join_form": join_form,
+        "fobi_form": fobi_form,
+        "project": project,
+    }, context_instance=RequestContext(request))
+
+
+
+@login_required
+def join_requests(request, agent_id):
+    agent = EconomicAgent.objects.get(pk=agent_id)
+    project = agent.project
+    requests =  JoinRequest.objects.filter(agent__isnull=True, project=project)
+    agent_form = JoinAgentSelectionForm()
+
+    fobi_data = ''
+    fobi_slug = project.fobi_slug
+    fobi_headers = []
+    fobi_keys = []
+
+    if fobi_slug:
+        form_entry = FormEntry.objects.get(slug=fobi_slug)
+        req = requests[0]
+        if req.fobi_data:
+            req.entries = req.fobi_data._default_manager.filter(pk=req.fobi_data.pk).select_related('form_entry')
+            entry = req.entries[0]
+            form_headers = json.loads(entry.form_data_headers)
+            for val in form_headers:
+                fobi_headers.append(form_headers[val])
+                fobi_keys.append(val)
+
+        for req in requests:
+            req.entries = req.fobi_data._default_manager.filter(pk=req.fobi_data.pk).select_related('form_entry')
+            entry = req.entries[0]
+            req.data = json.loads(entry.saved_data)
+            req.items = req.data.items()
+            req.items_data = []
+            for key in fobi_keys:
+              req.items_data.append(req.data.get(key)) #for itm in req.items:
+              #  if itm[0] == key:
+              #    req.items_data.append(str(itm[1]))
+
+    return render_to_response("work/join_requests.html", {
+        "help": get_help("join_requests"),
+        "requests": requests,
+        "agent_form": agent_form,
+        "project": project,
+        "fobi_data": fobi_data,
+        "fobi_headers": fobi_headers,
+        "fobi_keys": fobi_keys,
+    }, context_instance=RequestContext(request))
+
+"""
+@login_required
+def join_request(request, join_request_id):
+    user_agent = get_agent(request)
+    if not user_agent:
+        return render_to_response('valueaccounting/no_permission.html')
+    mbr_req = get_object_or_404(JoinRequest, pk=join_request_id)
+    init = {
+        "name": " ".join([mbr_req.name, mbr_req.surname]),
+        "nick": mbr_req.requested_username,
+        #"description": mbr_req.description,
+        "email": mbr_req.email_address,
+        "url": mbr_req.website,
+        }
+    if mbr_req.type_of_user == "individual":
+        at = AgentType.objects.filter(party_type="individual")
+        if at:
+            at = at[0]
+            init["agent_type"] = at
+    agent_form = AgentCreateForm(initial=init)
+    nicks = '~'.join([
+        agt.nick for agt in EconomicAgent.objects.all()])
+    return render_to_response("work/join_request.html", {
+        "help": get_help("join_request"),
+        "mbr_req": mbr_req,
+        "agent_form": agent_form,
+        "user_agent": user_agent,
+        "nicks": nicks,
+    }, context_instance=RequestContext(request))
+
+@login_required
+def create_agent_for_join_request(request, join_request_id):
+    if request.method == "POST":
+        mbr_req = get_object_or_404(JoinRequest, pk=join_request_id)
+        form = AgentCreateForm(request.POST)
+        if form.is_valid():
+            agent = form.save(commit=False)
+            agent.created_by=request.user
+            agent.save()
+            mbr_req.agent = agent
+            mbr_req.save()
+            return HttpResponseRedirect('/%s/%s/'
+                % ('work/agent', agent.id))
+    return HttpResponseRedirect('/%s/%s/'
+        % ('work/join-request', join_request_id))
+
+def connect_agent_to_join_request(request, join_request_id):
+    mbr_req = get_object_or_404(JoinRequest, pk=join_request_id)
+    if request.method == "POST":
+        agent_form = JoinAgentSelectionForm(data=request.POST)
+        if agent_form.is_valid():
+            data = agent_form.cleaned_data
+            #import pdb; pdb.set_trace()
+            agent = data["created_agent"]
+            mbr_req.agent=agent
+            mbr_req.save()
+
+    return HttpResponseRedirect('/%s/'
+        % ('work/join-requests'))
+"""

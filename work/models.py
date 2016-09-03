@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 
 from valuenetwork.valueaccounting.models import EconomicAgent
+#from fobi.models import FormEntry
 
 MEMBERSHIP_TYPE_CHOICES = (
     #('participant', _('project participant (no membership)')),
@@ -79,6 +80,26 @@ class Project(models.Model):
     visibility = models.CharField(_('visibility'),
         max_length=12, choices=VISIBILITY_CHOICES,
         default="FCmembers")
+    fobi_slug = models.CharField(_('custom form slug'),
+        max_length=255, blank=True)
+
+    #fobi_form = models.OneToOneField(FormEntry,
+    #    verbose_name=_('custom form'), related_name='project',
+    #    blank=True, null=True,
+    #    help_text=_("this Project use this custom form (fobi FormEntry)"))
+    #join_request = models.ForeignKey(JoinRequest,
+    #    verbose_name=_('join request'), related_name='project',
+    #    blank=True, null=True,
+    #    help_text=_("this Project is using this JoinRequest form"))
+
+    def __unicode__(self):
+        return _('Project: ') + self.agent.name
+
+    def is_moderated(self):
+        return self.joining_style == 'moderated'
+
+    def is_public(self):
+        return self.visibility == 'public'
 
 
 class SkillSuggestion(models.Model):
@@ -90,3 +111,54 @@ class SkillSuggestion(models.Model):
 
     def __unicode__(self):
         return self.skill
+
+from nine.versions import DJANGO_LTE_1_5
+from fobi.contrib.plugins.form_handlers.db_store.models import SavedFormDataEntry
+
+USER_TYPE_CHOICES = (
+    #('participant', _('project participant (no membership)')),
+    ('individual', _('individual')),
+    ('collective', _('collective')),
+)
+
+class JoinRequest(models.Model):
+    # common fields for all projects
+    project = models.ForeignKey(Project,
+        verbose_name=_('project'), related_name='join_requests',
+        #blank=True, null=True,
+        help_text=_("this join request is for joining this Project"))
+
+    request_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    type_of_user = models.CharField(_('Type of user'),
+        max_length=12, choices=USER_TYPE_CHOICES,
+        default="individual")
+    name = models.CharField(_('Name'), max_length=255)
+    surname = models.CharField(_('Surname (for individual join requests)'), max_length=255, blank=True)
+    requested_username = models.CharField(_('Requested username'), max_length=32)
+    email_address = models.EmailField(_('Email address'), max_length=96,)
+    #    help_text=_("this field is optional, but we can't contact you via email without it"))
+    phone_number = models.CharField(_('Phone number'), max_length=32, blank=True, null=True)
+    address = models.CharField(_('Town/Region where you are based'), max_length=255, blank=True, null=True)
+    #native_language = models.CharField(_('Languages'), max_length=255, blank=True)
+
+    #description = models.TextField(_('Description'),
+    #    help_text=_("Describe your collective or the personal skills you can offer to the project"))
+
+    agent = models.ForeignKey(EconomicAgent,
+        verbose_name=_('agent'), related_name='project_join_requests',
+        blank=True, null=True,
+        help_text=_("this join request became this EconomicAgent"))
+
+    fobi_data = models.OneToOneField(SavedFormDataEntry,
+        verbose_name=_('custom fobi id'), related_name='join_request',
+        blank=True, null=True,
+        help_text=_("this join request is linked to this custom form (fobi SavedFormDataEntry)"))
+
+    def fobi_slug(self):
+      if self.project.fobi_slug:
+        return self.project.fobi_slug
+      return False
+
+    def __unicode__(self):
+        return self.name
+

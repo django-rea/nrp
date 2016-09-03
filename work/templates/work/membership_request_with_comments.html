@@ -60,7 +60,21 @@ th
         {% include "_messages.html" %}
     <div>
         <legend>
-            {% trans "Freedom Coop membership request for " %} {{ mbr_req.name }}
+          {% if mbr_req.agent.is_active_freedom_coop_member %}
+            {% trans "Feedback with Freedom Coop" %}
+          {% else %}
+            {% trans "Freedom Coop Membership Request for " %} {{ mbr_req.name }}
+          {% endif %}
+
+          <div class="subnav">
+            <a class="indent" href="{% url "profile" %}">{% trans "Your Profile" %}</a>
+            {% if request.user.agent.agent.faircoin_resource %}
+              <a class="indent" href="{% url "manage_faircoin_account" resource_id=request.user.agent.agent.faircoin_resource.id %}"
+                          title="{% trans 'Your personal faircoin wallet in OCP' %}"
+                          >{% trans 'Faircoin Account' %}</a>
+            {% endif %}
+            <a class="indent" href="{% url "work_account_settings" %}">{% trans "Settings" %}</a>
+          </div>
         </legend>
 
       <div id="member-request-block">

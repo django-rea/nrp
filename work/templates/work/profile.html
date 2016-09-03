@@ -75,8 +75,29 @@ label {
         {% include "_messages.html" %}
 
         <legend>
-            {% trans "Profile for " %} {{ agent.name }}
+          {% trans "Profile for " %} {{ agent.name }}
 
+          <div class="subnav">
+            {% with request.user.agent.agent.membership_request.id as id %}
+                   {% if id %}
+                      <a class="indent" href="{% url 'membership_discussion' membership_request_id=id %}"
+                        title="{% trans 'Your coop feedback page' %}">
+                          {% if request.user.agent.agent.is_active_freedom_coop_member %}
+                            {% trans "Coop Feedback" %}
+                          {% else %}
+                            {% trans 'Membership Process' %}
+                          {% endif %}
+                        </a>
+                   {% endif %}
+            {% endwith %}
+
+            {% if request.user.agent.agent.faircoin_resource %}
+              <a class="indent" href="{% url "manage_faircoin_account" resource_id=request.user.agent.agent.faircoin_resource.id %}"
+                          title="{% trans 'Your personal faircoin wallet in OCP' %}"
+                          >{% trans 'Faircoin Account' %}</a>
+            {% endif %}
+            <a class="indent" href="{% url "work_account_settings" %}">{% trans "Settings" %}</a>
+          </div>
         </legend>
 
         <div class="row-fluid">

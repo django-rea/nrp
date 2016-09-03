@@ -35,8 +35,14 @@
                    {% if id %}
                       <li id="membership" >
                         <a href="{% url 'membership_discussion' membership_request_id=id %}"
-                        title="{% trans 'Your membership process' %}"
-                        ><i class="icon-time"></i> {% trans 'Membership' %}</a>
+                        title="{% trans 'Your coop feedback page' %}"
+                        ><i class="icon-time"></i>
+                          {% if request.user.agent.agent.is_active_freedom_coop_member %}
+                            {% trans "Coop Feedback" %}
+                          {% else %}
+                            {% trans 'Membership' %}
+                          {% endif %}
+                        </a>
                       </li>
                    {% endif %}
                 {% endwith %}

@@ -177,14 +177,20 @@ th, td {
         {% include "_messages.html" %}
 
 		<legend>
-		    {% trans "Log planned tasks for " %} {{ agent.name }}
-	    </legend>
+		    {% trans "Tasks Assigned to" %} {{ agent.name }}
+
+        <div class="subnav">
+               <a class="indent" href="{% url "take_new_tasks" %}">{% trans "Take New task" %}</a>
+               <a class="indent" href="{% url "non_process_logging" %}">{% trans "Log Extra Tasks" %}</a>
+               <a class="indent" href="{% url "my_history" %}">{% trans "Tasks History" %}</a>
+        </div>
+	  </legend>
 
 		<div class="row-fluid">
 
           <div class="span6" id="my_tasks">
             <div class="my-work">
-				<h3 style="margin-bottom: 4px;" >{% trans "Your tasks" %}:
+				<h3 style="margin-bottom: 4px;" >{% trans "Your simple tasks" %}:
 
                     {% if agent %}
                         {% if agent.related_contexts %}

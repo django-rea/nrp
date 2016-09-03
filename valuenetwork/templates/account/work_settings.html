@@ -8,7 +8,30 @@
 
 {% block body %}
     <form method="POST" action="{% url "work_account_settings" %}">
-        <legend>{% trans "Account" %}</legend>
+        <legend>
+          {% trans "Account Settings" %}
+
+          <div class="subnav">
+            <a class="indent" href="{% url "profile" %}">{% trans "Your Profile" %}</a>
+            {% if request.user.agent.agent.faircoin_resource %}
+              <a class="indent" href="{% url "manage_faircoin_account" resource_id=request.user.agent.agent.faircoin_resource.id %}"
+                          title="{% trans 'Your personal faircoin wallet in OCP' %}"
+                          >{% trans 'Faircoin Account' %}</a>
+            {% endif %}
+            {% with request.user.agent.agent.membership_request.id as id %}
+                   {% if id %}
+                      <a class="indent" href="{% url 'membership_discussion' membership_request_id=id %}"
+                        title="{% trans 'Your coop feedback page' %}">
+                          {% if request.user.agent.agent.is_active_freedom_coop_member %}
+                            {% trans "Coop Feedback" %}
+                          {% else %}
+                            {% trans 'Membership Process' %}
+                          {% endif %}
+                        </a>
+                   {% endif %}
+            {% endwith %}
+          </div>
+        </legend>
         {% csrf_token %}
         {{ form|as_bootstrap }}
         <div class="form-actions">

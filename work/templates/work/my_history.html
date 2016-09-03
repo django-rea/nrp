@@ -58,11 +58,15 @@ h4 {
     <div class="container">
         {% include "_messages.html" %}
 	<div>
-		<legend>
-            <span style="vertical-align: top;" >
-                {% trans "Your tasks history" %}
-            </span>
-        </legend>
+      <legend>
+        {% trans "Your tasks history" %}
+
+        <div class="subnav">
+          <a class="indent" href="{% url "my_tasks" %}">{% trans "Your Tasks" %}</a>
+          <a class="indent" href="{% url "take_new_tasks" %}">{% trans "Take New task" %}</a>
+          <a class="indent" href="{% url "non_process_logging" %}">{% trans "Log Extra Tasks" %}</a>
+        </div>
+      </legend>
         <div class="row-fluid">
             <div class="span5 summary">
                 <table>

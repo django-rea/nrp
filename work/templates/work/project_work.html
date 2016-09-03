@@ -164,9 +164,13 @@ th, td {
 	    <div>
 		    <legend>
 		        {% trans "Your project tasks" %}
-	        </legend>
 
-	        <form id="dateForm" action="." method="POST" >
+            <div class="subnav">
+               <a class="indent" href="{% url "your_projects" %}">{% trans "Your Projects" %}</a>
+            </div>
+        </legend>
+
+	      <form id="dateForm" action="." method="POST" >
                 {% csrf_token %}
                 <div id="div_id_start_date" class="control-group" style="display: inline;" >
                     <label for="id_start_date" class="control-label required-field" style="display: inline; vertical-align: text-bottom;" >

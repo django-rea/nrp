@@ -178,7 +178,13 @@ th, td {
 
 		<legend>
 		    {% trans "Take new tasks for " %} {{ agent.name }}
-	    </legend>
+
+        <div class="subnav">
+               <a class="indent" href="{% url "my_tasks" %}">{% trans "Your Tasks" %}</a>
+               <a class="indent" href="{% url "non_process_logging" %}">{% trans "Log Extra Tasks" %}</a>
+               <a class="indent" href="{% url "my_history" %}">{% trans "Tasks History" %}</a>
+        </div>
+	  </legend>
 
 	<!--	<div class="row-fluid">
 

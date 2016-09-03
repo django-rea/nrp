@@ -43,7 +43,15 @@
 
 {% block body_base %}
 <div class="container">
-	<legend>{% trans "Log extra tasks for " %} {{ member.name }}</legend>
+	<legend>
+    {% trans "Log extra tasks for " %} {{ member.name }}
+
+    <div class="subnav">
+               <a class="indent" href="{% url "my_tasks" %}">{% trans "Your Tasks" %}</a>
+               <a class="indent" href="{% url "take_new_tasks" %}">{% trans "Take New task" %}</a>
+               <a class="indent" href="{% url "my_history" %}">{% trans "Tasks History" %}</a>
+    </div>
+  </legend>
 	<p>Both Date and Time spent are required for logged work to be saved.</p>
 
     <form id="contributionsForm" method="POST" action=".">

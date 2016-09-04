@@ -11,6 +11,12 @@ MEMBERSHIP_TYPE_CHOICES = (
     ('collective', _('collective membership (min 2 shares)')),
 )
 
+REQUEST_STATE_CHOICES = (
+    ('new', _('new')),
+    ('accepted', _('accepted')),
+    ('declined', _('declined')),
+)
+
 class MembershipRequest(models.Model):
     request_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     name = models.CharField(_('Name'), max_length=255)
@@ -54,6 +60,9 @@ class MembershipRequest(models.Model):
         verbose_name=_('agent'), related_name='membership_requests',
         blank=True, null=True,
         help_text=_("this membership request became this EconomicAgent"))
+    state = models.CharField(_('state'),
+        max_length=12, choices=REQUEST_STATE_CHOICES,
+        default='new', editable=False)
 
     def __unicode__(self):
         return self.name

@@ -10378,7 +10378,7 @@ def plan_from_recipe(request):
                         commitment.created_by=request.user
                         commitment.save()
 
-                        import pdb; pdb.set_trace()
+                        #import pdb; pdb.set_trace()
                         #Todo: apply selected_context_agent here?
                         process = commitment.generate_producing_process(request.user, [], inheritance=inheritance, explode=True)
                     
@@ -13208,13 +13208,24 @@ ids = [x['@id'].split('/')[1] for x in graph]
 
 @login_required
 def membership_requests(request):
-    requests =  MembershipRequest.objects.filter(agent__isnull=True)
-    agent_form = MembershipAgentSelectionForm()
+    state = "new"
+    state_form = RequestStateForm(
+        initial={"state": "new",},
+        data=request.POST or None)
+    #agent_form = MembershipAgentSelectionForm()
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        if state_form.is_valid():
+            data = state_form.cleaned_data
+            state = data["state"]
+    requests =  MembershipRequest.objects.filter(state=state)
 
     return render_to_response("valueaccounting/membership_requests.html", {
         "help": get_help("membership_requests"),
         "requests": requests,
-        "agent_form": agent_form,
+        "state_form": state_form,
+        "state": state,
+        #"agent_form": agent_form,
     }, context_instance=RequestContext(request))
     
 @login_required    
@@ -13246,6 +13257,29 @@ def membership_request(request, membership_request_id):
         "nicks": nicks,
     }, context_instance=RequestContext(request))
     
+@login_required    
+def decline_request(request, membership_request_id):
+    mbr_req = get_object_or_404(MembershipRequest, pk=membership_request_id)
+    mbr_req.state = "declined"
+    mbr_req.save()
+    return HttpResponseRedirect('/%s/'
+        % ('accounting/membership-requests'))
+        
+@login_required    
+def undecline_request(request, membership_request_id):
+    mbr_req = get_object_or_404(MembershipRequest, pk=membership_request_id)
+    mbr_req.state = "new"
+    mbr_req.save()
+    return HttpResponseRedirect('/%s/'
+        % ('accounting/membership-requests'))
+        
+@login_required    
+def delete_request(request, membership_request_id):
+    mbr_req = get_object_or_404(MembershipRequest, pk=membership_request_id)
+    mbr_req.delete()
+    return HttpResponseRedirect('/%s/'
+        % ('accounting/membership-requests'))
+    
 @login_required
 def create_agent_for_request(request, membership_request_id):
     if request.method == "POST":
@@ -13256,6 +13290,7 @@ def create_agent_for_request(request, membership_request_id):
             agent.created_by=request.user
             agent.save()
             mbr_req.agent = agent
+            mbr_req.state = "accepted"
             mbr_req.save()
             return HttpResponseRedirect('/%s/%s/'
                 % ('accounting/agent', agent.id))  

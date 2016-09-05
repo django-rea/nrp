@@ -22,7 +22,32 @@
     {
         background-color:#C8D6E8;
     }
+    .action-form 
+    {
+        margin-top: 0;
+        margin-bottom: 2px;
+    }
 
+    #stateForm ul
+    {
+        list-style-type: none;
+        display: inline !important;
+        margin: 0;
+        padding: 0;
+    }
+    #stateForm li
+    {
+        display: inline !important;
+        margin: 0;
+        padding: 0;
+    }
+    #stateForm
+    {
+        font-size: 70%;
+        display: inline !important;
+        margin: 0;
+        padding: 0;
+    }
 </style>
 
 {% endblock %}
@@ -34,12 +59,18 @@
         {% include "_messages.html" %}
     <div>
         <legend>
-            {% trans "Freedom Coop Membership Requests" %}
+            {% trans "Freedom Coop Membership Requests" %} &nbsp;&nbsp;&nbsp;
+            <form id="stateForm" action="." method="POST">{% csrf_token %}
+                {% trans "State" %}: {{ state_form.state }}
+            </form>
         </legend>
         
         <table style="width: 100%;" class="table table-bordered table-hover table-condensed" >
             <thead>
-                <th>{% trans "Created Agent" %}</th>
+                {% if state != "accepted" %}
+                    <th>{% trans "Actions" %}</th>
+                {% endif %}
+                <th>{% trans "Links" %}</th>
                 <th>{% trans "Date" %}</th>
                 <th>{% trans "Name" %}</th>
                 <th>{% trans "Requested username" %}</th>
@@ -60,26 +91,45 @@
             <tbody> 
                 {% for req in requests %}
                     <tr class="{% cycle 'odd' 'even' %}">
-                        {% comment %}
-                        <td>{{ req.agent }}</td>
-                         <td>
-                            {{ agent_form.created_agent }}
-                        </td>
-                        {% endcomment %}
-                        
+                        {% if state != "accepted" %}
+                            <td>
+                                {% if state == "declined" %}
+                                    <form
+                                        class="action-form" 
+                                        id="undecline-form{{ req.id }}" 
+                                        action="{% url "undecline_request" membership_request_id=req.id %}" 
+                                        method="POST" >
+                                        {% csrf_token %}
+                                        <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Undecline" %}' />
+                                    </form>
+                                {% else %}
+                                    <form
+                                        class="action-form" 
+                                        id="decline-form{{ req.id }}" 
+                                        action="{% url "decline_request" membership_request_id=req.id %}" 
+                                        method="POST" >
+                                        {% csrf_token %}
+                                        <input type="submit" class="btn btn-mini btn-warning" name="submit" value='{% trans "Decline" %}' />
+                                    </form>
+                                {% endif %}
+                                {% comment %}
+                                <form
+                                    class="action-form" 
+                                    id="delete-form{{ req.id }}" 
+                                    action="{% url "delete_request" membership_request_id=req.id %}" 
+                                    method="POST" >
+                                    {% csrf_token %}
+                                    <input type="submit" class="btn btn-mini btn-danger" name="submit" value='{% trans "Delete" %}' />
+                                </form>
+                                {% endcomment %}
+                            </td>
+                        {% endif %}
                         <td>
-                            <form
-                                style="display: inline;" 
-                                class="agent-form" 
-                                id="agent-form{{ req.id }}" 
-                                action="{% url "connect_agent_to_request" membership_request_id=req.id %}" 
-                                method="POST" >
-                                {% csrf_token %}
-                                {{ agent_form.created_agent }}
-                                <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Save" %}' />
-                            </form>
+                            {% if req.agent %}
+                                <a href="{{ req.agent.get_absolute_url }}">{{ req.agent.name }}</a>
+                            {% endif %}
+                            <a href="{% url 'membership_discussion' membership_request_id=req.id %}">Comments</a>
                         </td>
-                        
                         <td>{{ req.request_date }}</td>
                         <td>{{ req.name }} {{ req.surname }}  </td>
                         <td>{{ req.requested_username }}</td>
@@ -132,6 +182,11 @@
 
         //$('#inventory').addClass('active');
         //$("select").chosen();
+        
+        $(".tog").change(function() 
+        {
+            this.form.submit();
+        });
 
     }); // end document.ready
 

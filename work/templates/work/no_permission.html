@@ -1,0 +1,31 @@
+{% extends "work_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}
+    {% trans "Your Project Join Requests" %}
+{% endblock %}
+
+{% block extra_head %}
+
+<title>{% trans "Not permitted" %}</title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+<style>
+
+</style>
+
+{% endblock %}
+
+{% block body_base %}
+<div class="container">
+        {% include "_messages.html" %}
+	 <div>
+         <p>{% trans "You do not have permission to access the requested page." %}</p>
+   </div>
+</div>
+
+{% endblock %}

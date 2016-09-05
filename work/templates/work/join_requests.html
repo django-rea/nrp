@@ -98,7 +98,7 @@
                               style="display: inline;"
                               class="agent-form"
                               id="agent-form{{ req.id }}"
-                              action="{% url "connect_agent_to_request" membership_request_id=req.id %}"
+                              action="{% url "connect_agent_to_join_request" agent_id=project.agent.id join_request_id=req.id %}"
                               method="POST" >
                               {% csrf_token %}
                               {{ agent_form.created_agent }}

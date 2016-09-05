@@ -438,6 +438,9 @@ class AgentManager(models.Manager):
             raise ValidationError("Freedom Coop does not exist by that name")
         return fc
 
+    def open_projects(self):
+        return EconomicAgent.objects.filter(project__visibility="public") #is_public="True")
+
 
 
 class EconomicAgent(models.Model):
@@ -511,6 +514,27 @@ class EconomicAgent(models.Model):
         req = self.membership_request()
         if req:
             return req.id
+        else:
+            return None
+
+    def joinaproject_request(self):
+        reqs = self.project_join_requests.all()
+        if reqs:
+            return reqs[0]
+        else:
+            return None
+
+    def joinaproject_request_id(self):
+        reqs = self.project_join_requests.all()
+        if reqs:
+            return reqs[0].id
+        else:
+            return None
+
+    def joinaproject_requests(self):
+        reqs = self.project_join_requests.all()
+        if reqs:
+            return reqs
         else:
             return None
 
@@ -652,6 +676,34 @@ class EconomicAgent(models.Model):
             state="active")
         if fcaas:
             return True
+        else:
+            return False
+
+    def is_participant(self):
+        if not self.is_active_freedom_coop_member() and self.joinaproject_request:
+          req = self.joinaproject_request()
+          fcaas = self.is_associate_of.filter(
+            association_type__association_behavior="member",
+            has_associate=req.project.agent,
+            state="active")
+          if fcaas:
+            return True
+          else:
+            return False
+        else:
+            return False
+
+    def is_participant_candidate(self):
+        if not self.is_active_freedom_coop_member() and self.joinaproject_request:
+          req = self.joinaproject_request()
+          fcaas = self.is_associate_of.filter(
+            association_type__association_behavior="member",
+            has_associate=req.project.agent,
+            state="potential")
+          if fcaas:
+            return True
+          else:
+            return False
         else:
             return False
 
@@ -876,6 +928,13 @@ class EconomicAgent(models.Model):
         agents = [ag.has_associate for ag in self.is_associate_of.filter(association_type__association_behavior="manager")]
         return [a for a in agents if a.is_context] #EconomicAgent.objects.filter(pk__in=agent_ids)
 
+    def is_public(self):
+        project = self.project
+        if project and project.is_public():
+          return True
+        else:
+          return False
+    #
 
     def task_assignment_candidates(self):
         answer = []

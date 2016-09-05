@@ -1,0 +1,217 @@
+{% extends "work_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+{% load comments %}
+
+{% block head_title %}{% trans "Project Join Request for " %} {{ jn_req.name }}{% endblock %}
+
+{% block extra_head %}
+
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+
+<style>
+
+.description {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-style: italic;
+}
+
+.heading {
+    margin: 1em .5em 0 .5em;
+    color: firebrick;
+    font-size: 1.5em;
+    font-weight: bold;
+}
+.showhide {
+    font-size: .6em;
+    color: gray;
+    margin-left: 4px;
+}
+
+.showhide:hover {
+    cursor: pointer;
+}
+
+.agents li {
+    margin-left: 3em;
+}
+.btn {
+    margin-left: 2em;
+}
+.modal {
+    width: 600px;
+}
+th
+{
+    background-color:#C8D6E8;
+}
+#id_honeypot{display:none;}
+</style>
+
+{% endblock %}
+
+{% block body_class %}projects{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+    <div>
+        <legend>
+          {% if jn_req.agent.is_active_freedom_coop_member %}
+            {% trans "Feedback with" %} {{ agent.name }}
+          {% elif request.user.agent.agent in agent.managers %}
+            {% trans "The joining request of" %} {{ jn_req.agent.name }}
+          {% else %}
+            {% trans "Your joining request for " %} {{ agent.name }}
+          {% endif %}
+
+          <div class="subnav">
+            {% if request.user.agent.agent in agent.managers %}
+              <a class="indent" href="{% url "members_agent" agent_id=agent.id %}">{% trans "Back to your Project" %}</a>
+            {% else %}
+              <a class="indent" href="{% url "profile" %}">{% trans "Your Profile" %}</a>
+              {% if request.user.agent.agent.faircoin_resource %}
+                <a class="indent" href="{% url "manage_faircoin_account" resource_id=request.user.agent.agent.faircoin_resource.id %}"
+                          title="{% trans 'Your personal faircoin wallet in OCP' %}"
+                          >{% trans 'Faircoin Account' %}</a>
+              {% endif %}
+              <a class="indent" href="{% url "work_account_settings" %}">{% trans "Settings" %}</a>
+            {% endif %}
+          </div>
+        </legend>
+
+      <div id="member-request-block">
+        {% with jn_req as req %}
+        <table style="/*display:block; max-width:1024px; width:100%;*/" class="table table-bordered table-hover table-condensed" >
+          <tbody style="display:block;">
+            <tr>
+                <th>{% trans "Date" %}:</th>
+                <td>{{ req.request_date }}</td>
+            </tr>
+            <tr>
+                <th>{% trans "Name" %}:</th>
+                <td>{{ req.name }} {{ req.surname }}  </td>
+            </tr>
+            <tr>
+                <th style="display:block; width:180px;">{% trans "Username" %}:</th>
+                <td>{{ req.requested_username }}</td>
+            </tr>
+            <tr>
+                <th>{% trans "Type" %}:</th>
+                <td>{{ req.type_of_user }}</td>
+            </tr>
+            <tr>
+                <th>{% trans "Email" %}:</th>
+                <td>{{ req.email_address }}</td>
+            </tr>
+            <tr>
+                <th>{% trans "Phone" %}:</th>
+                <td>{{ req.phone_number }}</td>
+            </tr>
+            <tr>
+                <th>{% trans "Address" %}:</th>
+                <td>{{ req.address }}</td>
+            </tr>
+            <tr>
+                <th>{% trans "Website" %}:</th>
+                <td>{{ req.website }}</td>
+            </tr>
+            {% if req.items_data %}
+              {% for obj in req.items_data %}
+                <tr class="fobi">
+                  <th>{{ obj.key }}</th>
+                  <td>{{ obj.val }}</td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr><th class="error">ERROR:</th><td>{{ req.items_data }}</td></tr>
+            {% endif %}
+            <!-- <tr>
+                <th>{% trans "Languages" %}:</th>
+                <td>{{ req.native_language }}</td>
+            </tr>
+            <tr>
+                <th>{% trans "Description" %}:</th>
+                <td style="/*display:block;*/">{{ req.description }}</td>
+            </tr>
+            <tr>
+                <th>{% trans "References" %}:</th>
+                <td>{{ req.known_member }}</td>
+            </tr>
+                <th>{% trans "Other comments" %}:</th>
+                <td>{{ req.comments_and_questions }}</td>
+            </tr> -->
+          </tbody>
+        </table>
+        {% endwith %}
+      </div>
+
+    <p>&nbsp;</p>
+
+    <div id="member-request-comments">
+      <legend>
+        {% if request.user.agent.agent in agent.managers %}
+          {% trans "Talk with " %} {{ jn_req.agent.name }}
+        {% else %}
+          {% trans "Talk with coordinators of " %} {{ agent.name }}
+        {% endif %}
+      </legend>
+
+      {% get_comment_count for jn_req as num_comm  %}
+      {% if num_comm > 0 %}
+        <div class="row-fluid">
+          {% trans "You have " %} {{ num_comm }} {% trans " comments:" %}
+          {% render_comment_list for jn_req %}
+        </div>
+      {% endif %}
+      <div class="row-fluid">
+        {% trans "Write a new comment:" %}
+        {% get_comment_form for jn_req as form %}
+        <form action="{% comment_form_target %}" method="POST">
+          {% csrf_token %}
+          {{ form.comment }}
+          <br />
+          {{ form.honeypot }}
+          {{ form.content_type }}
+          {{ form.object_pk }}
+          {{ form.timestamp }}
+          {{ form.security_hash }}
+          <input type="hidden" name="next" value="{% url 'project_feedback' agent.id jn_req.id %}" />
+          <input type="submit" class="btn btn-primary" value="Add comment" id="id_submit" />
+        </form>
+      </div>
+    </div>
+
+    </div>
+{% endblock %}
+
+{% block extra_script %}
+{% endblock %}
+
+{% block extra_body %}
+    {{ block.super }}
+    <script src="{% static "js/jquery.expander.min.js" %}"></script>
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+
+      $('th, td').each(function(e) {
+        $(this).expander({
+            slicePoint:       75,  // default is 100
+            expandSpeed: 0,
+            expandEffect: 'show',
+            collapseSpeed: 0,
+            collapseEffect: 'hide',
+            expandPrefix:     ' ', // default is '... '
+            expandText:       '[...]', // default is 'read more'
+            userCollapseText: '[^]'  // default is 'read less'
+        });
+    });
+
+    }); // end document.ready
+
+    </script>
+{% endblock %}

@@ -134,7 +134,7 @@ label {
                         <th style="text-align: right;">{% trans "Identifier" %}</th>
                         <td>{{ agent.nick }}</td>
                     </tr>
-                    {% if agent.username %}
+                    {% if agent.username and request.user.is_staff %}
                         <tr>
                             <th style="text-align: right;">{% trans "Username" %}</th>
                             <td>{{ agent.username }}</td>
@@ -148,6 +148,45 @@ label {
                         <th style="text-align: right;">{% trans "Type" %}</th>
                         <td>{{ agent.agent_type.name }}</td>
                     </tr>
+
+                    {% if agent.description %}
+                        <tr>
+                            <th style="text-align: right;">{% trans "More about me" %}</th>
+                            <td>{{ agent.description|urlize|linebreaks }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if agent.url %}
+                        <tr>
+                            <th style="text-align: right;">{% trans "URL" %}</th>
+                            <td><a href="{{ agent.url }}">{% trans "Open" %}</a></td>
+                        </tr>
+                    {% endif %}
+                    {% if agent.email %}
+                        <tr>
+                          <th style="text-align: right; vertical-align: top; ">{% trans "Email" %}</th>
+                          <td>{{ agent.email }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if agent.phone_primary %}
+                        <tr>
+                            <th style="text-align: right;">{% trans "Telephone" %}</th>
+                            <td>{{ agent.phone_primary }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if agent %}
+                        <tr>
+                          <th style="text-align: right; vertical-align: top; ">{% trans "Work Location" %}</th>
+                          <td>
+                            {% if agent.primary_location %}
+                                {{ agent.primary_location.address }}
+                            {% elif agent.is_active_freedom_coop_member %}
+                                {{ agent.address }} <a href="{% url "map" %}">{% trans "Add on map" %}</a>
+                            {% else %}
+                                {{ agent.address }}
+                            {% endif %}
+                          </td>
+                        </tr>
+                    {% endif %}
                     {% if faircoin_account %}
                         <tr>
                             <th style="text-align: right; vertical-align: top; ">{% trans "FairCoin account" %}</th>
@@ -163,38 +202,7 @@ label {
                             <td>{{ agent.unit_of_claim_value }}</td>
                         </tr>
                     {% endif %}
-                    {% if agent.url %}
-                        <tr>
-                            <th style="text-align: right;">{% trans "URL" %}</th>
-                            <td><a href="{{ agent.url }}">{% trans "Open" %}</a></td>
-                        </tr>
-                    {% endif %}
-                    {% if agent %}
-                        {% if agent.email %}
-                            <tr>
-                                <th style="text-align: right; vertical-align: top; ">{% trans "Email" %}</th>
-                                <td>{{ agent.email }}</td>
-                            </tr>
-                        {% endif %}
 
-                        <tr>
-                            <th style="text-align: right; vertical-align: top; ">{% trans "Work Location" %}</th>
-                            <td>
-                                {% if agent.primary_location %}
-                                    {{ agent.primary_location.address }}
-                                {% else %}
-                                    <a href="{% url "map" %}">{% trans "Add on map" %}</a>
-                                {% endif %}
-                            </td>
-                        </tr>
-
-                    {% endif %}
-                    {% if agent.description %}
-                        <tr>
-                            <th style="text-align: right;">{% trans "More about me" %}</th>
-                            <td>{{ agent.description|urlize|linebreaks }}</td>
-                        </tr>
-                    {% endif %}
 
 {% comment %}
                     {% if agent.reputation %}

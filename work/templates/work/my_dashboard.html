@@ -189,24 +189,30 @@ th, td {
     <p>
       {% trans "This are the available tools for members:" %}
     </p>
-
-
   {% else %}
-
-    <p>
-      {% trans "As you already received your login information you are currently a membership candidate:" %}
-    </p>
-    <p>
-      {% trans "To become a full member <b>the next step</b> is send enough Faircoins to your new OCP Faircoin account, to pay for the number of shares mentioned in your membership register form. Please transfer at least the equivalent amount of Faircoins to your new online Faircoin address in the <b>Faircoin account</b> page." %}
-    </p>
-    <p>
-      {% trans "When you have enough Faircoins in your new online account, you will see a button to make the transaction for your shares. Once pushed you'll become a full member of Freedom Coop and will have more tools available." %}
-    </p>
+    {% if agent.membership_request %}
+      <p>
+        {% trans "As you already received your login information you are currently a membership candidate:" %}
+      </p>
+      <p>
+        {% trans "To become a full member <b>the next step</b> is send enough Faircoins to your new OCP Faircoin account, to pay for the number of shares mentioned in your membership register form. Please transfer at least the equivalent amount of Faircoins to your new online Faircoin address in the <b>Faircoin account</b> page." %}
+      </p>
+      <p>
+        {% trans "When you have enough Faircoins in your new online account, you will see a button to make the transaction for your shares. Once pushed you'll become a full member of Freedom Coop and will have more tools available." %}
+      </p>
+    {% elif agent.is_participant %}
+      <p>
+        {% trans "As a <b>participant</b> in a project, you can collaborate doing tasks." %}
+      </p>
+    {% elif agent.is_participant_candidate %}
+      <p>
+        {% trans "As a <b>participant candidate</b> in a project, you should be accepted by the project coordinators before you can collaborate doing project tasks." %}
+      </p>
+    {% endif %}
     <p>
       {% trans "The options you already have in OCP are:" %}
     </p>
   {% endif %}
-
 
   {% if agent.is_active_freedom_coop_member %}
     <div id="home-projects" class="home-block" >
@@ -250,7 +256,22 @@ th, td {
       </ul>
     </div>
 
-    {% if request.user.agent.agent.faircoin_resource %}
+    {% if agent.joinaproject_requests %}
+      <div id="joinaprojects" class="home-block">
+        <h3>
+          {% trans "Joining Projects:" %}
+        </h3>
+        <ul>
+        {% for req in agent.joinaproject_requests %}
+          <li><h4><a href="{% url 'project_feedback' agent_id=req.project.agent.id join_request_id=req.id %}">
+            {% trans "Feedback with" %} {{ req.project.agent.name }}</a>
+          </h4></li>
+        {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    {% if request.user.agent.agent.faircoin_resource and not agent.joinaproject_requests %}
     <div id="home-account" class="home-block" >
       <h3><a href="{% url "manage_faircoin_account" resource_id=request.user.agent.agent.faircoin_resource.id %}">{% trans "Faircoin Account" %}</a></h3>
       <p>{% trans "Here you can manage your online Faircoin account in the OCP. In this account you will receive internal payments for the tasks you did. You can see your Faircoin address and you can send here external Faircoins from your personal wallet (or from Euros using <a href='https://getfaircoin.net' target='_blank'>https://getfaircoin.net</a>) if you need to pay something in OCP and have not earned enough Faircoins doing tasks." %}

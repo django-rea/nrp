@@ -178,38 +178,40 @@
         {% trans "Projects where you participate:" %}
       </h3>
       <ul id="member-projects">
-        <li><b>
+
           {% with request.user.agent.agent.membership_request.id as id %}
-          {% if id %}
-          <a href="{% url 'membership_discussion' membership_request_id=id %}"
-             title="{% trans 'Membership feedback' %}">{% trans "Freedom Coop's active member" %}</a>
-          {% else %}
-          {% trans "Freedom Coop's active member" %}
-          {% endif %}
+            {% if id %}
+              <li><b>
+                <a href="{% url 'membership_discussion' membership_request_id=id %}"
+                 title="{% trans 'Membership feedback' %}">{% trans "Freedom Coop's active member" %}</a>
+              </b></li>
+            {% elif request.user.agent.agent.is_active_freedom_coop_member %}
+              <li><b>{% trans "Freedom Coop's active member" %}</b></li>
+            {% endif %}
           {% endwith %}
-          </b></li>
+
 
         {% for root in roots %}
           {% for node in root.nodes %}
             {% if not node.name = 'Freedom Coop' and not agent in node.managers and agent in node.members %}
             <li><b><a href="../agent/{{ node.id }}">{{ node.name }}</a></b>
               {% if node.description %}
-              <div class="description" >{{ node.description|urlize|linebreaks }}</div>
+                <div class="description" >{{ node.description|urlize|linebreaks }}</div>
               {% endif %}
               {% for aat in node.aats %}
-              {% if aat.identifier != "child" %}
-              <div class="assoc_group"> {{ aat.plural_name }}: {{ aat.assoc_count }}
-                <span class="showhide" id="sh-{{ node.id }}{{ aat.id }}" >(Show)</span>
-              </div>
-              <div class="list" id="list-{{ node.id }}{{ aat.id }}" >
-                <ul>
-                  {% for assoc in aat.assoc_list %}
-                  <li class="indent"><a href="../agent/{{ assoc.id }}">{{ assoc.name }}</a>
-                    {% if assoc.state == "potential" %} (potential) {% endif%} </li>
-                  {% endfor %}
-                </ul>
-              </div>
-              {% endif%}
+                {% if aat.identifier != "child" %}
+                <div class="assoc_group"> {{ aat.plural_name }}: {{ aat.assoc_count }}
+                  <span class="showhide" id="sh-{{ node.id }}{{ aat.id }}" >(Show)</span>
+                </div>
+                <div class="list" id="list-{{ node.id }}{{ aat.id }}" >
+                  <ul>
+                    {% for assoc in aat.assoc_list %}
+                    <li class="indent"><a href="../agent/{{ assoc.id }}">{{ assoc.name }}</a>
+                      {% if assoc.state == "potential" %} (potential) {% endif%} </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+                {% endif%}
               {% endfor %}
             </li>
             {% endif %}

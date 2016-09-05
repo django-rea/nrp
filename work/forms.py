@@ -12,8 +12,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from valuenetwork.valueaccounting.models import *
 from work.models import *
-from valuenetwork.valueaccounting.forms import WorkModelChoiceField
-from valuenetwork.valueaccounting.forms import AgentCreateForm, AgentModelChoiceField
+from valuenetwork.valueaccounting.forms import *
 
 class UploadAgentForm(forms.ModelForm):
     photo_url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
@@ -140,9 +139,63 @@ class ProjectCreateForm(AgentCreateForm):
         #exclude = ('is_context',)
 
 
-#class CreateJoinRequest(forms.ModelForm):
+class WorkAgentCreateForm(AgentCreateForm):
+    # override fields for EconomicAgent model
+    agent_type = forms.ModelChoiceField(
+        queryset=AgentType.objects.all(), #filter(is_context=True),
+        empty_label=None,
+        widget=forms.Select(
+        attrs={'class': 'chzn-select'}))
+
+    is_context = None # projects are always context_agents, hide the field
+    nick = None
+    # fields for Project model
+    #joining_style = forms.ChoiceField()
+    #visibility = forms.ChoiceField()
+
+    def __init__(self, *args, **kwargs):
+        super(WorkAgentCreateForm, self).__init__(*args, **kwargs)
+        #self.fields["joining_style"].choices = [(js[0], js[1]) for js in JOINING_STYLE_CHOICES]
+        #self.fields["visibility"].choices = [(vi[0], vi[1]) for vi in VISIBILITY_CHOICES]
 
 
+    class Meta: #(AgentCreateForm.Meta):
+        model = EconomicAgent
+        #removed address and is_context
+        fields = ('name', 'agent_type', 'description', 'url', 'email', 'address', 'phone_primary',)
+        #exclude = ('is_context',)
+
+
+class WorkCasualTimeContributionForm(CasualTimeContributionForm):
+    #resource_type = WorkModelChoiceField(
+    #    queryset=EconomicResourceType.objects.all(),
+    #    empty_label=None,
+    #    widget=forms.Select(attrs={'class': 'chzn-select'}))
+    context_agent = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.open_projects(),
+        label=_("Context"),
+        empty_label=None,
+        widget=forms.Select(attrs={'class': 'chzn-select'}))
+    #event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
+    #description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
+    #url = forms.URLField(required=False, widget=forms.TextInput(attrs={'class': 'url',}))
+    #quantity = forms.DecimalField(required=False,
+    #    widget=DecimalDurationWidget,
+    #    help_text="hrs, mins")
+
+    class Meta:
+        model = EconomicEvent
+        fields = ('event_date', 'resource_type', 'context_agent', 'quantity', 'is_contribution', 'url', 'description')
+
+    def __init__(self, *args, **kwargs):
+        super(WorkCasualTimeContributionForm, self).__init__(*args, **kwargs)
+        #pattern = None
+        #try:
+        #    pattern = PatternUseCase.objects.get(use_case__identifier='non_prod').pattern
+        #except PatternUseCase.DoesNotExist:
+        #    pass
+        #if pattern:
+        #    self.fields["resource_type"].queryset = pattern.work_resource_types().order_by("name")
 
 # public join form
 class JoinRequestForm(forms.ModelForm):

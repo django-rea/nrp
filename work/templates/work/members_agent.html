@@ -99,7 +99,7 @@ legend {
         {% include "_messages.html" %}
 
 		<legend>
-			{{ agent.agent_type }}: <b>{{ agent.name }}</b>
+			  {{ agent.agent_type }}: <b>{{ agent.name }}</b>
         {% if user_agent.is_staff or user_agent in agent.managers %}
             <!-- {% if agent.is_individual %}
                     <a class="indent smaller" href="{% url "contribution_history" agent_id=agent.id %}">{% trans "Contributions" %}: {{ agent.contributions_count }}</a>
@@ -114,15 +114,14 @@ legend {
             <a class="indent smaller" href="{% url "radial_graph" agent_id=agent.id %}">{% trans "Association Graph" %}</a>
             <a class="indent smaller" href="{% url "agent_associations" agent_id=agent.id %}">{% trans "Maintain Associations" %}</a>
             <a class="indent smaller" href="{% url "agents" %}">{% trans "All Agents" %}</a> -->
-
-            <div class="subnav">
-               {% if agent.project.fobi_slug and agent.project.join_requests %}
+        {% endif %}
+        <div class="subnav">
+               {% if user_agent in agent.managers and agent.project.fobi_slug and agent.project.join_requests %}
                   <a class="indent" href="join-requests">{% trans "Join Requests" %}</a>
                {% endif %}
                <a class="indent" href="{% url "your_projects" %}">{% trans "Your Projects" %}</a>
                <a class="indent" href="{% url "project_work" %}">{% trans "Projects Tasks" %}</a>
-            </div>
-        {% endif %}
+        </div>
 		</legend>
 		<div class="button-row">
 
@@ -266,9 +265,9 @@ legend {
                                   {{ agent.primary_location.address }}</br>
                                   {% if user_agent in agent.managers %}<a href="{% url "locations" %}">{% trans "Change on map" %}</a>{% endif %}
                                 {% elif user_agent in agent.managers %}
-                                  <a href="{% url "locations" %}">{% trans "Add on map" %}</a>
+                                  {{ agent.address }}<a href="{% url "locations" %}">{% trans "Add on map" %}</a>
                                 {% else %}
-                                  ---
+                                  {{ agent.address }}
                                 {% endif %}
                             </td>
                         </tr>
@@ -381,7 +380,7 @@ legend {
           {% if agent.project and form_entries and fobi_name %}
             <div class="span4 requests">
               <h3>
-                {% trans "Join Requests:" %} <span style="font-weight:normal;">{{ fobi_name }}</span>
+                {% trans "Pending to Join:" %} <span style="font-weight:normal;">{{ fobi_name }}</span>
               </h3>
               <ul>
                 {% for req in form_entries %}
@@ -418,6 +417,14 @@ legend {
                                     &nbsp;
                                     <a href="{% url 'membership_discussion' membership_request_id=id %}">
                                         {% trans "Membership discussion" %}
+                                    </a>
+                                {% endif %}
+                            {% endwith %}
+                            {% with assoc.is_associate.joinaproject_request_id as id %}
+                                {% if id %}
+                                    &nbsp;
+                                    <a href="{% url 'project_feedback' agent_id=agent.id join_request_id=id %}">
+                                        <b>{% trans "Feedback" %}</b>
                                     </a>
                                 {% endif %}
                             {% endwith %}

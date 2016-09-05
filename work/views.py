@@ -221,7 +221,7 @@ def map(request):
 def profile(request):
     #import pdb; pdb.set_trace()
     agent = get_agent(request)
-    change_form = AgentCreateForm(instance=agent)
+    change_form = WorkAgentCreateForm(instance=agent)
     skills = EconomicResourceType.objects.filter(behavior="work")
     et_work = EventType.objects.get(name="Time Contribution")
     arts = agent.resource_types.filter(event_type=et_work)
@@ -426,6 +426,8 @@ def project_work(request):
     #import pdb; pdb.set_trace()
     agent = get_agent(request)
     projects = agent.related_contexts()
+    if not agent or agent.is_participant_candidate():
+        return render_to_response('work/no_permission.html')
     next = "/work/project-work/"
     context_id = 0
     start = datetime.date.today() - datetime.timedelta(days=30)
@@ -488,8 +490,8 @@ def change_personal_info(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     user_agent = get_agent(request)
     if not user_agent:
-        return render_to_response('valueaccounting/no_permission.html')
-    change_form = AgentCreateForm(instance=agent, data=request.POST or None)
+        return render_to_response('work/no_permission.html')
+    change_form = WorkAgentCreateForm(instance=agent, data=request.POST or None)
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         if change_form.is_valid():
@@ -776,7 +778,7 @@ def non_process_logging(request):
 
     TimeFormSet = modelformset_factory(
         EconomicEvent,
-        form=CasualTimeContributionForm,
+        form=WorkCasualTimeContributionForm,
         can_delete=False,
         extra=8,
         max_num=8,
@@ -1820,10 +1822,10 @@ def your_projects(request):
     next = "/work/your-projects/"
     allowed = False
     if agent:
-        if agent.is_active_freedom_coop_member or request.user.is_staff:
+        if agent.is_active_freedom_coop_member() or request.user.is_staff or agent.is_participant():
             allowed = True
     if not allowed:
-        return render_to_response('valueaccounting/no_permission.html')
+        return render_to_response('work/no_permission.html')
 
     roots = [p for p in projects if not p.is_root()] # if p.is_root()
 
@@ -1856,8 +1858,8 @@ def your_projects(request):
 @login_required
 def create_your_project(request):
     user_agent = get_agent(request)
-    if not user_agent:
-        return render_to_response('valueaccounting/no_permission.html')
+    if not user_agent or not user_agent.is_active_freedom_coop_member:
+        return render_to_response('work/no_permission.html')
     if request.method == "POST":
         pro_form = ProjectCreateForm(request.POST)
         agn_form = AgentCreateForm(request.POST)
@@ -1900,6 +1902,9 @@ def members_agent(request, agent_id):
     #import pdb; pdb.set_trace()
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     user_agent = get_agent(request)
+    if not user_agent or not user_agent.is_participant or not user_agent.is_active_freedom_coop_member:
+        return render_to_response('work/no_permission.html')
+
     user_is_agent = False
     if agent == user_agent:
         user_is_agent = True
@@ -1909,7 +1914,7 @@ def members_agent(request, agent_id):
         project = False
 
     if project:
-        init = {"joining_style": project.joining_style, "visibility": project.visibility,}
+        init = {"joining_style": project.joining_style, "visibility": project.visibility, "fobi_slug": project.fobi_slug }
         change_form = ProjectCreateForm(instance=agent, initial=init)
     else:
         change_form = ProjectCreateForm(instance=agent) #AgentCreateForm(instance=agent)
@@ -1955,7 +1960,7 @@ def members_agent(request, agent_id):
     elif agent.is_context_agent():
         try:
           fobi_name = get_object_or_404(FormEntry, slug=agent.project.fobi_slug)
-          entries = agent.project.join_requests.all
+          entries = agent.project.join_requests.filter(agent__isnull=True)
         except:
           entries = []
 
@@ -2040,7 +2045,7 @@ def change_your_project(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     user_agent = get_agent(request)
     if not user_agent:
-        return render_to_response('valueaccounting/no_permission.html')
+        return render_to_response('work/no_permission.html')
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         try:
@@ -2273,7 +2278,6 @@ def join_requests(request, agent_id):
     requests =  JoinRequest.objects.filter(agent__isnull=True, project=project)
     agent_form = JoinAgentSelectionForm()
 
-    fobi_data = ''
     fobi_slug = project.fobi_slug
     fobi_headers = []
     fobi_keys = []
@@ -2296,26 +2300,22 @@ def join_requests(request, agent_id):
             req.items = req.data.items()
             req.items_data = []
             for key in fobi_keys:
-              req.items_data.append(req.data.get(key)) #for itm in req.items:
-              #  if itm[0] == key:
-              #    req.items_data.append(str(itm[1]))
+              req.items_data.append(req.data.get(key))
 
     return render_to_response("work/join_requests.html", {
         "help": get_help("join_requests"),
         "requests": requests,
         "agent_form": agent_form,
         "project": project,
-        "fobi_data": fobi_data,
         "fobi_headers": fobi_headers,
-        "fobi_keys": fobi_keys,
     }, context_instance=RequestContext(request))
 
-"""
+
 @login_required
 def join_request(request, join_request_id):
     user_agent = get_agent(request)
     if not user_agent:
-        return render_to_response('valueaccounting/no_permission.html')
+        return render_to_response('work/no_permission.html')
     mbr_req = get_object_or_404(JoinRequest, pk=join_request_id)
     init = {
         "name": " ".join([mbr_req.name, mbr_req.surname]),
@@ -2340,6 +2340,7 @@ def join_request(request, join_request_id):
         "nicks": nicks,
     }, context_instance=RequestContext(request))
 
+
 @login_required
 def create_agent_for_join_request(request, join_request_id):
     if request.method == "POST":
@@ -2353,11 +2354,12 @@ def create_agent_for_join_request(request, join_request_id):
             mbr_req.save()
             return HttpResponseRedirect('/%s/%s/'
                 % ('work/agent', agent.id))
-    return HttpResponseRedirect('/%s/%s/'
-        % ('work/join-request', join_request_id))
+    return HttpResponseRedirect('/%s/%s/%s/%s/'
+        % ('work/agent', agent.id, 'join-requests', join_request_id))
 
-def connect_agent_to_join_request(request, join_request_id):
+def connect_agent_to_join_request(request, agent_id, join_request_id):
     mbr_req = get_object_or_404(JoinRequest, pk=join_request_id)
+    project_agent = get_object_or_404(EconomicAgent, pk=agent_id)
     if request.method == "POST":
         agent_form = JoinAgentSelectionForm(data=request.POST)
         if agent_form.is_valid():
@@ -2367,6 +2369,169 @@ def connect_agent_to_join_request(request, join_request_id):
             mbr_req.agent=agent
             mbr_req.save()
 
-    return HttpResponseRedirect('/%s/'
-        % ('work/join-requests'))
-"""
+    return HttpResponseRedirect('/%s/%s/%s/'
+        % ('work/agent', project_agent.id, 'join-requests'))
+
+from six import text_type, PY3
+from django.utils.encoding import force_text
+
+def safe_text(text):
+    """
+    Safe text (encode).
+
+    :return str:
+    """
+    if PY3:
+        return text #force_text(text, encoding='utf-8')
+    else:
+        return text #force_text(text, encoding='utf-8').encode('utf-8')
+
+def two_dicts_to_string(headers, data, html_element1='th', html_element2='td'):
+    """
+    Takes two dictionaries, assuming one contains a mapping keys to titles
+    and another keys to data. Joins as string and returns wrapped into
+    HTML "p" tag.
+    """
+    formatted_data = [
+        (value, data.get(key, '')) for key, value in list(headers.items())
+        ]
+    return "".join(
+        ["<tr><{0}>{1}</{2}><{3}>{4}</{5}></tr>".format(html_element1, safe_text(key), html_element1, html_element2,
+                                      safe_text(value), html_element2)
+         for key, value in formatted_data]
+        )
+
+@login_required
+def project_feedback(request, agent_id, join_request_id):
+    user_agent = get_agent(request)
+    agent = get_object_or_404(EconomicAgent, pk=agent_id)
+    jn_req = get_object_or_404(JoinRequest, pk=join_request_id)
+    project = agent.project
+    allowed = False
+    if user_agent and jn_req:
+      if user_agent.is_staff or user_agent in project.managers:
+        allowed = True
+      elif jn_req in user_agent.joinaproject_requests():
+        allowed = True
+    if not allowed:
+        return render_to_response('work/no_permission.html')
+
+    fobi_slug = project.fobi_slug
+    fobi_headers = []
+    fobi_keys = []
+
+    if fobi_slug:
+        form_entry = FormEntry.objects.get(slug=fobi_slug)
+        #req = jn_req
+        if jn_req.fobi_data:
+            jn_req.entries = jn_req.fobi_data._default_manager.filter(pk=jn_req.fobi_data.pk) #.select_related('form_entry')
+            jn_req.entry = jn_req.entries[0]
+            jn_req.form_headers = json.loads(jn_req.entry.form_data_headers)
+            for val in jn_req.form_headers:
+                fobi_headers.append(jn_req.form_headers[val])
+                fobi_keys.append(val)
+
+            jn_req.data = json.loads(jn_req.entry.saved_data)
+            jn_req.tworows = two_dicts_to_string(jn_req.form_headers, jn_req.data, 'th', 'td')
+            jn_req.items = jn_req.data.items()
+            jn_req.items_data = []
+            for key in fobi_keys:
+              jn_req.items_data.append({"key": jn_req.form_headers[key], "val": jn_req.data.get(key)})
+
+    return render_to_response("work/join_request_with_comments.html", {
+        "help": get_help("project_feedback"),
+        "jn_req": jn_req,
+        "user_agent": user_agent,
+        "agent": agent,
+        "fobi_headers": fobi_headers,
+    }, context_instance=RequestContext(request))
+
+'''
+@login_required
+def create_project_user_and_agent(request, agent_id):
+    #import pdb; pdb.set_trace()
+    project_agent = get_object_or_404(EconomicAgent, id=agent_id)
+    if not project_agent.managers: # or not request.user.agent.agent in project_agent.managers:
+        return render_to_response('valueaccounting/no_permission.html')
+    user_form = UserCreationForm(data=request.POST or None)
+    agent_form = AgentForm(data=request.POST or None)
+    agent_selection_form = AgentSelectionForm()
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        sa_id = request.POST.get("selected_agent")
+        agent = None
+        if sa_id:
+            agent = EconomicAgent.objects.get(id=sa_id)
+        if agent_form.is_valid():
+            nick = request.POST.get("nick")
+            description = request.POST.get("description")
+            url = request.POST.get("url")
+            address = request.POST.get("address")
+            email = request.POST.get("email")
+            agent_type_id = request.POST.get("agent_type")
+            errors = False
+            password1 = request.POST.get("password1")
+            password2 = request.POST.get("password2")
+            username = request.POST.get("username")
+            first_name = request.POST.get("first_name")
+            last_name = request.POST.get("last_name")  or ""
+            if password1:
+                if password1 != password2:
+                    errors = True
+                if not username:
+                    errors = True
+                user_form.is_valid()
+            if not errors:
+                if agent:
+                    agent.description = description
+                    agent.url = url
+                    agent.address = address
+                    if agent_type_id:
+                        if agent.agent_type.id != agent_type_id:
+                            agent_type = AgentType.objects.get(id=agent_type_id)
+                            agent.agent_type = agent_type
+                    if not agent.email:
+                        agent.email = email
+                else:
+                    if nick and first_name:
+                        try:
+                            agent = EconomicAgent.objects.get(nick=nick)
+                            errors = True
+                        except EconomicAgent.DoesNotExist:
+                            pass
+                    else:
+                        errors = True
+                    if not errors:
+                        name = " ".join([first_name, last_name])
+                        agent_type = AgentType.objects.get(id=agent_type_id)
+                        agent = EconomicAgent(
+                            nick = nick,
+                            name = name,
+                            description = description,
+                            url = url,
+                            address = address,
+                            agent_type = agent_type,
+                        )
+                if not errors:
+                    if user_form.is_valid():
+                        agent.created_by=request.user
+                        agent.save()
+                        user = user_form.save(commit=False)
+                        user.first_name = request.POST.get("first_name")
+                        user.last_name = request.POST.get("last_name")
+                        user.email = request.POST.get("email")
+                        user.save()
+                        au = AgentUser(
+                            agent = agent,
+                            user = user)
+                        au.save()
+                        return HttpResponseRedirect('/%s/%s/'
+                            % ('accounting/agent', agent.id))
+
+    return render_to_response("work/create_project_user_and_agent.html", {
+        "user_form": user_form,
+        "agent_form": agent_form,
+        "agent_selection_form": agent_selection_form,
+    }, context_instance=RequestContext(request))
+
+'''

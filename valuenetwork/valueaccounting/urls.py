@@ -541,5 +541,6 @@ urlpatterns += patterns("",
         name="undecline_request"),
     url(r'^delete-request/(?P<membership_request_id>\d+)/$', 'valuenetwork.valueaccounting.views.delete_request', 
         name="delete_request"), 
+    url(r"^comments/$", 'valuenetwork.valueaccounting.views.comments', name="comments"),
 )
 

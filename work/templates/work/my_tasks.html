@@ -188,7 +188,67 @@ th, td {
 
 		<div class="row-fluid">
 
-          <div class="span6" id="my_tasks">
+          <div class="span12" id="my_tasks">
+
+            <div class="my-work">
+
+				<h3 style="margin-bottom: 4px;" >{% trans "Your process work" %}:</h3>
+
+				{% if my_work %}
+                    <ul>
+                        {% for item in my_work %}
+                            <li>
+                                <b>Task: {{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+                            </li>
+                            {% if item.description %}
+                                <ul>
+                                    <li class="work-description">
+                                        {{ item.description|urlize|linebreaks }}
+                                    </li>
+                                </ul>
+                            {% endif %}
+                            <div style="margin-left: 1em; margin-bottom: 0;">
+                                {% trans "Context" %}: {{ item.context_agent }}</br>
+                                {% trans "Order" %}: {{ item.independent_demand }}</br>
+                                {% trans "Process" %}: {{ item.process }}
+                                {% if item.process.started %} <b>{% trans "Started" %} {{ item.process.started }}</b> {% endif %} </br>
+{% comment %}
+                                {% if work_now %}
+                                    <a href="{% url "work_timer" process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Work Now" %}</a>
+                                {% endif %}
+{% endcomment %}
+                                <a href="{% url "process_logging" process_id=item.process.id %}" role="button" class="btn btn-primary btn-mini">{% trans "Log work on process" %}</a>
+                                <form
+                                    style="display: inline;"
+                                    class="finish-form"
+                                    id="finishForm{{ item.id }}"
+                                    action="{% url "commitment_finished" commitment_id=item.id %}"
+                                    method="POST" >
+                                    {% csrf_token %}
+                                    <input type="hidden" id="next" name="next" value="work-start" />
+                                    <button style="display: inline;"  class="btn btn-info btn-mini" title="Close" >{% trans "Close task" %}</button>
+                                </form>
+                                <form
+                                    style="display: inline;"
+                                    class="uncommit-form"
+                                    id="uncommitForm{{ item.id }}"
+                                    action="{% url "uncommit" commitment_id=item.id %}"
+                                    method="POST" >
+                                    {% csrf_token %}
+                                    <input type="hidden" id="next" name="next" value="work-start" />
+                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Uncommit" >{% trans "Unassign" %}</button>
+                                </form>
+                            </div>
+
+
+                        {% endfor %}
+                    </ul>
+				{% else %}
+                    None
+				{% endif %}
+
+			</div>
+
             <div class="my-work">
 				<h3 style="margin-bottom: 4px;" >{% trans "Your simple tasks" %}:
 

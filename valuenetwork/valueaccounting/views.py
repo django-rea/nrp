@@ -4796,7 +4796,7 @@ def uncommit(request, commitment_id):
             % ('accounting/start'))
     elif next == "work-start":
         return HttpResponseRedirect('/%s/'
-            % ('work/my-dashboard'))
+            % ('work/my-tasks'))
     elif next == "work":
         return HttpResponseRedirect('/%s/'
             % ('work/process-logging'))
@@ -7031,7 +7031,7 @@ def commitment_finished(request, commitment_id):
     if next:
         if next == "work-start":
             return HttpResponseRedirect('/%s/'
-                % ('work/my-dashboard'))
+                % ('work/my-tasks'))
     return HttpResponseRedirect('/%s/'
             % ('accounting/start'))
 

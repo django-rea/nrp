@@ -3,6 +3,7 @@
 {% load i18n %}
 {% load bootstrap_tags %}
 {% load thumbnail %}
+{% load comments %}
 
 {% block head_title %}{% trans "Agent" %}: {{ agent.name }}{% endblock %}
 
@@ -75,10 +76,11 @@
 legend {
     margin-bottom: 5px;;
 }
-.membership {
+.membership, .comments {
     font-weight: bold;
     color: firebrick;
 }
+
 
 </style>
 
@@ -347,7 +349,7 @@ legend {
 	        
 	        </div>
 	        
-	        <div class="span4 assoc">
+	        <div class="span6 assoc">
                 <h4 class="hdg"> {{ agent.name }} {% trans "is associated with " %}: </h4>
                 <ul>
                 {% for assoc in is_associated_with  %}
@@ -368,12 +370,23 @@ legend {
                         {% endifchanged %}   
                         <li><a href="{{ assoc.is_associate.get_absolute_url }}">{{ assoc.is_associate.name }}</a> 
                             {% if assoc.state == "potential" %} ({{ assoc.get_state_display }}) {% endif %}
-                            {% with assoc.is_associate.membership_request_id as id %}
-                                {% if id %}
+                            {% with assoc.is_associate.membership_request as mreq %}
+                                {% if mreq %}
                                     &nbsp;
-                                    <a href="{% url 'membership_discussion' membership_request_id=id %}">
+                                    <a href="{% url 'membership_discussion' membership_request_id=mreq.id %}">
                                         {% trans "Membership discussion" %}
                                     </a>
+                                    {% get_comment_count for mreq as comment_count %}
+                                    {% if comment_count %}
+                                        <span class="comments">
+                                            - {{ comment_count }} 
+                                            {% if comment_count == 1 %}
+                                                {% trans "comment" %}
+                                            {% else %}
+                                                {% trans "comments" %}
+                                            {% endif %}
+                                        </span>
+                                    {% endif %}
                                 {% endif %}
                             {% endwith %}
                         </li>
@@ -383,16 +396,17 @@ legend {
 	        
 	        </div>
 	        
+{% comment %}        
 	        <div class="span4">
 	        
-{% comment %}
+
                 <h3 class="hdg">{% trans "Virtual Account for" %} {{ agent.name }}:</h3>
                 <span id="balance">{% trans "Current balance" %}: 1750.63</span> 
                 <a href="#">{% trans "Details</a><br />
                 <button class="btn btn-primary down" title="Request a payout from your virtual account" >{% trans "Request a Payout" %}</button>
-{% endcomment %}
             </div>
-            
+{% endcomment %}
+
             {% if agent.is_individual %}
                 <div class="span8">
                     <h4 class="hdg"> {% trans "Cumulative Contributions" %}</h4>

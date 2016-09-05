@@ -3,6 +3,7 @@
 {% load staticfiles %}
 {% load i18n %}
 {% load bootstrap_tags %}
+{% load comments %}
 
 {% block head_title %}{% trans "My Dashboard" %}{% endblock %}
 
@@ -279,10 +280,23 @@ th, td {
     </div>
     {% endif %}
 
-    {% with request.user.agent.agent.membership_request.id as id %}
-    {% if id %}
+    {% with request.user.agent.agent.membership_request as mreq %}
+    {% if mreq %}
     <div id="home-membership" class="home-block" >
-      <h3><a href="{% url 'membership_discussion' membership_request_id=id %}">{% trans "Membership" %}</a></h3>
+      <h3>
+            <a href="{% url 'membership_discussion' membership_request_id=mreq.id %}">{% trans "Membership" %}</a>
+            {% get_comment_count for mreq as comment_count %}
+            {% if comment_count %}
+                <span class="comments">
+                    - {{ comment_count }} 
+                    {% if comment_count == 1 %}
+                        {% trans "comment" %}
+                    {% else %}
+                        {% trans "comments" %}
+                    {% endif %}
+                </span>
+            {% endif %}
+      </h3>
       <p>{% trans "Your FreedomCoop membership request data and a comments thread to comunicate with the Welcome Team about your particular case or project." %}
       </p>
     </div>

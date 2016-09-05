@@ -10592,9 +10592,20 @@ def resource_facet_table(request):
     
 @login_required
 def comments(request):
-    comments = Comment.objects.all().order_by("-submit_date")   
+    comments = Comment.objects.all().order_by("-submit_date")
+    
+    paginator = Paginator(comments, 25)
+    page = request.GET.get('page')
+    try:
+        comment_list = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        comment_list = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        comment_list = paginator.page(paginator.num_pages)
     return render_to_response("valueaccounting/comments.html", {
-        "comment_list": comments,
+        "comment_list": comment_list,
     }, context_instance=RequestContext(request))
 
 @login_required

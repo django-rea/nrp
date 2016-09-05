@@ -34,6 +34,22 @@
                 {% endfor %}
             </div>
         </div>
+        <div class="pagination">
+            <span class="step-links">
+                {% if comment_list.has_previous %}
+                    <a href="?page={{ comment_list.previous_page_number }}">{% trans "previous" %}</a>
+                {% endif %}
+
+                <span class="current">
+                    {% trans "Page" %} {{ comment_list.number }} {% trans "of" %} {{ comment_list.paginator.num_pages }}.
+                </span>
+
+                {% if comment_list.has_next %}
+                    <a href="?page={{ comment_list.next_page_number }}">{% trans "next" %}</a>
+                {% endif %}
+            </span>
+        </div>
+        
     </div>
 {% endblock %}
             

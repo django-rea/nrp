@@ -680,30 +680,30 @@ class EconomicAgent(models.Model):
             return False
 
     def is_participant(self):
-        if not self.is_active_freedom_coop_member() and self.joinaproject_request:
+        fcaas = None
+        if not self.is_active_freedom_coop_member() and self.joinaproject_request():
           req = self.joinaproject_request()
-          fcaas = self.is_associate_of.filter(
-            association_type__association_behavior="member",
-            has_associate=req.project.agent,
-            state="active")
-          if fcaas:
+          if req:
+            fcaas = self.is_associate_of.filter(
+                association_type__association_behavior="member",
+                has_associate=req.project.agent,
+                state="active")
+        if fcaas:
             return True
-          else:
-            return False
         else:
             return False
 
     def is_participant_candidate(self):
-        if not self.is_active_freedom_coop_member() and self.joinaproject_request:
+        fcaas = None
+        if not self.is_active_freedom_coop_member() and self.joinaproject_request():
           req = self.joinaproject_request()
-          fcaas = self.is_associate_of.filter(
-            association_type__association_behavior="member",
-            has_associate=req.project.agent,
-            state="potential")
-          if fcaas:
+          if req:
+            fcaas = self.is_associate_of.filter(
+                association_type__association_behavior="member",
+                has_associate=req.project.agent,
+                state="potential")
+        if fcaas:
             return True
-          else:
-            return False
         else:
             return False
 

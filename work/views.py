@@ -2170,14 +2170,15 @@ def joinaproject_request(request, form_slug = False):
                 jn.save()
 
             # add relation candidate
-            association_type = AgentAssociationType.objects.get(identifier="participant")
-            fc_aa = AgentAssociation(
-                is_associate=jn_req.agent,
-                has_associate=jn_req.project.agent,
-                association_type=association_type,
-                state="candidate",
-                )
-            fc_aa.save()
+            #ass_type = get_object_or_404(AgentAssociationType, identifier="participant")
+            #if ass_type:
+            #    fc_aa = AgentAssociation(
+            #        is_associate=jn_req.agent,
+            #        has_associate=jn_req.project.agent,
+            #        association_type=ass_type,
+            #        state="potential",
+            #        )
+            #    fc_aa.save()
 
             event_type = EventType.objects.get(relationship="todo")
             description = "Create an Agent and User for the Join Request from "
@@ -2325,12 +2326,11 @@ def decline_request(request, join_request_id):
     mbr_req = get_object_or_404(JoinRequest, pk=join_request_id)
     mbr_req.state = "declined"
     mbr_req.save()
-
     if mbr_req.agent and mbr_req.project:
         # modify relation to active
-        ass_type = AgentAssociationType.objects.get(identifier="Participant")
+        ass_type = AgentAssociationType.objects.get(identifier="participant")
         ass = AgentAssociation.objects.get(is_associate=mbr_req.agent, has_associate=mbr_req.project.agent, association_type=ass_type)
-        ass.state = "candidate"
+        ass.state = "potential"
         ass.save()
     return HttpResponseRedirect('/%s/%s/%s/'
         % ('work/agent', mbr_req.project.agent.id, 'join-requests'))
@@ -2360,7 +2360,7 @@ def accept_request(request, join_request_id):
     mbr_req.save()
 
     # modify relation to active
-    association_type = AgentAssociationType.objects.get(identifier="Participant")
+    association_type = AgentAssociationType.objects.get(identifier="participant")
     association = AgentAssociation.objects.get(is_associate=mbr_req.agent, has_associate=mbr_req.project.agent, association_type=association_type)
     association.state = "active"
     association.save()

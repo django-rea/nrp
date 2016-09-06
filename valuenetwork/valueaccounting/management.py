@@ -16,7 +16,7 @@ if "notification" in settings.INSTALLED_APPS:
         notification.create_notice_type("work_membership_request", _("Freedom Coop Membership Request"), _("we have received a new membership request"), default=2)
         notification.create_notice_type("comment_membership_request", _("Comment in Freedom Coop Membership Request"), _("we have received a new comment in a membership request"), default=2)
         print "created valueaccounting notice types"
-    signals.post_syncdb.connect(create_notice_types, sender=notification)
+    signals.post_migrate.connect(create_notice_types, sender=notification)
 else:
     print "Skipping creation of valueaccounting NoticeTypes as notification app not found"
 

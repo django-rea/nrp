@@ -2175,7 +2175,7 @@ def joinaproject_request(request, form_slug = False):
                 is_associate=jn_req.agent,
                 has_associate=jn_req.project.agent,
                 association_type=association_type,
-                state="candidate",
+                state="potential",
                 )
             fc_aa.save()
 
@@ -2325,7 +2325,6 @@ def decline_request(request, join_request_id):
     mbr_req = get_object_or_404(JoinRequest, pk=join_request_id)
     mbr_req.state = "declined"
     mbr_req.save()
-
     if mbr_req.agent and mbr_req.project:
         # modify relation to active
         ass_type = AgentAssociationType.objects.get(identifier="Participant")

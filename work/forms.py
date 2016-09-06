@@ -232,3 +232,4 @@ class JoinAgentSelectionForm(forms.Form):
     created_agent = AgentModelChoiceField(
         queryset=EconomicAgent.objects.without_join_request(),
         required=False)
+

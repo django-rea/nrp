@@ -2169,6 +2169,15 @@ def joinaproject_request(request, form_slug = False):
                 #)
                 jn.save()
 
+            # add relation candidate
+            association_type = AgentAssociationType.objects.get(identifier="participant")
+            fc_aa = AgentAssociation(
+                is_associate=jn_req.agent,
+                has_associate=jn_req.project.agent,
+                association_type=association_type,
+                state="candidate",
+                )
+            fc_aa.save()
 
             event_type = EventType.objects.get(relationship="todo")
             description = "Create an Agent and User for the Join Request from "
@@ -2231,16 +2240,26 @@ def joinaproject_request(request, form_slug = False):
 
 @login_required
 def join_requests(request, agent_id):
+    state = "new"
+    state_form = RequestStateForm(
+        initial={"state": "new",},
+        data=request.POST or None)
+
+    if request.method == "POST":
+        if state_form.is_valid():
+            data = state_form.cleaned_data
+            state = data["state"]
+
     agent = EconomicAgent.objects.get(pk=agent_id)
     project = agent.project
-    requests =  JoinRequest.objects.filter(agent__isnull=True, project=project)
+    requests =  JoinRequest.objects.filter(state=state, project=project)
     agent_form = JoinAgentSelectionForm()
 
     fobi_slug = project.fobi_slug
     fobi_headers = []
     fobi_keys = []
 
-    if fobi_slug:
+    if fobi_slug and requests:
         form_entry = FormEntry.objects.get(slug=fobi_slug)
         req = requests[0]
         if req.fobi_data:
@@ -2263,13 +2282,15 @@ def join_requests(request, agent_id):
     return render_to_response("work/join_requests.html", {
         "help": get_help("join_requests"),
         "requests": requests,
+        "state_form": state_form,
+        "state": state,
         "agent_form": agent_form,
         "project": project,
         "fobi_headers": fobi_headers,
     }, context_instance=RequestContext(request))
 
 
-@login_required
+'''@login_required
 def join_request(request, join_request_id):
     user_agent = get_agent(request)
     if not user_agent:
@@ -2297,8 +2318,58 @@ def join_request(request, join_request_id):
         "user_agent": user_agent,
         "nicks": nicks,
     }, context_instance=RequestContext(request))
+'''
+
+@login_required
+def decline_request(request, join_request_id):
+    mbr_req = get_object_or_404(JoinRequest, pk=join_request_id)
+    mbr_req.state = "declined"
+    mbr_req.save()
+
+    if mbr_req.agent and mbr_req.project:
+        # modify relation to active
+        ass_type = AgentAssociationType.objects.get(identifier="Participant")
+        ass = AgentAssociation.objects.get(is_associate=mbr_req.agent, has_associate=mbr_req.project.agent, association_type=ass_type)
+        ass.state = "candidate"
+        ass.save()
+    return HttpResponseRedirect('/%s/%s/%s/'
+        % ('work/agent', mbr_req.project.agent.id, 'join-requests'))
+
+@login_required
+def undecline_request(request, join_request_id):
+    mbr_req = get_object_or_404(JoinRequest, pk=join_request_id)
+    mbr_req.state = "new"
+    mbr_req.save()
+    return HttpResponseRedirect('/%s/%s/%s/'
+        % ('work/agent', mbr_req.project.agent.id, 'join-requests'))
+
+@login_required
+def delete_request(request, join_request_id):
+    mbr_req = get_object_or_404(JoinRequest, pk=join_request_id)
+    mbr_req.delete()
+    if mbr_req.agent:
+      pass # delete user and agent?
+
+    return HttpResponseRedirect('/%s/%s/%s/'
+        % ('work/agent', mbr_req.project.agent.id, 'join-requests'))
+
+@login_required
+def accept_request(request, join_request_id):
+    mbr_req = get_object_or_404(JoinRequest, pk=join_request_id)
+    mbr_req.state = "accepted"
+    mbr_req.save()
+
+    # modify relation to active
+    association_type = AgentAssociationType.objects.get(identifier="Participant")
+    association = AgentAssociation.objects.get(is_associate=mbr_req.agent, has_associate=mbr_req.project.agent, association_type=association_type)
+    association.state = "active"
+    association.save()
+
+    return HttpResponseRedirect('/%s/%s/%s/'
+        % ('work/agent', mbr_req.project.agent.id, 'join-requests'))
 
 
+'''
 @login_required
 def create_agent_for_join_request(request, join_request_id):
     if request.method == "POST":
@@ -2314,7 +2385,9 @@ def create_agent_for_join_request(request, join_request_id):
                 % ('work/agent', agent.id))
     return HttpResponseRedirect('/%s/%s/%s/%s/'
         % ('work/agent', agent.id, 'join-requests', join_request_id))
+'''
 
+@login_required
 def connect_agent_to_join_request(request, agent_id, join_request_id):
     mbr_req = get_object_or_404(JoinRequest, pk=join_request_id)
     project_agent = get_object_or_404(EconomicAgent, pk=agent_id)
@@ -2325,6 +2398,7 @@ def connect_agent_to_join_request(request, agent_id, join_request_id):
             #import pdb; pdb.set_trace()
             agent = data["created_agent"]
             mbr_req.agent=agent
+            mbr_req.state = "new"
             mbr_req.save()
 
     return HttpResponseRedirect('/%s/%s/%s/'
@@ -2340,9 +2414,9 @@ def safe_text(text):
     :return str:
     """
     if PY3:
-        return text #force_text(text, encoding='utf-8')
+        return force_text(text, encoding='utf-8')
     else:
-        return text #force_text(text, encoding='utf-8').encode('utf-8')
+        return force_text(text, encoding='utf-8').encode('utf-8')
 
 def two_dicts_to_string(headers, data, html_element1='th', html_element2='td'):
     """
@@ -2367,9 +2441,9 @@ def project_feedback(request, agent_id, join_request_id):
     project = agent.project
     allowed = False
     if user_agent and jn_req:
-      if user_agent.is_staff or user_agent in project.managers:
+      if user_agent.is_staff() or user_agent in agent.managers():
         allowed = True
-      elif jn_req in user_agent.joinaproject_requests():
+      elif jn_req.agent == request.user.agent.agent: #in user_agent.joinaproject_requests():
         allowed = True
     if not allowed:
         return render_to_response('work/no_permission.html')
@@ -2390,7 +2464,7 @@ def project_feedback(request, agent_id, join_request_id):
                 fobi_keys.append(val)
 
             jn_req.data = json.loads(jn_req.entry.saved_data)
-            jn_req.tworows = two_dicts_to_string(jn_req.form_headers, jn_req.data, 'th', 'td')
+            #jn_req.tworows = two_dicts_to_string(jn_req.form_headers, jn_req.data, 'th', 'td')
             jn_req.items = jn_req.data.items()
             jn_req.items_data = []
             for key in fobi_keys:

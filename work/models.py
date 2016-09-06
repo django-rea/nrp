@@ -163,6 +163,10 @@ class JoinRequest(models.Model):
         blank=True, null=True,
         help_text=_("this join request is linked to this custom form (fobi SavedFormDataEntry)"))
 
+    state = models.CharField(_('state'),
+        max_length=12, choices=REQUEST_STATE_CHOICES,
+        default='new', editable=False)
+
     def fobi_slug(self):
       if self.project.fobi_slug:
         return self.project.fobi_slug

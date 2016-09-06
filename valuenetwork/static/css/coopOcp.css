@@ -181,3 +181,26 @@ div#my_tasks table, div#take-new-task table {
 legend a.btn {
   margin-bottom: 9px;
 }
+
+
+/*   J O I N   R E Q U E S T S   P A G E   */
+
+ul#id_state {
+  list-style: none;
+  display: inline-block;
+}
+ul#id_state li {
+  display: inline-block;
+  margin-right: 20px;
+  color: #734279;
+}
+ul#id_state li label {
+  font-weight: bold;
+  text-transform: capitalize;
+}
+form#stateForm {
+  margin-bottom: 0;
+}
+.join_requests form.action-form {
+  margin: 5px;
+}

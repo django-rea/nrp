@@ -11,8 +11,8 @@
     .container div {
         margin-left: -5em;
     }
-    
-    tr.even td 
+
+    tr.even td
     {
         color:#000000;
         background-color:#EAF2D3;
@@ -22,7 +22,7 @@
     {
         background-color:#C8D6E8;
     }
-    .action-form 
+    .action-form
     {
         margin-top: 0;
         margin-bottom: 2px;
@@ -58,13 +58,13 @@
     <div class="container">
         {% include "_messages.html" %}
     <div>
-        <legend>
+      <legend>
             {% trans "Freedom Coop Membership Requests" %} &nbsp;&nbsp;&nbsp;
             <form id="stateForm" action="." method="POST">{% csrf_token %}
                 {% trans "State" %}: {{ state_form.state }}
             </form>
-        </legend>
-        
+      </legend>
+      <div>
         <table style="width: 100%;" class="table table-bordered table-hover table-condensed" >
             <thead>
                 {% if state != "accepted" %}
@@ -86,27 +86,27 @@
                 <th>{% trans "UseFaircoin" %}</th>
                 <th>{% trans "FairMarket" %}</th>
                 <th>{% trans "References" %}</th>
-                <th>{% trans "Comments" %}</th>                
+                <th>{% trans "Comments" %}</th>
             </thead>
-            <tbody> 
+            <tbody>
                 {% for req in requests %}
                     <tr class="{% cycle 'odd' 'even' %}">
                         {% if state != "accepted" %}
                             <td>
                                 {% if state == "declined" %}
                                     <form
-                                        class="action-form" 
-                                        id="undecline-form{{ req.id }}" 
-                                        action="{% url "undecline_request" membership_request_id=req.id %}" 
+                                        class="action-form"
+                                        id="undecline-form{{ req.id }}"
+                                        action="{% url "undecline_request" membership_request_id=req.id %}"
                                         method="POST" >
                                         {% csrf_token %}
                                         <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Undecline" %}' />
                                     </form>
                                 {% else %}
                                     <form
-                                        class="action-form" 
-                                        id="decline-form{{ req.id }}" 
-                                        action="{% url "decline_request" membership_request_id=req.id %}" 
+                                        class="action-form"
+                                        id="decline-form{{ req.id }}"
+                                        action="{% url "decline_request" membership_request_id=req.id %}"
                                         method="POST" >
                                         {% csrf_token %}
                                         <input type="submit" class="btn btn-mini btn-warning" name="submit" value='{% trans "Decline" %}' />
@@ -114,9 +114,9 @@
                                 {% endif %}
                                 {% comment %}
                                 <form
-                                    class="action-form" 
-                                    id="delete-form{{ req.id }}" 
-                                    action="{% url "delete_request" membership_request_id=req.id %}" 
+                                    class="action-form"
+                                    id="delete-form{{ req.id }}"
+                                    action="{% url "delete_request" membership_request_id=req.id %}"
                                     method="POST" >
                                     {% csrf_token %}
                                     <input type="submit" class="btn btn-mini btn-danger" name="submit" value='{% trans "Delete" %}' />
@@ -148,8 +148,10 @@
                         <td>{{ req.comments_and_questions }}</td>
                     </tr>
                 {% endfor %}
-            </tbody>    
+            </tbody>
         </table>
+
+      </div>
 
 {% comment %}
 <div class="pagination">
@@ -176,16 +178,32 @@
 
 {% block extra_body %}
     {{ block.super }}
+
+    <script src="{% static "js/jquery.expander.min.js" %}"></script>
+
     <script type="text/javascript">
 
     $(document).ready(function(){
 
         //$('#inventory').addClass('active');
         //$("select").chosen();
-        
-        $(".tog").change(function() 
+
+        $(".tog").change(function()
         {
             this.form.submit();
+        });
+
+        $('td').each(function(e) {
+            $(this).expander({
+                slicePoint:       40,  // default is 100
+                expandSpeed: 0,
+                expandEffect: 'show',
+                collapseSpeed: 0,
+                collapseEffect: 'hide',
+                expandPrefix:     ' ', // default is '... '
+                expandText:       '[...]', // default is 'read more'
+                userCollapseText: '[^]'  // default is 'read less'
+            });
         });
 
     }); // end document.ready

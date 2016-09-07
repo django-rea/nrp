@@ -2207,21 +2207,21 @@ def joinaproject_request(request, form_slug = False):
             task.save()
 
 
-            if notification:
-                users = jn_req.project.agent.managers() #User.objects.filter(is_staff=True)
-                if users:
-                    site_name = get_site_name()
-                    notification.send(
-                        users,
-                        "work_join_request",
-                        {"name": name,
-                        "surname": surname,
-                        "type_of_user": type_of_user,
-                        "description": description,
-                        "site_name": site_name,
-                        "join_url": join_url,
-                        }
-                    )
+            #if notification:
+            #    users = jn_req.project.agent.managers() #User.objects.filter(is_staff=True)
+            #    if users:
+            #        site_name = get_site_name()
+            #        notification.send(
+            #            users,
+            #            "work_join_request",
+            #            {"name": name,
+            #            "surname": surname,
+            #            "type_of_user": type_of_user,
+            #            "description": description,
+            #            "site_name": site_name,
+            #            "join_url": join_url,
+            #            }
+            #        )
 
             return HttpResponseRedirect('/%s/'
                 % ('joinaprojectthanks'))

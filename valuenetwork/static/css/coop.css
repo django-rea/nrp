@@ -20,6 +20,7 @@ div.base-form {
 	display: inline-block;
 	max-width: 650px;
 	width: 90%;
+  color: #fff;
 }
 form#membershipForm, form#joinForm {
 	background-color: rgba(255,255,255,0.2);
@@ -74,19 +75,43 @@ a:hover {
 	text-decoration: none;
 }
 
-input {
-	width: 190px !important;
-}
 input[type="checkbox"] {
 	width: 30px !important;
 }
-.landing .btn {
-	padding: 10px 20px 10px;
+input {
+	width: 190px !important;
 }
-.landing h4 a.btn {
+
+.landing .btn-primary, body .btn {
+  background-color: #a372a9;
+  background-image: -ms-linear-gradient(top, #c392c9, #a372a9);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#c392c9), to(#a372a9));
+  background-image: -webkit-linear-gradient(top, #c392c9, #a372a9);
+  background-image: -o-linear-gradient(top, #c392c9, #a372a9);
+  background-image: -moz-linear-gradient(top, #c392c9, #a372a9);
+  background-image: linear-gradient(top, #c392c9, #a372a9);
+}
+.landing .btn-primary:hover, body .btn:hover {
+  background-color: #a372a9;
+  background-image: -ms-linear-gradient(top, #c392c9, #a372a9);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#c392c9), to(#a372a9));
+  background-image: -webkit-linear-gradient(top, #c392c9, #a372a9);
+  background-image: -o-linear-gradient(top, #c392c9, #a372a9);
+  background-image: -moz-linear-gradient(top, #c392c9, #a372a9);
+  background-image: linear-gradient(top, #c392c9, #a372a9);
+}
+
+.landing .btn, .btn {
+	padding: 10px 20px 10px;
+  text-shadow: none;
+}
+body .btn, body .btn:hover {
+	color: inherit;
+}
+.landing h4 a.btn, .btn {
 	font-size: 1em;
 }
-.base-form input, .base-form textarea {
+.base-form input[type="textarea"], .base-form input[type="text"], .base-form textarea {
 	width: 98% !important;
 }
 .base-form input[type="submit"] {

@@ -1,0 +1,12 @@
+{% load i18n %}{% blocktrans %}New join request:
+
+Name: {{ name }} {{ surname }}
+Type: {{ type_of_user }}
+
+Description: {{ description }}
+
+You can find this task in https://{{ current_site }}//work/project-work/
+The new join request is at {{ join_url }}
+
+You can see all unfinished join requests here:{% endblocktrans %}
+https://{{ current_site }}/work/agent/{{ context_agent.id }}/join-requests/

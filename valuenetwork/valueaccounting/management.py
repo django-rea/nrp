@@ -14,6 +14,7 @@ if "notification" in settings.INSTALLED_APPS:
         notification.create_notice_type("valnet_distribution", _("New Distribution"), _("you have received a new income distribution"), default=2)
         notification.create_notice_type("valnet_payout_request", _("Payout Request"), _("you have received a new payout request"), default=2)
         notification.create_notice_type("work_membership_request", _("Freedom Coop Membership Request"), _("we have received a new membership request"), default=2)
+        notification.create_notice_type("work_join_request", _("Project Join Request"), _("we have received a new join request"), default=2)
         notification.create_notice_type("comment_membership_request", _("Comment in Freedom Coop Membership Request"), _("we have received a new comment in a membership request"), default=2)
         print "created valueaccounting notice types"
     signals.post_migrate.connect(create_notice_types, sender=notification)

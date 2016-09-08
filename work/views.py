@@ -2391,6 +2391,8 @@ def create_account_for_join_request(request, join_request_id):
             data = form.cleaned_data
             agent = form.save(commit=False)
             agent.created_by=request.user
+            if not agent.is_individual():
+                agent.is_context=True
             agent.save()
             jn_req.agent = agent
             jn_req.save()
@@ -2426,7 +2428,9 @@ def create_account_for_join_request(request, join_request_id):
                     if notification:
                         users = jn_req.project.agent.managers() #User.objects.filter(is_staff=True)
                         if users:
-                            allusers = chain(users, agent)
+                            #allusers = chain(users, agent)
+                            users = list(users)
+                            users.append(agent)
                             site_name = get_site_name()
                             notification.send(
                                 users,
@@ -2447,7 +2451,6 @@ def create_account_for_join_request(request, join_request_id):
 
 def validate_nick(request):
     #import pdb; pdb.set_trace()
-    print "validate_nick"
     answer = True
     error = ""
     data = request.GET

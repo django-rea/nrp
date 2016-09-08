@@ -36,18 +36,18 @@ class ProjectAgentCreateForm(forms.ModelForm):
         empty_label=None,
         widget=forms.Select(
         attrs={'class': 'chzn-select'}))
-    is_context = forms.BooleanField(
-        required=False, 
-        label="Is a context agent", 
-        widget=forms.CheckboxInput())
+    #is_context = forms.BooleanField(
+    #    required=False, 
+    #    label="Is a context agent", 
+    #    widget=forms.CheckboxInput())
     password = forms.CharField(label=_("Password"),
         help_text=_("Login password"),
         widget=forms.PasswordInput(attrs={'class': 'password',}))
 
     class Meta:
         model = EconomicAgent
-        #removed address
-        fields = ('name', 'nick', 'agent_type', 'is_context', 'description', 'url', 'email')
+        #removed address and is_context
+        fields = ('name', 'nick', 'agent_type', 'description', 'url', 'email')
 
 
 class UploadAgentForm(forms.ModelForm):

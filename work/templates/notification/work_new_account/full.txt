@@ -1,0 +1,16 @@
+{% load i18n %}{% blocktrans %}New OCP Account created for: {{ name }}
+
+Here are your initial login credentials, please change your password as soon as possible for the security of the system and your personal privacy.
+
+Nickname: {{ username }}
+
+Password: {{ password }}
+
+
+The project related this new account is: {{ context_agent }}
+
+You can log in at https://{{ current_site }}
+
+
+Welcome to th Open Collaborative Platform!
+{% endblocktrans %}

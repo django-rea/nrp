@@ -2423,9 +2423,11 @@ def create_account_for_join_request(request, join_request_id):
                     #agent.request_faircoin_address()
 
                     name = data["name"]
+                    """
                     if notification:
                         users = jn_req.project.agent.managers() #User.objects.filter(is_staff=True)
                         if users:
+                            users = list(users)
                             users.append(agent)
                             site_name = get_site_name()
                             notification.send(
@@ -2438,7 +2440,7 @@ def create_account_for_join_request(request, join_request_id):
                                 "context_agent": project.agent,
                                 }
                             )
-
+                    """
             return HttpResponseRedirect('/%s/%s/%s/'
                 % ('work/agent', project.agent.id, 'join-requests'))
 

@@ -3,16 +3,13 @@
 {% load staticfiles %}
 {% load i18n %}
 {% load bootstrap_tags %}
+{% load comments %}
 
 {% block head_title %}
-    {% trans "Your Project Join Requests" %}
+    {% trans "Not permitted" %}
 {% endblock %}
 
 {% block extra_head %}
-
-<title>{% trans "Not permitted" %}</title>
-
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 
 <style>
 
@@ -23,9 +20,18 @@
 {% block body_base %}
 <div class="container">
         {% include "_messages.html" %}
-	 <div>
-         <p>{% trans "You do not have permission to access the requested page." %}</p>
-   </div>
+
+  <div class="row">
+    <div class="span5">
+         <p>{% trans "Sorry, you do not have permission to access the requested page." %}</p>
+    </div>
+  </div>
 </div>
 
+{% endblock %}
+
+{% block extra_script %}
+{% endblock %}
+
+{% block extra_body %}
 {% endblock %}

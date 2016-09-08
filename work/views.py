@@ -2051,6 +2051,7 @@ from fobi.base import (
 #)
 
 import simplejson as json
+from django.utils.html import escape
 
 def joinaproject_request(request, form_slug = False):
     join_form = JoinRequestForm(data=request.POST or None)
@@ -2243,7 +2244,7 @@ def joinaproject_request(request, form_slug = False):
         "join_form": join_form,
         "fobi_form": fobi_form,
         "project": project,
-        "post": json.dumps(request.POST),
+        "post": escape(json.dumps(request.POST)),
     }, context_instance=RequestContext(request))
 
 
@@ -2420,9 +2421,26 @@ def create_account_for_join_request(request, join_request_id):
                         user = user)
                     au.save()
                     #agent.request_faircoin_address()
-                    
-            return HttpResponseRedirect('/%s/%s/'
-                % ('work/agent', project.agent.id))
+
+                    name = data["name"]
+                    if notification:
+                        users = jn_req.project.agent.managers() #User.objects.filter(is_staff=True)
+                        if users:
+                            users.append(agent)
+                            site_name = get_site_name()
+                            notification.send(
+                                users,
+                                "work_new_account",
+                                {"name": name,
+                                "username": username,
+                                "password": password,
+                                "site_name": site_name,
+                                "context_agent": project.agent,
+                                }
+                            )
+
+            return HttpResponseRedirect('/%s/%s/%s/'
+                % ('work/agent', project.agent.id, 'join-requests'))
 
     return HttpResponseRedirect('/%s/%s/%s/'
         % ('work/agent', jn_req.project.agent.id, 'join-requests'))
@@ -2456,7 +2474,7 @@ def validate_nick(request):
                     error = val(username)
                 except ValidationError:
                     error = "Error: May only contain letters, numbers, and @/./+/-/_ characters."
-                
+
     if error:
         answer = error
     response = simplejson.dumps(answer, ensure_ascii=False)

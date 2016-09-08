@@ -60,7 +60,7 @@ th
         {% include "_messages.html" %}
     <div>
         <legend>
-          {% if jn_req.agent.is_active_freedom_coop_member %}
+          {% if jn_req.agent.is_active_freedom_coop_member or request.user.agent.agent.is_participant %}
             {% trans "Feedback with" %} {{ agent.name }}
           {% elif request.user.agent.agent in agent.managers %}
             {% trans "The joining request of" %} {{ jn_req.agent.name }}

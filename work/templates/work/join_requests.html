@@ -131,14 +131,14 @@
                                         <input type="submit" class="btn btn-mini btn-warning" name="submit" value='{% trans "Decline" %}' />
                                     </form>
                                   {% else %}
-                                    <a href="#create-agent{{ req.id }}" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Create OCP Account" %}</a>
+                                    <a href="#create-agent{{ req.id }}" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Create OCP Account" %}</a>
                                     <div class="modal hide fade" id="create-agent{{ req.id }}" tabindex="-1" role="dialog" aria-labelledby="agent-label" aria-hidden="true">
                                         <div class="modal-header">
                                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                                             <h3 id="agent-label">{% trans "Create OCP Account" %}</h3>
                                         </div>
                                         <div class="modal-body">
-                                            <form class="validateMe" id="agentForm{{ req.id }}" enctype="multipart/form-data" 
+                                            <form class="validateMe" id="agentForm{{ req.id }}" enctype="multipart/form-data"
                                                 action="{% url "create_account_for_join_request" join_request_id=req.id %}" method="POST" >
                                                 {% csrf_token %}
                                                 {{ req.agent_form|as_bootstrap }}
@@ -296,13 +296,13 @@
             }
         });
 
-        $.validator.addClassRules("nick", { 
+        $.validator.addClassRules("nick", {
             required: true,
             maxlength: 32,
             remote: "/work/validate-nick/"
             });
-            
-        $.validator.addClassRules("password", { 
+
+        $.validator.addClassRules("password", {
             required: true,
             });
 

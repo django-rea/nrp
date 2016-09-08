@@ -305,6 +305,14 @@ class AgentTypeManager(models.Manager):
 
     def non_context_agent_types(self):
         return AgentType.objects.filter(is_context=False)
+        
+    def individual_type(self):
+        at = AgentType.objects.filter(party_type="individual")
+        if at:
+            return at[0]
+        else:
+            return None
+        
 
 class AgentType(models.Model):
     name = models.CharField(_('name'), max_length=128)

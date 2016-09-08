@@ -69,8 +69,12 @@ urlpatterns = patterns("",
         name="undecline_request"),
     url(r'^delete-request/(?P<join_request_id>\d+)/$', 'work.views.delete_request',
         name="delete_request"),
+    url(r'^create-ocp-acount/(?P<join_request_id>\d+)/$', 'work.views.create_account_for_join_request',
+        name="create_account_for_join_request"),
     url(r"^comments/$", 'work.views.comments', name="comments"),
 
     url(r'^share-payment/(?P<agent_id>\d+)/$', 'work.views.share_payment', name="share_payment"),
+    url(r"^validate-nick/$", 'work.views.validate_nick', name="validate_nick"),
+    url(r"^validate-username/$", 'work.views.validate_username', name="validate_username"),
 
 )

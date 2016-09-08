@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 
 from django.utils.translation import ugettext_lazy as _
 
-from valuenetwork.valueaccounting.models import EconomicAgent
+from valuenetwork.valueaccounting.models import EconomicAgent, AgentType
 #from fobi.models import FormEntry
 
 MEMBERSHIP_TYPE_CHOICES = (
@@ -174,4 +174,34 @@ class JoinRequest(models.Model):
 
     def __unicode__(self):
         return self.name
+        
+    def form_prefix(self):
+        return "".join(["JR", str(self.id)])
+        
+    def full_name(self):
+        if self.surname:
+            answer = " ".join([self.name, self.surname])
+        else:
+            answer = self.name
+        return answer
+        
+    def agent_type(self):
+        if self.type_of_user == "individual":
+            answer = AgentType.objects.individual_type()
+        else:
+            answer = None
+        return answer
+
+    def agent_form(self):
+        from work.forms import ProjectAgentCreateForm
+        init = {
+            "name": self.full_name(),
+            "nick": self.requested_username,
+            "email": self.email_address,
+            }
+        #import pdb; pdb.set_trace()
+        agent_type = self.agent_type()
+        if agent_type:
+            init["agent_type"] = agent_type
+        return ProjectAgentCreateForm(initial=init, prefix=self.form_prefix())
 

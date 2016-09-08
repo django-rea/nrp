@@ -2219,6 +2219,7 @@ def joinaproject_request(request, form_slug = False):
                 managers = jn_req.project.agent.managers()
                 users = []
                 for manager in managers:
+                  if manager:
                     users.append(manager.user().user)
                 if users:
                     site_name = get_site_name()
@@ -2432,7 +2433,8 @@ def create_account_for_join_request(request, join_request_id):
                         managers = project.agent.managers()
                         users = [agent.user().user,]
                         for manager in managers:
-                            users.append(manager.user().user)
+                            if manager:
+                                users.append(manager.user().user)
                         #users = User.objects.filter(is_staff=True)
                         if users:
                             #allusers = chain(users, agent)

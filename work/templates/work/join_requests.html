@@ -287,6 +287,14 @@
             $('#help-content').hide("slide", { direction: "right" }, "slow");
             $( "#help" ).text("Show Help");
         })
+        
+        jQuery.validator.setDefaults({ 
+            success: function(label) {
+                label
+                    .text('').addClass('valid')
+                    .closest('.control-group').addClass('success');
+            }
+        });
 
         $.validator.addClassRules("nick", { 
             required: true,

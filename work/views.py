@@ -2387,7 +2387,9 @@ def create_account_for_join_request(request, join_request_id):
         if form.is_valid():
             data = form.cleaned_data
             agent = form.save(commit=False)
-            agent.created_by=request.user
+            agent.created_by=request.user            
+            if not agent.is_individual():
+                agent.is_context=True
             agent.save()
             jn_req.agent = agent
             jn_req.save()
@@ -2427,7 +2429,6 @@ def create_account_for_join_request(request, join_request_id):
 
 def validate_nick(request):
     #import pdb; pdb.set_trace()
-    print "validate_nick"
     answer = True
     error = ""
     data = request.GET

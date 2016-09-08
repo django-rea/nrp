@@ -168,7 +168,7 @@ legend {
                 </form>
             {% endif %}
 
-            {% if user_agent and user_agent in agent.managers %}
+            {% if user_agent and user_agent in agent.managers or user.is_staff %}
                 <div class="modal hide fade" id="agentChangeForm" tabindex="-1" role="dialog" aria-labelledby="agent-change-label" aria-hidden="true">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
@@ -315,7 +315,8 @@ legend {
                         <td>{{ agent.project.joining_style }}
                           {% if agent.project.joining_style == 'moderated' %}
                             {% if agent.project.fobi_slug %}
-                          - <a href="/work/agent/{{ agent.id }}/join-requests/">{% trans "Manage Requests" %}</a>
+                          - <b><a href="/work/agent/{{ agent.id }}/join-requests/">{% trans "Manage Requests" %}</a></b>
+                          - <b><a href="/joinaproject/{{ agent.project.fobi_slug }}" target="_blank">{% trans "View Form" %}</a></b>
                             {% endif %}
                           {% endif %}</td>
                       </tr>
@@ -393,7 +394,7 @@ legend {
             </div>
           {% endif %}
 	        <div class="span4 assoc">
-                <h4 class="hdg"> {{ agent.name }} {% trans "is associated with " %}: </h4>
+                <h4 class="hdg"> {{ agent.name }} {% trans "is associated with" %}: </h4>
                 <ul>
                 {% for assoc in is_associated_with  %}
                     {% ifchanged assoc.association_type %}
@@ -405,7 +406,7 @@ legend {
                 {% endfor %}
                 </ul>
                 {% if has_associations %}
-                    <h4 class="hdg">{{ agent.name }} {% trans "has these associates " %}: </h4>
+                    <h4 class="hdg">{{ agent.name }} {% trans "has these associates" %}: </h4>
                     <ul>
                     {% for assoc in has_associations %}
                         {% ifchanged assoc.association_type %}

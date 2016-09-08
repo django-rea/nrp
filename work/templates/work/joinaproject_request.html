@@ -22,6 +22,57 @@
 }
 
 </style>
+
+<script src="{% static "pinax/js/jquery.js" %}"></script>
+<script type="text/javascript">
+
+  var decodeEntities = (function() {
+    // this prevents any overhead from creating the object each time
+    var element = document.createElement('div');
+
+    function decodeHTMLEntities (str) {
+      if(str && typeof str === 'string') {
+        // strip script/html tags
+        str = str.replace(/<script[^>]*>([\S\s]*?)<\/script>/gmi, '');
+        str = str.replace(/<\/?\w(?:[^"'>]|"[^"]*"|'[^']*')*>/gmi, '');
+        element.innerHTML = str;
+        str = element.textContent;
+        element.textContent = '';
+      }
+
+      return str;
+    }
+
+    return decodeHTMLEntities;
+  })();
+
+
+  var $_POST = {% if post %} JSON.parse(decodeEntities("{{ post }}")) {% else %} false {% endif %};
+
+	$(document).ready(function(){
+
+    $('#div_id_captcha').detach().insertBefore('input[name="submit"]');
+
+    $('div[id^="div_id_content_text"]').detach().insertBefore('#div_id_type_of_user');
+
+    if( $_POST ) {
+
+      var str = '';
+      for(i in $_POST){
+
+        $('textarea#id_'+i).val( $_POST[i] );
+
+        $("#div_id_"+i+" input[value='"+$_POST[i]+"']").attr('checked','checked');
+
+        str += i+': '+$_POST[i]+' / ';
+      }
+      //alert(str);
+    }
+
+  });
+
+</script>
+
 <title>{% trans "Request to Join: " %} {{ project.agent.name }}</title>
 
 </head>

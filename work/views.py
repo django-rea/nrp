@@ -2055,6 +2055,7 @@ import simplejson as json
 def joinaproject_request(request, form_slug = False):
     join_form = JoinRequestForm(data=request.POST or None)
     fobi_form = False
+    cleaned_data = False
     form = False
     if form_slug:
       project = Project.objects.get(fobi_slug=form_slug)
@@ -2074,6 +2075,11 @@ def joinaproject_request(request, form_slug = False):
 
     if request.method == "POST":
         #import pdb; pdb.set_trace()
+        fobi_form = FormClass(request.POST, request.FILES)
+        #form_element_entries = form_entry.formelemententry_set.all()[:]
+        #field_name_to_label_map, cleaned_data = get_processed_form_data(
+        #    fobi_form, form_element_entries,
+        #)
 
         if join_form.is_valid():
             human = True
@@ -2091,7 +2097,7 @@ def joinaproject_request(request, form_slug = False):
             #request.POST['join_request'] = str(jn_req.pk)
 
             if form_slug:
-              fobi_form = FormClass(request.POST, request.FILES)
+              #fobi_form = FormClass(request.POST, request.FILES)
 
               # Fire pre form validation callbacks
               fire_form_callbacks(form_entry=form_entry, request=request, form=fobi_form, stage=CALLBACK_BEFORE_FORM_VALIDATION)
@@ -2237,6 +2243,7 @@ def joinaproject_request(request, form_slug = False):
         "join_form": join_form,
         "fobi_form": fobi_form,
         "project": project,
+        "post": json.dumps(request.POST),
     }, context_instance=RequestContext(request))
 
 
@@ -2265,7 +2272,7 @@ def join_requests(request, agent_id):
     if fobi_slug and requests:
         form_entry = FormEntry.objects.get(slug=fobi_slug)
         req = requests[0]
-        if req.fobi_data:
+        if req.fobi_data and req.fobi_data._default_manager:
             req.entries = req.fobi_data._default_manager.filter(pk=req.fobi_data.pk).select_related('form_entry')
             entry = req.entries[0]
             form_headers = json.loads(entry.form_data_headers)

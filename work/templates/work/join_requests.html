@@ -131,14 +131,14 @@
                                         <input type="submit" class="btn btn-mini btn-warning" name="submit" value='{% trans "Decline" %}' />
                                     </form>
                                   {% else %}
-                                    <a href="#create-agent{{ req.id }}" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Create OCP Account" %}</a>
+                                    <a href="#create-agent{{ req.id }}" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Create OCP Account" %}</a>
                                     <div class="modal hide fade" id="create-agent{{ req.id }}" tabindex="-1" role="dialog" aria-labelledby="agent-label" aria-hidden="true">
                                         <div class="modal-header">
                                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                                             <h3 id="agent-label">{% trans "Create OCP Account" %}</h3>
                                         </div>
                                         <div class="modal-body">
-                                            <form class="validateMe" id="agentForm{{ req.id }}" enctype="multipart/form-data" 
+                                            <form class="validateMe" id="agentForm{{ req.id }}" enctype="multipart/form-data"
                                                 action="{% url "create_account_for_join_request" join_request_id=req.id %}" method="POST" >
                                                 {% csrf_token %}
                                                 {{ req.agent_form|as_bootstrap }}
@@ -197,12 +197,13 @@
                       <td>
 
                           {% if req.agent %}
-                            <b>
+
                              {% if request.user.agent.agent.is_staff %}
                                 <a href="{{ req.agent.get_absolute_url }}">{{ req.name }} {{ req.surname }}</a>
                              {% else %}
                                 <a href="{% url "members_agent" agent_id=req.agent.id %}">{{ req.name }} {{ req.surname }}</a>
                              {% endif %}
+                            <b>
                              <a href="{% url 'project_feedback' agent_id=req.project.agent.id join_request_id=req.id %}">Comments</a>
                             </b>
                           {% else %}
@@ -288,13 +289,13 @@
             $( "#help" ).text("Show Help");
         })
 
-        $.validator.addClassRules("nick", { 
+        $.validator.addClassRules("nick", {
             required: true,
             maxlength: 32,
             remote: "/work/validate-nick/"
             });
-            
-        $.validator.addClassRules("password", { 
+
+        $.validator.addClassRules("password", {
             required: true,
             });
 

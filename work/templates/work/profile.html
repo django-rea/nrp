@@ -297,7 +297,7 @@ label {
                         {% comment %}
                         <li><a href="{{ assoc.has_associate.get_absolute_url }}">{{ assoc.has_associate.name }}</a>
                         {% endcomment %}
-                        <li>{{ assoc.has_associate.name }}
+                      <li><a href="{% url 'members_agent' agent_id=assoc.has_associate.id %}">{{ assoc.has_associate.name }}</a>
                             {% if assoc.state == "potential" %} ({{ assoc.get_state_display }}) {% endif %}
                         </li>
                     {% endfor %}
@@ -312,7 +312,8 @@ label {
                             {% comment %}
                             <li><a href="{{ assoc.is_associate.get_absolute_url }}">{{ assoc.is_associate.name }}</a></li>
                             {% endcomment %}
-                            <li>{{ assoc.is_associate.name }}</li>
+
+                            <li><a href="{% url 'members_agent' agent_id=assoc.is_associate.id %}">{{ assoc.is_associate.name }}</a></li>
                         {% endfor %}
                         </ul>
 

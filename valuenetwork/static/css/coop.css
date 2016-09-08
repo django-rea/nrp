@@ -111,7 +111,7 @@ body .btn, body .btn:hover {
 .landing h4 a.btn, .btn {
 	font-size: 1em;
 }
-.base-form input[type="textarea"], .base-form input[type="text"], .base-form textarea {
+.base-form input[type="textarea"], .base-form input[type="text"], .base-form input[type="email"], .base-form textarea {
 	width: 98% !important;
 }
 .base-form input[type="submit"] {

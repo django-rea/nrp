@@ -47,6 +47,7 @@ form#membershipForm, form#joinForm {
 }
 h1 {
 	font-size: 35px !important;
+  margin-bottom: 15px;
 }
 h1, h2, h4, h5 {
 	color: #fff !important;
@@ -60,7 +61,7 @@ h3 {
 p {
 	color: #fff;
 	text-align: left;
-	margin: 15px 0 !important;
+	margin: 0 0 20px !important;
 }
 li {
 	text-align: left;

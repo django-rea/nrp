@@ -53,14 +53,18 @@
 
     if( $_POST ) {
 
-      //var str = '';
+      var str = '';
       for(i in $_POST){
 
         $('textarea#id_'+i).val( $_POST[i] );
 
-        $("#div_id_"+i+" input[value='"+$_POST[i]+"']").attr('checked','true');
+        $("#div_id_"+i+" input[value='"+$_POST[i]+"']").attr('checked','checked');
 
-        //str += i+': '+$_POST[i]+' / ';
+        $('#div_id_captcha').detach().insertBefore('input[name="submit"]');
+
+        $('div[id^="div_id_content_text"]').detach().insertBefore('#div_id_type_of_user');
+
+        str += i+': '+$_POST[i]+' / ';
       }
       //alert(str);
     }

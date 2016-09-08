@@ -33,7 +33,7 @@ urlpatterns = patterns("",
     url(r'^robots.txt$', lambda r: HttpResponse("User-agent: *\nAllow: /$\nDisallow: /", content_type="text/plain")),
 
     url(r'^joinaproject/(?P<form_slug>.+)/$', 'work.views.joinaproject_request', name="joinaproject_request"),
-    url(r'^joinaprojectthanks/$', TemplateView.as_view(template_name='work/joinaproject_thanks.html'), name='joinaproject_thanks'),
+    url(r'^joinaproject-thanks/$', TemplateView.as_view(template_name='work/joinaproject_thanks.html'), name='joinaproject_thanks'),
 
     # View URLs
     url(r'^fobi/', include('fobi.urls.view')),

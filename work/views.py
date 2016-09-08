@@ -2191,7 +2191,7 @@ def joinaproject_request(request, form_slug = False):
             event_type = EventType.objects.get(relationship="todo")
             description = "Create an Agent and User for the Join Request from "
             description += name
-            join_url = get_url_starter() + "/work/agent/" + str(jn_req.project.agent.id) +"/join-request/" + str(jn_req.id) + "/"
+            join_url = get_url_starter() + "/work/agent/" + str(jn_req.project.agent.id) +"/join-requests/"
             context_agent = jn_req.project.agent #EconomicAgent.objects.get(name__icontains="Membership Request")
             resource_types = EconomicResourceType.objects.filter(behavior="work")
             rts = resource_types.filter(
@@ -2219,7 +2219,7 @@ def joinaproject_request(request, form_slug = False):
                 managers = jn_req.project.agent.managers()
                 users = []
                 for manager in managers:
-                    users.append(manager.user)
+                    users.append(manager.user().user)
                 if users:
                     site_name = get_site_name()
                     notification.send(
@@ -2236,7 +2236,7 @@ def joinaproject_request(request, form_slug = False):
                     )
 
             return HttpResponseRedirect('/%s/'
-                % ('joinaprojectthanks'))
+                % ('joinaproject-thanks'))
 
 
     kwargs = {'initial': {'fobi_initial_data':form_slug} }
@@ -2430,9 +2430,9 @@ def create_account_for_join_request(request, join_request_id):
                     name = data["name"]
                     if notification:
                         managers = project.agent.managers()
-                        users = [agent.user,]
+                        users = [agent.user().user,]
                         for manager in managers:
-                            users.append(manager.user)
+                            users.append(manager.user().user)
                         #users = User.objects.filter(is_staff=True)
                         if users:
                             #allusers = chain(users, agent)

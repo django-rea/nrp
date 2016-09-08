@@ -75,7 +75,7 @@ LOGIN_EXEMPT_URLS = (
     r'^membership/',
     r'^membershipthanks/',
     r'^joinaproject/',
-    r'^joinaprojectthanks/',
+    r'^joinaproject-thanks/',
     r'^account/password/reset/',
     r'^account/password_reset_sent/',
     r'^captcha/image/',

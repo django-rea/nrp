@@ -131,24 +131,14 @@
                                         <input type="submit" class="btn btn-mini btn-warning" name="submit" value='{% trans "Decline" %}' />
                                     </form>
                                   {% else %}
-                                  {% comment %}
-                                    <form
-                                        class="action-form"
-                                        id="create-form{{ req.id }}"
-                                        action="{% url "create_account_for_join_request" join_request_id=req.id %}"
-                                        method="POST" >
-                                        {% csrf_token %}
-                                        <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Create OCP Account" %}' />
-                                    </form>
-                                    {% endcomment %}
-                                    <a href="#create-agent" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Create OCP Account" %}</a>
-                                    <div class="modal hide fade" id="create-agent" tabindex="-1" role="dialog" aria-labelledby="agent-label" aria-hidden="true">
+                                    <a href="#create-agent{{ req.id }}" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Create OCP Account" %}</a>
+                                    <div class="modal hide fade" id="create-agent{{ req.id }}" tabindex="-1" role="dialog" aria-labelledby="agent-label" aria-hidden="true">
                                         <div class="modal-header">
                                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                                             <h3 id="agent-label">{% trans "Create OCP Account" %}</h3>
                                         </div>
                                         <div class="modal-body">
-                                            <form class="validateMe" id="agentForm" enctype="multipart/form-data" 
+                                            <form class="validateMe" id="agentForm{{ req.id }}" enctype="multipart/form-data" 
                                                 action="{% url "create_account_for_join_request" join_request_id=req.id %}" method="POST" >
                                                 {% csrf_token %}
                                                 {{ req.agent_form|as_bootstrap }}
@@ -303,14 +293,20 @@
             maxlength: 32,
             remote: "/work/validate-nick/"
             });
+            
+        $.validator.addClassRules("password", { 
+            required: true,
+            });
 
-        $('#agentForm').validate(
-        {
-            onkeyup: false,
-            highlight: function(label) {
-                $(label).closest('.control-group').addClass('error');
-            }
 
+        $('.validateMe').each( function(){
+            var form = $(this);
+            form.validate({
+                onkeyup: false,
+                highlight: function(label) {
+                    $(label).closest('.control-group').addClass('error');
+                }
+            });
         });
 
         /*

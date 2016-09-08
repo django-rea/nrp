@@ -41,9 +41,8 @@ class ProjectAgentCreateForm(forms.ModelForm):
         label="Is a context agent", 
         widget=forms.CheckboxInput())
     password = forms.CharField(label=_("Password"),
-        required=False,
-        help_text=_("If you enter a password, a user will automatically be created for this Agent. Otherwise, just an Agent."),
-        widget=forms.PasswordInput)
+        help_text=_("Login password"),
+        widget=forms.PasswordInput(attrs={'class': 'password',}))
 
     class Meta:
         model = EconomicAgent

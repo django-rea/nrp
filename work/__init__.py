@@ -34,10 +34,12 @@ def comment_notification(sender, comment, **kwargs):
 
         if "notification" in settings.INSTALLED_APPS:
             from notification import models as notification
+            #import pdb; pdb.set_trace()
             users = []
             users.append(jr_creator)
             for manager in jr_managers:
-                users.append(manager.user().user)
+                if manager.user():
+                    users.append(manager.user().user)
 
             if users:
                 site_name = Site.objects.get_current().name

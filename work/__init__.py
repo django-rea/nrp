@@ -34,7 +34,6 @@ def comment_notification(sender, comment, **kwargs):
 
         if "notification" in settings.INSTALLED_APPS:
             from notification import models as notification
-            #import pdb; pdb.set_trace()
             users = []
             users.append(jr_creator)
             for manager in jr_managers:
@@ -44,7 +43,7 @@ def comment_notification(sender, comment, **kwargs):
             if users:
                 site_name = Site.objects.get_current().name
                 joinrequest_url= "https://" + Site.objects.get_current().domain +\
-                    "/work/project-feedback/" + str(comment.content_object.project.id) +\
+                    "/work/project-feedback/" + str(comment.content_object.project.agent.id) +\
                     "/" + str(comment.content_object.id) + "/" 
                 notification.send(
                     users,

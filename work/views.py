@@ -2219,7 +2219,7 @@ def joinaproject_request(request, form_slug = False):
                 managers = jn_req.project.agent.managers()
                 users = []
                 for manager in managers:
-                  if manager:
+                  if manager.user():
                     users.append(manager.user().user)
                 if users:
                     site_name = get_site_name()

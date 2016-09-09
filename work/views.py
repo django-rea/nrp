@@ -2433,7 +2433,7 @@ def create_account_for_join_request(request, join_request_id):
                         managers = project.agent.managers()
                         users = [agent.user().user,]
                         for manager in managers:
-                            if manager:
+                            if manager.user():
                                 users.append(manager.user().user)
                         #users = User.objects.filter(is_staff=True)
                         if users:

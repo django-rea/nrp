@@ -300,7 +300,7 @@
         $.validator.addClassRules("nick", {
             required: true,
             maxlength: 32,
-            remote: "/work/validate-nick/"
+            remote: { url:"/work/validate-nick/", async:false }
             });
 
         $.validator.addClassRules("password", {

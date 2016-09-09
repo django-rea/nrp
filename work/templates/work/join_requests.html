@@ -197,12 +197,13 @@
                       <td>
 
                           {% if req.agent %}
-                            <b>
+
                              {% if request.user.agent.agent.is_staff %}
                                 <a href="{{ req.agent.get_absolute_url }}">{{ req.name }} {{ req.surname }}</a>
                              {% else %}
                                 <a href="{% url "members_agent" agent_id=req.agent.id %}">{{ req.name }} {{ req.surname }}</a>
                              {% endif %}
+                            <b>
                              <a href="{% url 'project_feedback' agent_id=req.project.agent.id join_request_id=req.id %}">Comments</a>
                             </b>
                           {% else %}

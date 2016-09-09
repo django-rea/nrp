@@ -2191,7 +2191,7 @@ def joinaproject_request(request, form_slug = False):
             event_type = EventType.objects.get(relationship="todo")
             description = "Create an Agent and User for the Join Request from "
             description += name
-            join_url = get_url_starter() + "/work/agent/" + str(jn_req.project.agent.id) +"/join-request/" + str(jn_req.id) + "/"
+            join_url = get_url_starter() + "/work/agent/" + str(jn_req.project.agent.id) +"/join-requests/"
             context_agent = jn_req.project.agent #EconomicAgent.objects.get(name__icontains="Membership Request")
             resource_types = EconomicResourceType.objects.filter(behavior="work")
             rts = resource_types.filter(
@@ -2216,7 +2216,11 @@ def joinaproject_request(request, form_slug = False):
 
 
             if notification:
-                users = jn_req.project.agent.managers() #User.objects.filter(is_staff=True)
+                managers = jn_req.project.agent.managers()
+                users = []
+                for manager in managers:
+                  if manager:
+                    users.append(manager.user().user)
                 if users:
                     site_name = get_site_name()
                     notification.send(
@@ -2233,7 +2237,7 @@ def joinaproject_request(request, form_slug = False):
                     )
 
             return HttpResponseRedirect('/%s/'
-                % ('joinaprojectthanks'))
+                % ('joinaproject-thanks'))
 
 
     kwargs = {'initial': {'fobi_initial_data':form_slug} }
@@ -2379,6 +2383,8 @@ def accept_request(request, join_request_id):
         % ('work/agent', mbr_req.project.agent.id, 'join-requests'))
 
 
+from itertools import chain
+
 @login_required
 def create_account_for_join_request(request, join_request_id):
     if request.method == "POST":
@@ -2388,7 +2394,7 @@ def create_account_for_join_request(request, join_request_id):
         if form.is_valid():
             data = form.cleaned_data
             agent = form.save(commit=False)
-            agent.created_by=request.user            
+            agent.created_by=request.user
             if not agent.is_individual():
                 agent.is_context=True
             agent.save()
@@ -2423,12 +2429,17 @@ def create_account_for_join_request(request, join_request_id):
                     #agent.request_faircoin_address()
 
                     name = data["name"]
-                    """
                     if notification:
-                        users = jn_req.project.agent.managers() #User.objects.filter(is_staff=True)
+                        managers = project.agent.managers()
+                        users = [agent.user().user,]
+                        for manager in managers:
+                            if manager:
+                                users.append(manager.user().user)
+                        #users = User.objects.filter(is_staff=True)
                         if users:
-                            users = list(users)
-                            users.append(agent)
+                            #allusers = chain(users, agent)
+                            #users = list(users)
+                            #users.append(agent.user)
                             site_name = get_site_name()
                             notification.send(
                                 users,
@@ -2440,7 +2451,7 @@ def create_account_for_join_request(request, join_request_id):
                                 "context_agent": project.agent,
                                 }
                             )
-                    """
+
             return HttpResponseRedirect('/%s/%s/%s/'
                 % ('work/agent', project.agent.id, 'join-requests'))
 

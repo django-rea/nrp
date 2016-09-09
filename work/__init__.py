@@ -36,7 +36,7 @@ def comment_notification(sender, comment, **kwargs):
             from notification import models as notification
             users = []
             users.append(jr_creator)
-            for manager in managers:
+            for manager in jr_managers:
                 users.append(manager.user().user)
 
             if users:

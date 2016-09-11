@@ -2051,7 +2051,7 @@ from fobi.base import (
 #)
 
 import simplejson as json
-from django.utils.html import escape
+from django.utils.html import escape, escapejs
 
 def joinaproject_request(request, form_slug = False):
     join_form = JoinRequestForm(data=request.POST or None)
@@ -2072,8 +2072,8 @@ def joinaproject_request(request, form_slug = False):
           form_element_entries = form_element_entries,
           request = request
       )
-
-
+    
+    
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         fobi_form = FormClass(request.POST, request.FILES)
@@ -2248,7 +2248,7 @@ def joinaproject_request(request, form_slug = False):
         "join_form": join_form,
         "fobi_form": fobi_form,
         "project": project,
-        "post": escape(json.dumps(request.POST)),
+        "post": escapejs(json.dumps(request.POST)),
     }, context_instance=RequestContext(request))
 
 

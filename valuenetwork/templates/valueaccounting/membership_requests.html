@@ -27,7 +27,6 @@
         margin-top: 0;
         margin-bottom: 2px;
     }
-
     #stateForm ul
     {
         list-style-type: none;
@@ -43,11 +42,11 @@
     }
     #stateForm
     {
-        font-size: 70%;
         display: inline !important;
         margin: 0;
         padding: 0;
     }
+
 </style>
 
 {% endblock %}
@@ -57,15 +56,18 @@
 {% block body_base %}
     <div class="container">
         {% include "_messages.html" %}
-    <div>
+    <div  class="row-fluid">
       <legend>
             {% trans "Freedom Coop Membership Requests" %} &nbsp;&nbsp;&nbsp;
+            
+      </legend>
+      <div class="span-12">
+        <h4>
             <form id="stateForm" action="." method="POST">{% csrf_token %}
                 {% trans "State" %}: {{ state_form.state }}
             </form>
-      </legend>
-      <div>
-        <table style="width: 100%;" class="table table-bordered table-hover table-condensed" >
+        </h4>
+        <table class="table table-bordered table-hover table-condensed" >
             <thead>
                 {% if state != "accepted" %}
                     <th>{% trans "Actions" %}</th>
@@ -75,12 +77,12 @@
                 <th>{% trans "Name" %}</th>
                 <th>{% trans "Requested username" %}</th>
                 <th>{% trans "Type" %}</th>
-		<th>{% trans "Shares" %}</th>
+                <th>{% trans "Shares" %}</th>
                 <th>{% trans "Description" %}</th>
                 <th>{% trans "Email" %}</th>
                 <th>{% trans "Phone" %}</th>
                 <th>{% trans "Address" %}</th>
-		<th>{% trans "Website" %}</th>
+                <th>{% trans "Website" %}</th>
                 <th>{% trans "Languages" %}</th>
                 <th>{% trans "FairNetwork" %}</th>
                 <th>{% trans "UseFaircoin" %}</th>

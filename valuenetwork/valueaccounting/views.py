@@ -26,7 +26,7 @@ from django_comments.models import Comment, CommentFlag
 from valuenetwork.valueaccounting.models import *
 from valuenetwork.valueaccounting.forms import *
 from valuenetwork.valueaccounting.utils import *
-from work.models import MembershipRequest
+from work.models import MembershipRequest, SkillSuggestion
 
 if "notification" in settings.INSTALLED_APPS:
     from notification import models as notification
@@ -13224,6 +13224,73 @@ peeps = [x for x in graph if x['@type']=='Person']
 rels = [x for x in graph if x['@type']=='Relationship']
 ids = [x['@id'].split('/')[1] for x in graph]
 '''
+
+@login_required
+def skill_suggestions(request):
+    state = "new"
+    state_form = RequestStateForm(
+        initial={"state": "new",},
+        data=request.POST or None)
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        if state_form.is_valid():
+            data = state_form.cleaned_data
+            state = data["state"]
+    suggestions =  SkillSuggestion.objects.filter(state=state)
+
+    return render_to_response("valueaccounting/skill_suggestions.html", {
+        "help": get_help("skill_suggestions"),
+        "suggestions": suggestions,
+        "state_form": state_form,
+        "state": state,
+    }, context_instance=RequestContext(request))
+
+@login_required
+def create_skill_for_suggestion(request, suggestion_id):
+    if request.method == "POST":
+        suggestion = get_object_or_404(SkillSuggestion, pk=suggestion_id)
+        form = SkillSuggestionResourceTypeForm(prefix=suggestion.form_prefix(), data=request.POST or None)
+        import pdb; pdb.set_trace()
+        if form.is_valid():
+            skill = form.save(commit=False)
+            skill.inventory_rule="never"
+            skill.behavior="work"
+            hrs = Unit.objects.filter(name__icontains="Hour")
+            hr = None
+            if hrs:
+                hr = hrs[0]
+            else:
+                hr = Unit(
+                    name="Hour",
+                    unit_type="time",
+                    abbrev="Hr",
+                    )
+                hr.save()
+            skill.unit=hr
+            skill.created_by=request.user
+            skill.save()
+            suggestion.resource_type=skill
+            suggestion.state="accepted"
+            suggestion.save()
+        
+    return HttpResponseRedirect('/%s/'
+        % ('accounting/skill-suggestions'))
+        
+@login_required    
+def decline_suggestion(request, suggestion_id):
+    suggestion = get_object_or_404(SkillSuggestion, pk=suggestion_id)
+    suggestion.state = "declined"
+    suggestion.save()
+    return HttpResponseRedirect('/%s/'
+        % ('accounting/skill-suggestions'))
+        
+@login_required    
+def undecline_suggestion(request, suggestion_id):
+    suggestion = get_object_or_404(SkillSuggestion, pk=suggestion_id)
+    suggestion.state = "new"
+    suggestion.save()
+    return HttpResponseRedirect('/%s/'
+        % ('accounting/skill-suggestions'))
 
 @login_required
 def membership_requests(request):

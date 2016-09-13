@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 
 from django.utils.translation import ugettext_lazy as _
 
-from valuenetwork.valueaccounting.models import EconomicAgent, AgentType
+from valuenetwork.valueaccounting.models import EconomicAgent, AgentType, EconomicResourceType
 #from fobi.models import FormEntry
 
 MEMBERSHIP_TYPE_CHOICES = (
@@ -117,9 +117,28 @@ class SkillSuggestion(models.Model):
     suggested_by = models.ForeignKey(User, verbose_name=_('suggested by'),
         related_name='skill_suggestion', blank=True, null=True, editable=False)
     suggestion_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    resource_type = models.ForeignKey(EconomicResourceType,
+        verbose_name=_('resource_type'), related_name='skill_suggestions',
+        blank=True, null=True,
+        help_text=_("this skill suggestion became this ResourceType"))
+    state = models.CharField(_('state'),
+        max_length=12, choices=REQUEST_STATE_CHOICES,
+        default='new', editable=False)
+
 
     def __unicode__(self):
         return self.skill
+       
+    def form_prefix(self):
+        return "".join(["SS", str(self.id)])
+
+    def resource_type_form(self):
+        from valuenetwork.valueaccounting.forms import SkillSuggestionResourceTypeForm
+        init = {
+            "name": self.skill,
+            }
+        return SkillSuggestionResourceTypeForm(initial=init, prefix=self.form_prefix())
+
 
 from nine.versions import DJANGO_LTE_1_5
 from fobi.contrib.plugins.form_handlers.db_store.models import SavedFormDataEntry

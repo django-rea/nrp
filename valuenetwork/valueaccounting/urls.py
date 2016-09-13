@@ -542,5 +542,12 @@ urlpatterns += patterns("",
     url(r'^delete-request/(?P<membership_request_id>\d+)/$', 'valuenetwork.valueaccounting.views.delete_request', 
         name="delete_request"), 
     url(r"^comments/$", 'valuenetwork.valueaccounting.views.comments', name="comments"),
+    url(r'^skill-suggestions/$', 'work.views.skill_suggestions', name="skill_suggestions"),
+    url(r'^create-skill/(?P<suggestion_id>\d+)/$', 'valuenetwork.valueaccounting.views.create_skill_for_suggestion', 
+        name="create_skill_for_suggestion"),
+    url(r'^decline-suggestion/(?P<suggestion_id>\d+)/$', 'valuenetwork.valueaccounting.views.decline_suggestion', 
+        name="decline_suggestion"),
+    url(r'^undecline-suggestion/(?P<suggestion_id>\d+)/$', 'valuenetwork.valueaccounting.views.undecline_suggestion', 
+        name="undecline_suggestion"),
 )
 

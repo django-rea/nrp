@@ -10,7 +10,7 @@ class MembershipRequestAdmin(admin.ModelAdmin):
 admin.site.register(MembershipRequest, MembershipRequestAdmin)
 
 class SkillSuggestionAdmin(admin.ModelAdmin):
-    list_display = ('skill', 'suggested_by', 'suggestion_date', )
+    list_display = ('skill', 'suggested_by', 'suggestion_date', 'state', 'resource_type', )
 
 admin.site.register(SkillSuggestion, SkillSuggestionAdmin)
 

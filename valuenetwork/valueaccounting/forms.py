@@ -2816,6 +2816,18 @@ class EconomicResourceTypeForm(forms.ModelForm):
         super(EconomicResourceTypeForm, self).__init__(*args, **kwargs)
         self.fields["substitutable"].initial = settings.SUBSTITUTABLE_DEFAULT
         self.fields["parent"].queryset = possible_parent_resource_types()
+
+        
+class SkillSuggestionResourceTypeForm(forms.ModelForm):
+    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'unique-name input-xlarge',}))
+    
+    class Meta:
+        model = EconomicResourceType
+        fields = ('parent', 'name', )
+
+    def __init__(self, *args, **kwargs):
+        super(SkillSuggestionResourceTypeForm, self).__init__(*args, **kwargs)
+        self.fields["parent"].queryset = possible_parent_resource_types()
         
 
 class EconomicResourceTypeChangeForm(forms.ModelForm):

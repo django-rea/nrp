@@ -58,7 +58,8 @@
 		
 			<legend>
                 {% trans "Resource Types" %}&nbsp;&nbsp;&nbsp;
-                <a href="{% url "resource_type_lists" %}">{% trans "Resource Type Lists" %}</a>
+                <a href="{% url "resource_type_lists" %}">{% trans "Resource Type Lists" %}</a>&nbsp;&nbsp;&nbsp;
+                <a href="{% url 'skill_suggestions' %}">{% trans "Skill Suggestions" %}</a>
             </legend>
 
 			{% if user.is_authenticated %}

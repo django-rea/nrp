@@ -1,0 +1,7 @@
+{% load i18n %}{% blocktrans %}New skill suggestion:
+
+Suggested skill: {{ skill }}
+Suggested by: {{ suggested_by }}
+
+You can see all skill suggestions at
+{{ suggestions_url }}{% endblocktrans %}

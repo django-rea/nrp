@@ -514,6 +514,23 @@ def update_skills(request, agent_id):
             suggestion = other_form.save(commit=False)
             suggestion.suggested_by = request.user
             suggestion.save()
+            try:
+                suggester = request.user.agent.agent
+            except:
+                suggester = request.user
+            if notification:
+                users = User.objects.filter(is_staff=True)
+                suggestions_url = get_url_starter() + "/accounting/skill-suggestions/"
+                if users:
+                    site_name = get_site_name()
+                    notification.send(
+                        users,
+                        "work_skill_suggestion",
+                        {"skill": suggestion.skill,
+                        "suggested_by": suggester.name,
+                        "suggestions_url": suggestions_url,
+                        }
+                    )
 
     return HttpResponseRedirect('/%s/'
         % ('work/profile'))

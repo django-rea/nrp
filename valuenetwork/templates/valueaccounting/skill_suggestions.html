@@ -1,0 +1,175 @@
+{% extends "site_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Skill Suggestions" %}{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static "css/coopOcp.css" %}" />
+
+<style>
+
+    tr.even td
+    {
+        color:#000000;
+        background-color:#EAF2D3;
+    }
+
+    th
+    {
+        background-color:#C8D6E8;
+    }
+    
+
+</style>
+
+{% endblock %}
+
+{% block body_class %}projects{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+    <div  class="row-fluid">
+      <legend>
+            {% trans "Skill Suggestions" %} &nbsp;&nbsp;&nbsp;
+            
+      </legend>
+      <div class="span-12">
+        <h4>
+            <form id="stateForm" action="." method="POST">{% csrf_token %}
+                {% trans "State" %}: {{ state_form.state }}
+            </form>
+        </h4>
+        <table class="table table-bordered table-hover table-condensed" >
+            <thead>
+                {% if state == "accepted" %}
+                    <th>{% trans "Resource Type" %}</th>
+                {% else %}
+                    <th>{% trans "Actions" %}</th>
+                {% endif %}
+                <th>{% trans "Skill" %}</th>
+                <th>{% trans "Suggested by" %}</th>
+                <th>{% trans "Suggestion date" %}</th>
+                <th>{% trans "Discussion" %}</th>
+            </thead>
+            <tbody>
+                {% for suggestion in suggestions %}
+                    <tr class="{% cycle 'odd' 'even' %}">
+                        <td>
+                            {% if state == "accepted" %}
+                                {% if suggestion.resource_type %}
+                                    <a href="{{ suggestion.resource_type.get_absolute_url }}">{{ suggestion.resource_type }}</a>
+                                {% endif %}
+                            {% elif state == "new" %}
+                                
+                                <a href="#create-skill{{ suggestion.id }}" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Create Skill" %}</a>
+                                    <div class="modal hide fade" id="create-skill{{ suggestion.id }}" tabindex="-1" role="dialog" aria-labelledby="skill-label" aria-hidden="true">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                            <h3 id="skill-label">{% trans "Create Skill" %}</h3>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form class="validateMe" id="skillForm{{ suggestion.id }}" enctype="multipart/form-data"
+                                                action="{% url "create_skill_for_suggestion" suggestion_id=suggestion.id %}" method="POST" >
+                                                {% csrf_token %}
+                                                {{ suggestion.resource_type_form|as_bootstrap }}
+                                                <div class="modal-footer">
+                                                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                                    <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                <form
+                                    class="action-form"
+                                    id="decline-form{{ suggestion.id }}"
+                                    action="{% url "decline_suggestion" suggestion_id=suggestion.id %}"
+                                    method="POST" >
+                                    {% csrf_token %}
+                                    <input type="submit" class="btn btn-mini btn-warning" name="submit" value='{% trans "Decline" %}' />
+                                </form>
+                            {% elif state == "declined" %}
+                                <form
+                                    class="action-form"
+                                    id="undecline-form{{ suggestion.id }}"
+                                    action="{% url "undecline_suggestion" suggestion_id=suggestion.id %}"
+                                    method="POST" >
+                                    {% csrf_token %}
+                                    <input type="submit" class="btn btn-mini btn-warning" name="submit" value='{% trans "Undecline" %}' />
+                                </form>
+                            
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ suggestion.skill }}
+                        </td>
+                        <td>
+                            {{ suggestion.suggested_by }}
+                        </td>
+                        <td>
+                            {{ suggestion.suggestion_date }}
+                        </td>
+                        
+                        <td>
+                            {% with suggestion.suggested_by.agent.agent.membership_request as req %}
+                                {% if req %}
+                                    <a href="{% url 'membership_discussion' membership_request_id=req.id %}">Discussion</a>
+                                {% endif %}
+                            {% endwith %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+      </div>
+
+{% comment %}
+<div class="pagination">
+    <span class="step-links">
+        {% if events.has_previous %}
+            <a href="?page={{ events.previous_page_number }}">{% trans "previous" %}</a>
+        {% endif %}
+
+        <span class="current">
+            {% trans "Page" %} {{ events.number }} {% trans "of" %} {{ events.paginator.num_pages }}.
+        </span>
+
+        {% if events.has_next %}
+            <a href="?page={{ events.next_page_number }}">{% trans "next" %}</a>
+        {% endif %}
+    </span>
+</div>
+{% endcomment %}
+
+    </div>
+    </div>
+{% endblock %}
+
+
+{% block extra_body %}
+    {{ block.super }}
+
+    <script src="{% static "js/jquery.expander.min.js" %}"></script>
+
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+
+        //$('#inventory').addClass('active');
+        //$("select").chosen();
+
+        $(".tog").change(function()
+        {
+            this.form.submit();
+        });
+
+
+
+    }); // end document.ready
+
+    </script>
+{% endblock %}

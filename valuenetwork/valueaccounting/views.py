@@ -13250,7 +13250,7 @@ def create_skill_for_suggestion(request, suggestion_id):
     if request.method == "POST":
         suggestion = get_object_or_404(SkillSuggestion, pk=suggestion_id)
         form = SkillSuggestionResourceTypeForm(prefix=suggestion.form_prefix(), data=request.POST or None)
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         if form.is_valid():
             skill = form.save(commit=False)
             skill.inventory_rule="never"

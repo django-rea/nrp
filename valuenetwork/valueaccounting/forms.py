@@ -2823,11 +2823,13 @@ class SkillSuggestionResourceTypeForm(forms.ModelForm):
     
     class Meta:
         model = EconomicResourceType
-        fields = ('parent', 'name', )
-
+        #fields = ('parent', 'name', )
+        fields = ('name', )
+    """
     def __init__(self, *args, **kwargs):
         super(SkillSuggestionResourceTypeForm, self).__init__(*args, **kwargs)
         self.fields["parent"].queryset = possible_parent_resource_types()
+    """
         
 
 class EconomicResourceTypeChangeForm(forms.ModelForm):

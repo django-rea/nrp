@@ -13246,6 +13246,27 @@ def skill_suggestions(request):
     }, context_instance=RequestContext(request))
 
 @login_required
+def validate_resource_type_name(request):
+    #import pdb; pdb.set_trace()
+    answer = True
+    error = ""
+    data = request.GET
+    values = data.values()
+    if values:
+        name = values[0]
+        try:
+            user = EconomicResourceType.objects.get(name=name)
+            error = "Resource Type name already taken"
+        except EconomicResourceType.DoesNotExist:
+            pass
+
+    if error:
+        answer = error
+    response = simplejson.dumps(answer, ensure_ascii=False)
+    return HttpResponse(response, content_type="text/json-comment-filtered")
+
+
+@login_required
 def create_skill_for_suggestion(request, suggestion_id):
     if request.method == "POST":
         suggestion = get_object_or_404(SkillSuggestion, pk=suggestion_id)

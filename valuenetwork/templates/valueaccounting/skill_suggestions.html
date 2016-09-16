@@ -149,11 +149,17 @@
     </div>
 {% endblock %}
 
+{% block extra_script %}
+    <script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+
+  <script src="{% static "js/jquery.expander.min.js" %}"></script>
+
+{% endblock %}
+
 
 {% block extra_body %}
     {{ block.super }}
-
-    <script src="{% static "js/jquery.expander.min.js" %}"></script>
 
     <script type="text/javascript">
 
@@ -161,6 +167,31 @@
 
         //$('#inventory').addClass('active');
         //$("select").chosen();
+        
+        jQuery.validator.setDefaults({ 
+            success: function(label) {
+                label
+                    .text('').addClass('valid')
+                    .closest('.control-group').addClass('success');
+            }
+        });
+
+        $.validator.addClassRules("unique-name", {
+            required: true,
+            maxlength: 32,
+            remote: { url:"/accounting/validate-resource-type-name/", async:false }
+            });
+
+
+        $('.validateMe').each( function(){
+            var form = $(this);
+            form.validate({
+                onkeyup: false,
+                highlight: function(label) {
+                    $(label).closest('.control-group').addClass('error');
+                }
+            });
+        });
 
         $(".tog").change(function()
         {

@@ -549,5 +549,6 @@ urlpatterns += patterns("",
         name="decline_suggestion"),
     url(r'^undecline-suggestion/(?P<suggestion_id>\d+)/$', 'valuenetwork.valueaccounting.views.undecline_suggestion', 
         name="undecline_suggestion"),
+    url(r"^validate-resource-type-name/$", 'valuenetwork.valueaccounting.views.validate_resource_type_name', name="validate_resource_type_name"),
 )
 

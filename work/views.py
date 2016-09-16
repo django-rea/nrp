@@ -186,12 +186,17 @@ def profile(request):
     et_work = EventType.objects.get(name="Time Contribution")
     arts = agent.resource_types.filter(event_type=et_work)
     agent_skills = []
+    user = request.user
+    suggestions = user.skill_suggestion.all()
+    suggested_skills = [sug.resource_type for sug in suggestions]
     for art in arts:
         agent_skills.append(art.resource_type)
     for skill in skills:
         skill.checked = False
         if skill in agent_skills:
             skill.checked = True
+        if skill in suggested_skills:
+            skill.thanks = True
     upload_form = UploadAgentForm(instance=agent)
     has_associations = agent.all_has_associates()
     is_associated_with = agent.all_is_associates()

@@ -62,6 +62,9 @@ label {
 .pay_for_shares {
     margin: 2px;
 }
+.thanks {
+    color: green;
+}
 
 </style>
 
@@ -235,7 +238,13 @@ label {
                     {% csrf_token %}
                     <ul>
                     {% for skill in skills %}
-                        <li><input type="checkbox" name="skillChoice" value="{{ skill.id }}" {% if skill.checked %} checked="checked" {% endif %} /> {{ skill }}</li>
+                        <li>
+                            <input type="checkbox" name="skillChoice" value="{{ skill.id }}" {% if skill.checked %} checked="checked" {% endif %} />
+                            {{ skill }}
+                            {% if skill.thanks %}
+                                &nbsp;&nbsp;&nbsp;<span class="thanks">{% trans "Thanks for the suggestion!" %}</span>
+                            {% endif %}
+                        </li>
                     {% endfor %}
                         <li> {{ other_form|as_bootstrap }} </li>
                     </ul>

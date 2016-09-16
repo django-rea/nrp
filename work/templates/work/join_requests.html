@@ -201,7 +201,8 @@
                              {% if request.user.agent.agent.is_staff %}
                                 <a href="{{ req.agent.get_absolute_url }}">{{ req.name }} {{ req.surname }}</a>
                              {% else %}
-                                <a href="{% url "members_agent" agent_id=req.agent.id %}">{{ req.name }} {{ req.surname }}</a>
+                                <a href="{% url "members_agent" agent_id=req.agent.id %}">
+                                  {% if req.name %} {{ req.name }} {{ req.surname }} {% else %} <em>{{ req.agent.name }}</em> {% endif %}</a>
                              {% endif %}
                             <b>
                              <a href="{% url 'project_feedback' agent_id=req.project.agent.id join_request_id=req.id %}">Comments</a>
@@ -212,13 +213,14 @@
                           {% endif %}
 
                       </td>
-                      <td>{{ req.requested_username }}</td>
-                      <td>{{ req.type_of_user }}</td>
+                      <td>{% if req.requested_username %} {{ req.requested_username }} {% else %} <em>{{ req.agent.username }}</em>{% endif %}</td>
+                      <td>{% if req.agent %} {{ req.agent.agent_type }} {% else %} {{ req.type_of_user }} {% endif %}</td>
 
-                      <td><a href="mailto:{{ req.email_address }}">{{ req.email_address }}</a></td>
-                      <td>{{ req.phone_number }}</td>
-                      <td>{{ req.address }}</td>
-                      <td>{{ req.website }}</td>
+                      <td>{% if req.email_address %}<a href="mailto:{{ req.email_address }}">{{ req.email_address }}</a>
+                          {% else %} <em>{{ req.agent.email }}</em> {% endif %}</td>
+                      <td>{% if req.phone_number %} {{ req.phone_number }} {% else %} <em>{{ req.agent.phone_primary }}</em> {% endif %}</td>
+                      <td>{% if req.address %} {{ req.address }} {% else %} <em>{{ req.agent.primary_location }}</em> {% endif %}</td>
+                      <td>{% if req.website %} {{ req.website }} {% else %} <em>{{ req.agent.url }}</em> {% endif %}</td>
 
                       <!-- {% for key in fobi_keys %}
                         {% for item in req.items %}
@@ -288,8 +290,8 @@
             $('#help-content').hide("slide", { direction: "right" }, "slow");
             $( "#help" ).text("Show Help");
         })
-        
-        jQuery.validator.setDefaults({ 
+
+        jQuery.validator.setDefaults({
             success: function(label) {
                 label
                     .text('').addClass('valid')

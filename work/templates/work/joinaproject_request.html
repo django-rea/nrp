@@ -2,114 +2,109 @@
 {% load i18n %}
 {% load bootstrap_tags %}
 
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="https://www.w3.org/1999/xhtml" lang="en">
 
-<head>
+  <head>
 
-<link href="{% static "pinax/css/theme.css" %}" rel="stylesheet">
-<link href="{% static "bootstrap/css/bootstrap.css" %}" rel="stylesheet">
-<link href="{% static "bootstrap/css/bootstrap-responsive.css" %}" rel="stylesheet">
-<link href="{% static "css/buttons.css" %}" rel="stylesheet">
+    <link href="{% static "pinax/css/theme.css" %}" rel="stylesheet">
+    <link href="{% static "bootstrap/css/bootstrap.css" %}" rel="stylesheet">
+    <link href="{% static "bootstrap/css/bootstrap-responsive.css" %}" rel="stylesheet">
+    <link href="{% static "css/buttons.css" %}" rel="stylesheet">
 
-<link href="{% static "css/coop.css" %}" rel="stylesheet">
+    <link href="{% static "css/coop.css" %}" rel="stylesheet">
 
-<style>
+    <style>
 
-.errorlist {
-    color: red;
-    list-style-type: none;
-}
-
-</style>
-
-<script src="{% static "pinax/js/jquery.js" %}"></script>
-<script type="text/javascript">
-
-  var decodeEntities = (function() {
-    // this prevents any overhead from creating the object each time
-    var element = document.createElement('div');
-
-    function decodeHTMLEntities (str) {
-      if(str && typeof str === 'string') {
-        // strip script/html tags
-        str = str.replace(/<script[^>]*>([\S\s]*?)<\/script>/gmi, '');
-        str = str.replace(/<\/?\w(?:[^"'>]|"[^"]*"|'[^']*')*>/gmi, '');
-        element.innerHTML = str;
-        str = element.textContent;
-        element.textContent = '';
+      .errorlist {
+        color: red;
+        list-style-type: none;
       }
 
-      return str;
-    }
+    </style>
 
-    return decodeHTMLEntities;
-  })();
+    <script src="{% static "pinax/js/jquery.js" %}"></script>
+    <script type="text/javascript">
+
+      var decodeEntities = (function() {
+        // this prevents any overhead from creating the object each time
+        var element = document.createElement('div');
+
+        function decodeHTMLEntities (str) {
+          if(str && typeof str === 'string') {
+            // strip script/html tags
+            str = str.replace(/<script[^>]*>([\S\s]*?)<\/script>/gmi, '');
+            str = str.replace(/<\/?\w(?:[^"'>]|"[^"]*"|'[^']*')*>/gmi, '');
+            element.innerHTML = str;
+            str = element.textContent;
+            element.textContent = '';
+          }
+
+          return str;
+        }
+
+        return decodeHTMLEntities;
+      })();
 
 
-  var $_POST = {% if post %} JSON.parse(decodeEntities("{{ post }}")) {% else %} false {% endif %};
+      var $_POST = {% if post %} JSON.parse(decodeEntities("{{ post }}")) {% else %} false {% endif %};
 
-	$(document).ready(function(){
+      $(document).ready(function(){
+        $('#div_id_captcha').detach().insertBefore('input[name="submit"]');
+        $('div[id^="div_id_content_text"]').detach().insertBefore('#div_id_type_of_user');
 
-    $('#div_id_captcha').detach().insertBefore('input[name="submit"]');
+        if( $_POST ) {
+          var str = '';
+          for(i in $_POST){
+            $('textarea#id_'+i).val( $_POST[i] );
+            $("#div_id_"+i+" input[value='"+$_POST[i]+"']").attr('checked','checked');
+            str += i+': '+$_POST[i]+' / ';
+          }
+          //alert(str);
+        }
+      });
 
-    $('div[id^="div_id_content_text"]').detach().insertBefore('#div_id_type_of_user');
+    </script>
 
-    if( $_POST ) {
+    <title>{% trans "Request to Join: " %} {{ project.agent.name }}</title>
 
-      var str = '';
-      for(i in $_POST){
-
-        $('textarea#id_'+i).val( $_POST[i] );
-
-        $("#div_id_"+i+" input[value='"+$_POST[i]+"']").attr('checked','checked');
-
-        str += i+': '+$_POST[i]+' / ';
-      }
-      //alert(str);
-    }
-
-  });
-
-</script>
-
-<title>{% trans "Request to Join: " %} {{ project.agent.name }}</title>
-
-</head>
-<body style="background-image: url({% static 'img/photo-OCP-verd-1600x900.jpg' %}); text-align:center;">
+  </head>
+  <body style="background-image: url({% static 'img/photo-OCP-1600x900_green.jpg' %}); text-align:center;">
 
     <form action="{% url 'set_language' %}" method="post" id="lang-switch">{% csrf_token %}
       <input name="next" type="hidden" value="{{ redirect_to }}" />
       <select name="language" onchange="this.form.submit()">
-          {% get_current_language as LANGUAGE_CODE %}
-          {% get_available_languages as LANGUAGES %}
-          {% get_language_info_list for LANGUAGES as languages %}
-          {% for language in languages %}
-              <option value="{{ language.code }}"{% if language.code == LANGUAGE_CODE %} selected="selected"{% endif %}>
-                  {{ language.name_local }}
-              </option>
-          {% endfor %}
+        {% get_current_language as LANGUAGE_CODE %}
+        {% get_available_languages as LANGUAGES %}
+        {% get_language_info_list for LANGUAGES as languages %}
+        {% for language in languages %}
+        <option value="{{ language.code }}"{% if language.code == LANGUAGE_CODE %} selected="selected"{% endif %}>
+          {{ language.name_local }}
+        </option>
+        {% endfor %}
       </select>
     </form>
 
-        <div class="base-form">
-		      <h2>
-            {% trans "Request to join:" %}
-          </h2>
-          <h1>
-             {{ project.agent.name }}
-          </h1>
-        <p>
+    <div class="base-form">
+      <h2>
+        {% trans "Request to join:" %}
+      </h2>
+      <h1>
+        {% if project.agent.url %}<a href="{{ project.agent.url }}" target="_blank">{{ project.agent.name }}</a>{% else %} {{ project.agent.name }} {% endif %}
+      </h1>
+      <br/>
+      <!-- <p>
         {% trans "The first step to join this project is to fill the following form:" %}
-        </p>
-                <form id="joinForm" class="validateMe" action="." method="POST" >
-                    {% csrf_token %}
-                    {{ join_form|as_bootstrap }}
-                    {{ fobi_form|as_bootstrap }}
+      </p> -->
+      <form id="joinForm" class="validateMe" action="." method="POST" >
+        {% csrf_token %}
+        {{ join_form|as_bootstrap }}
+        {{ fobi_form|as_bootstrap }}
 
-                    <input type="submit" name="submit" value="{% trans 'Submit' %}" class="btn btn-primary" />
-                </form>
-        </div>
+        <input type="submit" name="submit" value="{% trans 'Submit' %}" class="btn btn-primary" />
+      </form>
+    </div>
 
-</body>
+  </body>
 </html>

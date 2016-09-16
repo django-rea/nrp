@@ -70,8 +70,11 @@ th
 
           <div class="subnav">
             {% if request.user.agent.agent in agent.managers %}
-              <a class="indent" href="{% url "members_agent" agent_id=agent.id %}">{% trans "Back to your Project" %}</a>
+              <a class="indent" href="{% url 'members_agent' agent_id=agent.id %}">{% trans "Back to your Project" %}</a>
             {% else %}
+              {% if jn_req.agent.is_active_freedom_coop_member %}
+                <a class="indent" href="{% url 'members_agent' agent_id=agent.id %}">{% trans "View Project" %}</a>
+              {% endif %}
               <a class="indent" href="{% url "profile" %}">{% trans "Your Profile" %}</a>
               {% if request.user.agent.agent.faircoin_resource %}
                 <a class="indent" href="{% url "manage_faircoin_account" resource_id=request.user.agent.agent.faircoin_resource.id %}"
@@ -93,32 +96,38 @@ th
             </tr>
             <tr>
                 <th>{% trans "Name" %}:</th>
-                <td>{{ req.name }} {{ req.surname }}  </td>
+                <td>{% if req.name %}{{ req.name }} {{ req.surname }}{% else %} {{ req.agent.name }} {% endif %}</td>
             </tr>
             <tr>
                 <th style="display:block; width:180px;">{% trans "Username" %}:</th>
-                <td>{{ req.requested_username }}</td>
+                <td>{% if req.requested_username %} {{ req.requested_username }} {% else %} {{ req.agent.username }} {% endif %}</td>
             </tr>
             <tr>
                 <th>{% trans "Type" %}:</th>
-                <td>{{ req.type_of_user }}</td>
+                <td>{% if req.type_of_user %} {{ req.type_of_user }} {% else %} {{ req.agent.type_of_agent }} {% endif %}</td>
             </tr>
             <tr>
                 <th>{% trans "Email" %}:</th>
-                <td>{{ req.email_address }}</td>
+                <td>{% if req.email_address %} {{ req.email_address }} {% else %} {{ req.agent.email }} {% endif %}</td>
             </tr>
-            <tr>
+            {% if req.phone_number or req.agent.phone_primary %}
+              <tr>
                 <th>{% trans "Phone" %}:</th>
-                <td>{{ req.phone_number }}</td>
-            </tr>
+                <td>{% if req.phone_number %} {{ req.phone_number }} {% else %} {{ req.agent.phone_primary }} {% endif %}</td>
+              </tr>
+            {% endif %}
+            {% if req.address or req.agent.primary_location %}
             <tr>
                 <th>{% trans "Address" %}:</th>
-                <td>{{ req.address }}</td>
+                <td>{% if req.address %} {{ req.address }} {% else %} {{ req.agent.primary_location }} {% endif %}</td>
             </tr>
+            {% endif %}
+            {% if req.website or req.agent.url %}
             <tr>
                 <th>{% trans "Website" %}:</th>
-                <td>{{ req.website }}</td>
+                <td>{% if req.website %} {{ req.website }} {% else %} {{ req.agent.url }} {% endif %}</td>
             </tr>
+            {% endif %}
             {% if req.items_data %}
               {% for obj in req.items_data %}
                 <tr class="fobi">

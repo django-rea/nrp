@@ -25,7 +25,7 @@
 <title>{% trans "Request Membership at FreedomCoop" %}</title>
 
 </head>
-<body style="background-image: url({% static 'img/photo-OCP-verd-1600x900.jpg' %}); text-align:center;">
+<body style="background-image: url({% static 'img/photo-OCP-1600x900_green.jpg' %}); text-align:center;">
 
     <form action="{% url 'set_language' %}" method="post" id="lang-switch">{% csrf_token %}
       <input name="next" type="hidden" value="{{ redirect_to }}" />
@@ -52,7 +52,7 @@
                 <form id="membershipForm" class="validateMe" action="." method="POST" >
                     {% csrf_token %}
                     {{ membership_form|as_bootstrap }}
-                    <input type="submit" name="submit" value="{% trans 'Submit' %}" class="btn btn-primary" /> 
+                    <input type="submit" name="submit" value="{% trans 'Submit' %}" class="btn btn-primary" />
                 </form>
         </div>
 

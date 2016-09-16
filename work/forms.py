@@ -16,20 +16,20 @@ from valuenetwork.valueaccounting.forms import *
 
 
 class ProjectAgentCreateForm(forms.ModelForm):
-    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'required-field input-xlarge',}))   
+    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'required-field input-xlarge',}))
     nick = forms.CharField(
-        label="ID", 
+        label="ID",
         help_text="Must be unique, and no more than 32 characters",
-        widget=forms.TextInput(attrs={'class': 'nick required-field',}))   
+        widget=forms.TextInput(attrs={'class': 'nick required-field',}))
     email = forms.EmailField(required=False, widget=forms.TextInput(attrs={'class': 'email input-xxlarge',}))
     #address = forms.CharField(
-    #    required=False, 
+    #    required=False,
     #    label="Work location",
     #    help_text="Enter address for a new work location. Otherwise, select existing location on map.",
     #    widget=forms.TextInput(attrs={'class': 'input-xxlarge',}))
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
     description = forms.CharField(
-        required=False, 
+        required=False,
         widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
     agent_type = forms.ModelChoiceField(
         queryset=AgentType.objects.all(),
@@ -37,8 +37,8 @@ class ProjectAgentCreateForm(forms.ModelForm):
         widget=forms.Select(
         attrs={'class': 'chzn-select'}))
     #is_context = forms.BooleanField(
-    #    required=False, 
-    #    label="Is a context agent", 
+    #    required=False,
+    #    label="Is a context agent",
     #    widget=forms.CheckboxInput())
     password = forms.CharField(label=_("Password"),
         help_text=_("Login password"),
@@ -167,6 +167,21 @@ class ProjectCreateForm(AgentCreateForm):
         self.fields["joining_style"].choices = [(js[0], js[1]) for js in JOINING_STYLE_CHOICES]
         self.fields["visibility"].choices = [(vi[0], vi[1]) for vi in VISIBILITY_CHOICES]
 
+    def clean(self):
+        #import pdb; pdb.set_trace()
+        data = super(ProjectCreateForm, self).clean()
+        url = data["url"]
+        if not url[0:3] == "http":
+          data["url"] = "http://" + url
+        #if type_of_user == "collective":
+            #if int(number_of_shares) < 2:
+            #    msg = "Number of shares must be at least 2 for a collective."
+            #    self.add_error('number_of_shares', msg)
+
+    def _clean_fields(self):
+        super(ProjectCreateForm, self)._clean_fields()
+        for name, value in self.cleaned_data.items():
+            self.cleaned_data[name] = bleach.clean(value)
 
     class Meta: #(AgentCreateForm.Meta):
         model = Project #EconomicAgent
@@ -262,6 +277,37 @@ class JoinRequestForm(forms.ModelForm):
         super(JoinRequestForm, self)._clean_fields()
         for name, value in self.cleaned_data.items():
             self.cleaned_data[name] = bleach.clean(value)
+
+
+class JoinRequestInternalForm(forms.ModelForm):
+    captcha = None #CaptchaField()
+
+    project = None
+    '''forms.ModelChoiceField(
+        queryset=Project.objects.filter(joining_style='moderated', visibility='public'),
+        empty_label=None,
+        widget=forms.Select(
+        attrs={'class': 'chzn-select'}))'''
+
+    class Meta:
+        model = JoinRequest
+        exclude = ('agent', 'project', 'fobi_data', 'type_of_user', 'name', 'surname', 'requested_username', 'email_address', 'phone_number', 'address',)
+
+    def clean(self):
+        #import pdb; pdb.set_trace()
+        data = super(JoinRequestInternalForm, self).clean()
+        #type_of_user = data["type_of_user"]
+        #number_of_shares = data["number_of_shares"]
+        #if type_of_user == "collective":
+            #if int(number_of_shares) < 2:
+            #    msg = "Number of shares must be at least 2 for a collective."
+            #    self.add_error('number_of_shares', msg)
+
+    def _clean_fields(self):
+        super(JoinRequestInternalForm, self)._clean_fields()
+        for name, value in self.cleaned_data.items():
+            self.cleaned_data[name] = bleach.clean(value)
+
 
 
 class JoinAgentSelectionForm(forms.Form):

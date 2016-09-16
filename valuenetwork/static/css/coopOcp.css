@@ -204,3 +204,25 @@ form#stateForm {
 .join_requests form.action-form {
   margin: 5px;
 }
+
+/*   I N T E R N A L   J O I N   R E Q U E S T   */
+
+#joinForm {
+  max-width: 650px;
+}
+#joinForm label.control-label {
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+#joinForm textarea {
+  width: 100%;
+}
+#joinForm div.control-group {
+  margin-bottom: 20px;
+}
+.controls > .radio:first-child, .controls > .checkbox:first-child {
+    padding-top: 0px;
+}
+#joinForm input[type="textarea"], #joinForm input[type="text"], #joinForm input[type="email"], #joinForm input[type="url"], #joinForm textarea {
+	width: 98%;
+}

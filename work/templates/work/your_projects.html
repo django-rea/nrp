@@ -229,6 +229,36 @@
           {% endfor %}
         {% endfor %}
       </ul>
+
+      <p>  &nbsp; </p>
+
+      <h3>
+        {% trans "Projects you can join:" %}
+      </h3>
+      <ul id="join-projects">
+
+        {% if join_projects %}
+
+          {% for proj in join_projects %}
+
+            {% if not proj.visibility = "private" %}
+              {% if not request.user.agent.agent in proj.agent.managers %}
+                  <li><b><a href="../agent/{{ proj.agent.id }}">{{ proj.agent.name }}</a></b> <!--({{ proj.visibility }} - {{ proj.joining_style }})-->
+                    {% if proj.joining_style = "moderated" %}
+                      {% if not proj in request.user.agent.agent.related_contexts and proj = request.user.agent.agent.joinaproject_request.project %}
+                        - <a href="{% url 'project_feedback' agent_id=proj.agent.id join_request_id=request.user.agent.agent.joinaproject_request_id %}">{% trans "Joining Process Feedback" %}</a>
+                      {% endif %}
+                    {% endif %}
+                    {% if proj.agent.description %}
+                      <div class="description" >{{ proj.agent.description|urlize|linebreaks }}</div>
+                    {% endif %}
+
+                  </li>
+                {% endif %}
+             {% endif %}
+          {% endfor %}
+        {% endif %}
+      </ul>
       {% endif %}
 
   	</div>

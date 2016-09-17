@@ -20,3 +20,8 @@ class JoinRequestAdmin(admin.ModelAdmin):
     #list_editable = ['state',]
 
 admin.site.register(JoinRequest, JoinRequestAdmin)
+
+class ProjectAdmin(admin.ModelAdmin):
+    list_display = ('agent', 'visibility', 'joining_style', 'fobi_slug',)
+
+admin.site.register(Project, ProjectAdmin)

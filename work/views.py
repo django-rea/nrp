@@ -2090,7 +2090,7 @@ def joinaproject_request(request, form_slug = False):
     if form_slug:
       project = Project.objects.get(fobi_slug=form_slug)
 
-      if request.user.is_authenticated() and request.user.agent.agent.is_active_freedom_coop_member() or request.user.is_staff():
+      if request.user and request.user.is_authenticated() and request.user.agent.agent.is_active_freedom_coop_member() or request.user.is_staff():
         return joinaproject_request_internal(request, project.agent.id)
 
       fobi_slug = project.fobi_slug

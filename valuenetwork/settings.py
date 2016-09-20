@@ -183,7 +183,7 @@ INSTALLED_APPS = [
     'fobi.contrib.plugins.form_handlers.http_repost',
     'fobi.contrib.plugins.form_handlers.mail',
 
-    'work.fobi_form_callbacks',
+    #'work.fobi_form_callbacks',
 
     # project
     'valuenetwork.valueaccounting',

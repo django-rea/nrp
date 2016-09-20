@@ -67,6 +67,8 @@ th
           {% else %}
             {% trans "Your joining request for " %} {{ agent.name }}
           {% endif %}
+           &nbsp; <span style="font-weight:normal; font-size:80%;">
+              ({% if jn_req.state == 'new' %}{% trans "pending" %}{% else %}{{ jn_req.state }}{% endif %})</span>
 
           <div class="subnav">
             {% if request.user.agent.agent in agent.managers %}

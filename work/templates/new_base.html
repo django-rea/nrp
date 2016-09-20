@@ -62,7 +62,7 @@
                           >{% trans 'Home' %}</a>
                     </li>
 
-                    {% if request.user.agent.agent.joinaproject_requests and request.user.agent.agent.is_participant_candidate %}
+                    {% if request.user.agent.agent.joinaproject_requests and not request.user.agent.agent.is_participant %}
                      <li id="my_join_requests" class="dropdown">
 		                  <a href="#" class="dropdown-toggle" data-toggle="dropdown">{% trans 'Joining Projects' %} <b class="caret"></b></a>
 		                  <ul class="subnav dropdown-menu" id="tasks-menu">

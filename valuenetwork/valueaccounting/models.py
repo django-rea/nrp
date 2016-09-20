@@ -708,6 +708,9 @@ class EconomicAgent(models.Model):
                 association_type__association_behavior="member",
                 has_associate=req.project.agent,
                 state="active")
+              if fcaas:
+                break
+                return True
         if fcaas:
             return True
         else:
@@ -723,7 +726,7 @@ class EconomicAgent(models.Model):
                 association_type__association_behavior="member",
                 has_associate=req.project.agent,
                 state="potential")
-        if fcaas:
+        if fcaas and not self.is_participant():
             return True
         else:
             return False

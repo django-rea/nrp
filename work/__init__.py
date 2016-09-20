@@ -29,13 +29,15 @@ def comment_notification(sender, comment, **kwargs):
                 )
 
     elif ct_commented.model == 'joinrequest':
-        jr_creator = comment.content_object.agent.user().user
+        jr_creator = comment.content_object.agent.user()
         jr_managers = comment.content_object.project.agent.managers()
 
         if "notification" in settings.INSTALLED_APPS:
             from notification import models as notification
             users = []
-            users.append(jr_creator)
+            if jr_creator:
+                users.append(jr_creator.user)
+
             for manager in jr_managers:
                 if manager.user():
                     users.append(manager.user().user)

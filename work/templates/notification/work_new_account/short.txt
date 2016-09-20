@@ -1,1 +1,1 @@
-{% load i18n %}{% trans  "New OCP Account for" %} {{ username }}
+{% load i18n %}{% blocktrans with username=username project=context_agent %}New OCP Account for {{ username }} to join {{ project }} {% endblocktrans %}

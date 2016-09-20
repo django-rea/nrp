@@ -1,4 +1,4 @@
-{% load i18n %}{% blocktrans %}New join request:
+{% load i18n %}{% blocktrans %}New join request at {{ context_agent.name }}:
 
 Name: {{ name }} {{ surname }}
 Type: {{ type_of_user }}

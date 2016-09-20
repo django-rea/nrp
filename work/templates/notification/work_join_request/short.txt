@@ -1,1 +1,1 @@
-{% load i18n %}{% trans  "New join request" %}
+{% load i18n %}{% trans  "New join request at" %} {{ context_agent }}

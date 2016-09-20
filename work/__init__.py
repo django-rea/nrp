@@ -46,14 +46,15 @@ def comment_notification(sender, comment, **kwargs):
                 site_name = Site.objects.get_current().name
                 joinrequest_url= "https://" + Site.objects.get_current().domain +\
                     "/work/project-feedback/" + str(comment.content_object.project.agent.id) +\
-                    "/" + str(comment.content_object.id) + "/" 
+                    "/" + str(comment.content_object.id) + "/"
                 notification.send(
                     users,
                     "comment_join_request",
                     {"name": comment.name,
-                    "comment": comment.comment,
-                    "site_name": site_name,
-                    "joinrequest_url": joinrequest_url,
+                     "comment": comment.comment,
+                     "site_name": site_name,
+                     "joinrequest_url": joinrequest_url,
+                     "jn_req": comment.content_object,
                     }
                 )
 

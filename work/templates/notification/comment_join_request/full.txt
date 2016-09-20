@@ -1,4 +1,4 @@
-{% load i18n %}{% blocktrans %}New comment from {{ name }}:
+{% load i18n %}{% blocktrans %}New comment from {{ name }} at {{ jn_req.project.agent }}:
 
 {{ comment }}
 

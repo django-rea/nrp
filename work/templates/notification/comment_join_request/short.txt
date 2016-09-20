@@ -1,1 +1,1 @@
-{% load i18n %}{% trans  "New comment in a project join request" %}
+{% load i18n %}{% blocktrans with project=jn_req.project.agent user=jn_req.agent %}New comment at {{ project }} by the {{ user }} join request {% endblocktrans %}

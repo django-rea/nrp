@@ -63,7 +63,7 @@ th
           {% if jn_req.agent.is_active_freedom_coop_member or request.user.agent.agent.is_participant %}
             {% trans "Feedback with" %} {{ agent.name }}
           {% elif request.user.agent.agent in agent.managers %}
-            {% trans "The joining request of" %} {{ jn_req.agent.name }}
+            {% blocktrans with user=jn_req.agent project=agent %}The joining request of {{ user }} related "{{ project }}" {% endblocktrans %}
           {% else %}
             {% trans "Your joining request for " %} {{ agent.name }}
           {% endif %}

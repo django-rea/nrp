@@ -2633,9 +2633,12 @@ def accept_request(request, join_request_id):
 
     # modify relation to active
     association_type = AgentAssociationType.objects.get(identifier="participant")
-    association = AgentAssociation.objects.get(is_associate=mbr_req.agent, has_associate=mbr_req.project.agent, association_type=association_type)
-    association.state = "active"
-    association.save()
+    try:
+      association = AgentAssociation.objects.get(is_associate=mbr_req.agent, has_associate=mbr_req.project.agent, association_type=association_type)
+      association.state = "active"
+      association.save()
+    except:
+      pass
 
     return HttpResponseRedirect('/%s/%s/%s/'
         % ('work/agent', mbr_req.project.agent.id, 'join-requests'))

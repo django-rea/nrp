@@ -68,8 +68,12 @@ th
             {% trans "Your joining request for " %} {{ agent.name }}
           {% endif %}
            &nbsp; <span style="font-weight:normal; font-size:80%;">
-              ({% if jn_req.state == 'new' %}{% trans "pending" %}{% else %}{{ jn_req.state }}{% endif %})</span>
-
+          {% if jn_req.agent %}
+            ({% if jn_req.state == 'new' %}{% trans "pending" %}{% else %}{{ jn_req.state }}{% endif %})
+          {% else %}
+            <span class="error">{% trans "MISSING THE OCP ACCOUNT!" %}</span>
+          {% endif %}
+          </span>
           <div class="subnav">
             {% if request.user.agent.agent in agent.managers %}
               <a class="indent" href="{% url 'members_agent' agent_id=agent.id %}">{% trans "Back to your Project" %}</a>
@@ -171,29 +175,31 @@ th
         {% endif %}
       </legend>
 
-      {% get_comment_count for jn_req as num_comm  %}
-      {% if num_comm > 0 %}
+      {% if jn_req.agent %}
+        {% get_comment_count for jn_req as num_comm  %}
+        {% if num_comm > 0 %}
+          <div class="row-fluid">
+            {% trans "You have " %} {{ num_comm }} {% trans " comments:" %}
+            {% render_comment_list for jn_req %}
+          </div>
+        {% endif %}
         <div class="row-fluid">
-          {% trans "You have " %} {{ num_comm }} {% trans " comments:" %}
-          {% render_comment_list for jn_req %}
+          {% trans "Write a new comment:" %}
+          {% get_comment_form for jn_req as form %}
+          <form action="{% comment_form_target %}" method="POST">
+            {% csrf_token %}
+            {{ form.comment }}
+            <br />
+            {{ form.honeypot }}
+            {{ form.content_type }}
+            {{ form.object_pk }}
+            {{ form.timestamp }}
+            {{ form.security_hash }}
+            <input type="hidden" name="next" value="{% url 'project_feedback' agent.id jn_req.id %}" />
+            <input type="submit" class="btn btn-primary" value="Add comment" id="id_submit" />
+          </form>
         </div>
       {% endif %}
-      <div class="row-fluid">
-        {% trans "Write a new comment:" %}
-        {% get_comment_form for jn_req as form %}
-        <form action="{% comment_form_target %}" method="POST">
-          {% csrf_token %}
-          {{ form.comment }}
-          <br />
-          {{ form.honeypot }}
-          {{ form.content_type }}
-          {{ form.object_pk }}
-          {{ form.timestamp }}
-          {{ form.security_hash }}
-          <input type="hidden" name="next" value="{% url 'project_feedback' agent.id jn_req.id %}" />
-          <input type="submit" class="btn btn-primary" value="Add comment" id="id_submit" />
-        </form>
-      </div>
     </div>
 
     </div>

@@ -2719,6 +2719,24 @@ def create_account_for_join_request(request, join_request_id):
     return HttpResponseRedirect('/%s/%s/%s/'
         % ('work/agent', jn_req.project.agent.id, 'join-requests'))
 
+@login_required
+def join_project(request, project_id):
+    if request.method == "POST":
+        project = get_object_or_404(EconomicAgent, pk=project_id)
+        user_agent = get_agent(request)
+        association_type = AgentAssociationType.objects.get(identifier="participant")
+        aa = AgentAssociation(
+            is_associate=user_agent,
+            has_associate=project,
+            association_type=association_type,
+            state="active",
+            )
+        aa.save()
+    
+    return HttpResponseRedirect("/work/your-projects/")
+    
+    
+    
 def validate_nick(request):
     #import pdb; pdb.set_trace()
     answer = True

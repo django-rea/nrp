@@ -86,6 +86,11 @@ span.error {
   background-image: linear-gradient(top, #c392c9, #a372a9);
 }
 
+.error {
+  color: #c00;
+}
+
+
 /*   M E M B E R S H I P   P R O C E S S   P A G E   */
 
 #member-request-block th, #agent-table-block th {

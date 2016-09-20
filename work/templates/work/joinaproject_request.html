@@ -71,7 +71,9 @@
 
   </head>
   <body style="background-image: url({% static 'img/photo-OCP-1600x900_green.jpg' %}); text-align:center;">
-
+    <div style="font-weight:bold; position:absolute; left:13px; top:9px;">
+      <a href="{% url 'account_login' %}" style="color:#734279;">{% trans "Login" %}</a>
+    </div>
     <form action="{% url 'set_language' %}" method="post" id="lang-switch">{% csrf_token %}
       <input name="next" type="hidden" value="{{ redirect_to }}" />
       <select name="language" onchange="this.form.submit()">

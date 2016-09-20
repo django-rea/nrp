@@ -1802,6 +1802,7 @@ def your_projects(request):
     projects = agent.related_contexts()
     managed_projects = agent.managed_projects()
     join_projects = Project.objects.all() #filter(joining_style="moderated", visibility!="private")
+
     next = "/work/your-projects/"
     allowed = False
     if agent:
@@ -1892,6 +1893,13 @@ def members_agent(request, agent_id):
     user_is_agent = False
     if agent == user_agent:
         user_is_agent = True
+
+    if user_agent.project_join_requests:
+      for req in user_agent.project_join_requests.all():
+        if req.project.agent == agent:
+          user_agent.req = req
+          break
+
     try:
         project = agent.project
     except:
@@ -2528,13 +2536,21 @@ def join_requests(request, agent_id):
                 fobi_keys.append(val)
 
         for req in requests:
-            req.entries = req.fobi_data._default_manager.filter(pk=req.fobi_data.pk).select_related('form_entry')
-            entry = req.entries[0]
-            req.data = json.loads(entry.saved_data)
-            req.items = req.data.items()
-            req.items_data = []
-            for key in fobi_keys:
-              req.items_data.append(req.data.get(key))
+            if not req.agent and req.requested_username:
+              try:
+                req.possible_agent = EconomicAgent.objects.get(nick=req.requested_username)
+              except:
+                req.possible_agent = False
+            if req.fobi_data and req.fobi_data._default_manager:
+              req.entries = req.fobi_data._default_manager.filter(pk=req.fobi_data.pk).select_related('form_entry')
+              entry = req.entries[0]
+              req.data = json.loads(entry.saved_data)
+              req.items = req.data.items()
+              req.items_data = []
+              for key in fobi_keys:
+                req.items_data.append(req.data.get(key))
+            else:
+              req.entries = []
 
     return render_to_response("work/join_requests.html", {
         "help": get_help("join_requests"),

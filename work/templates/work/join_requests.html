@@ -26,7 +26,7 @@
 	 <div>
 
 	    <legend>
-	        {% trans "Your Project Join Requests" %}
+	        {% blocktrans with proj=project.agent %}The "{{ proj }}" Join Requests{% endblocktrans %}
 
 	        {% if user.agent.agent.is_active_freedom_coop_member or user.is_staff %}
                 <!-- &nbsp; &nbsp; &nbsp;
@@ -131,6 +131,19 @@
                                         <input type="submit" class="btn btn-mini btn-warning" name="submit" value='{% trans "Decline" %}' />
                                     </form>
                                   {% else %}
+                                    {% if req.possible_agent %}
+                                      "{{ req.possible_agent }}" {% trans "is taken, choose agent?" %}
+                                      <form
+                                          style="display: inline;"
+                                          class="agent-form"
+                                          id="agent-form{{ req.id }}"
+                                          action="{% url "connect_agent_to_join_request" agent_id=project.agent.id join_request_id=req.id %}"
+                                          method="POST" >
+                                          {% csrf_token %}
+                                          {{ agent_form.created_agent }}
+                                          <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Save" %}' />
+                                      </form>
+                                    {% endif %}
                                     <a href="#create-agent{{ req.id }}" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Create OCP Account" %}</a>
                                     <div class="modal hide fade" id="create-agent{{ req.id }}" tabindex="-1" role="dialog" aria-labelledby="agent-label" aria-hidden="true">
                                         <div class="modal-header">
@@ -149,7 +162,7 @@
                                             </form>
                                         </div>
                                     </div>
-                                </div>
+
                                     <form
                                         class="action-form"
                                         id="delete-form{{ req.id }}"

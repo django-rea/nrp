@@ -242,11 +242,15 @@
           {% for proj in join_projects %}
 
             {% if not proj.visibility = "private" %}
-              {% if not request.user.agent.agent in proj.agent.managers %}
+              {% if not request.user.agent.agent in proj.agent.managers and not request.user.agent.agent in proj.agent.members %}
                   <li><b><a href="../agent/{{ proj.agent.id }}">{{ proj.agent.name }}</a></b> <!--({{ proj.visibility }} - {{ proj.joining_style }})-->
                     {% if proj.joining_style = "moderated" %}
-                      {% if not proj in request.user.agent.agent.related_contexts and proj = request.user.agent.agent.joinaproject_request.project %}
-                        - <a href="{% url 'project_feedback' agent_id=proj.agent.id join_request_id=request.user.agent.agent.joinaproject_request_id %}">{% trans "Joining Process Feedback" %}</a>
+                      {% if not proj in request.user.agent.agent.related_contexts and proj in request.user.agent.agent.joinaproject_requests_projects %}
+                        {% for req in request.user.agent.agent.joinaproject_requests %}
+                          {% if req.project == proj %}
+                        - <a href="{% url 'project_feedback' agent_id=proj.agent.id join_request_id=req.id %}">{% trans "Joining Process Feedback" %}</a>
+                          {% endif %}
+                        {% endfor %}
                       {% endif %}
                     {% endif %}
                     {% if proj.agent.description %}
@@ -267,7 +271,7 @@
 
 {% block extra_script %}
 	<script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
-	<script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<!-- <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script> -->
 {% endblock %}
 
 
@@ -299,7 +303,7 @@
 
         var nickArray = html_unescape("{{ nicks }}").split("~");
 
-        jQuery.validator.addMethod("unique", function(value, element, param) {
+        /*jQuery.validator.addMethod("unique", function(value, element, param) {
             return this.optional(element) || $.inArray(value, param) < 0; // <-- Check if the value is not in the array.
         }, "ID is not unique.");
 
@@ -316,7 +320,7 @@
                 $(label).closest('.control-group').addClass('error');
             }
 
-        });
+        });*/
 
         $(".list").hide();
 

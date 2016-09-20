@@ -305,14 +305,14 @@ class AgentTypeManager(models.Manager):
 
     def non_context_agent_types(self):
         return AgentType.objects.filter(is_context=False)
-        
+
     def individual_type(self):
         at = AgentType.objects.filter(party_type="individual")
         if at:
             return at[0]
         else:
             return None
-        
+
 
 class AgentType(models.Model):
     name = models.CharField(_('name'), max_length=128)
@@ -525,24 +525,35 @@ class EconomicAgent(models.Model):
         else:
             return None
 
-    def joinaproject_request(self):
+    """def joinaproject_request(self): # TODO deprecate this function around (only first request!)
         reqs = self.project_join_requests.all()
         if reqs:
             return reqs[0]
         else:
             return None
 
-    def joinaproject_request_id(self):
+    def joinaproject_request_id(self): # TODO deprecate this function around (only first request!)
         reqs = self.project_join_requests.all()
         if reqs:
             return reqs[0].id
         else:
             return None
+    """
 
     def joinaproject_requests(self):
         reqs = self.project_join_requests.all()
         if reqs:
             return reqs
+        else:
+            return None
+
+    def joinaproject_requests_projects(self):
+        reqs = self.project_join_requests.all()
+        projects = []
+        if reqs:
+          for req in reqs:
+            projects.append(req.project)
+          return projects
         else:
             return None
 
@@ -689,10 +700,11 @@ class EconomicAgent(models.Model):
 
     def is_participant(self):
         fcaas = None
-        if not self.is_active_freedom_coop_member() and self.joinaproject_request():
-          req = self.joinaproject_request()
-          if req:
-            fcaas = self.is_associate_of.filter(
+        if not self.is_active_freedom_coop_member() and self.joinaproject_requests():
+          reqs = self.joinaproject_requests()
+          if reqs:
+            for req in reqs:
+              fcaas = self.is_associate_of.filter(
                 association_type__association_behavior="member",
                 has_associate=req.project.agent,
                 state="active")
@@ -703,10 +715,11 @@ class EconomicAgent(models.Model):
 
     def is_participant_candidate(self):
         fcaas = None
-        if not self.is_active_freedom_coop_member() and self.joinaproject_request():
-          req = self.joinaproject_request()
-          if req:
-            fcaas = self.is_associate_of.filter(
+        if not self.is_active_freedom_coop_member() and self.joinaproject_requests():
+          reqs = self.joinaproject_requests()
+          if reqs:
+            for req in reqs:
+              fcaas = self.is_associate_of.filter(
                 association_type__association_behavior="member",
                 has_associate=req.project.agent,
                 state="potential")

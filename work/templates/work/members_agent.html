@@ -118,8 +118,12 @@ legend {
         <div class="subnav">
                {% if user_agent in agent.managers and agent.project.fobi_slug and agent.project.join_requests %}
                   <a class="indent" href="join-requests">{% trans "Join Requests" %}</a>
-               {% elif user_agent.joinaproject_request.project.agent = agent %}
-                  <a class="indent" href="{% url 'project_feedback' agent_id=agent.id join_request_id=user_agent.joinaproject_request_id %}">{% trans "Your Joining Feedback" %}</a>
+               {% elif agent.project in user_agent.joinaproject_requests_projects %}
+                 {% for req in user_agent.joinaproject_requests %}
+                   {% if req.project == agent.project %}
+                     <a class="indent" href="{% url 'project_feedback' agent_id=agent.id join_request_id=req.id %}">{% trans "Your Joining Feedback" %}</a>
+                   {% endif %}
+                 {% endfor %}
                {% endif %}
                <a class="indent" href="{% url "your_projects" %}">{% trans "Your Projects" %}</a>
                <a class="indent" href="{% url "project_work" %}">{% trans "Projects Tasks" %}</a>
@@ -425,15 +429,17 @@ legend {
                                     </a>
                                 {% endif %}
                             {% endwith %}
-                            {% with assoc.is_associate.joinaproject_request_id as id %}
-                                {% if id %}
-                                    {% if assoc.state == "potential" %} ({{ assoc.get_state_display }}) {% endif %}
+                            {% for req in assoc.is_associate.joinaproject_requests %}
+                              {% if req.project.agent == agent %}
+                                {% if req.id %}
+                                    {% if assoc.state == "potential" %} ({{ assoc.get_state_display }} - {{ req.state }}) {% endif %}
                                     &nbsp;
-                                    <a href="{% url 'project_feedback' agent_id=agent.id join_request_id=id %}">
+                                    <a href="{% url 'project_feedback' agent_id=agent.id join_request_id=req.id %}">
                                         <b>{% trans "Feedback" %}</b>
                                     </a>
                                 {% endif %}
-                            {% endwith %}
+                              {% endif %}
+                            {% endfor %}
                           </li>
                         {% elif not assoc.state == "potential" %}
                           <li><a href="../{{ assoc.is_associate.id }}">{{ assoc.is_associate.name }}</a></li>
@@ -526,19 +532,19 @@ legend {
     </div>
   {% endif %}
 
-  {% if agent.project and not user_agent in agent.managers and not agent in user_agent.related_contexts or user_agent.joinaproject_request.project.agent = agent and not user_agent in agent.members %}
+  {% if agent.project and not user_agent in agent.managers and not agent in user_agent.related_contexts or agent.project in user_agent.joinaproject_requests_projects and not user_agent in agent.members %}
     <div id="join-this-project"  class="span5">
       <h3>
         {% trans "Join this project:" %}
       </h3>
       {% if agent.project.joining_style = "moderated" %}
-        {% if user_agent.joinaproject_request.project.agent = agent %}
-          {% if user_agent.joinaproject_request.state == 'declined' %}
-            <p>{% trans "Sorry, you've tried to join this project but your request was <b>declined</b> for any reason. See the thread at" %}:
-              <b><a href="{% url 'project_feedback' agent_id=agent.id join_request_id=user_agent.joinaproject_request_id %}">{% trans "Your Declined Joining Feedback" %}</a></b> </p>
-          {% else %}
-            <p>{% trans "This project has a moderated access workflow, and you've requested access to join in. To keep track of the joining process go to" %}: <b><a href="{% url 'project_feedback' agent_id=agent.id join_request_id=user_agent.joinaproject_request_id %}">{% trans "Your Joining Feedback" %}</a></b></p>
-          {% endif %}
+        {% if user_agent.req %}
+            {% if user_agent.req.state == 'declined' %}
+              <p>{% trans "Sorry, you've tried to join this project but your request was <b>declined</b> for any reason. See the thread at" %}:
+              <b><a href="{% url 'project_feedback' agent_id=agent.id join_request_id=user_agent.req.id %}">{% trans "Your Declined Joining Feedback" %}</a></b> </p>
+            {% else %}
+              <p>{% trans "This project has a moderated access workflow, and you've requested access to join in. To keep track of the joining process go to" %}: <b><a href="{% url 'project_feedback' agent_id=agent.id join_request_id=user_agent.req.id %}">{% trans "Your Joining Feedback" %}</a></b></p>
+            {% endif %}
         {% else %}
           <p>{% trans "This project has a moderated access workflow. Please fill the following form to request access, and then you will have a special feedback page to comunicate with the project coordinators" %}:</p>
           <p> {% if agent.project.fobi_slug %}<b><a href="{% url 'project_joinform' agent_id=agent.id %}" class="btn btn-primary">{% trans "Form to join" %} "{{ agent.name }}"</a></b>{% else %} <em class="alert">{% trans "Sorry, the form is not ready, try tomorrow" %}</em> {% endif %}

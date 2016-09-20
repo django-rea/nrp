@@ -58,6 +58,8 @@ urlpatterns = patterns("",
         name="joinaproject"),
     url(r'^agent/(?P<agent_id>\d+)/project_joinform/$', 'work.views.joinaproject_request_internal',
         name="project_joinform"),
+    url(r'^join-project/(?P<project_id>\d+)/$', 'work.views.join_project',
+        name="join_project"),
 
     url(r'^connect-agent-to-join-request/(?P<agent_id>\d+)/(?P<join_request_id>\d+)/$', 'work.views.connect_agent_to_join_request',
         name="connect_agent_to_join_request"),

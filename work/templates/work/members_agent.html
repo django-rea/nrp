@@ -87,6 +87,9 @@ legend {
     font-weight: bold;
     color: firebrick;
 }
+.action-form {
+    display: inline;
+}
 
 </style>
 
@@ -551,9 +554,17 @@ legend {
           </p>
         {% endif %}
       {% elif agent.project.joining_style = "autojoin" %}
-        <p>
-          {% trans "You can simply join this project with one click" %}: </p><p><a href="" class="btn btn-primary">{% trans "Join" %} "{{ agent.name }}"</a>
-        </p>
+        <div>
+          {% trans "You can simply join this project with one click" %}: 
+            <form
+                class="action-form"
+                id="join-form"
+                action="{% url "join_project" project_id=agent.id %}"
+                method="POST" >
+                {% csrf_token %}
+                <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Join" %}' />
+            </form>
+        </div>
       {% endif %}
     </div>
 

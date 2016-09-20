@@ -387,7 +387,7 @@ legend {
           {% if agent.project and form_entries and fobi_name and user_agent in agent.managers %}
             <div class="span5 requests">
               <h3>
-                {% trans "Pending to Join:" %} <span style="font-weight:normal;">{{ fobi_name }}</span>
+                {% trans "Pending to create user+agent:" %} <!-- <span style="font-weight:normal;">{{ fobi_name }}</span> -->
               </h3>
               <ul>
                 {% for req in form_entries %}

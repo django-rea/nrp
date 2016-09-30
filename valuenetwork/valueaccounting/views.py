@@ -4247,7 +4247,7 @@ def this_week(request):
 @login_required
 def add_todo(request):
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        import pdb; pdb.set_trace()
         patterns = PatternUseCase.objects.filter(use_case__identifier='todo')
         if patterns:
             pattern = patterns[0].pattern

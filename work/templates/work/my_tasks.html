@@ -271,7 +271,7 @@ th, td {
                                     <form class="todoForm" id="todoForm" action="{% url "work_add_todo" %}" method="POST" >
                                         {% csrf_token %}
                                         {{ todo_form|as_bootstrap }}
-                                        <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
+                                        <input type="hidden" name="next" value="{% url "project_work" %}" />
                                     <div class="modal-footer">
                                         <input type="cancel" class="btn cancel" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
                                         <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Add" %}' />

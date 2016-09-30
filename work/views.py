@@ -98,6 +98,7 @@ def my_tasks(request):
     else:
         todo_form = WorkTodoForm(agent=agent, initial=init)
     #work_now = settings.USE_WORK_NOW
+    #import pdb; pdb.set_trace()
     return render_to_response("work/my_tasks.html", {
         "agent": agent,
         "my_work": my_work,
@@ -1556,14 +1557,14 @@ def work_todo_done(request, todo_id):
 def work_add_todo(request):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
+        agent = get_agent(request)
         patterns = PatternUseCase.objects.filter(use_case__identifier='todo')
         if patterns:
             pattern = patterns[0].pattern
-            form = TodoForm(data=request.POST, pattern=pattern)
+            form = WorkTodoForm(agent=agent, pattern=pattern, data=request.POST)
         else:
-            form = TodoForm(request.POST)
+            form = WorkTodoForm(agent=agent, data=request.POST)
         next = request.POST.get("next")
-        agent = get_agent(request)
         et = None
         ets = EventType.objects.filter(
             relationship='todo')
@@ -1635,7 +1636,7 @@ def work_todo_change(request, todo_id):
             todo = None
         if todo:
             prefix = todo.form_prefix()
-            form = TodoForm(data=request.POST, instance=todo, prefix=prefix)
+            form = WorkTodoForm(data=request.POST, instance=todo, prefix=prefix)
             if form.is_valid():
                 todo = form.save()
 

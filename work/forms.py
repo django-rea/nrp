@@ -143,9 +143,11 @@ class WorkTodoForm(forms.ModelForm):
         from_agent_choices = [('', 'Unassigned')] + [(peep.id, peep) for peep in peeps]
 
         self.fields["from_agent"].choices = from_agent_choices
+        #import pdb; pdb.set_trace()
         if pattern:
             self.pattern = pattern
-            self.fields["resource_type"].choices = [(rt.id, rt) for rt in pattern.todo_resource_types()]
+            #self.fields["resource_type"].choices = [(rt.id, rt) for rt in pattern.todo_resource_types()]
+            self.fields["resource_type"].queryset = pattern.todo_resource_types()
 
 
 class ProjectCreateForm(AgentCreateForm):

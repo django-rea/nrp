@@ -752,6 +752,9 @@ def process_logging(request, process_id):
         "help": get_help("process_work"),
     }, context_instance=RequestContext(request))
 
+    
+from functools import partial, wraps
+
 @login_required
 def non_process_logging(request):
     member = get_agent(request)
@@ -766,6 +769,7 @@ def non_process_logging(request):
         extra=8,
         max_num=8,
         )
+
     init = []
     for i in range(0, 8):
         init.append({"is_contribution": True,})
@@ -773,6 +777,10 @@ def non_process_logging(request):
         queryset=EconomicEvent.objects.none(),
         initial = init,
         data=request.POST or None)
+    #import pdb; pdb.set_trace()
+    ctx_qs = member.related_context_queryset()
+    for form in time_formset.forms:
+        form.fields["context_agent"].queryset = ctx_qs
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         keep_going = request.POST.get("keep-going")

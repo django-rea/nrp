@@ -219,36 +219,27 @@ class WorkAgentCreateForm(AgentCreateForm):
         #exclude = ('is_context',)
 
 
-class WorkCasualTimeContributionForm(CasualTimeContributionForm):
-    #resource_type = WorkModelChoiceField(
-    #    queryset=EconomicResourceType.objects.all(),
-    #    empty_label=None,
-    #    widget=forms.Select(attrs={'class': 'chzn-select'}))
+class WorkCasualTimeContributionForm(forms.ModelForm):
+    resource_type = WorkModelChoiceField(
+        queryset=EconomicResourceType.objects.filter(behavior="work"),
+        empty_label=None,
+        widget=forms.Select(attrs={'class': 'chzn-select'}))
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.open_projects(),
         label=_("Context"),
         empty_label=None,
         widget=forms.Select(attrs={'class': 'chzn-select'}))
-    #event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
-    #description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
-    #url = forms.URLField(required=False, widget=forms.TextInput(attrs={'class': 'url',}))
-    #quantity = forms.DecimalField(required=False,
-    #    widget=DecimalDurationWidget,
-    #    help_text="hrs, mins")
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
+    description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
+    url = forms.URLField(required=False, widget=forms.TextInput(attrs={'class': 'url',}))
+    quantity = forms.DecimalField(required=False,
+        widget=DecimalDurationWidget,
+        help_text="hrs, mins")
 
     class Meta:
         model = EconomicEvent
         fields = ('event_date', 'resource_type', 'context_agent', 'quantity', 'is_contribution', 'url', 'description')
-
-    def __init__(self, *args, **kwargs):
-        super(WorkCasualTimeContributionForm, self).__init__(*args, **kwargs)
-        #pattern = None
-        #try:
-        #    pattern = PatternUseCase.objects.get(use_case__identifier='non_prod').pattern
-        #except PatternUseCase.DoesNotExist:
-        #    pass
-        #if pattern:
-        #    self.fields["resource_type"].queryset = pattern.work_resource_types().order_by("name")
+       
 
 # public join form
 class JoinRequestForm(forms.ModelForm):

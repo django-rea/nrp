@@ -946,6 +946,10 @@ class EconomicAgent(models.Model):
         agents = [ag.has_associate for ag in self.is_associate_of.all()]
         agents.extend([ag.is_associate for ag in self.has_associates.all()])
         return [a for a in agents if a.is_context]
+        
+    def related_context_queryset(self):
+        ctx_ids = [ctx.id for ctx in self.related_contexts()]
+        return EconomicAgent.objects.filter(id__in=ctx_ids)
 
     #  bum2
     def managed_projects(self): #returns a list or None

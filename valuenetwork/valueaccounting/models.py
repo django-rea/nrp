@@ -1065,7 +1065,9 @@ class EconomicAgent(models.Model):
 
     def members(self):
         #import pdb; pdb.set_trace()
-        agent_ids = self.has_associates.filter(association_type__association_behavior="member").filter(state="active").values_list('is_associate')
+        agent_ids = self.has_associates.filter(
+            Q(association_type__association_behavior="member") | Q(association_type__association_behavior="manager")            
+            ).filter(state="active").values_list('is_associate')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
 
     def individual_members(self):

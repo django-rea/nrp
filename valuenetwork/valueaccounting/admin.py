@@ -134,6 +134,7 @@ admin.site.register(IncomeEventDistribution, IncomeEventDistributionAdmin)
     
 class AgentAssociationTypeAdmin(admin.ModelAdmin):
     list_display = ('name', 'label', 'inverse_label', 'description', 'association_behavior')
+    list_filter = ['association_behavior',]
 
 admin.site.register(AgentAssociationType, AgentAssociationTypeAdmin)
 

@@ -14,6 +14,7 @@ from django.core import serializers
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import MultipleObjectsReturned
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core import validators
 from django.forms.models import formset_factory, modelformset_factory, inlineformset_factory, BaseModelFormSet
 from django.forms import ValidationError
 import json as simplejson
@@ -131,7 +132,7 @@ def create_user(request, agent_id):
             au.save()
             agent.request_faircoin_address()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/agent', agent.id))            
+        % ('accounting/agent', agent.id))
                                                                                     
 @login_required
 def create_user_and_agent(request):

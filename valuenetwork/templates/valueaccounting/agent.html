@@ -521,7 +521,9 @@ legend {
         $( "#userForm" ).validate({
             rules: {
                 username: {
-                    required: true
+                    required: true,
+                    maxlength: 32,
+                    remote: { url:"/work/validate-username/", async:false }
                 },
                 password1: {
                     required: true

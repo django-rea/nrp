@@ -2799,7 +2799,10 @@ def validate_username(request):
                                         _('Enter a valid username. '
                                             'This value may contain only letters, numbers '
                                             'and @/./+/-/_ characters.'), 'invalid')
-            error = val(username)
+            try:
+                error = val(username)
+            except ValidationError:
+                error = "Error: May only contain letters, numbers, and @/./+/-/_ characters."
     if error:
         answer = error
     response = simplejson.dumps(answer, ensure_ascii=False)

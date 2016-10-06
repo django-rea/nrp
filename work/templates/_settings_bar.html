@@ -18,7 +18,7 @@
                     <li class="divider"></li>
                 {% endif %}
 
-		{% if request.user.agent.agent.faircoin_resource %}
+                {% if request.user.agent.agent.faircoin_resource %}
                     <li id="my-wallet" >
                       <a href="{% url "manage_faircoin_account" resource_id=request.user.agent.agent.faircoin_resource.id %}"
                       title="{% trans 'Your personal faircoin account in OCP' %}"
@@ -32,8 +32,14 @@
                       title="{% trans 'Your profile information and skills' %}"
                       ><i class="icon-user"></i> {% trans 'Profile' %}</a>
                 </li>
+                
+                <li id="new-features">
+                    <a href="{% url 'new_features' %}"
+                      title="{% trans 'New OCP Features' %}"
+                      ><i class="icon-star"></i> {% trans 'New Features' %}</a>
+                </li>
 
-		<li><a href="{% url "work_account_settings" %}"><i class="icon-cog"></i> {% trans "Settings" %}</a></li>
+                <li><a href="{% url "work_account_settings" %}"><i class="icon-cog"></i> {% trans "Settings" %}</a></li>
 
                 {% with request.user.agent.agent.membership_request.id as id %}
                    {% if id %}

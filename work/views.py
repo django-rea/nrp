@@ -58,6 +58,14 @@ def my_dashboard(request):
     }, context_instance=RequestContext(request))
 
 
+def new_features(request):
+    new_features = NewFeature.objects.all()
+    
+    return render_to_response("work/new_features.html", {
+        "new_features": new_features,
+        "photo_size": (256, 256),
+    }, context_instance=RequestContext(request))
+    
 @login_required
 def my_tasks(request):
     #import pdb; pdb.set_trace()

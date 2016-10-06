@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 
 from django.utils.translation import ugettext_lazy as _
 
+from easy_thumbnails.fields import ThumbnailerImageField
+
 from valuenetwork.valueaccounting.models import EconomicAgent, AgentType, EconomicResourceType
 #from fobi.models import FormEntry
 
@@ -224,3 +226,19 @@ class JoinRequest(models.Model):
             init["agent_type"] = agent_type
         return ProjectAgentCreateForm(initial=init, prefix=self.form_prefix())
 
+
+class NewFeature(models.Model):
+    name = models.CharField(_('name'), max_length=128)
+    deployment_date = models.DateField(_("deployment date"),)
+    description = models.TextField(_('Description'),)
+    permissions = models.TextField(_('permissions'), blank=True, null=True,)
+    url = models.CharField(_('url'), max_length=255, blank=True,)
+    screenshot = ThumbnailerImageField(_("screenshot"),
+        upload_to='photos', blank=True, null=True,)
+    
+    class Meta:
+        ordering = ('-deployment_date',)
+    
+    def __unicode__(self):
+        return self.name
+    

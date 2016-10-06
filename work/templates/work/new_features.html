@@ -1,0 +1,73 @@
+{% extends "work_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+{% load thumbnail %}
+
+{% block head_title %}{% trans "New OCP Features" %}{% endblock %}
+
+{% block extra_head %}
+
+<!--<link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" /> -->
+
+<style>
+
+
+
+</style>
+
+{% endblock %}
+
+{% block body_class %}new_features{% endblock %}
+
+{% block body_base %}
+<body>
+<div class="container">
+        {% include "_messages.html" %}
+        <h2>
+            {% trans "New OCP Features" %}
+        </h2>
+        
+        <table class="table table-hover" >
+            <thead>
+                <th>{% trans "Name" %}</th>
+                <th>{% trans "Deployment date" %}</th>
+                <th>{% trans "Description" %}</th>
+                <th>{% trans "Permissions" %}</th>
+                <th>{% trans "URL" %}</th>
+                <th>{% trans "Screenshot" %}</th>
+            </thead>
+            <tbody>
+                {% for feature in new_features %}
+                    <tr class="{% cycle 'odd' 'even' %}">
+                        <td>
+                            {{ feature.name }}
+                        </td>
+                        <td> {{ feature.deployment_date }} </td>
+                        <td> {{ feature.description }} </td>
+                        <td> {{ feature.permissions }} </td>
+                        <td>
+                            {% if feature.url %}
+                                <a href="{{ feature.url }}" target="_blank" >{% trans "Open" %}</a>
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if feature.screenshot %}
+                                <img src="{% thumbnail feature.screenshot photo_size %}" />
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            <tbody>
+        </table>
+        
+
+</div>
+</body>
+
+{% endblock %}

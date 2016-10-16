@@ -2906,6 +2906,34 @@ def project_feedback(request, agent_id, join_request_id):
         "agent": agent,
         "fobi_headers": fobi_headers,
     }, context_instance=RequestContext(request))
+    
+@login_required
+def invoice_number(request):
+    agent = get_agent(request)
+    invoice_numbers = InvoiceNumber.objects.filter(
+        created_by=request.user)
+    form = InvoiceNumberForm(agent=agent, data=request.POST or None)
+    if request.method == "POST":
+        if form.is_valid():
+            data = form.cleaned_data
+            member = data["member"]
+            nbr = form.save(commit=False)
+            idate = datetime.date.today()
+            nbr.invoice_date = idate
+            nbr.created_date = idate
+            nbr.created_by = request.user
+            nbr.save()
+        
+        return HttpResponseRedirect('/%s/'
+            % ('work/invoice-number',))
+
+    
+    return render_to_response("work/invoice_number.html", {
+        "help": get_help("invoice_number"),
+        "agent": agent,
+        "form": form,
+        "invoice_numbers": invoice_numbers,
+    }, context_instance=RequestContext(request))
 
 '''
 @login_required

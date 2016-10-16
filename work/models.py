@@ -249,6 +249,7 @@ class InvoiceNumber(models.Model):
     year = models.IntegerField(_("year"),)
     quarter = models.IntegerField(_("quarter"),)
     sequence = models.IntegerField(_("sequence"),)
+    description = models.TextField(_('Description'), blank=True,null=True)
     member = models.ForeignKey(EconomicAgent, related_name="invoice_numbers",
         verbose_name=_('member'),)
     exchange = models.ForeignKey(Exchange,
@@ -259,7 +260,7 @@ class InvoiceNumber(models.Model):
     created_date = models.DateField(auto_now_add=True, editable=False)
         
     class Meta:
-        ordering = ('-invoice_date',)
+        ordering = ('-invoice_date', "-sequence",)
     
     def __unicode__(self):
         return self.invoice_number

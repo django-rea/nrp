@@ -303,8 +303,18 @@ class JoinRequestInternalForm(forms.ModelForm):
 
 
 
-class JoinAgentSelectionForm(forms.Form):
-    created_agent = AgentModelChoiceField(
-        queryset=EconomicAgent.objects.without_join_request(),
-        required=False)
+class InvoiceNumberForm(forms.ModelForm):
+    member = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.none(),
+        label=_("for Freedom Coop Member:"),
+        empty_label=None,
+        )
 
+    class Meta:
+        model = InvoiceNumber
+        fields = ('member', 'description', )
+        
+    def __init__(self, agent, *args, **kwargs):
+        super(InvoiceNumberForm, self).__init__(*args, **kwargs)
+        #import pdb; pdb.set_trace()
+        self.fields["member"].queryset = agent.invoicing_candidates()

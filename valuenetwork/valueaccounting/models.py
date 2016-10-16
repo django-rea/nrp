@@ -950,6 +950,13 @@ class EconomicAgent(models.Model):
     def related_context_queryset(self):
         ctx_ids = [ctx.id for ctx in self.related_contexts()]
         return EconomicAgent.objects.filter(id__in=ctx_ids)
+        
+    def invoicing_candidates(self):
+        ctx = self.related_contexts()
+        ids = [c.id for c in ctx if c.is_active_freedom_coop_member()]
+        if self.is_active_freedom_coop_member():
+            ids.insert(0, self.id)
+        return EconomicAgent.objects.filter(id__in=ids)
 
     #  bum2
     def managed_projects(self): #returns a list or None

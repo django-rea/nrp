@@ -5,7 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from easy_thumbnails.fields import ThumbnailerImageField
 
-from valuenetwork.valueaccounting.models import EconomicAgent, AgentType, EconomicResourceType
+from valuenetwork.valueaccounting.models import *
 #from fobi.models import FormEntry
 
 MEMBERSHIP_TYPE_CHOICES = (
@@ -228,7 +228,7 @@ class JoinRequest(models.Model):
 
 
 class NewFeature(models.Model):
-    name = models.CharField(_('name'), max_length=128)
+    name = models.CharField(_('name'), max_length=24)
     deployment_date = models.DateField(_("deployment date"),)
     description = models.TextField(_('Description'),)
     permissions = models.TextField(_('permissions'), blank=True, null=True,)
@@ -241,4 +241,48 @@ class NewFeature(models.Model):
     
     def __unicode__(self):
         return self.name
+        
+
+class InvoiceNumber(models.Model):
+    invoice_number = models.CharField(_('invoice number'), max_length=128)
+    invoice_date = models.DateField(_("invoice date"),)
+    year = models.IntegerField(_("year"),)
+    quarter = models.IntegerField(_("quarter"),)
+    sequence = models.IntegerField(_("sequence"),)
+    member = models.ForeignKey(EconomicAgent, related_name="invoice_numbers",
+        verbose_name=_('member'),)
+    exchange = models.ForeignKey(Exchange,
+        blank=True, null=True,
+        verbose_name=_('exchange'), related_name='invoice_numbers')
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='invoice_numbers_created', editable=False)
+    created_date = models.DateField(auto_now_add=True, editable=False)
+        
+    class Meta:
+        ordering = ('-invoice_date',)
+    
+    def __unicode__(self):
+        return self.invoice_number
+        
+    def save(self, *args, **kwargs):
+        month = self.invoice_date.month
+        year = self.invoice_date.year
+        self.year = year
+        quarter = (month-1)//3 + 1
+        self.quarter = quarter
+        prevs = InvoiceNumber.objects.filter(
+            year=year,
+            quarter=quarter).order_by("-sequence")
+        if prevs:
+            sequence = prevs[0].sequence + 1
+        else:
+            sequence = 1
+        self.sequence = sequence
+        self.invoice_number = "/".join([
+            unicode(year),
+            unicode(quarter),
+            unicode(sequence),
+            unicode(self.member.id),
+            ])
+        super(InvoiceNumber, self).save(*args, **kwargs)
     

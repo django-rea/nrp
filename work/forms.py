@@ -302,6 +302,11 @@ class JoinRequestInternalForm(forms.ModelForm):
             self.cleaned_data[name] = bleach.clean(value)
 
 
+class JoinAgentSelectionForm(forms.Form):
+    created_agent = AgentModelChoiceField(
+        queryset=EconomicAgent.objects.without_join_request(),
+        required=False)
+
 
 class InvoiceNumberForm(forms.ModelForm):
     member = forms.ModelChoiceField(

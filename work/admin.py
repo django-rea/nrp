@@ -30,3 +30,9 @@ class NewFeatureAdmin(admin.ModelAdmin):
     list_display = ('name', 'deployment_date', 'description', 'url',)
 
 admin.site.register(NewFeature, NewFeatureAdmin)
+
+#this won't work unless I can set the created_by field from django admin
+#class InvoiceNumberAdmin(admin.ModelAdmin):
+#    list_display = ('invoice_number', 'member', 'description', 'created_by',)
+
+#admin.site.register(InvoiceNumber, InvoiceNumberAdmin)

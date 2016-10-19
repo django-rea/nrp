@@ -266,19 +266,28 @@ class InvoiceNumber(models.Model):
         return self.invoice_number
         
     def save(self, *args, **kwargs):
-        month = self.invoice_date.month
-        year = self.invoice_date.year
-        self.year = year
-        quarter = (month-1)//3 + 1
-        self.quarter = quarter
-        prevs = InvoiceNumber.objects.filter(
-            year=year,
-            quarter=quarter).order_by("-sequence")
-        if prevs:
-            sequence = prevs[0].sequence + 1
+        if self.year:
+            year = self.year
         else:
-            sequence = 1
-        self.sequence = sequence
+            year = self.invoice_date.year
+            self.year = year
+        if self.quarter:
+            quarter = self.quarter
+        else:
+            month = self.invoice_date.month
+            quarter = (month-1)//3 + 1
+            self.quarter = quarter
+        if self.sequence:
+            sequence = self.sequence
+        else:
+            prevs = InvoiceNumber.objects.filter(
+                year=year,
+                quarter=quarter).order_by("-sequence")
+            if prevs:
+                sequence = prevs[0].sequence + 1
+            else:
+                sequence = 1
+            self.sequence = sequence
         self.invoice_number = "/".join([
             unicode(year),
             unicode(quarter),

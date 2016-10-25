@@ -1,0 +1,75 @@
+{% extends "work_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Invoice Number" %}{% endblock %}
+
+{% block extra_head %}
+
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+
+<style>
+
+.field {
+    font-weight: bold;
+}
+
+</style>
+
+{% endblock %}
+
+{% block body_class %}join_requests{% endblock %}
+
+{% block body_base %}
+<div class="container">
+        {% include "_messages.html" %}
+     <div>
+
+        <legend>
+            {% trans "Invoice Number" %}
+        </legend>
+    </div>
+    <div>
+        <h3>{% trans "Create a new Invoice Number" %}</h3>
+        <form id="invoiceNumberForm" action="." method="POST">
+            {% csrf_token %}
+            {{ form|as_bootstrap }}
+            <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Create" %}' />
+        </form>
+        
+        {% if invoice_numbers %}
+            <h3>{% trans "Your previous Invoice Numbers" %}</h3>
+            <table class="table table-hover table-condensed" >
+                <thead>
+                    <th>{% trans "Invoice Number" %}</th>
+                    <th>{% trans "For Member" %}</th>
+                    <th>{% trans "Description" %}</th>
+                    <th>{% trans "Date Created" %}</th>
+                </thead>
+                <tbody>
+                {% for nbr in invoice_numbers %}
+                    <tr>
+                        <td> {{ nbr.invoice_number }} </td>
+                        <td>{{ nbr.member }} </td>
+                        <td>{{ nbr.description }} </td>
+                        <td>{{ nbr.created_date }} </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_script %}
+    <script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+{% endblock %}
+
+{% block extra_body %}
+    {{ block.super }}
+    <script type="text/javascript">
+    </script>
+{% endblock %}

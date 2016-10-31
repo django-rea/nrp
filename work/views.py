@@ -1651,8 +1651,9 @@ def work_todo_change(request, todo_id):
         except Commitment.DoesNotExist:
             todo = None
         if todo:
+            agent = get_agent(request)
             prefix = todo.form_prefix()
-            form = WorkTodoForm(data=request.POST, instance=todo, prefix=prefix)
+            form = WorkTodoForm(data=request.POST, agent=agent, instance=todo, prefix=prefix)
             if form.is_valid():
                 todo = form.save()
 

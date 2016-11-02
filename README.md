@@ -1,6 +1,7 @@
 
-PAY ATTENTION!!!!! This version of valuenetwork is a fork of the original one.
-This fork done by Valentina Nardecchia for use to Freedom Coop.
+PAY ATTENTION!!!!! This version of valuenetwork is a fork of the FreedomCoop version, itself a fork of the original NRP software by Mikorizal in collaboration with Sensorica.
+
+This fork will enable a full internal exchange network with mutual credit system, in addition to the existing comons-based collaborative production and value equation system.
 
 valuenetwork
 =====================

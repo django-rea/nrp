@@ -1,7 +1,7 @@
 
 PAY ATTENTION!!!!! This version of valuenetwork is a fork of the FreedomCoop version, itself a fork of the original NRP software by Mikorizal in collaboration with Sensorica.
 
-This fork will enable a full internal exchange network with mutual credit system, in addition to the existing comons-based collaborative production and value equation system.
+This fork is to develop DEEP, the Democratic Emancipatory Economy Platform, that will enable a full internal exchange network with mutual credit system, in addition to the existing comons-based collaborative production and value equation system.
 
 valuenetwork
 =====================

@@ -1,9 +1,8 @@
-
-PAY ATTENTION!!!!! This version of valuenetwork is a fork of the FreedomCoop version, itself a fork of the original NRP software by Mikorizal in collaboration with Sensorica.
+NOTICE!! This version of valuenetwork is a fork of the FreedomCoop version, itself a fork of the original NRP software by Mikorizal in collaboration with Sensorica.
 
 This fork is to develop DEEP, the Democratic Emancipatory Economy Platform, that will enable a full internal exchange network with mutual credit system, in addition to the existing comons-based collaborative production and value equation system.
 
-valuenetwork
+About valuenetwork
 =====================
 
 A prototype of Value Network Accounting, being developed in collaboration with http://www.sensorica.co/ , a pioneering value network.
@@ -25,7 +24,7 @@ The valueaccounting app could be split out and used in other Django projects.
 Roadmap moved to https://github.com/valnet/valuenetwork/wiki/Roadmap
 
 
-DEEP
+About DEEP
 =====================
 Democratic Emancipatory Economic Platform
 
@@ -90,3 +89,5 @@ Since people do not depend on employers anymore to receive a salary
  they will have more powers in negotiating retribution. In a time bank, 
 this is even easier since everyone earns 60 minutes for one hour work 
 (apart from special cases).
+
+[Go to the wiki for mor about DEEP](https://github.com/gopacifia/DEEP/wiki/Home)

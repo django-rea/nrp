@@ -49,42 +49,40 @@ workon vn
 cdvirtualenv
 
 6. clone the valuenetwork repo inside the vn virtualenv.
-git clone https://github.com/FreedomCoop/valuenetwork.git
+git clone https://github.com/gopacifia/DEEP.git
  
-7. cd valuenetwork
+7. cd DEEP
 
 8. pip install -r requirements.txt --trusted-host dist.pinaxproject.com
 
-9. pip install --no-deps easy_thumbnails
-
-10. create the sqlite database
+9. create the sqlite database
 ./manage.py migrate
 
-11. create a superuser for yourself so you can login:
+10. create a superuser for yourself so you can login:
 ./manage.py createsuperuser
 
 ***Note: these fixtures are broken now. Will be fixed,
 but in the meantime, get a test database from somebody.***
-12. do this to install some starter facets and patterns:
+11. do this to install some starter facets and patterns:
 ./manage.py loaddata ./fixtures/starters.json
 And this to load some starter help:
 ./manage.py loaddata ./fixtures/help.json
 
-13. run the tests
+12. run the tests
 ./manage.py test valuenetwork.valueaccounting.tests
 
-14. crank up the django server
+13. crank up the django server
 ./manage.py runserver
 
-15. point browser at http://127.0.0.1:8000/
+14. point browser at http://127.0.0.1:8000/
 
-16. You may also want a local_settings.py file
+15. You may also want a local_settings.py file
 in the same directory as settings.py
 You can look at local_settings_example.py for ideas,
 but don't use it as-is. (It has two database sections.
 You should keep only the sqlite one.)
 
-17. When you log in for the first time, you must 
+16. When you log in for the first time, you must 
 create an EconomicAgent for yourself. Go into Admin,
 which is on the pulldown menu by your username on the upper right.
 Click on Economic agents, and then click on "add economic agent".
@@ -95,7 +93,7 @@ You will be the only user who will need to do this.
 All other Agents and Users can be created from 
 the Organization page.
 
-18.  To be able to run scripts in ./manage.py shell_plus:
+17.  To be able to run scripts in ./manage.py shell_plus:
 
 pip install ipython
 

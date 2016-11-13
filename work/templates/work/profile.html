@@ -94,7 +94,7 @@ label {
                    {% endif %}
             {% endwith %}
 
-            {% if request.user.agent.agent.faircoin_resource %}
+            {% if agent.faircoin_resource %}
               <a class="indent" href="{% url "manage_faircoin_account" resource_id=request.user.agent.agent.faircoin_resource.id %}"
                           title="{% trans 'Your personal faircoin wallet in OCP' %}"
                           >{% trans 'Faircoin Account' %}</a>

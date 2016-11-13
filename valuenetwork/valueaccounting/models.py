@@ -9,6 +9,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
+from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.template.defaultfilters import slugify
@@ -27,6 +28,7 @@ http://global.ihs.com/doc_detail.cfm?item_s_key=00495115&item_key_date=920616
 
 """
 
+use_faircoins = settings.USE_FAIRCOINS
 FAIRCOIN_DIVISOR = Decimal("1000000.00")
 
 def unique_slugify(instance, value, slug_field_name='slug', queryset=None,
@@ -440,10 +442,13 @@ class AgentManager(models.Manager):
         return EconomicAgent.objects.all()
 
     def freedom_coop(self):
+        if not use_faircoins:
+            return None
         try:
             fc = EconomicAgent.objects.get(name="Freedom Coop")
         except EconomicAgent.DoesNotExist:
-            raise ValidationError("Freedom Coop does not exist by that name")
+            return None
+            #raise ValidationError("Freedom Coop does not exist by that name")
         return fc
 
     def open_projects(self):
@@ -574,7 +579,10 @@ class EconomicAgent(models.Model):
             print "created fake faircoin address"
         return address
 
+    
     def create_faircoin_resource(self, address):
+        if not use_faircoins:
+            return None
         role_types = AgentResourceRoleType.objects.filter(is_owner=True)
         owner_role_type = None
         if role_types:
@@ -609,6 +617,8 @@ class EconomicAgent(models.Model):
             return None
 
     def faircoin_address(self):
+        if not use_faircoins:
+            return None
         fcr = self.faircoin_resource()
         if fcr:
             return fcr.digital_currency_address
@@ -616,6 +626,8 @@ class EconomicAgent(models.Model):
             return None
 
     def faircoin_resource(self):
+        if not use_faircoins:
+            return None
         candidates = self.agent_resource_roles.filter(
             role__is_owner=True,
             resource__resource_type__behavior="dig_acct",
@@ -688,6 +700,8 @@ class EconomicAgent(models.Model):
         return False
 
     def is_active_freedom_coop_member(self):
+        if not use_faircoins:
+            return False
         fc = EconomicAgent.objects.freedom_coop()
         fcaas = self.is_associate_of.filter(
             association_type__association_behavior="member",
@@ -4260,13 +4274,18 @@ class EconomicResource(models.Model):
                 resource_string,
                 id_str,
             ])
+    
     def is_digital_currency_resource(self):
+        if not use_faircoins:
+            return False
         if self.digital_currency_address:
             return True
         else:
             return False
 
     def address_is_activated(self):
+        if not use_faircoins:
+            return False
         address = self.digital_currency_address
         if address:
             if address != "address_requested":
@@ -4275,6 +4294,8 @@ class EconomicResource(models.Model):
 
     def digital_currency_history(self):
         history = []
+        if not use_faircoins:
+            return history
         address = self.digital_currency_address
         if address:
             from valuenetwork.valueaccounting.faircoin_utils import get_address_history
@@ -4283,6 +4304,8 @@ class EconomicResource(models.Model):
 
     def digital_currency_balance(self):
         bal = 0
+        if not use_faircoins:
+            return bal
         address = self.digital_currency_address
         if address:
             try:
@@ -4297,6 +4320,8 @@ class EconomicResource(models.Model):
 
     def spending_limit(self):
         limit = 0
+        if not use_faircoins:
+            return limit
         address = self.digital_currency_address
         if address:
             from valuenetwork.valueaccounting.faircoin_utils import get_address_balance, network_fee
@@ -10414,6 +10439,8 @@ class EconomicEvent(models.Model):
 
     def transaction_state(self):
         #import pdb; pdb.set_trace()
+        if not use_faircoins:
+            return None
         state = self.digital_currency_tx_state
         new_state = None
         if state == "pending" or state == "broadcast":

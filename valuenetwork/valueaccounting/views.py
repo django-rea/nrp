@@ -33,6 +33,8 @@ if "notification" in settings.INSTALLED_APPS:
     from notification import models as notification
 else:
     notification = None
+    
+use_faircoins = settings.USE_FAIRCOINS
 
 def get_agent(request):
     agent = None
@@ -130,7 +132,8 @@ def create_user(request, agent_id):
                 agent = agent,
                 user = user)
             au.save()
-            agent.request_faircoin_address()
+            if use_faircoins:
+                agent.request_faircoin_address()
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/agent', agent.id))
                                                                                     
@@ -548,6 +551,10 @@ def agent(request, agent_id):
                 member_hours_roles.append(row)
             member_hours_roles.sort(lambda x, y: cmp(x[0], y[0]))
             roles_height = len(member_hours_roles) * 20
+    needs_faircoin_address = False
+    if use_faircoins:
+        if not agent.faircoin_address():
+            needs_faircoin_address = True
           
     return render_to_response("valueaccounting/agent.html", {
         "agent": agent,
@@ -566,6 +573,7 @@ def agent(request, agent_id):
         "member_hours_roles": member_hours_roles,
         "individual_stats": individual_stats,
         "roles_height": roles_height,
+        "needs_faircoin_address": needs_faircoin_address,
         "help": get_help("agent"),
     }, context_instance=RequestContext(request))
     
@@ -1430,121 +1438,6 @@ def send_faircoins(request, resource_id):
         return HttpResponseRedirect('/%s/%s/'
                 % ('accounting/resource', resource.id))
     
-@login_required
-def send_faircoins_old(request, resource_id):
-    if request.method == "POST":
-        resource = get_object_or_404(EconomicResource, id=resource_id)
-        agent = get_agent(request)
-        send_coins_form = SendFairCoinsForm(data=request.POST)
-        if send_coins_form.is_valid():
-            data = send_coins_form.cleaned_data
-            address_end = data["to_address"]
-            quantity = data["quantity"]
-            address_origin = resource.digital_currency_address
-            if address_origin and address_end:
-                from valuenetwork.valueaccounting.faircoin_utils import send_faircoins, get_confirmations, network_fee
-                tx, broadcasted = send_faircoins(address_origin, address_end, quantity)
-                if tx:
-                    tx_hash = tx.hash()
-                    #wishful thinking here
-                    confirmations = get_confirmations(tx_hash)
-                    more = get_confirmations(tx)
-                    from_agent = resource.owner()
-                    to_resources = EconomicResource.objects.filter(digital_currency_address=address_end)
-                    to_agent = None
-                    if to_resources:
-                        to_resource = to_resources[0] #shd be only one
-                        to_agent = to_resource.owner()
-                    et_give = EventType.objects.get(name="Give")
-                    if to_agent:
-                        tt = faircoin_internal_transfer_type()
-                        xt = tt.exchange_type
-                        date = datetime.date.today()
-                        exchange = Exchange(
-                            exchange_type=xt,
-                            use_case=xt.use_case,
-                            name="Transfer Faircoins",
-                            start_date=date,
-                            )
-                        exchange.save()
-                        transfer = Transfer(
-                            transfer_type=tt,
-                            exchange=exchange,
-                            transfer_date=date,
-                            name="Transfer Faircoins",
-                            )
-                        transfer.save()
-                    else:
-                        tt = faircoin_outgoing_transfer_type()
-                        xt = tt.exchange_type
-                        date = datetime.date.today()
-                        exchange = Exchange(
-                            exchange_type=xt,
-                            use_case=xt.use_case,
-                            name="Send Faircoins",
-                            start_date=date,
-                            )
-                        exchange.save()
-                        transfer = Transfer(
-                            transfer_type=tt,
-                            exchange=exchange,
-                            transfer_date=date,
-                            name="Send Faircoins",
-                            )
-                        transfer.save()
-                     
-                    # network_fee is subtracted from quantity
-                    # so quantity is correct for the giving event 
-                    # but receiving event will get quantity - network_fee
-                    state = "pending"
-                    if broadcasted:
-                        state = "broadcast"
-                    event = EconomicEvent(
-                        event_type = et_give,
-                        event_date = date,
-                        from_agent=from_agent,
-                        to_agent=to_agent,
-                        resource_type=resource.resource_type,
-                        resource=resource,
-                        digital_currency_tx_hash = tx_hash,
-                        digital_currency_tx_state = state,
-                        quantity = quantity, 
-                        transfer=transfer,
-                        event_reference=address_end,
-                        )
-                    event.save()
-                    if to_agent:
-                        outputs = tx.get_outputs()
-                        value = 0
-                        for address, val in outputs:
-                            if address == address_end:
-                                value = val
-                        if value:
-                            quantity = Decimal(value / 1.e6)
-                        else:
-                            quantity = quantity - Decimal(float(network_fee) / 1.e6)
-                        et_receive = EventType.objects.get(name="Receive")
-                        event = EconomicEvent(
-                            event_type = et_receive,
-                            event_date = date,
-                            from_agent=from_agent,
-                            to_agent=to_agent,
-                            resource_type=to_resource.resource_type,
-                            resource=to_resource,
-                            digital_currency_tx_hash = tx_hash,
-                            digital_currency_tx_state = state,
-                            quantity = quantity, 
-                            transfer=transfer,
-                            )
-                        event.save()
-                        print "receive event:", event
-                        
-                    return HttpResponseRedirect('/%s/%s/'
-                        % ('accounting/event-history', resource.id))
-
-            return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/resource', resource.id))
-                    
 def validate_faircoin_address(request):
     #import pdb; pdb.set_trace()
     from valuenetwork.valueaccounting.faircoin_utils import is_valid
@@ -8384,6 +8277,7 @@ def resource(request, resource_id, extra_context=None):
                 event.save()
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/resource', resource.id))
+    
     if resource.is_digital_currency_resource():
         send_coins_form = None
         is_owner=False

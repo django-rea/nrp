@@ -272,6 +272,7 @@ CORS_URLS_REGEX = r'^/api/.*$'
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 
+USE_FAIRCOINS = False
 BROADCAST_FAIRCOINS_LOCK_WAIT_TIMEOUT = None
 #id of the group to send payments to
 SEND_MEMBERSHIP_PAYMENT_TO = "FC MembershipRequest"

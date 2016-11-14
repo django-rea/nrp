@@ -1,6 +1,7 @@
 import datetime
 from decimal import *
 
+from django.conf import settings
 from django.test import TestCase
 from django.test import Client
 
@@ -351,83 +352,84 @@ class ValueEquationTest(TestCase):
                 self.assertEqual(at.quantity, Decimal("20.0"))
                 
         #import pdb; pdb.set_trace()
-        
+           
     def test_faircoin_distribution(self):
-        ve = self.recipe.value_equation
-        context_agent = ve.context_agent
-        testing = False
-        if context_agent.name == "test context agent":
-            testing = True
-            print "### test_faircoin_distribution will create fake faircoin addresses and coins"
-        order = self.order
-        orders = [order,]
-        buckets = ve.buckets.all()
-        #amount_to_distribute = Decimal("1000")
-        amount_to_distribute = Decimal("195")
-        serialized_filter = serialize_filter(orders)
-        serialized_filters = {}
-        for bucket in buckets:
-            serialized_filters[bucket.id] = serialized_filter
-        dist_date = datetime.date.today()
-        pattern = self.pattern
-        fc_unit = Unit(
-            unit_type="value",
-            abbrev="FairCoin",
-            name="FairCoin",
+        if settings.USE_FAIRCOINS:
+            ve = self.recipe.value_equation
+            context_agent = ve.context_agent
+            testing = False
+            if context_agent.name == "test context agent":
+                testing = True
+                print "### test_faircoin_distribution will create fake faircoin addresses and coins"
+            order = self.order
+            orders = [order,]
+            buckets = ve.buckets.all()
+            #amount_to_distribute = Decimal("1000")
+            amount_to_distribute = Decimal("195")
+            serialized_filter = serialize_filter(orders)
+            serialized_filters = {}
+            for bucket in buckets:
+                serialized_filters[bucket.id] = serialized_filter
+            dist_date = datetime.date.today()
+            pattern = self.pattern
+            fc_unit = Unit(
+                unit_type="value",
+                abbrev="FairCoin",
+                name="FairCoin",
+                )
+            fc_unit.save()
+            faircoin_rt = EconomicResourceType(
+                name="FairCoin",
+                unit_of_price=fc_unit,
+                price_per_unit=Decimal('1'),
+                behavior='dig_curr',
+                )
+            faircoin_rt.save()
+            faircoin_address_rt = EconomicResourceType(
+                name="FairCoin Address",
+                unit_of_price=fc_unit,
+                price_per_unit=Decimal('1'),
+                behavior='dig_acct',
+                )
+            faircoin_address_rt.save()
+            owner_role = AgentResourceRoleType(
+                name="owner",
+                is_owner=True,
+                )
+            owner_role.save()
+            if testing:
+                address = context_agent.create_fake_faircoin_address()
+            else:
+                address = context_agent.request_faircoin_address()
+            money_resource = context_agent.faircoin_resource()
+            self.assertIsNotNone(money_resource)
+            distribution = Distribution(                
+                name="Distribution for " + context_agent.nick,
+                process_pattern=pattern,
+                distribution_date=dist_date,
+                notes="",
+                context_agent=context_agent,
+                created_by=self.user,
             )
-        fc_unit.save()
-        faircoin_rt = EconomicResourceType(
-            name="FairCoin",
-            unit_of_price=fc_unit,
-            price_per_unit=Decimal('1'),
-            behavior='dig_curr',
-            )
-        faircoin_rt.save()
-        faircoin_address_rt = EconomicResourceType(
-            name="FairCoin Address",
-            unit_of_price=fc_unit,
-            price_per_unit=Decimal('1'),
-            behavior='dig_acct',
-            )
-        faircoin_address_rt.save()
-        owner_role = AgentResourceRoleType(
-            name="owner",
-            is_owner=True,
-            )
-        owner_role.save()
-        if testing:
-            address = context_agent.create_fake_faircoin_address()
-        else:
-            address = context_agent.request_faircoin_address()
-        money_resource = context_agent.faircoin_resource()
-        self.assertIsNotNone(money_resource)
-        distribution = Distribution(                
-            name="Distribution for " + context_agent.nick,
-            process_pattern=pattern,
-            distribution_date=dist_date,
-            notes="",
-            context_agent=context_agent,
-            created_by=self.user,
-        )
-        #import pdb; pdb.set_trace()
-        
-        distribution = ve.run_value_equation_and_save(
-            #events_to_distribute=etd, <-CashReceipts, optional
-            distribution=distribution, 
-            money_resource=money_resource, 
-            amount_to_distribute=amount_to_distribute, 
-            serialized_filters=serialized_filters)
+            #import pdb; pdb.set_trace()
             
-        distribution_events = distribution.distribution_events()
-            
-        for at in distribution_events:
-            if at.to_agent.name == "worker":
-                self.assertEqual(at.quantity, Decimal("75.0"))
-            elif at.to_agent.name == "contributor":
-                self.assertEqual(at.quantity, Decimal("70.0"))
-            elif at.to_agent.name == "vacontributor1":
-                self.assertEqual(at.quantity, Decimal("30.0"))
-            elif at.to_agent.name == "vacontributor2":
-                self.assertEqual(at.quantity, Decimal("20.0"))
+            distribution = ve.run_value_equation_and_save(
+                #events_to_distribute=etd, <-CashReceipts, optional
+                distribution=distribution, 
+                money_resource=money_resource, 
+                amount_to_distribute=amount_to_distribute, 
+                serialized_filters=serialized_filters)
+                
+            distribution_events = distribution.distribution_events()
+                
+            for at in distribution_events:
+                if at.to_agent.name == "worker":
+                    self.assertEqual(at.quantity, Decimal("75.0"))
+                elif at.to_agent.name == "contributor":
+                    self.assertEqual(at.quantity, Decimal("70.0"))
+                elif at.to_agent.name == "vacontributor1":
+                    self.assertEqual(at.quantity, Decimal("30.0"))
+                elif at.to_agent.name == "vacontributor2":
+                    self.assertEqual(at.quantity, Decimal("20.0"))
 
-        #import pdb; pdb.set_trace()
+            #import pdb; pdb.set_trace()

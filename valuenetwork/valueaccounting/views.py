@@ -471,10 +471,10 @@ def agent(request, agent_id):
             return HttpResponseRedirect('/%s/%s/%s/%s/'
                 % ('accounting/exchange', ext.id, 0, agent.id))
     user_form = None
-    #if agent.is_individual():
-    if not agent.username():
-        init = {"username": agent.nick,}
-        user_form = UserCreationForm(initial=init)
+    if agent.is_individual():
+        if not agent.username():
+            init = {"username": agent.nick,}
+            user_form = UserCreationForm(initial=init)
     has_associations = agent.all_has_associates()
     is_associated_with = agent.all_is_associates()           
     

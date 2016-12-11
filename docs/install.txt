@@ -1,4 +1,5 @@
 To install on Ubuntu for development:
+(see end for how to rerun after installation)
 
 You need python 2.7+, but *not* python 3+
 
@@ -97,4 +98,12 @@ the Organization page.
 
 pip install ipython
 
+
+===To rerun after installation===
+
+workon vn
+    (or whatever you called your virtualen in step 5 above)
+cdvirtualenv
+cd DEEP
+./manage.py runserver
 

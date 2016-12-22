@@ -1,0 +1,35 @@
+Using PyCharm with DEEP
+First install Pycharm IDE from JetBrains
+
+create a virtual env within Pycharm
+1. Go to project settings Ctrl + alt + s
+2. Go into project interpreter in the top right there is a settings wheel button. From this wheel create a new virtual env with base interpreter Python 2.7
+
+activate virtual env
+1. navigate to the virtual env within the terminal in PyCharm
+2. then into the scripts or bin folder
+3. run the activate file
+
+clone repo and install modules
+1. clone the valuenetwork repo inside the virtualenv.
+https://github.com/gopacifia/DEEP.git
+2. cd DEEP
+3. pip install -r requirements.txt
+
+This should get the project with all the requirements installed, but make sure the project interpreter is set to the virtual env created
+
+Also the only other problem I came across was Pillow wouldn't install so a couple of requirements weren't able to install either
+To fix run below command in pycharm terminal
+easy_install Pillow
+
+Run Server
+1. Under Tools menu select run Manage.py
+2. This should open a tab in Pycharm where you can type the run commands
+3. run the tests
+test valuenetwork.valueaccounting.tests
+4. crank up the django server
+runserver
+5. point browser at http://127.0.0.1:8000/
+
+
+

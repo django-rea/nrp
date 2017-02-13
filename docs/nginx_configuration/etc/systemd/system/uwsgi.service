@@ -1,0 +1,9 @@
+[Unit]
+Description=uWSGI instance to serve nrp
+
+[Service]
+ExecStartPre=-/usr/bin/bash -c 'mkdir -p /run/uwsgi; chown nginx:nginx /run/uwsgi'
+ExecStart=/usr/bin/bash -c 'cd /var/www/DEEP; source env/bin/activate; uwsgi --ini app.ini'
+
+[Install]
+WantedBy=multi-user.target

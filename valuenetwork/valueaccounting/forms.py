@@ -109,9 +109,12 @@ class AgentCreateForm(forms.ModelForm):
     #     widget=forms.CheckboxInput())
 
     def save(self, commit=True):
+        agent = super(AgentCreateForm, self).save(False)
         agent_type = self.cleaned_data.get('agent_type')
-        self.instance.is_context = agent_type.is_context
-        return super(AgentCreateForm, self).save(commit)
+        agent.is_context = agent_type.is_context
+        if commit:
+            agent.save()
+        return agent
 
     class Meta:
         model = EconomicAgent

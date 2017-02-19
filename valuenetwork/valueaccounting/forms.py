@@ -103,15 +103,20 @@ class AgentCreateForm(forms.ModelForm):
         empty_label=None,
         widget=forms.Select(
         attrs={'class': 'chzn-select'}))
-    is_context = forms.BooleanField(
-        required=False, 
-        label="Is a context agent", 
-        widget=forms.CheckboxInput())
+    # is_context = forms.BooleanField(
+    #     required=False,
+    #     label="Is a context agent",
+    #     widget=forms.CheckboxInput())
+
+    def save(self, commit=True):
+        agent_type = self.cleaned_data.get('agent_type')
+        self.instance.is_context = agent_type.is_context
+        return super(AgentCreateForm, self).save(commit)
 
     class Meta:
         model = EconomicAgent
-        #removed address
-        fields = ('name', 'nick', 'agent_type', 'is_context', 'description', 'url', 'email')
+        #removed address and is_context
+        fields = ('name', 'nick', 'agent_type', 'description', 'url', 'email')
 
 
 #todo: queryset methods cd be cached

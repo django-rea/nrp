@@ -107,6 +107,12 @@ class AgentCreateForm(forms.ModelForm):
     #     required=False,
     #     label="Is a context agent",
     #     widget=forms.CheckboxInput())
+    is_create_user = forms.BooleanField(
+        required=False,
+        label=_("Should we invite this user to the system?"),
+        show_hidden_initial=True
+    )
+    user_email = forms.EmailField(label=_("User's email"))
 
     def save(self, commit=True):
         agent = super(AgentCreateForm, self).save(False)
@@ -120,6 +126,9 @@ class AgentCreateForm(forms.ModelForm):
         model = EconomicAgent
         #removed address and is_context
         fields = ('name', 'nick', 'agent_type', 'description', 'url', 'email')
+
+    class Media:
+        js = ('js/forms/agent_create_form.js',)
 
 
 #todo: queryset methods cd be cached

@@ -131,7 +131,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'easy_thumbnails',
     #'report_builder',
-    'notification',
+    'pinax.notifications',
     'corsheaders',
     #'django_filters',
     'rest_framework',

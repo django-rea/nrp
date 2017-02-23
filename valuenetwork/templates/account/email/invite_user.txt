@@ -1,0 +1,12 @@
+Welcome {{ name }},
+You have been invited by {{ inviting_agent_name }} to be a member of the Democratic and Emancipatory Economic Platform (DEEP).
+
+What to do next?
+
+    1. Click here ( {{ signup_url }} ) to sign up
+    2. Follow the welcome guide to edit your profile, change your password and get to know how the platform works.
+    3. Start offering your products and services, and satisfy your needs thanks to the autonomous currencies available in your area.
+
+{{ inviting_agent_name }} will be your mentor during your familiarization process with the platform so you can ask him/her anything you couldn't answer through our user's documentation guide (link).
+
+Enjoy all the new possibilities that this platform and the communities using it can offer you!

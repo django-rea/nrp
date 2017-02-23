@@ -10,6 +10,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.template.loader import render_to_string
 from django.utils import timezone, translation
+from django.utils.html import escape
 from django.utils.translation import gettext_lazy as _
 
 from django.contrib.auth.models import User, AnonymousUser
@@ -202,7 +203,7 @@ class SignupCode(models.Model):
         current_site = kwargs["site"] if "site" in kwargs else Site.objects.get_current()
         signup_url = u"%s://%s%s?%s" % (
             protocol,
-            unicode(current_site.domain),
+            escape(current_site.domain),
             reverse("account_signup"),
             urllib.urlencode({"code": self.code})
         )
@@ -211,6 +212,7 @@ class SignupCode(models.Model):
             "current_site": current_site,
             "signup_url": signup_url,
         }
+        ctx.update(kwargs)
         subject = render_to_string("account/email/invite_user_subject.txt", ctx)
         message = render_to_string("account/email/invite_user.txt", ctx)
         send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [self.email])

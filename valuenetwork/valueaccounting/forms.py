@@ -173,7 +173,10 @@ class AgentCreateForm(forms.ModelForm):
         user_email = self.cleaned_data['email']
         signup_code = account_models.SignupCode.create(email=user_email, inviter=request.user)
         signup_code.save()
-        signup_code.send()
+        signup_code.send(
+            inviting_agent_name=request.user.first_name + ' ' + request.user.last_name,
+            name=self.cleaned_data['name']
+        )
 
     class Meta:
         model = EconomicAgent

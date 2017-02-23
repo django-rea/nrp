@@ -9,4 +9,3 @@ class ValueAccountingAppConfig(AppConfig):
         super(ValueAccountingAppConfig, self).ready()
 
         import valuenetwork.valueaccounting.signals
-

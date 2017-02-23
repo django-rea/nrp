@@ -11,6 +11,8 @@ from valuenetwork.valueaccounting.models import *
 
 from valuenetwork.valueaccounting.widgets import DurationWidget, DecimalDurationWidget
 
+from account import models as account_models
+
 
 class FacetedModelChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
@@ -117,6 +119,10 @@ class CreateAgentForm(AgentForm, forms.ModelForm):
 
 
 class AgentCreateForm(forms.ModelForm):
+    error_messages = {
+        'user_email_empty': _('The email was empty, we cannot send an invite.')
+    }
+
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'required-field input-xlarge',}))   
     nick = forms.CharField(
         label="ID", 
@@ -143,10 +149,14 @@ class AgentCreateForm(forms.ModelForm):
     #     widget=forms.CheckboxInput())
     is_create_user = forms.BooleanField(
         required=False,
-        label=_("Should we invite this user to the system?"),
-        show_hidden_initial=True
+        label=_("Should we invite this user to the system?")
     )
-    user_email = forms.EmailField(label=_("User's email"))
+
+    def clean(self):
+        cleaned_data = super(AgentCreateForm, self).clean()
+        if cleaned_data['is_create_user'] and not 'email' in cleaned_data:
+            raise forms.ValidationError(self.error_messages['user_email_empty'], code='user_email_empty')
+        return cleaned_data
 
     def save(self, commit=True):
         agent = super(AgentCreateForm, self).save(False)
@@ -155,6 +165,15 @@ class AgentCreateForm(forms.ModelForm):
         if commit:
             agent.save()
         return agent
+
+    def has_signup(self):
+        return self.cleaned_data['is_create_user']
+
+    def process_signup(self, request):
+        user_email = self.cleaned_data['email']
+        signup_code = account_models.SignupCode.create(email=user_email, inviter=request.user)
+        signup_code.save()
+        signup_code.send()
 
     class Meta:
         model = EconomicAgent

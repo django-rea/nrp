@@ -19,20 +19,27 @@ $(function () {
 
         });
     var $divIdIsCreateUser = $("#div_id_is_create_user");
-    // $divIdIsCreateUser.hide();
-
-    var $divIdUserEmail = $("#div_id_user_email");
-    $divIdUserEmail.hide();
 
     var $idIsCreateUser = $("#id_is_create_user");
+    var activated = false;
     $idIsCreateUser.on('change', function () {
-        $divIdUserEmail.toggle();
+        activated = !activated;
+        if (activated) {
+            $agentForm.find('#id_email').rules("add", "required");
+        } else {
+            $agentForm.find('#id_email').rules("remove", "required");
+        }
     });
     var $idAgentType = $("#id_agent_type");
     var handleSelectChange = function () {
         var val = $idAgentType.find("option:selected").attr("value");
         if (("" + val) == "1") {
             $divIdIsCreateUser.show();
+            activated = true;
+        } else {
+            $divIdIsCreateUser.hide();
+            activated = false;
+            $agentForm.find('#id_email').rules("remove", "required");
         }
     };
     $idAgentType.on('change', handleSelectChange);

@@ -108,6 +108,8 @@ def create_agent(request):
             agent = form.save(commit=False)
             agent.created_by=request.user
             agent.save()
+            if form.has_signup():
+                form.process_signup(request)
             return HttpResponseRedirect('/%s/%s/'
                 % ('accounting/agent', agent.id))  
     return HttpResponseRedirect("/accounting/agents/")

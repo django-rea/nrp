@@ -2,6 +2,7 @@ import sys
 import datetime
 from decimal import *
 from django import forms
+from django.forms import utils as form_utils
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 import json as simplejson
@@ -80,6 +81,39 @@ class AgentForm(forms.Form):
     is_context = forms.BooleanField(
         required=False, 
         widget=forms.CheckboxInput())
+
+
+class CreateAgentForm(AgentForm, forms.ModelForm):
+    error_messages = {
+        'nick_exists': _("The nick is already in use")
+    }
+
+    def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None, initial=None, error_class=form_utils.ErrorList,
+                 label_suffix=None, empty_permitted=False, instance=None):
+        super(CreateAgentForm, self).__init__(data, files, auto_id, prefix, initial, error_class, label_suffix,
+                                              empty_permitted, instance)
+        self.has_instance = instance is not None
+
+    def clean_nick(self):
+        nick = self.cleaned_data.get('nick')
+        if not self.has_instance and EconomicAgent.objects.filter(nick=nick).exists():
+            raise forms.ValidationError(
+                self.error_messages['nick_exists'],
+                code='nick_exists',
+            )
+        return nick
+
+    def save(self, commit=True, created_by=None):
+        economic_agent = super(CreateAgentForm, self).save(False)
+        economic_agent.created_by = created_by
+        economic_agent.name = " ".join([self.cleaned_data['first_name'], self.cleaned_data['last_name']])
+        if commit:
+            economic_agent.save()
+        return economic_agent
+
+    class Meta:
+        model = EconomicAgent
+        fields = ('nick', 'email', 'address', 'url', 'description', 'agent_type', 'is_context')
 
 
 class AgentCreateForm(forms.ModelForm):

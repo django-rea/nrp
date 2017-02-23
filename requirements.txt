@@ -20,3 +20,4 @@ html5lib==0.9999999
 bleach
 django-simple-captcha
 django-fobi<0.10.5
+pytz

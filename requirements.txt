@@ -19,4 +19,4 @@ django-contrib-comments
 html5lib==0.9999999
 bleach
 django-simple-captcha
-django-fobi
+django-fobi<0.10.5

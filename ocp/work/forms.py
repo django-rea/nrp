@@ -11,7 +11,7 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from django_rea.valueaccounting.models import *
-from work.models import *
+from .models import *
 from django_rea.valueaccounting.forms import *
 
 

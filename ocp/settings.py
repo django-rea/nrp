@@ -102,10 +102,10 @@ MIDDLEWARE_CLASSES = [
     #'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
-ROOT_URLCONF = "django_rea.urls"
+ROOT_URLCONF = "ocp.urls"
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = "django_rea.wsgi.application"
+WSGI_APPLICATION = "ocp.wsgi.application"
 
 TEMPLATE_DIRS = [
     os.path.join(PACKAGE_ROOT, "templates"),
@@ -193,7 +193,7 @@ INSTALLED_APPS = [
     'django_rea.board.apps.BoardAppConfig',
     'django_rea.api.apps.ApiAppConfig',
     'account',
-    'work',
+    'ocp.work',
 
 
 ]

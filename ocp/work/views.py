@@ -23,14 +23,14 @@ from django.utils.translation import ugettext, ugettext_lazy as _
 
 from django_rea.valueaccounting.models import *
 from django_rea.valueaccounting.forms import *
-from work.forms import *
+from .forms import *
 from django_rea.valueaccounting.views import *
 #from django_rea.valueaccounting.views import get_agent, get_help, get_site_name, resource_role_agent_formset, uncommit, commitment_finished, commit_to_task
 
 from fobi.models import FormEntry
 
-if "notification" in settings.INSTALLED_APPS:
-    from notification import models as notification
+if "pinax_notification" in settings.INSTALLED_APPS:
+    from pinax.notifications import models as notification
 else:
     notification = None
 

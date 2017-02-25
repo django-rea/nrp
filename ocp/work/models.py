@@ -214,7 +214,7 @@ class JoinRequest(models.Model):
         return answer
 
     def agent_form(self):
-        from work.forms import ProjectAgentCreateForm
+        from .forms import ProjectAgentCreateForm
         init = {
             "name": self.full_name(),
             "nick": self.requested_username,

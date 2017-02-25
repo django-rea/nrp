@@ -54,7 +54,7 @@ class ValueEquationModelChoiceField(forms.ModelChoiceField):
             label = ": ".join([obj.name , "Test Only"])
         return label
         
-from work.models import REQUEST_STATE_CHOICES
+from ocp.work.models import REQUEST_STATE_CHOICES
 
 class RequestStateForm(forms.Form):
     state = forms.ChoiceField(choices=REQUEST_STATE_CHOICES, widget=forms.RadioSelect(attrs={'class': 'tog'}))

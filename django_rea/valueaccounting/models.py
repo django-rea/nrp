@@ -402,14 +402,14 @@ class AgentManager(models.Manager):
         return EconomicAgent.objects.filter(id__in=ua_ids)
 
     def without_membership_request(self):
-        from work.models import MembershipRequest
+        from ocp.work.models import MembershipRequest
         reqs = MembershipRequest.objects.all()
         req_agts = [req.agent for req in reqs if req.agent]
         rids = [agt.id for agt in req_agts]
         return EconomicAgent.objects.exclude(id__in=rids).order_by("name")
 
     def without_join_request(self):
-        from work.models import JoinRequest
+        from ocp.work.models import JoinRequest
         reqs = JoinRequest.objects.all()
         req_agts = [req.agent for req in reqs if req.agent]
         rids = [agt.id for agt in req_agts]

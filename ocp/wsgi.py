@@ -15,7 +15,7 @@ framework.
 """
 import os
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "django_rea.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ocp.settings")
 
 import sys 
 sys.path.append('/var/www/DEEP')

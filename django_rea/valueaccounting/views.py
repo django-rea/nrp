@@ -27,7 +27,7 @@ from django_comments.models import Comment, CommentFlag
 from django_rea.valueaccounting.models import *
 from django_rea.valueaccounting.forms import *
 from django_rea.valueaccounting.utils import *
-from work.models import MembershipRequest, SkillSuggestion
+from ocp.work.models import MembershipRequest, SkillSuggestion
 
 if "pinax.notifications" in settings.INSTALLED_APPS:
     from pinax.notifications import models as notification
@@ -12990,7 +12990,7 @@ def agent_jsonld_query(request):
 
     #import pdb; pdb.set_trace()
     g = Graph()
-    url = "http://nrp.webfactional.com/accounting/agent-jsonld/"
+    url = "http://ocp.webfactional.com/accounting/agent-jsonld/"
     remote_jsonld = urlopen(url).read()
     dict_data = simplejson.loads(remote_jsonld)
     context = dict_data["@context"]
@@ -13037,7 +13037,7 @@ def agent_jsonld_query(request):
         line = " ".join([ sstr, relationship, ostr])
         result += line + "\n"
     result += "\n"
-    result += "========== Gory details from http://nrp.webfactional.com/accounting/agent-jsonld/ ==========\n"
+    result += "========== Gory details from http://ocp.webfactional.com/accounting/agent-jsonld/ ==========\n"
     
     for item in local_expanded_dict:
         for key, value in item.iteritems():

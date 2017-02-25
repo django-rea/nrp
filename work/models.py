@@ -5,7 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from easy_thumbnails.fields import ThumbnailerImageField
 
-from valuenetwork.valueaccounting.models import *
+from django_rea.valueaccounting.models import *
 #from fobi.models import FormEntry
 
 MEMBERSHIP_TYPE_CHOICES = (
@@ -135,7 +135,7 @@ class SkillSuggestion(models.Model):
         return "".join(["SS", str(self.id)])
 
     def resource_type_form(self):
-        from valuenetwork.valueaccounting.forms import SkillSuggestionResourceTypeForm
+        from django_rea.valueaccounting.forms import SkillSuggestionResourceTypeForm
         init = {
             "name": self.skill,
             }

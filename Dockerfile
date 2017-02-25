@@ -36,9 +36,9 @@ RUN pip install django-webtest
 
 RUN pip install django-notification
 
-COPY . /var/www/valuenetwork
+COPY . /var/www/django_rea
 
-WORKDIR /var/www/valuenetwork
+WORKDIR /var/www/django_rea
 
 RUN pip install -r requirements.txt --trusted-host dist.pinaxproject.com
 

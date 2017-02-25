@@ -1,6 +1,6 @@
 #import pdb; pdb.set_trace()
 import sys
-from valuenetwork.valueaccounting.models import *
+from django_rea.valueaccounting.models import *
 
 agents = EconomicAgent.objects.all()
 

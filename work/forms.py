@@ -10,9 +10,9 @@ from django import forms
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-from valuenetwork.valueaccounting.models import *
+from django_rea.valueaccounting.models import *
 from work.models import *
-from valuenetwork.valueaccounting.forms import *
+from django_rea.valueaccounting.forms import *
 
 
 class ProjectAgentCreateForm(forms.ModelForm):

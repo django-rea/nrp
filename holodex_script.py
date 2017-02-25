@@ -10,14 +10,14 @@
     It wants to evolve into producing whatever format Holodex wants.
 """
 import os, sys
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "valuenetwork.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "django_rea.settings")
 
 #from collections import OrderedDict
 
 #import json as simplejson
 import csv
 
-from valuenetwork.valueaccounting.models import *
+from django_rea.valueaccounting.models import *
 
 SCRIPT_ROOT = os.path.abspath(os.path.dirname(__file__))
 #file_path = os.path.join(SCRIPT_ROOT, "holodex", "dhen-data", "org.json")

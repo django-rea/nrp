@@ -21,11 +21,11 @@ from django.contrib.sites.models import Site
 from django.core import validators
 from django.utils.translation import ugettext, ugettext_lazy as _
 
-from valuenetwork.valueaccounting.models import *
-from valuenetwork.valueaccounting.forms import *
+from django_rea.valueaccounting.models import *
+from django_rea.valueaccounting.forms import *
 from work.forms import *
-from valuenetwork.valueaccounting.views import *
-#from valuenetwork.valueaccounting.views import get_agent, get_help, get_site_name, resource_role_agent_formset, uncommit, commitment_finished, commit_to_task
+from django_rea.valueaccounting.views import *
+#from django_rea.valueaccounting.views import get_agent, get_help, get_site_name, resource_role_agent_formset, uncommit, commitment_finished, commit_to_task
 
 from fobi.models import FormEntry
 
@@ -318,7 +318,7 @@ def share_payment(request, agent_id):
             )
         event.save()
 
-        from valuenetwork.valueaccounting.faircoin_utils import network_fee
+        from django_rea.valueaccounting.faircoin_utils import network_fee
         quantity = quantity - Decimal(float(network_fee()) / 1.e6)
 
         event = EconomicEvent(
@@ -1106,7 +1106,7 @@ def manage_faircoin_account(request, resource_id):
     if agent:
         if agent.owns(resource):
             send_coins_form = SendFairCoinsForm()
-            #from valuenetwork.valueaccounting.faircoin_utils import network_fee
+            #from django_rea.valueaccounting.faircoin_utils import network_fee
             limit = resource.spending_limit()
 
         candidate_membership = agent.candidate_membership()
@@ -1144,7 +1144,7 @@ def manage_faircoin_account(request, resource_id):
 
 def validate_faircoin_address_for_worker(request):
     #import pdb; pdb.set_trace()
-    from valuenetwork.valueaccounting.faircoin_utils import is_valid
+    from django_rea.valueaccounting.faircoin_utils import is_valid
     data = request.GET
     address = data["to_address"]
     answer = is_valid(address)
@@ -1262,7 +1262,7 @@ def transfer_faircoins(request, resource_id):
                     )
                 event.save()
                 if to_agent:
-                    from valuenetwork.valueaccounting.faircoin_utils import network_fee
+                    from django_rea.valueaccounting.faircoin_utils import network_fee
                     quantity = quantity - Decimal(float(network_fee()) / 1.e6)
                     et_receive = EventType.objects.get(name="Receive")
                     event = EconomicEvent(

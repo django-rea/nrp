@@ -18,7 +18,7 @@ logger.addHandler(fh)
 
 from django.core.management.base import BaseCommand
 
-from valuenetwork.valueaccounting.process_faircoin_requests import *
+from django_rea.valueaccounting.process_faircoin_requests import *
 
 class Command(BaseCommand):
     help = "Send new FairCoin address and transaction requests to the network."

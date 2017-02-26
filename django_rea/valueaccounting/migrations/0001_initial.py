@@ -609,7 +609,7 @@ class Migration(migrations.Migration):
             bases=(models.Model,),
         ),
         migrations.CreateModel(
-            name='ProcessTypeResourceType',
+            name='CommitmentType',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('quantity', models.DecimalField(default=Decimal('0.00'), verbose_name='quantity', max_digits=8, decimal_places=2)),

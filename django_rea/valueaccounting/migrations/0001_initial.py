@@ -900,13 +900,13 @@ class Migration(migrations.Migration):
             unique_together=set([('resource_type', 'facet_value')]),
         ),
         migrations.AddField(
-            model_name='processtyperesourcetype',
+            model_name='commitmenttype',
             name='state',
             field=models.ForeignKey(related_name='commitmenttypes_at_state', verbose_name='state', blank=True, to='valueaccounting.ResourceState', null=True),
             preserve_default=True,
         ),
         migrations.AddField(
-            model_name='processtyperesourcetype',
+            model_name='commitmenttype',
             name='unit_of_quantity',
             field=models.ForeignKey(related_name='process_resource_qty_units', verbose_name='unit', blank=True, to='valueaccounting.Unit', null=True),
             preserve_default=True,

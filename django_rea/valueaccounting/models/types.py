@@ -223,6 +223,7 @@ class AgentResourceType(models.Model):
         return AgentResourceTypeForm(instance=self, prefix=self.xbill_change_prefix())
 
     def total_required(self):
+        from .schedule import Commitment
         commitments = Commitment.objects.unfinished().filter(resource_type=self.resource_type)
         return sum(req.quantity_to_buy() for req in commitments)
 
@@ -342,6 +343,7 @@ class CommitmentType(models.Model):
                 next_in_chain[0].follow_stage_chain_beyond_workflow(chain)
 
     def create_commitment_for_process(self, process, user, inheritance):
+        from .schedule import Commitment
         # pr changed
         if self.event_type.relationship == "out":
             due_date = process.end_date
@@ -372,6 +374,7 @@ class CommitmentType(models.Model):
         return commitment
 
     def create_commitment(self, due_date, user):
+        from .schedule import Commitment
         unit = self.resource_type.directional_unit(self.event_type.relationship)
         # import pdb; pdb.set_trace()
         commitment = Commitment(
@@ -489,6 +492,7 @@ class EconomicResourceTypeManager(models.Manager):
         except EconomicResourceType.DoesNotExist:
             raise ValidationError("Membership Share does not exist by that name")
         return share
+
 
 class RecipeInheritance(object):
     def __init__(self, parent, heir):
@@ -636,6 +640,7 @@ class EconomicResourceType(models.Model):
             quantity__gt=0)
 
     def commits_for_exchange_stage(self, stage):
+        from .schedule import Commitment
         cfes = []
         commits = Commitment.objects.filter(
             exchange_stage=stage,
@@ -935,6 +940,7 @@ class EconomicResourceType(models.Model):
         return False
 
     def generate_staged_work_order(self, order_name, start_date, user):
+        from .processes import Order
         # pr changed
         # import pdb; pdb.set_trace()
         pts, inheritance = self.staged_process_type_sequence()
@@ -1006,6 +1012,7 @@ class EconomicResourceType(models.Model):
         return order
 
     def generate_staged_work_order_from_resource(self, resource, order_name, start_date, user):
+        from .processes import Order
         # pr changed
         # import pdb; pdb.set_trace()
         pts, inheritance = self.staged_process_type_sequence()
@@ -1076,6 +1083,7 @@ class EconomicResourceType(models.Model):
 
     # does not seem to be used
     def is_purchased(self):
+        from .schedule import all_purchased_resource_types
         rts = all_purchased_resource_types()
         return self in rts
 
@@ -1678,6 +1686,7 @@ class ProcessType(models.Model):
         return "blue"
 
     def create_process(self, start_date, user, inheritance=None):
+        from .processes import Process
         # pr changed
         end_date = start_date + datetime.timedelta(minutes=self.estimated_duration)
         process = Process(
@@ -1946,6 +1955,7 @@ class ProcessType(models.Model):
     def create_facet_formset_filtered(self, pre, slot, data=None):
         from django.forms.models import formset_factory
         from django_rea.valueaccounting.forms import ResourceTypeFacetValueForm
+        from .behavior import Facet
         # import pdb; pdb.set_trace()
         RtfvFormSet = formset_factory(ResourceTypeFacetValueForm, extra=0)
         init = []
@@ -2025,6 +2035,7 @@ class TransferType(models.Model):
         return list(set(facets))
 
     def get_resource_types(self):
+        from .processes import ResourceTypeFacetValue
         # import pdb; pdb.set_trace()
         tt_facet_values = self.facet_values.all()
         facet_values = [ttfv.facet_value for ttfv in tt_facet_values]
@@ -2065,6 +2076,7 @@ class TransferType(models.Model):
         return answer
 
     def to_agents(self, context_agent):
+        from .core import EconomicAgent
         # import pdb; pdb.set_trace()
         if self.receive_agent_association_type:
             return context_agent.has_associates_self_or_inherited(self.receive_agent_association_type.identifier)
@@ -2072,6 +2084,7 @@ class TransferType(models.Model):
             return EconomicAgent.objects.all()
 
     def from_agents(self, context_agent):
+        from .core import EconomicAgent
         if self.give_agent_association_type:
             return context_agent.has_associates_self_or_inherited(self.give_agent_association_type.identifier)
         else:
@@ -2084,6 +2097,21 @@ class TransferType(models.Model):
         from django_rea.valueaccounting.forms import TransferTypeForm
         prefix = self.form_prefix()
         return TransferTypeForm(instance=self, prefix=prefix)
+
+
+@python_2_unicode_compatible
+class TransferTypeFacetValue(models.Model):
+    transfer_type = models.ForeignKey("TransferType",
+                                      verbose_name=_('transfer type'), related_name='facet_values')
+    facet_value = models.ForeignKey("FacetValue",
+                                    verbose_name=_('facet value'), related_name='transfer_types')
+
+    class Meta:
+        unique_together = ('transfer_type', 'facet_value')
+        ordering = ('transfer_type', 'facet_value')
+
+    def __str__(self):
+        return ": ".join([self.transfer_type.name, self.facet_value.facet.name, self.facet_value.value])
 
 
 class ResourceTypeSpecialPrice(models.Model):
@@ -2150,11 +2178,12 @@ class ResourceTypeListElement(models.Model):
         return ": ".join([self.resource_type_list.name, self.resource_type.name])
 
 
+@python_2_unicode_compatible
 class UseCaseEventType(models.Model):
     use_case = models.ForeignKey("UseCase",
-        verbose_name=_('use case'), related_name='event_types')
+                                 verbose_name=_('use case'), related_name='event_types')
     event_type = models.ForeignKey(EventType,
-        verbose_name=_('event type'), related_name='use_cases')
+                                   verbose_name=_('event type'), related_name='use_cases')
 
     def __str__(self):
         return ": ".join([self.use_case.name, self.event_type.name])
@@ -2165,11 +2194,12 @@ class UseCaseEventType(models.Model):
         Creates a new UseCaseEventType, updates an existing one, or does nothing.
         This is intended to be used as a post_syncdb manangement step.
         """
+        from .processes import UseCase
         try:
             use_case = UseCase.objects.get(identifier=use_case_identifier)
             event_type = EventType.objects.get(name=event_type_name)
             ucet = cls._default_manager.get(use_case=use_case, event_type=event_type)
         except cls.DoesNotExist:
             cls(use_case=use_case, event_type=event_type).save()
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             print("Created %s UseCaseEventType" % (use_case_identifier + " " + event_type_name))

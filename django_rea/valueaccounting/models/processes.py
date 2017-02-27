@@ -1,11 +1,30 @@
 from __future__ import print_function
 from decimal import *
 import datetime
+from operator import attrgetter
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models import Q
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
+
+from _utils import unique_slugify
+
+from .types import (
+    EventType,
+    EconomicResourceType,
+    UseCaseEventType,
+)
+from .trade import (
+    Exchange,
+)
+from .schedule import (
+    Commitment,
+)
+from .core import (
+    EconomicResource
+)
 
 
 @python_2_unicode_compatible
@@ -601,7 +620,7 @@ class ProcessPattern(models.Model):
             And if the Resource Type has other Facets
             that are not in the Pattern, they do not matter.
         """
-
+        from .behavior import ResourceTypeFacetValue
         # import pdb; pdb.set_trace()
         pattern_facet_values = self.facets_for_event_type(event_type)
         facet_values = [pfv.facet_value for pfv in pattern_facet_values]
@@ -1931,21 +1950,6 @@ class PatternUseCase(models.Model):
         if self.use_case:
             use_case_name = self.use_case.name
         return ": ".join([self.pattern.name, use_case_name])
-
-
-@python_2_unicode_compatible
-class ResourceTypeFacetValue(models.Model):
-    resource_type = models.ForeignKey("EconomicResourceType",
-                                      verbose_name=_('resource type'), related_name='facets')
-    facet_value = models.ForeignKey("FacetValue",
-                                    verbose_name=_('facet value'), related_name='resource_types')
-
-    class Meta:
-        unique_together = ('resource_type', 'facet_value')
-        ordering = ('resource_type', 'facet_value')
-
-    def __str__(self):
-        return ": ".join([self.resource_type.name, self.facet_value.facet.name, self.facet_value.value])
 
 
 class UseCaseManager(models.Manager):

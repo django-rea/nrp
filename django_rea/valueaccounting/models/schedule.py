@@ -4,6 +4,7 @@ import datetime
 
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import Q
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import python_2_unicode_compatible
@@ -37,7 +38,7 @@ class CommitmentManager(models.Manager):
         cts = self.unfinished()
         reqs = cts.filter(
             Q(event_type__relationship='consume') | Q(event_type__relationship='use')).order_by("resource_type__name")
-        rts = _all_purchased_resource_types()
+        rts = all_purchased_resource_types()
         answer = []
         for req in reqs:
             qtb = req.quantity_to_buy()
@@ -218,15 +219,16 @@ class Commitment(models.Model):
         return answer
 
     def commitment_type(self):
+        from .types import CommitmentType
         rt = self.resource_type
         pt = None
         if self.process:
             pt = self.process.process_type
         if pt:
             try:
-                return types_models.CommitmentType.objects.get(
+                return CommitmentType.objects.get(
                     resource_type=rt, process_type=pt)
-            except types_models.CommitmentType.DoesNotExist:
+            except CommitmentType.DoesNotExist:
                 return None
         return None
 
@@ -414,6 +416,7 @@ class Commitment(models.Model):
 
     def work_todo_change_form(self):
         # import pdb; pdb.set_trace()
+        from .processes import PatternUseCase
         from ocp.work.forms import WorkTodoForm
         agent = self.to_agent  # poster of todo
         prefix = self.form_prefix()
@@ -487,6 +490,7 @@ class Commitment(models.Model):
 
     def resources_ready_to_be_changed(self):
         # import pdb; pdb.set_trace()
+        from .core import EconomicResource
         resources = []
         if self.event_type.stage_to_be_changed():
             if self.resource_type.substitutable:
@@ -504,6 +508,7 @@ class Commitment(models.Model):
         return self.fulfillment_events.all()
 
     def fulfilling_events_condensed(self):
+        from .behavior import EventSummary
         # import pdb; pdb.set_trace()
         event_list = self.fulfillment_events.all()
         condensed_events = []
@@ -603,6 +608,7 @@ class Commitment(models.Model):
         return True
 
     def onhand(self):
+        from .core import EconomicResource
         answer = []
         rt = self.resource_type
         if self.stage:
@@ -767,6 +773,7 @@ class Commitment(models.Model):
             explode is also optional. If used by a caller, and inheritance is not used,
             explode must be a keyword arg.
         """
+        from .processes import Process
         # import pdb; pdb.set_trace()
         qty_required = self.quantity
         rt = self.resource_type
@@ -982,6 +989,7 @@ class Commitment(models.Model):
         return list(set(pts))
 
     def available_workflow_process_types(self):
+        from .types import ProcessType
         all_pts = ProcessType.objects.workflow_process_types()
         my_pts = self.process_types()
         available_pt_ids = []
@@ -1213,12 +1221,14 @@ class Reciprocity(models.Model):
             raise ValidationError('Initiating commitment to_agent must be the reciprocal commitment from_agent.')
 
 
-def _all_purchased_resource_types():
+def all_purchased_resource_types():
+    from .processes import UseCase, ProcessPattern
+    from .types import EventType
     uc = UseCase.objects.get(name="Purchasing")
     pats = ProcessPattern.objects.usecase_patterns(uc)
     # todo exchange redesign fallout
     # et = EventType.objects.get(name="Receipt")
-    et = types_models.EventType.objects.get(name="Receive")
+    et = EventType.objects.get(name="Receive")
     rts = []
     for pat in pats:
         rts.extend(pat.get_resource_types(et))

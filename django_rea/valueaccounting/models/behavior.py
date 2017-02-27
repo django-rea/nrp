@@ -22,6 +22,8 @@ from .trade import (
 from .processes import (
     Order,
     ClaimEvent,
+    UseCase,
+    ProcessPattern,
 )
 
 PERCENTAGE_BEHAVIOR_CHOICES = (
@@ -1315,6 +1317,22 @@ class FacetValue(models.Model):
     def __str__(self):
         return ": ".join([self.facet.name, self.value])
 
+
+@python_2_unicode_compatible
+class ResourceTypeFacetValue(models.Model):
+    resource_type = models.ForeignKey("EconomicResourceType",
+                                      verbose_name=_('resource type'), related_name='facets')
+    facet_value = models.ForeignKey("FacetValue",
+                                    verbose_name=_('facet value'), related_name='resource_types')
+
+    class Meta:
+        unique_together = ('resource_type', 'facet_value')
+        ordering = ('resource_type', 'facet_value')
+
+    def __str__(self):
+        return ": ".join([self.resource_type.name, self.facet_value.facet.name, self.facet_value.value])
+
+
 @python_2_unicode_compatible
 class PatternFacetValue(models.Model):
     pattern = models.ForeignKey("ProcessPattern",
@@ -1331,3 +1349,145 @@ class PatternFacetValue(models.Model):
 
     def __str__(self):
         return ": ".join([self.pattern.name, self.facet_value.facet.name, self.facet_value.value])
+
+
+@python_2_unicode_compatible
+class Feature(models.Model):
+    name = models.CharField(_('name'), max_length=128)
+    # todo: replace with ___? something
+    # option_category = models.ForeignKey(Category,
+    #    verbose_name=_('option category'), related_name='features',
+    #    blank=True, null=True,
+    #    help_text=_("option selections will be limited to this category"),
+    #    limit_choices_to=Q(applies_to='Anything') | Q(applies_to='EconomicResourceType'))
+    product = models.ForeignKey("EconomicResourceType",
+                                related_name="features", verbose_name=_('product'))
+    process_type = models.ForeignKey("ProcessType",
+                                     blank=True, null=True,
+                                     verbose_name=_('process type'), related_name='features')
+    event_type = models.ForeignKey(EventType,
+                                   verbose_name=_('event type'), related_name='features')
+    quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, default=Decimal('0.00'))
+    unit_of_quantity = models.ForeignKey(Unit, blank=True, null=True,
+                                         verbose_name=_('unit'), related_name="feature_units")
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+                                   related_name='features_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+                                   related_name='features_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+
+    class Meta:
+        ordering = ('name',)
+
+    def __str__(self):
+        return " ".join([self.name, "Feature for", self.product.name])
+
+    def xbill_child_object(self):
+        return self
+
+    def xbill_class(self):
+        return "feature"
+
+    def xbill_parent_object(self):
+        return self.process_type
+
+    def xbill_children(self):
+        return self.options.all()
+
+    def xbill_explanation(self):
+        return "Feature"
+
+    def xbill_label(self):
+        abbrev = ""
+        if self.unit_of_quantity:
+            abbrev = self.unit_of_quantity.abbrev
+        return " ".join([str(self.quantity), abbrev])
+
+    # def xbill_category(self):
+    #    return Category(name="features")
+
+    def node_id(self):
+        return "-".join(["Feature", str(self.id)])
+
+    def xbill_parents(self):
+        return [self.process_type, self]
+
+    def options_form(self):
+        from django_rea.valueaccounting.forms import OptionsForm
+        return OptionsForm(feature=self)
+
+    def options_change_form(self):
+        from django_rea.valueaccounting.forms import OptionsForm
+        option_ids = self.options.values_list('component__id', flat=True)
+        init = {'options': option_ids, }
+        return OptionsForm(feature=self, initial=init)
+
+    def xbill_change_prefix(self):
+        return "".join(["FTR", str(self.id)])
+
+    def xbill_change_form(self):
+        from django_rea.valueaccounting.forms import FeatureForm
+        # return FeatureForm(instance=self, prefix=self.xbill_change_prefix())
+        return FeatureForm(instance=self)
+
+
+@python_2_unicode_compatible
+class Option(models.Model):
+    feature = models.ForeignKey(Feature,
+                                related_name="options", verbose_name=_('feature'))
+    component = models.ForeignKey("EconomicResourceType",
+                                  related_name="options", verbose_name=_('component'))
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+                                   related_name='options_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+                                   related_name='options_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+
+    class Meta:
+        ordering = ('component',)
+
+    def __str__(self):
+        return " ".join([self.component.name, "option for", self.feature.name])
+
+    def xbill_child_object(self):
+        return self.component
+
+    def xbill_class(self):
+        return "option"
+
+    def xbill_parent_object(self):
+        return self.feature
+
+    def xbill_children(self):
+        return self.component.xbill_children()
+
+    def xbill_explanation(self):
+        return "Option"
+
+    def xbill_label(self):
+        return ""
+
+    # def xbill_category(self):
+    #    return Category(name="features")
+
+    def node_id(self):
+        return "-".join(["Option", str(self.id)])
+
+    def xbill_parents(self):
+        return [self.feature, self]
+
+
+@python_2_unicode_compatible
+class SelectedOption(models.Model):
+    commitment = models.ForeignKey("Commitment",
+                                   related_name="options", verbose_name=_('commitment'))
+    option = models.ForeignKey(Option,
+                               related_name="commitments", verbose_name=_('option'))
+
+    class Meta:
+        ordering = ('commitment', 'option')
+
+    def __str__(self):
+        return " ".join([self.option.name, "option for", self.commitment.resource_type.name])

@@ -138,6 +138,7 @@ class Exchange(models.Model):
         return answer
 
     def slots_with_detail(self):
+        from .processes import UseCase
         # import pdb; pdb.set_trace()
         slots = self.exchange_type.transfer_types.all()
         slots = list(slots)
@@ -884,6 +885,7 @@ class Transfer(models.Model):
         return self.transfer_type.is_reciprocal
 
     def give_event(self):
+        from .core import EconomicEvent
         # import pdb; pdb.set_trace()
         try:
             return self.events.get(event_type__name="Give")
@@ -891,6 +893,7 @@ class Transfer(models.Model):
             return None
 
     def receive_event(self):
+        from .core import EconomicEvent
         try:
             return self.events.get(event_type__name="Receive")
         except EconomicEvent.DoesNotExist:

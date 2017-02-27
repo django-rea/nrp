@@ -1,7 +1,9 @@
 from __future__ import print_function
 from decimal import *
 import datetime
+import time
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models import Q
@@ -381,11 +383,12 @@ class EconomicResource(models.Model):
         return list(set(cas))
 
     def shipped_on_orders(self):
+        from .types import EventType
         # todo exchange redesign fallout
         orders = []
         # this is insufficient to select shipments
         # sales below is better
-        et = types_models.EventType.objects.get(name="Give")  # was shipment
+        et = EventType.objects.get(name="Give")  # was shipment
         shipments = EconomicEvent.objects.filter(resource=self).filter(event_type=et)
         for ship in shipments:
             if ship.exchange.order:
@@ -393,9 +396,11 @@ class EconomicResource(models.Model):
         return orders
 
     def sales(self):
+        from .types import EventType
+        from .processes import UseCase
         sales = []
         use_case = UseCase.objects.get(identifier="demand_xfer")
-        et = types_modelsEventType.objects.get(name="Give")
+        et = EventType.objects.get(name="Give")
         events = EconomicEvent.objects.filter(resource=self).filter(event_type=et)
         for event in events:
             if event.transfer:
@@ -1282,7 +1287,8 @@ class EconomicResource(models.Model):
     def cash_contribution_events(self):  # includes only cash contributions
         # todo exchange redesign fallout
         # import pdb; pdb.set_trace()
-        rct_et = types_models.EventType.objects.get(name="Receive")
+        from .types import EventType
+        rct_et = EventType.objects.get(name="Receive")
         with_xfer = [event for event in self.events.all() if event.transfer and event.event_type == rct_et]
         contributions = [event for event in with_xfer if event.is_contribution]
         currencies = [event for event in contributions if event.transfer.transfer_type.is_currency]
@@ -1291,7 +1297,8 @@ class EconomicResource(models.Model):
     def purchase_events(self):
         # todo exchange redesign fallout
         # is this correct?
-        rct_et = types_models.EventType.objects.get(name="Receive")
+        from .types import EventType
+        rct_et = EventType.objects.get(name="Receive")
         return self.events.filter(event_type=rct_et, is_contribution=False)
 
     def purchase_events_for_exchange_stage(self):
@@ -1306,7 +1313,8 @@ class EconomicResource(models.Model):
         # todo exchange redesign fallout
         print("obsolete resource.transfer_event")
         # import pdb; pdb.set_trace()
-        tx_et = types_models.EventType.objects.get(name="Receive")
+        from .types import EventType
+        tx_et = EventType.objects.get(name="Receive")
         return self.events.filter(event_type=tx_et)
 
     def transfer_events_for_exchange_stage(self):
@@ -1318,7 +1326,8 @@ class EconomicResource(models.Model):
             return self.transfer_events()
 
     def available_events(self):
-        av_et = types_models.EventType.objects.get(name="Make Available")
+        from .types import EventType
+        av_et = EventType.objects.get(name="Make Available")
         return self.events.filter(event_type=av_et)
 
     def all_usage_events(self):
@@ -1397,6 +1406,8 @@ class EconomicResource(models.Model):
         return flows
 
     def process_exchange_flow(self):
+        from .processes import Process
+        from .trade import Exchange
         flows = self.incoming_value_flows()
         xnp = [f for f in flows if type(f) is Process or type(f) is Exchange]
         # import pdb; pdb.set_trace()
@@ -1410,6 +1421,7 @@ class EconomicResource(models.Model):
         return xnp
 
     def incoming_value_flows_dfs(self, flows, visited, depth):
+        from .types import EventType
         # Resource method
         # import pdb; pdb.set_trace()
         if self not in visited:
@@ -1600,6 +1612,7 @@ class EconomicResource(models.Model):
 
     def value_flow_going_forward_processes(self):
         # import pdb; pdb.set_trace()
+        from .processes import Process
         in_out = self.value_flow_going_forward()
         processes = []
         for index, io in enumerate(in_out):
@@ -1609,6 +1622,7 @@ class EconomicResource(models.Model):
         return processes
 
     def receipt(self):
+        from .types import EventType
         in_out = self.value_flow_going_forward()
         receipt = None
         et = EventType.objects.get(name='Receive')
@@ -1760,6 +1774,27 @@ class EconomicEventManager(models.Manager):
         return EconomicEvent.objects.filter(is_contribution=True)
 
 
+def update_summary(agent, context_agent, resource_type, event_type):
+    from .behavior import CachedEventSummary
+    events = EconomicEvent.objects.filter(
+        from_agent=agent,
+        context_agent=context_agent,
+        resource_type=resource_type,
+        event_type=event_type,
+        is_contribution=True)
+    total = sum(event.quantity for event in events)
+    summary, created = CachedEventSummary.objects.get_or_create(
+        agent=agent,
+        context_agent=context_agent,
+        resource_type=resource_type,
+        event_type=event_type)
+    summary.quantity = total
+    if summary.quantity:
+        summary.save()
+    else:
+        summary.delete()
+
+
 @python_2_unicode_compatible
 class EconomicEvent(models.Model):
     event_type = models.ForeignKey("EventType",
@@ -1893,6 +1928,7 @@ class EconomicEvent(models.Model):
         ])
 
     def save(self, *args, **kwargs):
+        from .types import AgentResourceType
         # import pdb; pdb.set_trace()
 
         from_agt = 'Unassigned'
@@ -1965,6 +2001,7 @@ class EconomicEvent(models.Model):
             # call the faircoin method here, pass the event info needed
 
     def delete(self, *args, **kwargs):
+        from .behavior import CachedEventSummary
         if self.is_contribution:
             agent = self.from_agent
             context_agent = self.context_agent
@@ -1997,6 +2034,7 @@ class EconomicEvent(models.Model):
         in the same Transfer.
         Will most likely not work (yet) more generally.
         """
+        from .types import EventType
         # import pdb; pdb.set_trace()
         prevs = []
         # todo exchange redesign fallout
@@ -2063,6 +2101,7 @@ class EconomicEvent(models.Model):
         return (datetime.date.today() - self.event_date).days
 
     def value_per_unit(self):
+        from .types import AgentResourceType
         # import pdb; pdb.set_trace()
         if self.resource:
             return self.resource.value_per_unit
@@ -2219,6 +2258,7 @@ class EconomicEvent(models.Model):
         return self.resource.compute_income_shares(value_equation, d_qty, events, visited)
 
     def bucket_rule(self, value_equation):
+        from .behavior import ValueEquationBucketRule
         brs = ValueEquationBucketRule.objects.filter(
             value_equation_bucket__value_equation=value_equation,
             event_type=self.event_type)
@@ -2317,6 +2357,7 @@ class EconomicEvent(models.Model):
         return [claim for claim in claims if claim.value_equation_bucket_rule == bucket_rule]
 
     def create_claim(self, bucket_rule):
+        from .processes import Claim, ClaimEvent
         # import pdb; pdb.set_trace()
         # claims = self.outstanding_claims_for_bucket_rule(bucket_rule)
         # if claims:
@@ -2356,6 +2397,7 @@ class EconomicEvent(models.Model):
             return claim
 
     def get_unsaved_contribution_claim(self, bucket_rule):
+        from .processes import Claim, ClaimEvent
         # import pdb; pdb.set_trace()
         claim = self.created_claim()
         if claim:
@@ -2390,6 +2432,7 @@ class EconomicEvent(models.Model):
             return claim
 
     def get_unsaved_context_agent_claim(self, against_agent, bucket_rule):
+        from .processes import Claim, ClaimEvent
         # import pdb; pdb.set_trace()
         # changed for contextAgentDistributions
         # todo: how to find created_context_agent_claims?
@@ -2963,6 +3006,7 @@ class EconomicAgent(models.Model):
         return address
 
     def create_faircoin_resource(self, address):
+        from .types import AgentResourceRoleType, EconomicResourceType
         if not settings.use_faircoins:
             return None
         role_types = AgentResourceRoleType.objects.filter(is_owner=True)
@@ -2975,11 +3019,9 @@ class EconomicAgent(models.Model):
         if resource_types.count() == 0:
             raise ValidationError(
                 "Cannot create digital currency resource for " + self.nick + " because no digital currency account ResourceTypes.")
-            return None
         if resource_types.count() > 1:
             raise ValidationError(
                 "Cannot create digital currency resource for " + self.nick + ", more than one digital currency account ResourceTypes.")
-            return None
         resource_type = resource_types[0]
         if owner_role_type:
             # resource type has unit
@@ -2999,7 +3041,6 @@ class EconomicAgent(models.Model):
         else:
             raise ValidationError(
                 "Cannot create digital currency resource for " + self.nick + " because no owner AgentResourceRoleTypes.")
-            return None
 
     def faircoin_address(self):
         if not settings.use_faircoins:
@@ -3293,6 +3334,7 @@ class EconomicAgent(models.Model):
         return sum(event.quantity for event in events)
 
     def events_by_event_type(self):
+        from .types import EventType
         agent_events = EconomicEvent.objects.filter(
             Q(from_agent=self) | Q(to_agent=self))
         ets = EventType.objects.all()
@@ -3307,15 +3349,19 @@ class EconomicAgent(models.Model):
         return answer
 
     def distributions_count(self):
+        from .behavior import Distribution
         return Distribution.objects.filter(context_agent=self).count()
 
     def demand_exchange_count(self):
+        from .trade import Exchange
         return Exchange.objects.demand_exchanges().filter(context_agent=self).count()
 
     def supply_exchange_count(self):
+        from .trade import Exchange
         return Exchange.objects.supply_exchanges().filter(context_agent=self).count()
 
     def internal_exchange_count(self):
+        from .trade import Exchange
         return Exchange.objects.internal_exchanges().filter(context_agent=self).count()
 
     def with_all_sub_agents(self):
@@ -3390,6 +3436,7 @@ class EconomicAgent(models.Model):
         return self.active_processes()
 
     def process_types_queryset(self):
+        from .types import ProcessType
         pts = list(ProcessType.objects.filter(context_agent=self))
         parent = self.parent()
         while parent:
@@ -3399,6 +3446,7 @@ class EconomicAgent(models.Model):
         return ProcessType.objects.filter(id__in=pt_ids)
 
     def get_resource_types_with_recipe(self):
+        from .types import ProcessType
         rts = [pt.main_produced_resource_type() for pt in ProcessType.objects.filter(context_agent=self) if
                pt.main_produced_resource_type()]
         # import pdb; pdb.set_trace()
@@ -3542,6 +3590,7 @@ class EconomicAgent(models.Model):
         return self.all_has_associates_by_type(assoc_type_identifier).count()
 
     def agent_association_types(self):
+        from .types import AgentAssociationType
         my_aats = []
         all_aats = AgentAssociationType.objects.all()
         for aat in all_aats:
@@ -3592,6 +3641,7 @@ class EconomicAgent(models.Model):
         return [var.resource for var in vars]
 
     def create_virtual_account(self, resource_type):
+        from .types import AgentResourceRoleType
         # import pdb; pdb.set_trace()
         role_types = AgentResourceRoleType.objects.filter(is_owner=True)
         owner_role_type = None
@@ -3612,8 +3662,8 @@ class EconomicAgent(models.Model):
             return va
         else:
             raise ValidationError(
-                "Cannot create virtual account for " + self.nick + " because no owner AgentResourceRoleTypes.")
-            return None
+                "Cannot create virtual account for " + self.nick + " because no owner AgentResourceRoleTypes."
+            )
 
     def own_or_parent_value_equations(self):
         ves = self.value_equations.all()
@@ -3703,6 +3753,7 @@ class EconomicAgent(models.Model):
         return self.is_context
 
     def orders_queryset(self):
+        from .processes import Order
         # import pdb; pdb.set_trace()
         orders = []
         exf = self.exchange_firm()
@@ -3723,6 +3774,8 @@ class EconomicAgent(models.Model):
         return Order.objects.filter(id__in=order_ids)
 
     def shipments_queryset(self):
+        from .types import EventType
+        from .behavior import UseCase
         # import pdb; pdb.set_trace()
         shipments = []
         exf = self.exchange_firm()
@@ -3780,6 +3833,7 @@ class EconomicAgent(models.Model):
         return EconomicEvent.objects.filter(id__in=event_ids)
 
     def undistributed_distributions(self):
+        from .types import EventType
         # import pdb; pdb.set_trace()
         id_ids = []
         et = EventType.objects.get(name="Distribution")

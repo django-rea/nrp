@@ -1,5 +1,6 @@
 from django.utils.translation import ugettext_noop as _
 from django.db.models.signals import post_migrate
+from django.conf import settings
 
 from .models import *
 

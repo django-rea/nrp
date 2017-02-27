@@ -4,6 +4,7 @@ import datetime
 
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.contrib.auth.models import User
 from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import python_2_unicode_compatible
@@ -94,12 +95,6 @@ ASSOCIATION_BEHAVIOR_CHOICES = (
     ('peer', _('peer'))
 )
 
-RELATIONSHIP_STATE_CHOICES = (
-    ('active', _('active')),
-    ('inactive', _('inactive')),
-    ('potential', _('candidate')),
-)
-
 
 @python_2_unicode_compatible
 class AgentAssociationType(models.Model):
@@ -172,9 +167,9 @@ class AgentResourceType(models.Model):
     value_per_unit = models.DecimalField(_('value per unit'), max_digits=8, decimal_places=2,
                                          default=Decimal("0.0"))
     description = models.TextField(_('description'), null=True, blank=True)
-    created_by = models.ForeignKey("User", verbose_name=_('created by'),
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
                                    related_name='arts_created', blank=True, null=True, editable=False)
-    changed_by = models.ForeignKey("User", verbose_name=_('changed by'),
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
                                    related_name='arts_changed', blank=True, null=True, editable=False)
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
@@ -279,9 +274,9 @@ class CommitmentType(models.Model):
     unit_of_quantity = models.ForeignKey("Unit", blank=True, null=True,
                                          verbose_name=_('unit'), related_name="process_resource_qty_units")
     description = models.TextField(_('description'), null=True, blank=True)
-    created_by = models.ForeignKey("User", verbose_name=_('created by'),
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
                                    related_name='ptrts_created', blank=True, null=True, editable=False)
-    changed_by = models.ForeignKey("User", verbose_name=_('changed by'),
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
                                    related_name='ptrts_changed', blank=True, null=True, editable=False)
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
@@ -551,9 +546,9 @@ class EconomicResourceType(models.Model):
     accounting_reference = models.ForeignKey("AccountingReference", blank=True, null=True,
                                              verbose_name=_('accounting reference'), related_name="resource_types",
                                              help_text=_('optional reference to an external account'))
-    created_by = models.ForeignKey("User", verbose_name=_('created by'),
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
                                    related_name='resource_types_created', blank=True, null=True, editable=False)
-    changed_by = models.ForeignKey("User", verbose_name=_('changed by'),
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
                                    related_name='resource_types_changed', blank=True, null=True, editable=False)
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
@@ -1591,9 +1586,9 @@ class ExchangeType(models.Model):
                                  blank=True, null=True,
                                  verbose_name=_('use case'), related_name='exchange_types')
     description = models.TextField(_('description'), blank=True, null=True)
-    created_by = models.ForeignKey("User", verbose_name=_('created by'),
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
                                    related_name='exchange_types_created', blank=True, null=True, editable=False)
-    changed_by = models.ForeignKey("User", verbose_name=_('changed by'),
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
                                    related_name='exchange_types_changed', blank=True, null=True, editable=False)
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
@@ -1653,9 +1648,9 @@ class ProcessType(models.Model):
     url = models.CharField(_('url'), max_length=255, blank=True)
     estimated_duration = models.IntegerField(_('estimated duration'),
                                              default=0, help_text=_("in minutes, e.g. 3 hours = 180"))
-    created_by = models.ForeignKey("User", verbose_name=_('created by'),
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
                                    related_name='process_types_created', blank=True, null=True, editable=False)
-    changed_by = models.ForeignKey("User", verbose_name=_('changed by'),
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
                                    related_name='process_types_changed', blank=True, null=True, editable=False)
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
@@ -2007,9 +2002,9 @@ class TransferType(models.Model):
                                                        blank=True, null=True,
                                                        verbose_name=_('receive agent association type'),
                                                        related_name='transfer_types_receive')
-    created_by = models.ForeignKey("User", verbose_name=_('created by'),
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
                                    related_name='transfer_types_created', blank=True, null=True, editable=False)
-    changed_by = models.ForeignKey("User", verbose_name=_('changed by'),
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
                                    related_name='transfer_types_changed', blank=True, null=True, editable=False)
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
@@ -2089,6 +2084,17 @@ class TransferType(models.Model):
         from django_rea.valueaccounting.forms import TransferTypeForm
         prefix = self.form_prefix()
         return TransferTypeForm(instance=self, prefix=prefix)
+
+
+class ResourceTypeSpecialPrice(models.Model):
+    resource_type = models.ForeignKey("EconomicResourceType",
+                                      verbose_name=_('resource type'), related_name='prices')
+    identifier = models.CharField(_('identifier'), max_length=128)
+    description = models.TextField(_('description'), blank=True, null=True)
+    price_per_unit = models.DecimalField(_('price per unit'), max_digits=8, decimal_places=2,
+                                         default=Decimal("0.00"))
+    stage = models.ForeignKey(ProcessType, related_name="price_at_stage",
+                              verbose_name=_('stage'), blank=True, null=True)
 
 
 @python_2_unicode_compatible

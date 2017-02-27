@@ -4,6 +4,7 @@ import datetime
 
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import python_2_unicode_compatible
 
@@ -108,9 +109,9 @@ class Commitment(models.Model):
                                 default=Decimal("0.0"))
     unit_of_value = models.ForeignKey("Unit", blank=True, null=True,
                                       verbose_name=_('unit of value'), related_name="commitment_value_units")
-    created_by = models.ForeignKey("User", verbose_name=_('created by'),
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
                                    related_name='commitments_created', blank=True, null=True, editable=False)
-    changed_by = models.ForeignKey("User", verbose_name=_('changed by'),
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
                                    related_name='commitments_changed', blank=True, null=True, editable=False)
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)

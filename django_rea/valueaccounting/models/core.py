@@ -3,6 +3,7 @@ from decimal import *
 import datetime
 
 from django.db import models
+from django.contrib.auth.models import User
 from django.db.models import Q
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
@@ -15,6 +16,87 @@ from toposort import toposort, toposort_flatten
 from ._utils import unique_slugify
 
 FAIRCOIN_DIVISOR = Decimal("1000000.00")
+
+
+class AgentAccount(object):
+    def __init__(self, agent, event_type, count, quantity, events):
+        self.agent = agent
+        self.event_type = event_type
+        self.count = count
+        self.quantity = quantity
+        self.events = events
+
+    def example(self):
+        return self.events[0]
+
+
+class AgentUser(models.Model):
+    agent = models.ForeignKey("EconomicAgent",
+                              verbose_name=_('agent'), related_name='users')
+    user = models.OneToOneField(User,
+                                verbose_name=_('user'), related_name='agent')
+
+
+RELATIONSHIP_STATE_CHOICES = (
+    ('active', _('active')),
+    ('inactive', _('inactive')),
+    ('potential', _('candidate')),
+)
+
+
+@python_2_unicode_compatible
+class AgentAssociation(models.Model):
+    is_associate = models.ForeignKey("EconomicAgent",
+                                     verbose_name=_('is associate of'), related_name='is_associate_of')
+    has_associate = models.ForeignKey("EconomicAgent",
+                                      verbose_name=_('has associate'), related_name='has_associates')
+    association_type = models.ForeignKey("AgentAssociationType",
+                                         verbose_name=_('association type'), related_name='associations')
+    description = models.TextField(_('description'), blank=True, null=True)
+    state = models.CharField(_('state'),
+                             max_length=12, choices=RELATIONSHIP_STATE_CHOICES,
+                             default='active')
+
+    class Meta:
+        ordering = ('is_associate',)
+
+    def __str__(self):
+        return self.is_associate.nick + " " + self.association_type.label + " " + self.has_associate.nick
+
+    def representation(self):
+        state = ""
+        if self.state == "potential":
+            state = "".join(["(", self.get_state_display(), ")"])
+        return " ".join([
+            self.is_associate.nick,
+            self.association_type.label,
+            self.has_associate.nick,
+            state,
+        ])
+
+
+@python_2_unicode_compatible
+class AgentResourceRole(models.Model):
+    agent = models.ForeignKey("EconomicAgent",
+                              verbose_name=_('agent'), related_name='agent_resource_roles')
+    resource = models.ForeignKey("EconomicResource",
+                                 verbose_name=_('resource'), related_name='agent_resource_roles')
+    role = models.ForeignKey("AgentResourceRoleType",
+                             verbose_name=_('role'), related_name='agent_resource_roles')
+    is_contact = models.BooleanField(_('is contact'), default=False)
+    owner_percentage = models.IntegerField(_('owner percentage'), null=True)
+
+    def __str__(self):
+        return " ".join([self.agent.name, self.role.name, self.resource.__str__()])
+
+
+@python_2_unicode_compatible
+class AccountingReference(models.Model):
+    code = models.CharField(_('code'), max_length=128, unique=True)
+    name = models.CharField(_('name'), max_length=128)
+
+    def __str__(self):
+        return self.name
 
 
 class AgentManager(models.Manager):
@@ -177,9 +259,9 @@ class EconomicResource(models.Model):
     price_per_unit = models.DecimalField(_('price per unit'), max_digits=8, decimal_places=2,
                                          default=Decimal("0.00"))
     created_date = models.DateField(_('created date'), default=datetime.date.today)
-    created_by = models.ForeignKey("User", verbose_name=_('created by'),
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
                                    related_name='resources_created', blank=True, null=True, editable=False)
-    changed_by = models.ForeignKey("User", verbose_name=_('changed by'),
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
                                    related_name='resources_changed', blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
 
@@ -1745,9 +1827,9 @@ class EconomicEvent(models.Model):
     digital_currency_tx_state = models.CharField(_('digital currency transaction state'),
                                                  max_length=12, choices=TX_STATE_CHOICES,
                                                  blank=True, null=True)
-    created_by = models.ForeignKey("User", verbose_name=_('created by'),
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
                                    related_name='events_created', blank=True, null=True, editable=False)
-    changed_by = models.ForeignKey("User", verbose_name=_('changed by'),
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
                                    related_name='events_changed', blank=True, null=True, editable=False)
 
     slug = models.SlugField(_("Page name"), editable=False)
@@ -2786,9 +2868,9 @@ class EconomicAgent(models.Model):
     is_context = models.BooleanField(_('is context'), default=False)
     slug = models.SlugField(_("Page name"), editable=False)
     created_date = models.DateField(_('created date'), default=datetime.date.today)
-    created_by = models.ForeignKey("User", verbose_name=_('created by'),
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
                                    related_name='agents_created', blank=True, null=True, editable=False)
-    changed_by = models.ForeignKey("User", verbose_name=_('changed by'),
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
                                    related_name='agents_changed', blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
     objects = AgentManager()

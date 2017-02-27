@@ -2,10 +2,158 @@ from __future__ import print_function
 from decimal import *
 import datetime
 
-from django.core.exceptions import ValidationError
 from django.db import models
+from django.contrib.auth.models import User
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
+
+
+@python_2_unicode_compatible
+class Claim(models.Model):
+    value_equation_bucket_rule = models.ForeignKey("ValueEquationBucketRule",
+                                                   blank=True, null=True,
+                                                   related_name="claims", verbose_name=_('value equation bucket rule'))
+    claim_date = models.DateField(_('claim date'))
+    has_agent = models.ForeignKey("EconomicAgent",
+                                  blank=True, null=True,
+                                  related_name="has_claims", verbose_name=_('has'))
+    against_agent = models.ForeignKey("EconomicAgent",
+                                      blank=True, null=True,
+                                      related_name="claims_against", verbose_name=_('against'))
+    context_agent = models.ForeignKey("EconomicAgent",
+                                      blank=True, null=True,
+                                      limit_choices_to={"is_context": True, },
+                                      related_name="claims", verbose_name=_('context agent'),
+                                      on_delete=models.SET_NULL)
+    value = models.DecimalField(_('value'), max_digits=8, decimal_places=2,
+                                default=Decimal("0.0"))
+    unit_of_value = models.ForeignKey("Unit", blank=True, null=True,
+                                      verbose_name=_('unit of value'), related_name="claim_value_units")
+    original_value = models.DecimalField(_('original value'), max_digits=8, decimal_places=2,
+                                         default=Decimal("0.0"))
+    claim_creation_equation = models.TextField(_('creation equation'), null=True, blank=True)
+
+    slug = models.SlugField(_("Page name"), editable=False)
+
+    class Meta:
+        ordering = ('claim_date',)
+
+    def __str__(self):
+        if self.unit_of_value:
+            if self.unit_of_value.symbol:
+                value_string = "".join([self.unit_of_value.symbol, str(self.value)])
+            else:
+                value_string = " ".join([str(self.value), self.unit_of_value.abbrev])
+        else:
+            value_string = str(self.value)
+        has_agt = 'Unassigned'
+        if self.has_agent:
+            has_agt = self.has_agent.nick
+        against_agt = 'Unassigned'
+        if self.against_agent:
+            against_agt = self.against_agent.nick
+        return ' '.join([
+            'Claim',
+            has_agt,
+            'has against',
+            against_agt,
+            'for',
+            value_string,
+            'from',
+            self.claim_date.strftime('%Y-%m-%d'),
+        ])
+
+    def creating_event(self):
+        event = None
+        claim_events = self.claim_events.all()
+        for ce in claim_events:
+            if ce.event_effect == "+":
+                event = ce.event
+                break
+        return event
+
+    def format_value(self, value):
+        if self.unit_of_value:
+            if self.unit_of_value.symbol:
+                value_string = "".join([self.unit_of_value.symbol, str(value)])
+            else:
+                value_string = " ".join([str(value), self.unit_of_value.abbrev])
+        else:
+            value_string = str(value)
+        return value_string
+
+    def original_value_formatted(self):
+        value = self.original_value
+        return self.format_value(value)
+
+    def value_formatted(self):
+        value = self.value
+        return self.format_value(value)
+
+    def distribution_events(self):
+        return self.claim_events.filter(event__event_type__name="Distribution")
+
+
+EVENT_EFFECT_CHOICES = (
+    ('+', _('increase')),
+    ('-', _('decrease')),
+)
+
+
+@python_2_unicode_compatible
+class ClaimEvent(models.Model):
+    event = models.ForeignKey("EconomicEvent",
+                              blank=True, null=True,
+                              related_name="claim_events", verbose_name=_('claim event'))
+    claim = models.ForeignKey(Claim,
+                              related_name="claim_events", verbose_name=_('claims'))
+    claim_event_date = models.DateField(_('claim event date'), default=datetime.date.today)
+    value = models.DecimalField(_('value'), max_digits=8, decimal_places=2)
+    unit_of_value = models.ForeignKey("Unit", blank=True, null=True,
+                                      verbose_name=_('unit of value'), related_name="claim_event_value_units")
+    event_effect = models.CharField(_('event effect'),
+                                    max_length=12, choices=EVENT_EFFECT_CHOICES)
+
+    class Meta:
+        ordering = ('claim_event_date',)
+
+    def __str__(self):
+        if self.unit_of_value:
+            value_string = " ".join([str(self.value), self.unit_of_value.abbrev])
+        else:
+            value_string = str(self.value)
+        if self.event:
+            event_str = self.event.__str__()
+        else:
+            event_str = "none"
+        return ' '.join([
+            'event:',
+            event_str,
+            'affecting claim:',
+            self.claim.__str__(),
+            'value:',
+            value_string,
+        ])
+
+    def update_claim(self):
+        if self.event_effect == "+":
+            self.claim.value += self.value
+        else:
+            self.claim.value -= self.value
+        self.claim.save()
+
+    def value_formatted(self):
+        # import pdb; pdb.set_trace()
+        value = self.value
+        if self.unit_of_value:
+            if self.unit_of_value.symbol:
+                value_string = "".join([self.unit_of_value.symbol, str(value)])
+            else:
+                value_string = " ".join([str(value), self.unit_of_value.abbrev])
+        else:
+            value_string = str(value)
+        return value_string
+
 
 ORDER_TYPE_CHOICES = (
     ('customer', _('Customer order')),
@@ -57,9 +205,9 @@ class Order(models.Model):
     order_date = models.DateField(_('order date'), default=datetime.date.today)
     due_date = models.DateField(_('due date'))
     description = models.TextField(_('description'), null=True, blank=True)
-    created_by = models.ForeignKey("User", verbose_name=_('created by'),
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
                                    related_name='orders_created', blank=True, null=True)
-    changed_by = models.ForeignKey("User", verbose_name=_('changed by'),
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
                                    related_name='orders_changed', blank=True, null=True)
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
@@ -722,6 +870,32 @@ class ProcessPattern(models.Model):
         return fvs_for_facet
 
 
+class ProcessManager(models.Manager):
+    def unfinished(self):
+        return Process.objects.filter(finished=False)
+
+    def finished(self):
+        return Process.objects.filter(finished=True)
+
+    def current(self):
+        return Process.objects.filter(finished=False).filter(start_date__lte=datetime.date.today()).filter(
+            end_date__gte=datetime.date.today())
+
+    def current_or_future(self):
+        return Process.objects.filter(finished=False).filter(end_date__gte=datetime.date.today())
+
+    def current_or_future_with_use(self):
+        # import pdb; pdb.set_trace()
+        processes = Process.objects.current_or_future()
+        ids = []
+        use_et = EventType.objects.get(name="Resource use")
+        for process in processes:
+            if process.process_pattern:
+                if use_et in process.process_pattern.event_types():
+                    ids.append(process.id)
+        return Process.objects.filter(pk__in=ids)
+
+
 class Process(models.Model):
     name = models.CharField(_('name'), max_length=128)
     parent = models.ForeignKey('self', blank=True, null=True,
@@ -729,11 +903,11 @@ class Process(models.Model):
     process_pattern = models.ForeignKey(ProcessPattern,
                                         blank=True, null=True,
                                         verbose_name=_('process pattern'), related_name='processes')
-    process_type = models.ForeignKey(ProcessType,
+    process_type = models.ForeignKey("ProcessType",
                                      blank=True, null=True,
                                      verbose_name=_('process type'), related_name='processes',
                                      on_delete=models.SET_NULL)
-    context_agent = models.ForeignKey(EconomicAgent,
+    context_agent = models.ForeignKey("EconomicAgent",
                                       blank=True, null=True,
                                       limit_choices_to={"is_context": True, },
                                       verbose_name=_('context agent'), related_name='processes')
@@ -1772,3 +1946,81 @@ class ResourceTypeFacetValue(models.Model):
 
     def __str__(self):
         return ": ".join([self.resource_type.name, self.facet_value.facet.name, self.facet_value.value])
+
+
+class UseCaseManager(models.Manager):
+    def get_by_natural_key(self, identifier):
+        # import pdb; pdb.set_trace()
+        return self.get(identifier=identifier)
+
+    def exchange_use_cases(self):
+        return UseCase.objects.filter(
+            Q(identifier="supply_xfer") | Q(identifier="demand_xfer") | Q(identifier="intrnl_xfer"))
+
+
+@python_2_unicode_compatible
+class UseCase(models.Model):
+    identifier = models.CharField(_('identifier'), max_length=12)
+    name = models.CharField(_('name'), max_length=128)
+    restrict_to_one_pattern = models.BooleanField(_('restrict_to_one_pattern'), default=False)
+
+    objects = UseCaseManager()
+
+    def __str__(self):
+        return self.name
+
+    def natural_key(self):
+        return (self.identifier,)
+
+    @classmethod
+    def create(cls, identifier, name, restrict_to_one_pattern=False, verbosity=2):
+        """
+        Creates a new UseCase, updates an existing one, or does nothing.
+        This is intended to be used as a post_syncdb manangement step.
+        """
+        try:
+            use_case = cls._default_manager.get(identifier=identifier)
+            updated = False
+            if name != use_case.name:
+                use_case.name = name
+                updated = True
+            if restrict_to_one_pattern != use_case.restrict_to_one_pattern:
+                use_case.restrict_to_one_pattern = restrict_to_one_pattern
+                updated = True
+            if updated:
+                use_case.save()
+                if verbosity > 1:
+                    print("Updated %s UseCase" % identifier)
+        except cls.DoesNotExist:
+            cls(identifier=identifier, name=name, restrict_to_one_pattern=restrict_to_one_pattern).save()
+            if verbosity > 1:
+                print("Created %s UseCase" % identifier)
+
+    def allows_more_patterns(self):
+        patterns_count = self.patterns.all().count()
+        if patterns_count:
+            if self.restrict_to_one_pattern:
+                return False
+        return True
+
+    def allowed_event_types(self):
+        ucets = UseCaseEventType.objects.filter(use_case=self)
+        et_ids = []
+        for ucet in ucets:
+            if ucet.event_type.pk not in et_ids:
+                et_ids.append(ucet.event_type.pk)
+        return EventType.objects.filter(pk__in=et_ids)
+
+    def allowed_patterns(self):  # patterns must not have event types not assigned to the use case
+        # import pdb; pdb.set_trace()
+        allowed_ets = self.allowed_event_types()
+        all_ps = ProcessPattern.objects.all()
+        allowed_ps = []
+        for p in all_ps:
+            allow_this_pattern = True
+            for et in p.event_types():
+                if et not in allowed_ets:
+                    allow_this_pattern = False
+            if allow_this_pattern:
+                allowed_ps.append(p)
+        return allowed_ps

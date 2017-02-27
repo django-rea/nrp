@@ -3,6 +3,7 @@ from decimal import *
 import datetime
 
 from django.db import models
+from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import python_2_unicode_compatible
 
@@ -71,9 +72,9 @@ class Exchange(models.Model):
     order = models.ForeignKey("Order",
                               blank=True, null=True,
                               related_name="exchanges", verbose_name=_('order'))
-    created_by = models.ForeignKey("User", verbose_name=_('created by'),
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
                                    related_name='exchanges_created', blank=True, null=True, editable=False)
-    changed_by = models.ForeignKey("User", verbose_name=_('changed by'),
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
                                    related_name='exchanges_changed', blank=True, null=True, editable=False)
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
@@ -653,9 +654,9 @@ class Transfer(models.Model):
                                       verbose_name=_('context agent'), related_name='transfers')
     transfer_date = models.DateField(_('transfer date'))
     notes = models.TextField(_('notes'), blank=True)
-    created_by = models.ForeignKey("User", verbose_name=_('created by'),
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
                                    related_name='transfers_created', blank=True, null=True, editable=False)
-    changed_by = models.ForeignKey("User", verbose_name=_('changed by'),
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
                                    related_name='transfers_changed', blank=True, null=True, editable=False)
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)

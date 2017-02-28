@@ -33,8 +33,9 @@ if "pinax.notifications" in settings.INSTALLED_APPS:
     from pinax.notifications import models as notification
 else:
     notification = None
-    
+
 use_faircoins = settings.USE_FAIRCOINS
+
 
 def get_agent(request):
     agent = None
@@ -45,14 +46,17 @@ def get_agent(request):
         pass
     return agent
 
+
 def get_help(page_name):
     try:
         return Help.objects.get(page=page_name)
     except Help.DoesNotExist:
         return None
-        
+
+
 def get_site_name():
     return Site.objects.get_current().name
+
 
 def home(request):
     layout = None
@@ -69,7 +73,7 @@ def home(request):
         if layout.use_work_panel:
             template_params = work_to_do(template_params)
         if layout.use_needs_panel:
-            #todo: reqs needs a lot of work
+            # todo: reqs needs a lot of work
             reqs = Commitment.objects.to_buy()
             stuff = SortedDict()
             for req in reqs:
@@ -88,14 +92,16 @@ def home(request):
                         value_creations.append(vc)
             template_params["value_creations"] = value_creations
     return render_to_response("homepage.html",
-        template_params,
-        context_instance=RequestContext(request))
-    
+                              template_params,
+                              context_instance=RequestContext(request))
+
+
 def work_to_do(template_params):
     template_params["work_to_do"] = Commitment.objects.unfinished().filter(
-        from_agent=None, 
+        from_agent=None,
         event_type__relationship="work")
     return template_params
+
 
 @login_required
 def create_agent(request):
@@ -106,14 +112,15 @@ def create_agent(request):
         form = AgentCreateForm(request.POST)
         if form.is_valid():
             agent = form.save(commit=False)
-            agent.created_by=request.user
+            agent.created_by = request.user
             agent.save()
             if form.has_signup():
                 form.process_signup(request)
             return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/agent', agent.id))  
+                                        % ('accounting/agent', agent.id))
     return HttpResponseRedirect("/accounting/agents/")
-    
+
+
 @login_required
 def create_user(request, agent_id):
     if not request.user.is_staff:
@@ -121,34 +128,35 @@ def create_user(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     if request.method == "POST":
         user_form = UserCreationForm(data=request.POST)
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if user_form.is_valid():
             user = user_form.save(commit=False)
             user.email = agent.email
             is_staff = request.POST.get("is_staff")
             if is_staff == 'on':
                 user.is_staff = True
-            #user.last_login = datetime.datetime.now()
+            # user.last_login = datetime.datetime.now()
             user.save()
             au = AgentUser(
-                agent = agent,
-                user = user)
+                agent=agent,
+                user=user)
             au.save()
             if use_faircoins:
                 agent.request_faircoin_address()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/agent', agent.id))
-                                                                                    
+                                % ('accounting/agent', agent.id))
+
+
 @login_required
 def create_user_and_agent(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if not request.user.is_superuser:
         return render_to_response('valueaccounting/no_permission.html')
     agent_selection_form = AgentSelectionForm(data=request.POST or None)
     agent_form = CreateAgentForm(data=request.POST or None)
     user_form = UserCreationForm(data=request.POST or None)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         selected_agent = None
         if agent_selection_form.is_valid():
             selected_agent = agent_selection_form.cleaned_data['selected_agent']
@@ -164,25 +172,26 @@ def create_user_and_agent(request):
             user.email = request.POST.get("email")
             user.save()
             au = AgentUser(
-                agent = agent,
-                user = user)
+                agent=agent,
+                user=user)
             au.save()
             return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/agent', agent.id))
+                                        % ('accounting/agent', agent.id))
     return render_to_response("valueaccounting/create_user_and_agent.html", {
         "user_form": user_form,
         "agent_form": agent_form,
         "agent_selection_form": agent_selection_form,
     }, context_instance=RequestContext(request))
-    
+
+
 def projects(request):
-    #import pdb; pdb.set_trace()
-    projects = EconomicAgent.objects.context_agents()  
+    # import pdb; pdb.set_trace()
+    projects = EconomicAgent.objects.context_agents()
     roots = [p for p in projects if p.is_root()]
     for root in roots:
         root.nodes = root.child_tree()
         annotate_tree_properties(root.nodes)
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         for node in root.nodes:
             aats = []
             for aat in node.agent_association_types():
@@ -190,7 +199,8 @@ def projects(request):
                     aat.assoc_count = node.associate_count_of_type(aat.identifier)
                     assoc_list = node.all_has_associates_by_type(aat.identifier)
                     for assoc in assoc_list:
-                        associations = AgentAssociation.objects.filter(is_associate=assoc, has_associate=node, association_type=aat)
+                        associations = AgentAssociation.objects.filter(is_associate=assoc, has_associate=node,
+                                                                       association_type=aat)
                         if associations:
                             association = associations[0]
                             assoc.state = association.get_state_display()
@@ -200,8 +210,8 @@ def projects(request):
     agent = get_agent(request)
     agent_form = AgentCreateForm()
     nicks = '~'.join([
-        agt.nick for agt in EconomicAgent.objects.all()])
-    
+                         agt.nick for agt in EconomicAgent.objects.all()])
+
     return render_to_response("valueaccounting/projects.html", {
         "roots": roots,
         "agent": agent,
@@ -209,6 +219,7 @@ def projects(request):
         "agent_form": agent_form,
         "nicks": nicks,
     }, context_instance=RequestContext(request))
+
 
 '''
 @login_required
@@ -230,8 +241,9 @@ def create_project(request):
             project.save()
     return HttpResponseRedirect("/accounting/projects/")
 
-'''    
-        
+'''
+
+
 def locations(request):
     agent = get_agent(request)
     locations = Location.objects.all()
@@ -249,6 +261,7 @@ def locations(request):
         "help": get_help("locations"),
     }, context_instance=RequestContext(request))
 
+
 @login_required
 def create_location(request, agent_id=None):
     agent = None
@@ -258,7 +271,7 @@ def create_location(request, agent_id=None):
     if not user_agent:
         return render_to_response('valueaccounting/no_permission.html')
     if agent:
-        init= {
+        init = {
             "name": agent.name,
             "address": agent.address,
         }
@@ -269,7 +282,7 @@ def create_location(request, agent_id=None):
     longitude = settings.MAP_LONGITUDE
     zoom = settings.MAP_ZOOM
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if location_form.is_valid():
             location = location_form.save()
             agent_id = request.POST.get("agentId")
@@ -277,7 +290,7 @@ def create_location(request, agent_id=None):
                 agent.primary_location = location
                 agent.save()
                 return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/agent', agent.id))
+                                            % ('accounting/agent', agent.id))
             else:
                 return HttpResponseRedirect("/accounting/locations/")
     return render_to_response("valueaccounting/create_location.html", {
@@ -287,7 +300,8 @@ def create_location(request, agent_id=None):
         "longitude": longitude,
         "zoom": zoom,
     }, context_instance=RequestContext(request))
-    
+
+
 @login_required
 def request_faircoin_address(request, agent_id=None):
     if request.method == "POST":
@@ -300,14 +314,15 @@ def request_faircoin_address(request, agent_id=None):
         if agent:
             agent.request_faircoin_address()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/agent', agent.id))
+                                % ('accounting/agent', agent.id))
+
 
 @login_required
 def change_location(request, location_id, agent_id=None):
     agent = None
     location = get_object_or_404(Location, id=location_id)
     locationAddress = location.address
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     location_agents = None
     if location.agents():
         location_agents = ", ".join([agt.name for agt in location.agents()])
@@ -319,7 +334,7 @@ def change_location(request, location_id, agent_id=None):
     longitude = settings.MAP_LONGITUDE
     zoom = settings.MAP_ZOOM
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if location_form.is_valid():
             data = location_form.cleaned_data
             agents_to_add = data["agents"]
@@ -334,7 +349,7 @@ def change_location(request, location_id, agent_id=None):
                 agt.save()
             if agent:
                 return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/agent', agent.id))
+                                            % ('accounting/agent', agent.id))
             else:
                 return HttpResponseRedirect("/accounting/locations/")
     return render_to_response("valueaccounting/change_location.html", {
@@ -346,16 +361,18 @@ def change_location(request, location_id, agent_id=None):
         "longitude": longitude,
         "zoom": zoom,
     }, context_instance=RequestContext(request))
-    
+
+
 @login_required
 def add_agent_to_location(request, location_id, agent_id=None):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     location = get_object_or_404(Location, id=location_id)
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     agent.primary_location = location
     agent.save()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/agent', agent.id))
+                                % ('accounting/agent', agent.id))
+
 
 @login_required
 def change_agent(request, agent_id):
@@ -365,19 +382,20 @@ def change_agent(request, agent_id):
         return render_to_response('valueaccounting/no_permission.html')
     change_form = AgentCreateForm(instance=agent, data=request.POST or None)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if change_form.is_valid():
             agent = change_form.save()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/agent', agent.id))
-                        
+                                % ('accounting/agent', agent.id))
+
+
 def agents(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     user_agent = get_agent(request)
     agents = EconomicAgent.objects.all().order_by("agent_type__name", "name")
     agent_form = AgentCreateForm()
     nicks = '~'.join([
-        agt.nick for agt in EconomicAgent.objects.all()])
+                         agt.nick for agt in EconomicAgent.objects.all()])
 
     return render_to_response("valueaccounting/agents.html", {
         "agents": agents,
@@ -386,7 +404,8 @@ def agents(request):
         "help": get_help("agents"),
         "nicks": nicks,
     }, context_instance=RequestContext(request))
-    
+
+
 def radial_graph(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     agents = agent.with_all_associations()
@@ -399,14 +418,15 @@ def radial_graph(request, agent_id):
             if cx not in connections:
                 connections[cx] = 0
             connections[cx] += 1
-        
+
     return render_to_response("valueaccounting/radial_graph.html", {
         "agents": agents,
         "root": agent,
     }, context_instance=RequestContext(request))
-                        
+
+
 def agent(request, agent_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     user_agent = get_agent(request)
     user_is_agent = False
@@ -416,29 +436,29 @@ def agent(request, agent_id):
     nav_form = InternalExchangeNavForm(data=request.POST or None)
     if agent:
         if request.method == "POST":
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             if nav_form.is_valid():
                 data = nav_form.cleaned_data
                 ext = data["exchange_type"]
             return HttpResponseRedirect('/%s/%s/%s/%s/'
-                % ('accounting/exchange', ext.id, 0, agent.id))
+                                        % ('accounting/exchange', ext.id, 0, agent.id))
     user_form = None
     if agent.is_individual():
         if not agent.username():
-            init = {"username": agent.nick,}
+            init = {"username": agent.nick, }
             user_form = UserCreationForm(initial=init)
     has_associations = agent.all_has_associates()
-    is_associated_with = agent.all_is_associates()           
-    
+    is_associated_with = agent.all_is_associates()
+
     headings = []
     member_hours_recent = []
     member_hours_stats = []
     individual_stats = []
     member_hours_roles = []
     roles_height = 400
-    
+
     membership_request = agent.membership_request()
-    
+
     if agent.is_individual():
         contributions = agent.given_events.filter(is_contribution=True)
         agents_stats = {}
@@ -448,18 +468,18 @@ def agent(request, agent_id):
         for key, value in agents_stats.items():
             individual_stats.append((key, value))
         individual_stats.sort(lambda x, y: cmp(y[1], x[1]))
-    
+
     elif agent.is_context_agent():
-    
+
         subs = agent.with_all_sub_agents()
         end = datetime.date.today()
-        #end = end - datetime.timedelta(days=77)
-        start =  end - datetime.timedelta(days=60)
+        # end = end - datetime.timedelta(days=77)
+        start = end - datetime.timedelta(days=60)
         events = EconomicEvent.objects.filter(
             event_type__relationship="work",
             context_agent__in=subs,
             event_date__range=(start, end))
-            
+
         if events:
             agents_stats = {}
             for event in events:
@@ -468,13 +488,13 @@ def agent(request, agent_id):
             for key, value in agents_stats.items():
                 member_hours_recent.append((key, value))
             member_hours_recent.sort(lambda x, y: cmp(y[1], x[1]))
-        
-        #import pdb; pdb.set_trace()
-        
+
+        # import pdb; pdb.set_trace()
+
         ces = CachedEventSummary.objects.filter(
             event_type__relationship="work",
             context_agent__in=subs)
-            
+
         if ces.count():
             agents_stats = {}
             for ce in ces:
@@ -497,9 +517,9 @@ def agent(request, agent_id):
                     agents_roles.setdefault(key, row)
                     idx = roles.index(ce.quantity_label()) + 1
                     agents_roles[key][idx] += ce.quantity
-            headings = ["Member",]
+            headings = ["Member", ]
             headings.extend(roles)
-            for row in agents_roles.values():                
+            for row in agents_roles.values():
                 member_hours_roles.append(row)
             member_hours_roles.sort(lambda x, y: cmp(x[0], y[0]))
             roles_height = len(member_hours_roles) * 20
@@ -507,7 +527,7 @@ def agent(request, agent_id):
     if use_faircoins:
         if not agent.faircoin_address():
             needs_faircoin_address = True
-          
+
     return render_to_response("valueaccounting/agent.html", {
         "agent": agent,
         "membership_request": membership_request,
@@ -521,25 +541,26 @@ def agent(request, agent_id):
         "is_associated_with": is_associated_with,
         "headings": headings,
         "member_hours_recent": member_hours_recent,
-        "member_hours_stats": member_hours_stats,   
+        "member_hours_stats": member_hours_stats,
         "member_hours_roles": member_hours_roles,
         "individual_stats": individual_stats,
         "roles_height": roles_height,
         "needs_faircoin_address": needs_faircoin_address,
         "help": get_help("agent"),
     }, context_instance=RequestContext(request))
-    
+
+
 def accounting(request, agent_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     accounts = agent.events_by_event_type()
-
 
     return render_to_response("valueaccounting/accounting.html", {
         "agent": agent,
         "accounts": accounts,
     }, context_instance=RequestContext(request))
-        
+
+
 @login_required
 def test_patterns(request):
     pattern_form = PatternSelectionForm(data=request.POST or None)
@@ -549,16 +570,17 @@ def test_patterns(request):
         if pattern_form.is_valid():
             pattern = pattern_form.cleaned_data["pattern"]
             slots = pattern.event_types()
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             for slot in slots:
                 slot.resource_types = pattern.get_resource_types(slot)
                 slot.facets = pattern.facets_for_event_type(slot)
-    
+
     return render_to_response("valueaccounting/test_patterns.html", {
         "pattern_form": pattern_form,
         "pattern": pattern,
         "slots": slots,
     }, context_instance=RequestContext(request))
+
 
 @login_required
 def maintain_patterns(request, use_case_id=None):
@@ -566,31 +588,31 @@ def maintain_patterns(request, use_case_id=None):
     pattern_form = None
     if use_case_id:
         use_case = get_object_or_404(UseCase, id=use_case_id)
-        init = {"use_case": use_case,}
+        init = {"use_case": use_case, }
         use_case_form = UseCaseSelectionForm(initial=init, data=request.POST or None)
-        patterns = [puc.pattern for puc in use_case.patterns.all()] #patterns assigned to this use case
+        patterns = [puc.pattern for puc in use_case.patterns.all()]  # patterns assigned to this use case
         pattern_ids = [p.id for p in patterns]
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if use_case.allows_more_patterns():
             allowed_patterns = use_case.allowed_patterns()
             allowed_pattern_ids = [p.id for p in allowed_patterns]
             qs = ProcessPattern.objects.filter(id__in=allowed_pattern_ids).exclude(id__in=pattern_ids)
             pattern_form = PatternSelectionForm(queryset=qs)
     else:
-        use_case=None
+        use_case = None
         use_case_form = UseCaseSelectionForm(data=request.POST or None)
     if request.method == "POST":
         if use_case_form.is_valid():
             use_case = use_case_form.cleaned_data["use_case"]
             patterns = [puc.pattern for puc in use_case.patterns.all()]
             pattern_ids = [p.id for p in patterns]
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             if use_case.allows_more_patterns():
                 allowed_patterns = use_case.allowed_patterns()
                 allowed_pattern_ids = [p.id for p in allowed_patterns]
                 qs = ProcessPattern.objects.filter(id__in=allowed_pattern_ids).exclude(id__in=pattern_ids)
                 pattern_form = PatternSelectionForm(queryset=qs)
-                
+
     return render_to_response("valueaccounting/maintain_patterns.html", {
         "use_case_form": use_case_form,
         "use_case": use_case,
@@ -598,21 +620,22 @@ def maintain_patterns(request, use_case_id=None):
         "pattern_form": pattern_form,
     }, context_instance=RequestContext(request))
 
+
 @login_required
 def exchange_types(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         new_form = NewExchangeTypeForm(data=request.POST)
         if new_form.is_valid():
             ext = new_form.save(commit=False)
             ext.created_by = request.user
             ext.save()
-            
+
     supply_exchange_types = ExchangeType.objects.supply_exchange_types()
     demand_exchange_types = ExchangeType.objects.demand_exchange_types()
     internal_exchange_types = ExchangeType.objects.internal_exchange_types()
     new_form = NewExchangeTypeForm()
-                
+
     return render_to_response("valueaccounting/exchange_types.html", {
         "supply_exchange_types": supply_exchange_types,
         "demand_exchange_types": demand_exchange_types,
@@ -620,19 +643,20 @@ def exchange_types(request):
         "new_form": new_form,
     }, context_instance=RequestContext(request))
 
+
 @login_required
 def change_exchange_type(request, exchange_type_id):
     exchange_type = get_object_or_404(ExchangeType, id=exchange_type_id)
-    slots = exchange_type.slots() 
+    slots = exchange_type.slots()
     change_ext_form = ExchangeTypeForm(instance=exchange_type, data=request.POST or None)
     add_tt_form = TransferTypeForm(data=request.POST or None)
-    for slot in slots:       
+    for slot in slots:
         FacetValueFormSet = modelformset_factory(
             TransferTypeFacetValue,
             form=TransferTypeFacetValueForm,
             can_delete=True,
             extra=2,
-            )
+        )
         facet_value_formset = FacetValueFormSet(
             queryset=slot.facet_values.all(),
             prefix=str(slot.id))
@@ -640,25 +664,25 @@ def change_exchange_type(request, exchange_type_id):
         slot.rts = ResourceTypeSelectionForm(
             qs=slot.get_resource_types(),
             prefix=str(slot.id))
-        
+
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         save_ext = request.POST.get("save_ext")
-        #add_tt = request.POST.get("add_tt")
+        # add_tt = request.POST.get("add_tt")
         if save_ext:
             if change_ext_form.is_valid():
                 ext = change_ext_form.save(commit=False)
                 ext.changed_by = request.user
                 ext.save()
-                
-        else: #save transfer type facet values
-            for slot in slots:       
+
+        else:  # save transfer type facet values
+            for slot in slots:
                 FacetValueFormSet = modelformset_factory(
                     TransferTypeFacetValue,
                     form=TransferTypeFacetValueForm,
                     can_delete=True,
                     extra=2,
-                    )
+                )
                 facet_value_formset = FacetValueFormSet(
                     queryset=slot.facet_values.all(),
                     data=request.POST or None,
@@ -687,9 +711,8 @@ def change_exchange_type(request, exchange_type_id):
                                 fv.save()
 
             return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/change-exchange-type', exchange_type.id))
+                                        % ('accounting/change-exchange-type', exchange_type.id))
 
-                   
     return render_to_response("valueaccounting/change_exchange_type.html", {
         "exchange_type": exchange_type,
         "change_ext_form": change_ext_form,
@@ -697,43 +720,46 @@ def change_exchange_type(request, exchange_type_id):
         "slots": slots,
     }, context_instance=RequestContext(request))
 
+
 @login_required
 def add_transfer_type(request, exchange_type_id):
-    exchange_type = get_object_or_404(ExchangeType, pk=exchange_type_id)   
+    exchange_type = get_object_or_404(ExchangeType, pk=exchange_type_id)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         form = TransferTypeForm(data=request.POST or None)
         if form.is_valid():
             tt = form.save(commit=False)
             tt.created_by = request.user
             tt.exchange_type = exchange_type
             tt.save()
-                
+
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/change-exchange-type', exchange_type.id))
-    
+                                % ('accounting/change-exchange-type', exchange_type.id))
+
+
 @login_required
 def change_transfer_type(request, transfer_type_id):
-    tt = get_object_or_404(TransferType, pk=transfer_type_id)   
+    tt = get_object_or_404(TransferType, pk=transfer_type_id)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         form = TransferTypeForm(instance=tt, data=request.POST, prefix=tt.form_prefix())
         if form.is_valid():
             tt = form.save(commit=False)
             tt.changed_by = request.user
             tt.save()
-                
-    return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/change-exchange-type', tt.exchange_type.id))
 
-@login_required          
+    return HttpResponseRedirect('/%s/%s/'
+                                % ('accounting/change-exchange-type', tt.exchange_type.id))
+
+
+@login_required
 def delete_transfer_type(request, transfer_type_id):
     tt = get_object_or_404(TransferType, id=transfer_type_id)
     if request.method == "POST":
         if tt.is_deletable():
             tt.delete()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/change-exchange-type', tt.exchange_type.id))   
+                                % ('accounting/change-exchange-type', tt.exchange_type.id))
 
 
 class AddFacetValueFormFormSet(BaseModelFormSet):
@@ -741,9 +767,9 @@ class AddFacetValueFormFormSet(BaseModelFormSet):
         self.qs = kwargs.pop('qs', None)
         super(AddFacetValueFormFormSet, self).__init__(*args, **kwargs)
 
-    def _construct_forms(self): 
+    def _construct_forms(self):
         self.forms = []
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         for i in xrange(self.total_form_count()):
             self.forms.append(self._construct_form(i, qs=self.qs))
 
@@ -752,17 +778,17 @@ class AddFacetValueFormFormSet(BaseModelFormSet):
 def change_pattern(request, pattern_id, use_case_id):
     pattern = get_object_or_404(ProcessPattern, id=pattern_id)
     use_case = get_object_or_404(UseCase, id=use_case_id)
-    slots = use_case.allowed_event_types() 
-    #import pdb; pdb.set_trace()
+    slots = use_case.allowed_event_types()
+    # import pdb; pdb.set_trace()
     for slot in slots:
         slot.resource_types = pattern.get_resource_types(slot)
-        slot.facets = pattern.facets_for_event_type(slot)          
+        slot.facets = pattern.facets_for_event_type(slot)
         FacetValueFormSet = modelformset_factory(
             PatternFacetValue,
             form=PatternFacetValueForm,
             can_delete=True,
             extra=2,
-            )
+        )
         facet_value_formset = FacetValueFormSet(
             queryset=slot.facets,
             data=request.POST or None,
@@ -771,11 +797,11 @@ def change_pattern(request, pattern_id, use_case_id):
         slot.rts = ResourceTypeSelectionForm(
             qs=slot.resource_types,
             prefix=slot.slug)
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
     slot_ids = [slot.id for slot in slots]
 
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         for slot in slots:
             for form in slot.formset:
                 if form.is_valid():
@@ -797,17 +823,18 @@ def change_pattern(request, pattern_id, use_case_id):
                             fv.save()
 
         return HttpResponseRedirect('/%s/%s/%s/'
-            % ('accounting/change-pattern', pattern.id, use_case.id))
-                        
+                                    % ('accounting/change-pattern', pattern.id, use_case.id))
+
     return render_to_response("valueaccounting/change_pattern.html", {
         "pattern": pattern,
         "slots": slots,
         "use_case": use_case,
     }, context_instance=RequestContext(request))
-    
+
+
 @login_required
 def change_pattern_name(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         pattern_id = request.POST.get("patternId")
         try:
@@ -820,11 +847,12 @@ def change_pattern_name(request):
             pattern.save()
     return HttpResponse("Ok", content_type="text/plain")
 
+
 @login_required
 def add_pattern_to_use_case(request, use_case_id):
     if request.method == "POST":
         use_case = get_object_or_404(UseCase, id=use_case_id)
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         add_pattern = request.POST.get("add-pattern")
         new_pattern = request.POST.get("new-pattern")
         if add_pattern:
@@ -846,25 +874,27 @@ def add_pattern_to_use_case(request, use_case_id):
                 puc.save()
 
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/maintain-patterns', use_case_id))
+                                % ('accounting/maintain-patterns', use_case_id))
 
-@login_required          
+
+@login_required
 def remove_pattern_from_use_case(request, use_case_id, pattern_id):
     if request.method == "POST":
         puc = get_object_or_404(PatternUseCase, use_case__id=use_case_id, pattern__id=pattern_id)
         puc.delete()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/maintain-patterns', use_case_id))
- 
+                                % ('accounting/maintain-patterns', use_case_id))
 
-@login_required          
+
+@login_required
 def delete_exchange_type(request, exchange_type_id):
     if request.method == "POST":
         ext = get_object_or_404(ExchangeType, id=exchange_type_id)
         if ext.is_deletable():
             ext.delete()
     return HttpResponseRedirect('/%s/'
-        % ('accounting/exchange-types'))
+                                % ('accounting/exchange-types'))
+
 
 @login_required
 def sessions(request):
@@ -880,7 +910,7 @@ def sessions(request):
             session.user = "guest"
     selected_session = None
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         spk = request.POST.get("session")
         if spk:
             try:
@@ -893,11 +923,12 @@ def sessions(request):
                     selected_session.user = "guest"
             except Session.DoesNotExist:
                 pass
-            
+
     return render_to_response("valueaccounting/sessions.html", {
         "sessions": sessions,
         "selected_session": selected_session,
     }, context_instance=RequestContext(request))
+
 
 def select_resource_types(facet_values):
     """ Logic:
@@ -906,13 +937,13 @@ def select_resource_types(facet_values):
         Facet values in the same Facet are ORed.
         Ie, a resource type must have at least one of those facet values.
     """
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     fv_ids = [fv.id for fv in facet_values]
     rt_facet_values = ResourceTypeFacetValue.objects.filter(facet_value__id__in=fv_ids)
     rts = [rtfv.resource_type for rtfv in rt_facet_values]
     answer = []
-    singles = [] #Facets with only one facet_value in the Pattern
-    multis = []  #Facets with more than one facet_value in the Pattern
+    singles = []  # Facets with only one facet_value in the Pattern
+    multis = []  # Facets with more than one facet_value in the Pattern
     aspects = {}
     for fv in facet_values:
         if fv.facet not in aspects:
@@ -925,7 +956,7 @@ def select_resource_types(facet_values):
         else:
             singles.append(facet_values[0])
     single_ids = [s.id for s in singles]
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     for rt in rts:
         rt_singles = [rtfv.facet_value for rtfv in rt.facets.filter(facet_value_id__in=single_ids)]
         rt_multis = [rtfv.facet_value for rtfv in rt.facets.exclude(facet_value_id__in=single_ids)]
@@ -940,17 +971,18 @@ def select_resource_types(facet_values):
     answer_ids = [a.id for a in answer]
     return list(EconomicResourceType.objects.filter(id__in=answer_ids))
 
+
 def resource_types(request):
     roots = EconomicResourceType.objects.all()
     resource_names = '~'.join([
-        res.name for res in roots])
+                                  res.name for res in roots])
     create_form = EconomicResourceTypeForm()
     create_formset = create_facet_formset()
     facets = Facet.objects.all()
     select_all = True
     selected_values = "all"
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         selected_values = request.POST["categories"]
         if selected_values:
             vals = selected_values.split(",")
@@ -964,7 +996,7 @@ def resource_types(request):
                     val_split = val.split(":")
                     fname = val_split[0]
                     fvalue = val_split[1].strip()
-                    fvs.append(FacetValue.objects.get(facet__name=fname,value=fvalue))
+                    fvs.append(FacetValue.objects.get(facet__name=fname, value=fvalue))
                 roots = select_resource_types(fvs)
                 roots.sort(key=lambda rt: rt.label())
     return render_to_response("valueaccounting/resource_types.html", {
@@ -989,20 +1021,20 @@ def resource_type(request, resource_type_id):
     if agent:
         names = EconomicResourceType.objects.values_list('name', flat=True).exclude(id=resource_type_id)
         resource_names = '~'.join(names)
-        init = {"unit_of_quantity": resource_type.unit,}
+        init = {"unit_of_quantity": resource_type.unit, }
         create_form = CreateEconomicResourceForm(
-            data=request.POST or None, 
+            data=request.POST or None,
             files=request.FILES or None,
             initial=init)
         create_role_formset = resource_role_agent_formset(prefix="resource")
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if request.method == "POST":
             if create_form.is_valid():
                 resource = create_form.save(commit=False)
                 resource.resource_type = resource_type
                 resource.created_by = request.user
                 resource.save()
-                role_formset =  resource_role_agent_formset(prefix="resource", data=request.POST)
+                role_formset = resource_role_agent_formset(prefix="resource", data=request.POST)
                 for form_rra in role_formset.forms:
                     if form_rra.is_valid():
                         data_rra = form_rra.cleaned_data
@@ -1017,8 +1049,8 @@ def resource_type(request, resource_type_id):
                                 rra.is_contact = data_rra["is_contact"]
                                 rra.save()
                 return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/resource', resource.id))
-                       
+                                            % ('accounting/resource', resource.id))
+
     return render_to_response("valueaccounting/resource_type.html", {
         "resource_type": resource_type,
         "photo_size": (128, 128),
@@ -1029,9 +1061,10 @@ def resource_type(request, resource_type_id):
         "help": get_help("resource_type"),
     }, context_instance=RequestContext(request))
 
+
 def inventory(request):
-    #import pdb; pdb.set_trace()
-    #resources = EconomicResource.objects.select_related().filter(quantity__gt=0).order_by('resource_type')
+    # import pdb; pdb.set_trace()
+    # resources = EconomicResource.objects.select_related().filter(quantity__gt=0).order_by('resource_type')
     rts = EconomicResourceType.objects.all()
     resource_types = []
     facets = Facet.objects.all()
@@ -1043,30 +1076,30 @@ def inventory(request):
             vals = selected_values.split(",")
             if vals[0] == "all":
                 select_all = True
-                #resources = EconomicResource.objects.select_related().filter(quantity__gt=0).order_by('resource_type')
+                # resources = EconomicResource.objects.select_related().filter(quantity__gt=0).order_by('resource_type')
                 for rt in rts:
-                    if rt.onhand_qty()>0:
+                    if rt.onhand_qty() > 0:
                         resource_types.append(rt)
             else:
                 select_all = False
-                #resources = EconomicResource.objects.select_related().filter(quantity__gt=0, resource_type__category__name__in=vals).order_by('resource_type')
+                # resources = EconomicResource.objects.select_related().filter(quantity__gt=0, resource_type__category__name__in=vals).order_by('resource_type')
                 fvs = []
                 for val in vals:
                     val_split = val.split(":")
                     fname = val_split[0]
                     fvalue = val_split[1].strip()
-                    fvs.append(FacetValue.objects.get(facet__name=fname,value=fvalue))
+                    fvs.append(FacetValue.objects.get(facet__name=fname, value=fvalue))
                 rts = select_resource_types(fvs)
                 for rt in rts:
-                    if rt.onhand_qty()>0:
+                    if rt.onhand_qty() > 0:
                         resource_types.append(rt)
                 resource_types.sort(key=lambda rt: rt.label())
     else:
         for rt in rts:
-            if rt.onhand_qty()>0:
+            if rt.onhand_qty() > 0:
                 resource_types.append(rt)
     return render_to_response("valueaccounting/inventory.html", {
-        #"resources": resources,
+        # "resources": resources,
         "resource_types": resource_types,
         "facets": facets,
         "select_all": select_all,
@@ -1075,31 +1108,32 @@ def inventory(request):
         "help": get_help("inventory"),
     }, context_instance=RequestContext(request))
 
+
 def resource_flow_report(request, resource_type_id):
-    #todo: this report is dependent on DHEN's specific work flow, will need to be generalized
-    #import pdb; pdb.set_trace()
+    # todo: this report is dependent on DHEN's specific work flow, will need to be generalized
+    # import pdb; pdb.set_trace()
     if settings.ALL_WORK_PAGE != "/board/dhen-board/":
         return render_to_response('valueaccounting/no_permission.html')
     rt = get_object_or_404(EconomicResourceType, id=resource_type_id)
-    #redo: need exchange_types as well as process_types
-    #this next stmt is obsolete until we get mixed process-exchange recipes
-    #pts, inheritance = rt.staged_process_type_sequence_beyond_workflow()
+    # redo: need exchange_types as well as process_types
+    # this next stmt is obsolete until we get mixed process-exchange recipes
+    # pts, inheritance = rt.staged_process_type_sequence_beyond_workflow()
     # also, shd this be only onhand or all resources?
     # or onhand + sold?
     # if all, any other filters?
     if rt.direct_children():
-        #lot_list = EconomicResource.objects.onhand().filter(resource_type__parent=rt)
+        # lot_list = EconomicResource.objects.onhand().filter(resource_type__parent=rt)
         lot_list = EconomicResource.objects.filter(resource_type__parent=rt)
         lot_list = [lot for lot in lot_list if lot.quantity > 0 or lot.sales()]
     else:
-        #lot_list = rt.resources.filter(quantity__gt=0)
+        # lot_list = rt.resources.filter(quantity__gt=0)
         lot_list = rt.resources.all()
         lot_list = [lot for lot in lot_list if lot.quantity > 0 or lot.sales()]
-    #hack to get a full set of stages upfront
-    #otherwise new ones incorrectly arrive at the end of the flow
-    #would be better to figure out how to insert in the correct place
+    # hack to get a full set of stages upfront
+    # otherwise new ones incorrectly arrive at the end of the flow
+    # would be better to figure out how to insert in the correct place
     stages = []
-    #import pdb; pdb.set_trace() 
+    # import pdb; pdb.set_trace()
     stages.append(ExchangeType.objects.get(id=3))
     stages.append(ExchangeType.objects.get(id=2))
     stages.append(ProcessType.objects.get(id=4))
@@ -1107,31 +1141,31 @@ def resource_flow_report(request, resource_type_id):
     stages.append(ProcessType.objects.get(id=5))
     sales = []
     for lot in lot_list:
-        #if lot.identifier == "direct345345": #70314
+        # if lot.identifier == "direct345345": #70314
         #    import pdb; pdb.set_trace() 
         lot_process_exchange_flow = lot.process_exchange_flow()
         if lot_process_exchange_flow:
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             lot_process_exchange_flow.reverse()
         lot_receipt = lot.receipt()
         lot.lot_receipt = lot_receipt
-        #redo: need exchange_types as well as process_types
-        #lot_pts, inheritance = rt.staged_process_type_sequence_beyond_workflow()
-        
-        #this next is obsolete, I think
-        #actually, it shd map lot_process_exchange_flow to stages
-        #51515 has lots of pex, which now caused lots of extra columns
-        #add lot stages to common stages
+        # redo: need exchange_types as well as process_types
+        # lot_pts, inheritance = rt.staged_process_type_sequence_beyond_workflow()
+
+        # this next is obsolete, I think
+        # actually, it shd map lot_process_exchange_flow to stages
+        # 51515 has lots of pex, which now caused lots of extra columns
+        # add lot stages to common stages
         lot_pts = lot_process_exchange_flow
         for pex in lot_process_exchange_flow:
             if pex.stage:
                 if pex.stage not in stages:
-                    #import pdb; pdb.set_trace()
+                    # import pdb; pdb.set_trace()
                     stages.append(pex.stage)
-                #this makes no sense to me
-                #if pex.stage not in lot_pts:
-                #    lot_pts.append(pex.stage)
-        #assign lot processes and exchanges to stages?
+                    # this makes no sense to me
+                    # if pex.stage not in lot_pts:
+                    #    lot_pts.append(pex.stage)
+        # assign lot processes and exchanges to stages?
         lot_stages = copy.deepcopy(stages)
         for stage in lot_stages:
             stage_pex = []
@@ -1139,7 +1173,7 @@ def resource_flow_report(request, resource_type_id):
                 if pex.stage == stage:
                     stage_pex.append(pex)
             stage.stage_pex = stage_pex
-        #if lot.identifier == "92714": #70314 AHtest
+        # if lot.identifier == "92714": #70314 AHtest
         #    import pdb; pdb.set_trace() 
         lot.lot_stages = lot_stages
         lot.lot_process_exchange_flow = lot_process_exchange_flow
@@ -1149,16 +1183,16 @@ def resource_flow_report(request, resource_type_id):
         if lot_sales:
             sales.extend(lot_sales)
         lot.sales = lot_sales
-    
+
     # just commented out next section because I don't understand it yet
     """
     for lot in lot_list:
         for stage in stages:
             if ptype not in lot.lot_pts:
                 lot.lot_pts.append(ptype)
-    """    
-    
-    #import pdb; pdb.set_trace() 
+    """
+
+    # import pdb; pdb.set_trace()
     paginator = Paginator(lot_list, 500)
     page = request.GET.get('page')
     try:
@@ -1169,18 +1203,19 @@ def resource_flow_report(request, resource_type_id):
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         lots = paginator.page(paginator.num_pages)
-    
+
     return render_to_response("valueaccounting/resource_flow_report.html", {
         "lots": lots,
         "stages": stages,
         "rt": rt,
-        #"sort_form": sort_form,
+        # "sort_form": sort_form,
     }, context_instance=RequestContext(request))
-    
+
+
 def adjust_resource(request, resource_id):
     resource = get_object_or_404(EconomicResource, id=resource_id)
     form = ResourceAdjustmentForm(data=request.POST)
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if form.is_valid():
         agent = get_agent(request)
         event = form.save(commit=False)
@@ -1198,18 +1233,19 @@ def adjust_resource(request, resource_id):
             event.save()
             resource.quantity = new_quantity
             resource.save()
-            
+
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/event-history', resource.id))  
-    
+                                % ('accounting/event-history', resource.id))
+
+
 def event_history(request, resource_id):
     resource = get_object_or_404(EconomicResource, id=resource_id)
     event_list = resource.events.all()
     agent = get_agent(request)
-    init = {"quantity": resource.quantity,}
+    init = {"quantity": resource.quantity, }
     adjustment_form = ResourceAdjustmentForm(initial=init)
     unit = resource.resource_type.unit
-    
+
     paginator = Paginator(event_list, 25)
 
     page = request.GET.get('page')
@@ -1221,7 +1257,7 @@ def event_history(request, resource_id):
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         events = paginator.page(paginator.num_pages)
-    
+
     return render_to_response("valueaccounting/event_history.html", {
         "resource": resource,
         "agent": agent,
@@ -1229,7 +1265,8 @@ def event_history(request, resource_id):
         "unit": unit,
         "events": events,
     }, context_instance=RequestContext(request))
-    
+
+
 def faircoin_outgoing_exchange_type():
     use_case = UseCase.objects.get(name="Outgoing Exchange")
     xt = ExchangeType.objects.filter(
@@ -1242,8 +1279,9 @@ def faircoin_outgoing_exchange_type():
             use_case=use_case,
             name="Send FairCoins")
         xt.save()
-    return xt    
-    
+    return xt
+
+
 def faircoin_outgoing_transfer_type():
     xt = faircoin_outgoing_exchange_type()
     tt = TransferType.objects.filter(
@@ -1260,7 +1298,8 @@ def faircoin_outgoing_transfer_type():
         )
         tt.save()
     return tt
-    
+
+
 def faircoin_internal_exchange_type():
     use_case = UseCase.objects.get(name="Internal Exchange")
     xt = ExchangeType.objects.filter(
@@ -1273,8 +1312,9 @@ def faircoin_internal_exchange_type():
             use_case=use_case,
             name="Transfer FairCoins")
         xt.save()
-    return xt    
-    
+    return xt
+
+
 def faircoin_internal_transfer_type():
     xt = faircoin_internal_exchange_type()
     tt = TransferType.objects.filter(
@@ -1291,7 +1331,8 @@ def faircoin_internal_transfer_type():
         )
         tt.save()
     return tt
-    
+
+
 @login_required
 def send_faircoins(request, resource_id):
     if request.method == "POST":
@@ -1308,7 +1349,7 @@ def send_faircoins(request, resource_id):
                 to_resources = EconomicResource.objects.filter(digital_currency_address=address_end)
                 to_agent = None
                 if to_resources:
-                    to_resource = to_resources[0] #shd be only one
+                    to_resource = to_resources[0]  # shd be only one
                     to_agent = to_resource.owner()
                 et_give = EventType.objects.get(name="Give")
                 if to_agent:
@@ -1320,14 +1361,14 @@ def send_faircoins(request, resource_id):
                         use_case=xt.use_case,
                         name="Transfer Faircoins",
                         start_date=date,
-                        )
+                    )
                     exchange.save()
                     transfer = Transfer(
                         transfer_type=tt,
                         exchange=exchange,
                         transfer_date=date,
                         name="Transfer Faircoins",
-                        )
+                    )
                     transfer.save()
                 else:
                     tt = faircoin_outgoing_transfer_type()
@@ -1338,29 +1379,29 @@ def send_faircoins(request, resource_id):
                         use_case=xt.use_case,
                         name="Send Faircoins",
                         start_date=date,
-                        )
+                    )
                     exchange.save()
                     transfer = Transfer(
                         transfer_type=tt,
                         exchange=exchange,
                         transfer_date=date,
                         name="Send Faircoins",
-                        )
+                    )
                     transfer.save()
-                    
-                state =  "new"
+
+                state = "new"
                 event = EconomicEvent(
-                    event_type = et_give,
-                    event_date = date,
+                    event_type=et_give,
+                    event_date=date,
                     from_agent=from_agent,
                     to_agent=to_agent,
                     resource_type=resource.resource_type,
                     resource=resource,
-                    digital_currency_tx_state = state,
-                    quantity = quantity, 
+                    digital_currency_tx_state=state,
+                    quantity=quantity,
                     transfer=transfer,
                     event_reference=address_end,
-                    )
+                )
                 event.save()
                 if to_agent:
                     # network_fee is subtracted from quantity
@@ -1370,28 +1411,29 @@ def send_faircoins(request, resource_id):
                     quantity = quantity - Decimal(float(network_fee()) / 1.e6)
                     et_receive = EventType.objects.get(name="Receive")
                     event = EconomicEvent(
-                        event_type = et_receive,
-                        event_date = date,
+                        event_type=et_receive,
+                        event_date=date,
                         from_agent=from_agent,
                         to_agent=to_agent,
                         resource_type=to_resource.resource_type,
                         resource=to_resource,
-                        digital_currency_tx_state = state,
-                        quantity = quantity, 
+                        digital_currency_tx_state=state,
+                        quantity=quantity,
                         transfer=transfer,
                         event_reference=address_end,
-                        )
+                    )
                     event.save()
                     print "receive event:", event
-                    
+
                 return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/event-history', resource.id))
+                                            % ('accounting/event-history', resource.id))
 
         return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/resource', resource.id))
-    
+                                    % ('accounting/resource', resource.id))
+
+
 def validate_faircoin_address(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     from django_rea.valueaccounting.faircoin_utils import is_valid
     data = request.GET
     address = data["to_address"]
@@ -1400,6 +1442,7 @@ def validate_faircoin_address(request):
         answer = "Invalid FairCoin address"
     response = simplejson.dumps(answer, ensure_ascii=False)
     return HttpResponse(response, content_type="text/json-comment-filtered")
+
 
 def all_contributions(request):
     event_list = EconomicEvent.objects.filter(is_contribution=True)
@@ -1414,13 +1457,14 @@ def all_contributions(request):
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         events = paginator.page(paginator.num_pages)
-    
+
     return render_to_response("valueaccounting/all_contributions.html", {
         "events": events,
     }, context_instance=RequestContext(request))
 
+
 def contributions(request, project_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     project = get_object_or_404(EconomicAgent, pk=project_id)
     agent = get_agent(request)
     event_list = project.contribution_events()
@@ -1428,10 +1472,10 @@ def contributions(request, project_id):
     agents = EconomicAgent.objects.filter(id__in=agent_ids)
     filter_form = ProjectContributionsFilterForm(agents=agents, data=request.POST or None)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if filter_form.is_valid():
             data = filter_form.cleaned_data
-            #event_type = data["event_type"]
+            # event_type = data["event_type"]
             from_agents = data["from_agents"]
             start = data["start_date"]
             end = data["end_date"]
@@ -1441,7 +1485,7 @@ def contributions(request, project_id):
                 event_list = event_list.filter(event_date__gte=start)
             if end:
                 event_list = event_list.filter(event_date__lte=end)
-    event_ids = ",".join([str(event.id) for event in event_list])            
+    event_ids = ",".join([str(event.id) for event in event_list])
     paginator = Paginator(event_list, 25)
     page = request.GET.get('page')
     try:
@@ -1452,7 +1496,7 @@ def contributions(request, project_id):
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         events = paginator.page(paginator.num_pages)
-    
+
     return render_to_response("valueaccounting/project_contributions.html", {
         "project": project,
         "events": events,
@@ -1461,8 +1505,9 @@ def contributions(request, project_id):
         "event_ids": event_ids,
     }, context_instance=RequestContext(request))
 
+
 def project_wip(request, project_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     project = get_object_or_404(EconomicAgent, pk=project_id)
     process_list = project.wip()
     paginator = Paginator(process_list, 25)
@@ -1476,14 +1521,15 @@ def project_wip(request, project_id):
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         processes = paginator.page(paginator.num_pages)
-    
+
     return render_to_response("valueaccounting/project_wip.html", {
         "project": project,
         "processes": processes,
     }, context_instance=RequestContext(request))
-  
+
+
 def finished_processes(request, agent_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     project = get_object_or_404(EconomicAgent, pk=agent_id)
     process_list = project.finished_processes()
     paginator = Paginator(process_list, 25)
@@ -1497,15 +1543,16 @@ def finished_processes(request, agent_id):
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         processes = paginator.page(paginator.num_pages)
-    
+
     return render_to_response("valueaccounting/finished_processes.html", {
         "project": project,
         "processes": processes,
     }, context_instance=RequestContext(request))
 
+
 @login_required
 def contribution_history(request, agent_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     agent = get_object_or_404(EconomicAgent, pk=agent_id)
     user_agent = get_agent(request)
     user_is_agent = False
@@ -1516,7 +1563,7 @@ def contribution_history(request, agent_id):
     filter_form = EventTypeFilterForm(event_types=event_types, data=request.POST or None)
     if request.method == "POST":
         if filter_form.is_valid():
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             data = filter_form.cleaned_data
             et_ids = data["event_types"]
             start = data["start_date"]
@@ -1525,10 +1572,10 @@ def contribution_history(request, agent_id):
                 event_list = event_list.filter(event_date__gte=start)
             if end:
                 event_list = event_list.filter(event_date__lte=end)
-            #belt and suspenders: if no et_ids, form is not valid
+            # belt and suspenders: if no et_ids, form is not valid
             if et_ids:
                 event_list = event_list.filter(event_type__id__in=et_ids)
-    event_ids = ",".join([str(event.id) for event in event_list]) 
+    event_ids = ",".join([str(event.id) for event in event_list])
     paginator = Paginator(event_list, 25)
 
     page = request.GET.get('page')
@@ -1540,7 +1587,7 @@ def contribution_history(request, agent_id):
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         events = paginator.page(paginator.num_pages)
-    
+
     return render_to_response("valueaccounting/agent_contributions.html", {
         "agent": agent,
         "user_is_agent": user_is_agent,
@@ -1548,10 +1595,11 @@ def contribution_history(request, agent_id):
         "filter_form": filter_form,
         "event_ids": event_ids,
     }, context_instance=RequestContext(request))
-    
+
+
 @login_required
 def agent_value_accounting(request, agent_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     agent = get_object_or_404(EconomicAgent, pk=agent_id)
     user_agent = get_agent(request)
     user_is_agent = False
@@ -1580,7 +1628,7 @@ def agent_value_accounting(request, agent_id):
     all_distro_evts = EconomicEvent.objects.filter(to_agent=agent, event_type=et)
     other_distro_evts = [d for d in all_distro_evts if d not in claim_distro_events]
     other_distributions = sum(de.quantity for de in other_distro_evts)
-    
+
     paginator = Paginator(event_list, 25)
     page = request.GET.get('page')
     try:
@@ -1591,7 +1639,7 @@ def agent_value_accounting(request, agent_id):
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         events = paginator.page(paginator.num_pages)
-    
+
     return render_to_response("valueaccounting/agent_value_accounting.html", {
         "agent": agent,
         "events": events,
@@ -1603,29 +1651,30 @@ def agent_value_accounting(request, agent_id):
         "other_distributions": format(other_distributions, ",.2f"),
     }, context_instance=RequestContext(request))
 
+
 @login_required
 def unscheduled_time_contributions(request):
     member = get_agent(request)
     if not member:
         return HttpResponseRedirect('/%s/'
-            % ('accounting/work'))
-        
+                                    % ('accounting/work'))
+
     TimeFormSet = modelformset_factory(
         EconomicEvent,
         form=CasualTimeContributionForm,
         can_delete=False,
         extra=8,
         max_num=8,
-        )
+    )
     init = []
     for i in range(0, 8):
-        init.append({"is_contribution": True,})
+        init.append({"is_contribution": True, })
     time_formset = TimeFormSet(
         queryset=EconomicEvent.objects.none(),
-        initial = init,
+        initial=init,
         data=request.POST or None)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         keep_going = request.POST.get("keep-going")
         just_save = request.POST.get("save")
         if time_formset.is_valid():
@@ -1642,27 +1691,28 @@ def unscheduled_time_contributions(request):
                     name__icontains="Hour")[0]
                 for event in events:
                     if event.event_date and event.quantity:
-                        event.from_agent=member
+                        event.from_agent = member
                         event.to_agent = event.context_agent.default_agent()
-                        #event.is_contribution=True
+                        # event.is_contribution=True
                         rt = event.resource_type
                         event_type = pattern.event_type_for_resource_type("work", rt)
-                        event.event_type=event_type
-                        event.unit_of_quantity=unit
-                        event.created_by=request.user
+                        event.event_type = event_type
+                        event.unit_of_quantity = unit
+                        event.created_by = request.user
                         event.save()
             if keep_going:
                 return HttpResponseRedirect('/%s/'
-                    % ('accounting/unscheduled-time'))
+                                            % ('accounting/unscheduled-time'))
             else:
                 return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/contributionhistory', member.id))
-    
+                                            % ('accounting/contributionhistory', member.id))
+
     return render_to_response("valueaccounting/unscheduled_time_contributions.html", {
         "member": member,
         "time_formset": time_formset,
         "help": get_help("non_production"),
     }, context_instance=RequestContext(request))
+
 
 @login_required
 def agent_associations(request, agent_id):
@@ -1670,29 +1720,29 @@ def agent_associations(request, agent_id):
     HasAssociatesFormSet = inlineformset_factory(
         EconomicAgent,
         AgentAssociation,
-        fk_name = "has_associate",
+        fk_name="has_associate",
         form=HasAssociateForm,
         extra=3,
-        )
+    )
     has_associates_formset = HasAssociatesFormSet(
         instance=agent,
         queryset=agent.all_has_associates(),
-        prefix = "has",
+        prefix="has",
         data=request.POST or None)
     IsAssociatesFormSet = inlineformset_factory(
         EconomicAgent,
         AgentAssociation,
-        fk_name = "is_associate",
+        fk_name="is_associate",
         form=IsAssociateForm,
         extra=3,
-        )
+    )
     is_associates_formset = IsAssociatesFormSet(
         instance=agent,
         queryset=agent.all_is_associates(),
-        prefix = "is",
+        prefix="is",
         data=request.POST or None)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         keep_going = request.POST.get("keep-going")
         just_save = request.POST.get("save")
         for form in has_associates_formset:
@@ -1715,10 +1765,10 @@ def agent_associations(request, agent_id):
                     form.save()
         if just_save:
             return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/agent', agent.id))
+                                        % ('accounting/agent', agent.id))
         elif keep_going:
             return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/agent-associations', agent.id))
+                                        % ('accounting/agent-associations', agent.id))
     return render_to_response("valueaccounting/agent_associations.html", {
         "agent": agent,
         "has_associates_formset": has_associates_formset,
@@ -1726,138 +1776,13 @@ def agent_associations(request, agent_id):
         "help": get_help("associations"),
     }, context_instance=RequestContext(request))
 
-def json_resource_type_resources(request, resource_type_id):
-    #import pdb; pdb.set_trace()
-    json = serializers.serialize("json", EconomicResource.objects.filter(resource_type=resource_type_id), fields=('identifier'))
-    return HttpResponse(json, content_type='application/json')
-    
-def json_resource_type_stages(request, resource_type_id):
-    #import pdb; pdb.set_trace()
-    rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
-    json = serializers.serialize("json", rt.all_stages(), fields=('name'))
-    return HttpResponse(json, content_type='application/json')
-    
-def json_resource_type_resources_with_locations(request, resource_type_id):
-    #import pdb; pdb.set_trace()
-    rs = EconomicResource.objects.filter(resource_type=resource_type_id)
-    resources = []
-    for r in rs:
-        loc = ""
-        if r.current_location:
-            loc = r.current_location.name
-        fields = {
-            "pk": r.pk,
-            "identifier": r.identifier,
-            "location": loc,
-        }
-        resources.append({"fields": fields})
-    data = simplejson.dumps(resources, ensure_ascii=False)
-    return HttpResponse(data, content_type="text/json-comment-filtered")
-    
-def json_resource(request, resource_id):
-    #import pdb; pdb.set_trace()
-    r = get_object_or_404(EconomicResource, pk=resource_id)
-    loc = ""
-    if r.current_location:
-        loc = r.current_location.name
-    rdict = {
-        "class": "EconomicResource",
-        "id": r.id,
-        "identifier": r.identifier,
-        "location": loc,
-        "quantity": str(r.quantity),
-        "unit": r.resource_type.unit.name,
-        "access_rules": r.access_rules,
-    }
-    assignments = {}
-    for item in r.agent_resource_roles.all():
-        assignments[item.role.name] = item.agent.name
-    rdict["assignments"] = assignments
-    data = simplejson.dumps(rdict)
-    return HttpResponse(data, content_type="text/json-comment-filtered")
-    
-def json_organization(request):
-    #import pdb; pdb.set_trace()
-    agent_types = AgentType.objects.all()
-    at_dict = {}
-    for at in agent_types:
-        fields = {
-            "name": at.name,
-            "is_context": at.is_context,
-        }
-        at_dict[at.name] = fields
-    agents = EconomicAgent.objects.all()
-    agent_dict = {}
-    for agent in agents:
-        fields = {
-            "class": "EconomicAgent",
-            "pk": agent.pk,
-            "id": agent.nick,
-            "name": agent.name,
-            "agent_type": agent.agent_type.name,
-        }
-        agent_dict[agent.nick] = fields
-    aa_types = AgentAssociationType.objects.all()
-    aat_dict = {}
-    for aat in aa_types:
-        fields = {
-            "name": aat.name,
-            "plural_name": aat.plural_name,
-            "label": aat.label,
-            "inverse_label": aat.inverse_label,
-            "description": aat.description,
-        }
-        aat_dict[aat.name] = fields
-    associations = AgentAssociation.objects.all()
-    assoc_dict = {}
-    for a in associations:
-        fields = {
-            "pk": a.pk,
-            "is_associate": a.is_associate.nick,
-            "has_associate": a.has_associate.nick,
-            "association_type": a.association_type.name,
-        }
-        assoc_dict[a.pk] = fields
-    big_d = {
-        "agentTypes": at_dict,
-        "agents": agent_dict,
-        "agentAssociationTypes": aat_dict,
-        "agentAssociations": assoc_dict,
-    }
-    data = simplejson.dumps(big_d)
-    return HttpResponse(data, content_type="text/json-comment-filtered")
-    
-def json_distribution_related_shipment(request, distribution_id):
-    d = get_object_or_404(EconomicEvent, pk=distribution_id)
-    ship = d.get_shipment_for_distribution()
-    sd = {}
-    if ship:
-        sd = {
-            "ship_id": ship.id,
-            "ship_description": ship.__unicode__(),
-        }
-    data = simplejson.dumps(sd)
-    return HttpResponse(data, content_type="text/json-comment-filtered")
-    
-def json_distribution_related_order(request, distribution_id):
-    d = get_object_or_404(EconomicEvent, pk=distribution_id)
-    #import pdb; pdb.set_trace()
-    order = d.get_order_for_distribution()
-    od = {}
-    if order:
-        od = {
-                "order_id": order.id,
-                "order_description": order.__unicode__(),
-            }
-    data = simplejson.dumps(od)
-    return HttpResponse(data, content_type="text/json-comment-filtered")
-    
+
 class EventSummary(object):
     def __init__(self, agent, role, quantity, value=Decimal('0.0')):
         self.agent = agent
         self.role = role
         self.quantity = quantity
-        self.value=value
+        self.value = value
 
     def key(self):
         return "-".join([str(self.agent.id), str(self.role.id)])
@@ -1867,22 +1792,23 @@ class EventSummary(object):
 
 
 class AgentSummary(object):
-    def __init__(self, 
-        agent, 
-        value=Decimal('0.0'), 
-        percentage=Decimal('0.0'),
-        amount=Decimal('0.0'),
-    ):
+    def __init__(self,
+                 agent,
+                 value=Decimal('0.0'),
+                 percentage=Decimal('0.0'),
+                 amount=Decimal('0.0'),
+                 ):
         self.agent = agent
-        self.value=value
-        self.percentage=percentage
-        self.amount=amount
+        self.value = value
+        self.percentage = percentage
+        self.amount = amount
 
-#obsolete
+
+# obsolete
 def value_equation(request, project_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     return render_to_response('valueaccounting/no_permission.html')
-    project = get_object_or_404(EconomicAgent, pk=project_id)    
+    project = get_object_or_404(EconomicAgent, pk=project_id)
     all_subs = project.with_all_sub_agents()
     summaries = CachedEventSummary.objects.select_related(
         'agent', 'context_agent', 'resource_type').filter(context_agent__in=all_subs).order_by(
@@ -1891,9 +1817,9 @@ def value_equation(request, project_id):
     agent_totals = []
     init = {"equation": "( hours * ( rate + importance + reputation ) ) + seniority"}
     form = EquationForm(data=request.POST or None,
-        initial=init)
+                        initial=init)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if form.is_valid():
             data = form.cleaned_data
             equation = data["equation"]
@@ -1911,31 +1837,31 @@ def value_equation(request, project_id):
             equation = s.join(eq)
             agent_sums = {}
             total = Decimal("0.00")
-            safe_list = ['math',]
-            safe_dict = dict([ (k, locals().get(k, None)) for k in safe_list ])
+            safe_list = ['math', ]
+            safe_dict = dict([(k, locals().get(k, None)) for k in safe_list])
             safe_dict['Decimal'] = Decimal
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             for summary in summaries:
                 safe_dict['hours'] = summary.quantity
                 safe_dict['rate'] = summary.resource_type_rate
                 safe_dict['importance'] = summary.importance
                 safe_dict['reputation'] = summary.reputation
                 safe_dict['seniority'] = Decimal(summary.agent.seniority())
-                #import pdb; pdb.set_trace()
-                summary.value = eval(equation, {"__builtins__":None}, safe_dict)
+                # import pdb; pdb.set_trace()
+                summary.value = eval(equation, {"__builtins__": None}, safe_dict)
                 agent = summary.agent
                 if not agent.id in agent_sums:
                     agent_sums[agent.id] = AgentSummary(agent)
                 agent_sums[agent.id].value += summary.value
                 total += summary.value
             agent_totals = agent_sums.values()
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             for at in agent_totals:
-               pct = at.value / total
-               at.value = at.value.quantize(Decimal('.01'), rounding=ROUND_UP)
-               at.percentage = ( pct * 100).quantize(Decimal('.01'), rounding=ROUND_UP)
-               if amount:
-                   at.amount = (amount * pct).quantize(Decimal('.01'), rounding=ROUND_UP)
+                pct = at.value / total
+                at.value = at.value.quantize(Decimal('.01'), rounding=ROUND_UP)
+                at.percentage = (pct * 100).quantize(Decimal('.01'), rounding=ROUND_UP)
+                if amount:
+                    at.amount = (amount * pct).quantize(Decimal('.01'), rounding=ROUND_UP)
 
     paginator = Paginator(summaries, 50)
     page = request.GET.get('page')
@@ -1947,7 +1873,7 @@ def value_equation(request, project_id):
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         events = paginator.page(paginator.num_pages)
-    
+
     return render_to_response("valueaccounting/value_equation.html", {
         "project": project,
         "events": events,
@@ -1956,10 +1882,11 @@ def value_equation(request, project_id):
         "total": total,
     }, context_instance=RequestContext(request))
 
+
 def extended_bill(request, resource_type_id):
     rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
     output_ctype, inheritance = rt.main_producing_process_type_relationship()
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     select_all = True
     facets = Facet.objects.all()
     if request.method == "POST":
@@ -1970,7 +1897,7 @@ def extended_bill(request, resource_type_id):
         selected_vals = request.POST["categories"]
         vals = selected_vals.split(",")
         selected_depth = int(request.POST['depth'])
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if vals[0]:
             if vals[0] == "all":
                 select_all = True
@@ -1981,14 +1908,14 @@ def extended_bill(request, resource_type_id):
                     val_split = val.split(":")
                     fname = val_split[0]
                     fvalue = val_split[1].strip()
-                    fvs.append(FacetValue.objects.get(facet__name=fname,value=fvalue))
+                    fvs.append(FacetValue.objects.get(facet__name=fname, value=fvalue))
         for node in nodes:
             node.show = False
             if node.depth <= selected_depth:
                 if select_all:
                     node.show = True
                 else:
-                    #import pdb; pdb.set_trace()
+                    # import pdb; pdb.set_trace()
                     if node.xbill_class == "economic-resource-type":
                         if node.xbill_object().matches_filter(fvs):
                             node.show = True
@@ -2017,20 +1944,20 @@ def extended_bill(request, resource_type_id):
         "help": get_help("recipes"),
     }, context_instance=RequestContext(request))
 
+
 @login_required
 def edit_extended_bill(request, resource_type_id):
-
-    #start_time = time.time()
+    # start_time = time.time()
     rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
     output_ctype, inheritance = rt.main_producing_process_type_relationship()
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     nodes = rt.generate_xbill()
     resource_type_form = EconomicResourceTypeChangeForm(instance=rt)
     feature_form = FeatureForm()
     names = EconomicResourceType.objects.values_list('name', flat=True)
     resource_names = '~'.join(names)
-    #end_time = time.time()
-    #print("edit_extended_bill view elapsed time was %g seconds" % (end_time - start_time))
+    # end_time = time.time()
+    # print("edit_extended_bill view elapsed time was %g seconds" % (end_time - start_time))
     return render_to_response("valueaccounting/edit_xbill.html", {
         "resource_type": rt,
         "output_ctype": output_ctype,
@@ -2043,10 +1970,11 @@ def edit_extended_bill(request, resource_type_id):
         "help": get_help("ed_asmbly_recipe"),
     }, context_instance=RequestContext(request))
 
+
 @login_required
 def edit_stream_recipe(request, resource_type_id):
     rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     process_types, inheritance = rt.staged_process_type_sequence()
     resource_type_form = EconomicResourceTypeChangeForm(instance=rt)
     names = EconomicResourceType.objects.values_list('name', flat=True)
@@ -2059,11 +1987,11 @@ def edit_stream_recipe(request, resource_type_id):
         "resource_type_form": resource_type_form,
         "help": get_help("ed_wf_recipe"),
     }, context_instance=RequestContext(request))
-        
+
 
 def view_stream_recipe(request, resource_type_id):
     rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     process_types, inheritance = rt.staged_process_type_sequence()
     names = EconomicResourceType.objects.values_list('name', flat=True)
     resource_names = '~'.join(names)
@@ -2076,27 +2004,28 @@ def view_stream_recipe(request, resource_type_id):
         "photo_size": (128, 128),
         "help": get_help("ed_wf_recipe"),
     }, context_instance=RequestContext(request))
-                    
-    
+
+
 @login_required
 def change_resource_type(request, resource_type_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         rtype = get_object_or_404(EconomicResourceType, pk=resource_type_id)
         form = EconomicResourceTypeChangeForm(request.POST, request.FILES, instance=rtype)
         if form.is_valid():
             data = form.cleaned_data
             rt = form.save(commit=False)
-            rt.changed_by=request.user
+            rt.changed_by = request.user
             rt.save()
             next = request.POST.get("next")
             if next:
                 return HttpResponseRedirect(next)
             else:
                 return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/edit-xbomfg', resource_type_id))
+                                            % ('accounting/edit-xbomfg', resource_type_id))
         else:
             raise ValidationError(form.errors)
+
 
 @login_required
 def delete_resource_type_confirmation(request, resource_type_id):
@@ -2107,15 +2036,16 @@ def delete_resource_type_confirmation(request, resource_type_id):
         return render_to_response('valueaccounting/resource_type_delete_confirmation.html', {
             "resource_type": rt,
             "side_effects": side_effects,
-            }, context_instance=RequestContext(request))
+        }, context_instance=RequestContext(request))
     else:
         rt.delete()
         return HttpResponseRedirect('/%s/'
-            % ('accounting/resources'))
+                                    % ('accounting/resources'))
+
 
 @login_required
 def delete_resource_type(request, resource_type_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
         pts = rt.producing_process_types()
@@ -2126,16 +2056,17 @@ def delete_resource_type(request, resource_type_id):
         if next:
             if next == "cleanup-resourcetypes":
                 return HttpResponseRedirect('/%s/'
-                    % ('accounting/cleanup-resourcetypes'))
+                                            % ('accounting/cleanup-resourcetypes'))
             else:
                 return HttpResponseRedirect(next)
         else:
             return HttpResponseRedirect('/%s/'
-                % ('accounting/resources'))
+                                        % ('accounting/resources'))
+
 
 @login_required
 def delete_resource(request, resource_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         er = get_object_or_404(EconomicResource, pk=resource_id)
         er.delete()
@@ -2143,21 +2074,23 @@ def delete_resource(request, resource_id):
         if next:
             if next == "cleanup-resources":
                 return HttpResponseRedirect('/%s/'
-                    % ('accounting/cleanup-resources'))
+                                            % ('accounting/cleanup-resources'))
             else:
                 return HttpResponseRedirect(next)
         else:
             return HttpResponseRedirect('/%s/'
-                % ('accounting/cleanup-resources'))
-                
+                                        % ('accounting/cleanup-resources'))
+
+
 @login_required
 def delete_agent(request, agent_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         agt = get_object_or_404(EconomicAgent, pk=agent_id)
         agt.delete()
         return HttpResponseRedirect('/%s/'
-            % ('accounting/agents'))
+                                    % ('accounting/agents'))
+
 
 @login_required
 def delete_order_confirmation(request, order_id):
@@ -2167,12 +2100,12 @@ def delete_order_confirmation(request, order_id):
     reqs = []
     work = []
     tools = []
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     next = request.POST.get("next")
     if pcs:
         visited_resources = set()
         for ct in pcs:
-            #visited_resources.add(ct.resource_type)
+            # visited_resources.add(ct.resource_type)
             schedule_commitment(ct, sked, reqs, work, tools, visited_resources, 0)
         return render_to_response('valueaccounting/order_delete_confirmation.html', {
             "order": order,
@@ -2201,14 +2134,15 @@ def delete_order_confirmation(request, order_id):
             order.delete()
             if next == "demand":
                 return HttpResponseRedirect('/%s/'
-                    % ('accounting/demand'))
+                                            % ('accounting/demand'))
             if next == "closed_work_orders":
                 return HttpResponseRedirect('/%s/'
-                    % ('accounting/closed-work-orders'))
+                                            % ('accounting/closed-work-orders'))
+
 
 @login_required
 def delete_order(request, order_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         order = get_object_or_404(Order, pk=order_id)
         next = request.POST.get("next")
@@ -2218,14 +2152,14 @@ def delete_order(request, order_id):
         if pcs:
             for ct in pcs:
                 ct.delete_dependants()
-                #import pdb; pdb.set_trace()
+                # import pdb; pdb.set_trace()
             order.delete()
             for item in trash:
                 item.delete()
         else:
             commitments = Commitment.objects.filter(independent_demand=order)
             if commitments:
-                #import pdb; pdb.set_trace()
+                # import pdb; pdb.set_trace()
                 processes = []
                 for ct in commitments:
                     if ct.process:
@@ -2238,30 +2172,32 @@ def delete_order(request, order_id):
                 for process in processes:
                     process.delete()
             order.delete()
-        #next = request.POST.get("next")
-        #if next:
+        # next = request.POST.get("next")
+        # if next:
         #    return HttpResponseRedirect(next)
-        #else:
+        # else:
         #    return HttpResponseRedirect('/%s/'
         #        % ('accounting/demand'))
         if next == "demand":
             return HttpResponseRedirect('/%s/'
-                % ('accounting/demand'))
+                                        % ('accounting/demand'))
         if next == "closed_work_orders":
             return HttpResponseRedirect('/%s/'
-                % ('accounting/closed-work-orders'))
+                                        % ('accounting/closed-work-orders'))
+
 
 @login_required
-def delete_process_input(request, 
-        process_input_id, resource_type_id):
+def delete_process_input(request,
+                         process_input_id, resource_type_id):
     pi = get_object_or_404(ProcessTypeResourceType, pk=process_input_id)
     pi.delete()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/edit-xbomfg', resource_type_id))
-        
+                                % ('accounting/edit-xbomfg', resource_type_id))
+
+
 @login_required
-def delete_process_type_input(request, 
-        process_input_id, resource_type_id):
+def delete_process_type_input(request,
+                              process_input_id, resource_type_id):
     pi = get_object_or_404(ProcessTypeResourceType, pk=process_input_id)
     pi.delete()
     next = request.POST.get("next")
@@ -2269,17 +2205,18 @@ def delete_process_type_input(request,
 
 
 @login_required
-def delete_source(request, 
-        source_id, resource_type_id):
+def delete_source(request,
+                  source_id, resource_type_id):
     s = get_object_or_404(AgentResourceType, pk=source_id)
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     s.delete()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/edit-xbomfg', resource_type_id))
+                                % ('accounting/edit-xbomfg', resource_type_id))
+
 
 @login_required
-def delete_process_type_confirmation(request, 
-        process_type_id, resource_type_id):
+def delete_process_type_confirmation(request,
+                                     process_type_id, resource_type_id):
     pt = get_object_or_404(ProcessType, pk=process_type_id)
     side_effects = False
     next = request.POST.get("next")
@@ -2292,14 +2229,15 @@ def delete_process_type_confirmation(request,
             "resource_type_id": resource_type_id,
             "side_effects": side_effects,
             "next": next,
-            }, context_instance=RequestContext(request))
+        }, context_instance=RequestContext(request))
     else:
         pt.delete()
         return HttpResponseRedirect(next)
 
+
 @login_required
-def delete_feature_confirmation(request, 
-        feature_id, resource_type_id):
+def delete_feature_confirmation(request,
+                                feature_id, resource_type_id):
     ft = get_object_or_404(Feature, pk=feature_id)
     side_effects = False
     if ft.options.all():
@@ -2308,16 +2246,16 @@ def delete_feature_confirmation(request,
             "feature": ft,
             "resource_type_id": resource_type_id,
             "side_effects": side_effects,
-            }, context_instance=RequestContext(request))
+        }, context_instance=RequestContext(request))
     else:
         ft.delete()
         return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/edit-xbomfg', resource_type_id))
+                                    % ('accounting/edit-xbomfg', resource_type_id))
 
 
 @login_required
 def delete_process_type(request, process_type_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         pt = get_object_or_404(ProcessType, pk=process_type_id)
         rt = pt.main_produced_resource_type()
@@ -2340,26 +2278,28 @@ def delete_process_type(request, process_type_id):
             return HttpResponseRedirect(next)
         else:
             return HttpResponseRedirect('/%s/'
-                % ('accounting/resources'))
+                                        % ('accounting/resources'))
+
 
 @login_required
 def delete_feature(request, feature_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         ft = get_object_or_404(Feature, pk=feature_id)
         ft.delete()
         next = request.POST.get("next")
         return HttpResponseRedirect(next)
 
+
 @login_required
 def create_resource_type(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         form = EconomicResourceTypeForm(request.POST, request.FILES)
         if form.is_valid():
             data = form.cleaned_data
-            rt = form.save(commit=False)                    
-            rt.created_by=request.user
+            rt = form.save(commit=False)
+            rt.created_by = request.user
             rt.save()
             formset = create_facet_formset(data=request.POST)
             for form_rtfv in formset.forms:
@@ -2377,30 +2317,31 @@ def create_resource_type(request):
                 return HttpResponseRedirect(next)
             else:
                 return HttpResponseRedirect('/%s/'
-                    % ('accounting/resources'))
+                                            % ('accounting/resources'))
         else:
             raise ValidationError(form.errors)
 
+
 @login_required
 def create_resource_type_ajax(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     slot = request.POST.get("slot")
-    pt_id = int(request.POST.get("pt-id").replace("ProcessType-",""))
-    process_type = ProcessType.objects.get(id=pt_id) 
+    pt_id = int(request.POST.get("pt-id").replace("ProcessType-", ""))
+    process_type = ProcessType.objects.get(id=pt_id)
     if slot == "cite":
         rt_prefix = process_type.xbill_citable_rt_prefix()
         rtf_prefix = process_type.xbill_citable_rt_facet_prefix()
-    elif slot == "use": 
-        rt_prefix = process_type.xbill_usable_rt_prefix()  
+    elif slot == "use":
+        rt_prefix = process_type.xbill_usable_rt_prefix()
         rtf_prefix = process_type.xbill_usable_rt_facet_prefix()
     else:
-        rt_prefix = process_type.xbill_consumable_rt_prefix()  
+        rt_prefix = process_type.xbill_consumable_rt_prefix()
         rtf_prefix = process_type.xbill_consumable_rt_facet_prefix()
     form = EconomicResourceTypeAjaxForm(request.POST, request.FILES, prefix=rt_prefix)
     if form.is_valid():
         data = form.cleaned_data
-        rt = form.save(commit=False)                    
-        rt.created_by=request.user
+        rt = form.save(commit=False)
+        rt.created_by = request.user
         rt.save()
         formset = process_type.create_facet_formset_filtered(data=request.POST, pre=rtf_prefix, slot=slot)
         for form_rtfv in formset.forms:
@@ -2412,19 +2353,21 @@ def create_resource_type_ajax(request):
                     rtfv.resource_type = rt
                     rtfv.facet_value = fv
                     rtfv.save()
-        return_data = serializers.serialize("json", EconomicResourceType.objects.filter(id=rt.id), fields=('id','name',)) 
+        return_data = serializers.serialize("json", EconomicResourceType.objects.filter(id=rt.id),
+                                            fields=('id', 'name',))
         return HttpResponse(return_data, content_type="text/json-comment-filtered")
     else:
         return HttpResponse(form.errors, content_type="text/json-comment-filtered")
 
+
 @login_required
 def create_resource_type_simple_patterned_ajax(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     form = EconomicResourceTypeAjaxForm(request.POST, request.FILES)
     if form.is_valid():
         data = form.cleaned_data
-        rt = form.save(commit=False)                    
-        rt.created_by=request.user
+        rt = form.save(commit=False)
+        rt.created_by = request.user
         rt.save()
         slot = request.POST["slot"]
         pattern_id = request.POST["pattern"]
@@ -2439,14 +2382,16 @@ def create_resource_type_simple_patterned_ajax(request):
                     rtfv.resource_type = rt
                     rtfv.facet_value = fv
                     rtfv.save()
-        return_data = serializers.serialize("json", EconomicResourceType.objects.filter(id=rt.id), fields=('id','name',)) 
+        return_data = serializers.serialize("json", EconomicResourceType.objects.filter(id=rt.id),
+                                            fields=('id', 'name',))
         return HttpResponse(return_data, content_type="text/json-comment-filtered")
     else:
         return HttpResponse(form.errors, content_type="text/json-comment-filtered")
 
+
 @login_required
 def create_process_type_input(request, process_type_id, slot):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         pt = get_object_or_404(ProcessType, pk=process_type_id)
         if slot == "c":
@@ -2460,20 +2405,21 @@ def create_process_type_input(request, process_type_id, slot):
         if form.is_valid():
             ptrt = form.save(commit=False)
             rt = form.cleaned_data["resource_type"]
-            ptrt.process_type=pt
+            ptrt.process_type = pt
             pattern = pt.process_pattern
             event_type = pattern.event_type_for_resource_type(et_rel, rt)
             ptrt.event_type = event_type
-            ptrt.created_by=request.user
+            ptrt.created_by = request.user
             ptrt.save()
             next = request.POST.get("next")
             return HttpResponseRedirect(next)
         else:
             raise ValidationError(form.errors)
 
+
 @login_required
 def create_process_type_citable(request, process_type_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         pt = get_object_or_404(ProcessType, pk=process_type_id)
         prefix = pt.xbill_citable_prefix()
@@ -2483,20 +2429,21 @@ def create_process_type_citable(request, process_type_id):
             ptrt.quantity = Decimal("1.0")
             rt = form.cleaned_data["resource_type"]
             ptrt.unit_of_quantity = rt.unit
-            ptrt.process_type=pt
+            ptrt.process_type = pt
             pattern = pt.process_pattern
             event_type = pattern.event_type_for_resource_type("cite", rt)
             ptrt.event_type = event_type
-            ptrt.created_by=request.user
+            ptrt.created_by = request.user
             ptrt.save()
             next = request.POST.get("next")
             return HttpResponseRedirect(next)
         else:
             raise ValidationError(form.errors)
 
+
 @login_required
 def create_process_type_work(request, process_type_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         pt = get_object_or_404(ProcessType, pk=process_type_id)
         prefix = pt.xbill_work_prefix()
@@ -2504,51 +2451,53 @@ def create_process_type_work(request, process_type_id):
         if form.is_valid():
             ptrt = form.save(commit=False)
             rt = form.cleaned_data["resource_type"]
-            ptrt.process_type=pt
+            ptrt.process_type = pt
             pattern = pt.process_pattern
             event_type = pattern.event_type_for_resource_type("work", rt)
             ptrt.event_type = event_type
-            ptrt.created_by=request.user
+            ptrt.created_by = request.user
             ptrt.save()
             next = request.POST.get("next")
             return HttpResponseRedirect(next)
         else:
             raise ValidationError(form.errors)
 
+
 @login_required
 def create_process_type_feature(request, process_type_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         pt = get_object_or_404(ProcessType, pk=process_type_id)
         form = FeatureForm(request.POST)
         if form.is_valid():
             feature = form.save(commit=False)
-            feature.process_type=pt
+            feature.process_type = pt
             rts = pt.produced_resource_types()
-            #todo: assumes the feature applies to the first
+            # todo: assumes the feature applies to the first
             # produced_resource_type, which might be wrong
             if rts:
                 rt = rts[0]
-                feature.product=rt
+                feature.product = rt
                 pattern = pt.process_pattern
                 event_type = pattern.event_type_for_resource_type("in", rt)
                 feature.event_type = event_type
             else:
-                #todo: when will we get here? It's a hack.
+                # todo: when will we get here? It's a hack.
                 ets = EventType.objects.filter(
                     resource_effect="-")
                 event_type = ets[0]
                 feature.event_type = event_type
-            feature.created_by=request.user
+            feature.created_by = request.user
             feature.save()
             next = request.POST.get("next")
             return HttpResponseRedirect(next)
         else:
             raise ValidationError(form.errors)
 
+
 @login_required
 def create_options_for_feature(request, feature_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         ft = get_object_or_404(Feature, pk=feature_id)
         form = OptionsForm(feature=ft, data=request.POST)
@@ -2559,17 +2508,18 @@ def create_options_for_feature(request, feature_id):
                 opt = Option(
                     feature=ft,
                     component=rt)
-                opt.created_by=request.user
+                opt.created_by = request.user
                 opt.save()
-                
+
             next = request.POST.get("next")
             return HttpResponseRedirect(next)
         else:
             raise ValidationError(form.errors)
 
+
 @login_required
 def change_options_for_feature(request, feature_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         ft = get_object_or_404(Feature, pk=feature_id)
         form = OptionsForm(feature=ft, data=request.POST)
@@ -2590,73 +2540,76 @@ def change_options_for_feature(request, feature_id):
                     opt = Option(
                         feature=ft,
                         component=rt)
-                    opt.created_by=request.user
+                    opt.created_by = request.user
                     opt.save()
-                
+
             next = request.POST.get("next")
             return HttpResponseRedirect(next)
         else:
             raise ValidationError(form.errors)
 
+
 @login_required
 def change_process_type_input(request, input_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         ptrt = get_object_or_404(ProcessTypeResourceType, pk=input_id)
         prefix = ptrt.xbill_change_prefix()
         if ptrt.event_type.relationship == "work":
             form = ProcessTypeWorkForm(
                 data=request.POST,
-                instance=ptrt, 
-                process_type=ptrt.process_type, 
+                instance=ptrt,
+                process_type=ptrt.process_type,
                 prefix=prefix)
         elif ptrt.event_type.relationship == "cite":
             form = ProcessTypeCitableForm(
                 data=request.POST,
-                instance=ptrt, 
-                process_type=ptrt.process_type, 
+                instance=ptrt,
+                process_type=ptrt.process_type,
                 prefix=prefix)
         else:
             form = ProcessTypeInputForm(
                 data=request.POST,
-                instance=ptrt, 
-                process_type=ptrt.process_type, 
+                instance=ptrt,
+                process_type=ptrt.process_type,
                 prefix=prefix)
         if form.is_valid():
             inp = form.save(commit=False)
-            inp.changed_by=request.user
+            inp.changed_by = request.user
             inp.save()
             next = request.POST.get("next")
             return HttpResponseRedirect(next)
         else:
             raise ValidationError(form.errors)
 
+
 @login_required
 def change_agent_resource_type(request, agent_resource_type_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         art = get_object_or_404(AgentResourceType, pk=agent_resource_type_id)
         prefix = art.xbill_change_prefix()
         form = AgentResourceTypeForm(data=request.POST, instance=art, prefix=prefix)
         if form.is_valid():
             art = form.save(commit=False)
-            art.changed_by=request.user
+            art.changed_by = request.user
             art.save()
             next = request.POST.get("next")
             return HttpResponseRedirect(next)
         else:
             raise ValidationError(form.errors)
 
+
 @login_required
 def change_feature(request, feature_id):
     if request.method == "POST":
         ft = get_object_or_404(Feature, pk=feature_id)
-        #prefix = ft.xbill_change_prefix()
-        #form = FeatureForm(data=request.POST, instance=ft, prefix=prefix)
+        # prefix = ft.xbill_change_prefix()
+        # form = FeatureForm(data=request.POST, instance=ft, prefix=prefix)
         form = FeatureForm(data=request.POST, instance=ft)
         if form.is_valid():
             feature = form.save(commit=False)
-            feature.changed_by=request.user
+            feature.changed_by = request.user
             feature.save()
             next = request.POST.get("next")
             return HttpResponseRedirect(next)
@@ -2666,48 +2619,50 @@ def change_feature(request, feature_id):
 
 @login_required
 def create_agent_resource_type(request, resource_type_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
         prefix = rt.source_create_prefix()
         form = AgentResourceTypeForm(request.POST, prefix=prefix)
         if form.is_valid():
             art = form.save(commit=False)
-            art.resource_type=rt
-            #todo: this is a hack
-            #shd be rethought and encapsulated
+            art.resource_type = rt
+            # todo: this is a hack
+            # shd be rethought and encapsulated
             ets = EventType.objects.filter(
                 related_to="agent",
                 relationship="out",
                 resource_effect="=")
             event_type = ets[0]
             art.event_type = event_type
-            art.created_by=request.user
+            art.created_by = request.user
             art.save()
             next = request.POST.get("next")
             return HttpResponseRedirect(next)
         else:
             raise ValidationError(form.errors)
 
+
 @login_required
 def change_process_type(request, process_type_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         pt = get_object_or_404(ProcessType, pk=process_type_id)
         prefix = pt.xbill_change_prefix()
         form = ChangeProcessTypeForm(request.POST, instance=pt, prefix=prefix)
         if form.is_valid():
             pt = form.save(commit=False)
-            pt.changed_by=request.user
+            pt.changed_by = request.user
             pt.save()
             next = request.POST.get("next")
             return HttpResponseRedirect(next)
         else:
             raise ValidationError(form.errors)
-        
+
+
 @login_required
 def change_mfg_process_type(request, process_type_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         pt = get_object_or_404(ProcessType, pk=process_type_id)
         prefix = pt.xbill_change_prefix()
@@ -2721,16 +2676,17 @@ def change_mfg_process_type(request, process_type_id):
                     prtr.quantity = qty
                     prtr.save()
             pt = form.save(commit=False)
-            pt.changed_by=request.user
+            pt.changed_by = request.user
             pt.save()
             next = request.POST.get("next")
             return HttpResponseRedirect(next)
         else:
             raise ValidationError(form.errors)
 
+
 @login_required
 def create_process_type_for_resource_type(request, resource_type_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
         prefix = rt.process_create_prefix()
@@ -2738,8 +2694,8 @@ def create_process_type_for_resource_type(request, resource_type_id):
         if form.is_valid():
             data = form.cleaned_data
             pt = form.save(commit=False)
-            pt.created_by=request.user
-            pt.changed_by=request.user
+            pt.created_by = request.user
+            pt.changed_by = request.user
             pt.save()
             quantity = data["quantity"]
             pattern = pt.process_pattern
@@ -2759,10 +2715,11 @@ def create_process_type_for_resource_type(request, resource_type_id):
             return HttpResponseRedirect(next)
         else:
             raise ValidationError(form.errors)
-        
+
+
 @login_required
 def create_process_type_for_streaming(request, resource_type_id, process_type_id=None):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
         existing_process_type = None
@@ -2772,22 +2729,22 @@ def create_process_type_for_streaming(request, resource_type_id, process_type_id
         else:
             prefix = rt.process_create_prefix()
         form = RecipeProcessTypeForm(request.POST, prefix=prefix)
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if form.is_valid():
             data = form.cleaned_data
             pt = form.save(commit=False)
-            pt.created_by=request.user
-            pt.changed_by=request.user
+            pt.created_by = request.user
+            pt.changed_by = request.user
             pt.save()
-            #quantity = data["quantity"]
+            # quantity = data["quantity"]
             pattern = pt.process_pattern
             ets = pattern.change_event_types()
             unit = rt.unit
-            #quantity = Decimal(quantity)
+            # quantity = Decimal(quantity)
             for et in ets:
                 if et.relationship == "out":
                     stage = pt
-                else: #assumes only one input of stream/change type (or possibly none)
+                else:  # assumes only one input of stream/change type (or possibly none)
                     pts, inheritance = rt.staged_process_type_sequence()
                     if process_type_id:
                         next_input_ptrt = next_process_type.input_stream_resource_type_relationship()[0]
@@ -2814,9 +2771,9 @@ def create_process_type_for_streaming(request, resource_type_id, process_type_id
         else:
             raise ValidationError(form.errors)
 
-            
+
 def network(request, resource_type_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
     nodes, edges = graphify(rt, 3)
     return render_to_response("valueaccounting/network.html", {
@@ -2826,8 +2783,9 @@ def network(request, resource_type_id):
         "edges": edges,
     }, context_instance=RequestContext(request))
 
+
 def project_network(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     producers = [p for p in ProcessType.objects.all() if p.produced_resource_types()]
     nodes, edges = project_graph(producers)
     return render_to_response("valueaccounting/network.html", {
@@ -2835,6 +2793,7 @@ def project_network(request):
         "nodes": nodes,
         "edges": edges,
     }, context_instance=RequestContext(request))
+
 
 def timeline(request, from_date, to_date, context_id):
     try:
@@ -2859,33 +2818,11 @@ def timeline(request, from_date, to_date, context_id):
         "unassigned": unassigned,
     }, context_instance=RequestContext(request))
 
-def json_timeline(request, from_date, to_date, context_id):
-    try:
-        start = datetime.datetime(*time.strptime(from_date, '%Y_%m_%d')[0:5]).date()
-        end = datetime.datetime(*time.strptime(to_date, '%Y_%m_%d')[0:5]).date()
-    except ValueError:
-        raise Http404
-    context_id = int(context_id)
-    context_agent = None
-    if context_id:
-        context_agent = get_object_or_404(EconomicAgent, pk=context_id)
-    events = {'dateTimeFormat': 'Gregorian','events':[]}
-    processes = Process.objects.unfinished().filter(
-        Q(start_date__range=(start, end)) | Q(end_date__range=(start, end)) |
-        Q(start_date__lt=start, end_date__gt=end))      
-    if context_agent:
-        processes = processes.filter(context_agent=context_agent)
-    orders = [p.independent_demand() for p in processes if p.independent_demand()]
-    orders = list(set(orders))
-    create_events(orders, processes, events)
-    data = simplejson.dumps(events, ensure_ascii=False)
-    #import pdb; pdb.set_trace()
-    return HttpResponse(data, content_type="text/json-comment-filtered")
-    
+
 def context_timeline(request, context_id):
     context_agent = get_object_or_404(EconomicAgent, pk=context_id)
     timeline_date = datetime.date.today().strftime("%b %e %Y 00:00:00 GMT-0600")
-    
+
     unassigned = Commitment.objects.unfinished().filter(
         context_agent=context_agent,
         from_agent=None,
@@ -2898,17 +2835,6 @@ def context_timeline(request, context_id):
         "unassigned": unassigned,
     }, context_instance=RequestContext(request))
 
-def json_context_timeline(request, context_id):
-    #import pdb; pdb.set_trace()
-    events = {'dateTimeFormat': 'Gregorian','events':[]}
-    context_agent = get_object_or_404(EconomicAgent, pk=context_id)
-    processes = Process.objects.unfinished().filter(context_agent=context_agent)
-    orders = [p.independent_demand() for p in processes if p.independent_demand()]
-    orders = list(set(orders))
-    create_events(orders, processes, events)
-    data = simplejson.dumps(events, ensure_ascii=False)
-    #import pdb; pdb.set_trace()
-    return HttpResponse(data, content_type="text/json-comment-filtered")
 
 def order_timeline(request, order_id):
     order = get_object_or_404(Order, pk=order_id)
@@ -2929,157 +2855,12 @@ def order_timeline(request, order_id):
         "unassigned": unassigned,
     }, context_instance=RequestContext(request))
 
-def json_order_timeline(request, order_id):
-    events = {'dateTimeFormat': 'Gregorian','events':[]}
-    order = get_object_or_404(Order, pk=order_id)
-    processes = order.all_processes()
-    orders = [order,]
-    create_events(orders, processes, events)
-    data = simplejson.dumps(events, ensure_ascii=False)
-    #import pdb; pdb.set_trace()
-    return HttpResponse(data, content_type="text/json-comment-filtered")
-    
 
-def json_processes(request, order_id=None):
-    #import pdb; pdb.set_trace()
-    if order_id:
-        order = get_object_or_404(Order, pk=order_id)
-        processes = order.all_processes()
-    else:
-        processes = Process.objects.unfinished()
-    graph = process_graph(processes)
-    data = simplejson.dumps(graph)
-    return HttpResponse(data, content_type="text/json-comment-filtered")
-
-def json_project_processes(request, object_type=None, object_id=None):
-    #import pdb; pdb.set_trace()
-    #todo: needs to change
-    # project and agent are now both agents
-    # active_processes has been fixed, though...
-    if object_type:
-        if object_type == "P":
-            project = get_object_or_404(EconomicAgent, pk=object_id)
-            processes = project.active_processes()
-            projects = [project,]
-        elif object_type == "O":
-            order = get_object_or_404(Order, pk=object_id)
-            processes = order.all_processes()
-            projects = [p.context_agent for p in processes if p.context_agent]
-            projects = list(set(projects))
-        elif object_type == "A":
-            agent = get_object_or_404(EconomicAgent, pk=object_id)
-            processes = agent.active_processes()
-            projects = [p.context_agent for p in processes if p.context_agent]
-            projects = list(set(projects))
-    else:
-        processes = Process.objects.unfinished()
-        projects = [p.context_agent for p in processes if p.context_agent]
-        projects = list(set(projects))
-    #import pdb; pdb.set_trace()
-    graph = project_process_resource_agent_graph(projects, processes)
-    data = simplejson.dumps(graph)
-    return HttpResponse(data, content_type="text/json-comment-filtered")
-
-
-def json_resource_type_unit(request, resource_type_id):
-    data = serializers.serialize("json", EconomicResourceType.objects.filter(id=resource_type_id), fields=('unit',))
-    return HttpResponse(data, content_type="text/json-comment-filtered")
-
-def json_agent(request, agent_id):
-    data = serializers.serialize("json", EconomicAgent.objects.filter(id=agent_id))
-    return HttpResponse(data, content_type="text/json-comment-filtered")
-
-def json_resource_type_citation_unit(request, resource_type_id):
-    #import pdb; pdb.set_trace()
-    ert = get_object_or_404(EconomicResourceType, pk=resource_type_id)
-    direction = "use"
-    defaults = {
-        "unit": ert.directional_unit(direction).name,
-    }
-    data = simplejson.dumps(defaults, ensure_ascii=False)
-    return HttpResponse(data, content_type="text/json-comment-filtered")
-
-def json_directional_unit(request, resource_type_id, direction):
-    #import pdb; pdb.set_trace()
-    ert = get_object_or_404(EconomicResourceType, pk=resource_type_id)
-    defaults = {
-        "unit": ert.directional_unit(direction).id,
-    }
-    data = simplejson.dumps(defaults, ensure_ascii=False)
-    return HttpResponse(data, content_type="text/json-comment-filtered")
-    
-def json_default_equation(request, event_type_id):
-    et = get_object_or_404(EventType, pk=event_type_id)
-    equation = et.default_event_value_equation()
-    data = simplejson.dumps(equation, ensure_ascii=False)
-    return HttpResponse(data, content_type="text/json-comment-filtered")
-
-def json_directional_unit_and_rule(request, resource_type_id, direction):
-    #import pdb; pdb.set_trace()
-    ert = get_object_or_404(EconomicResourceType, pk=resource_type_id)
-    defaults = {
-        "unit": ert.directional_unit(direction).id,
-        "rule": ert.inventory_rule
-    }
-    data = simplejson.dumps(defaults, ensure_ascii=False)
-    return HttpResponse(data, content_type="text/json-comment-filtered")
-
-def json_resource_type_defaults(request, resource_type_id):
-    ert = get_object_or_404(EconomicResourceType, pk=resource_type_id)
-    defaults = {
-        "unit": ert.unit.id,
-    }
-    #import pdb; pdb.set_trace()
-    data = simplejson.dumps(defaults, ensure_ascii=False)
-    return HttpResponse(data, content_type="text/json-comment-filtered")
-    
-def json_context_agent_suppliers(request, agent_id):
-    #import pdb; pdb.set_trace()
-    agent = EconomicAgent.objects.get(id=agent_id)
-    json = serializers.serialize("json", agent.all_suppliers(), fields=('pk', 'nick'))
-    return HttpResponse(json, content_type='application/json')
-    
-def json_context_agent_customers(request, agent_id):
-    #import pdb; pdb.set_trace()
-    agent = EconomicAgent.objects.get(id=agent_id)
-    json = serializers.serialize("json", agent.all_customers(), fields=('pk', 'nick'))
-    return HttpResponse(json, content_type='application/json')
-    
-def json_order_customer(request, order_id, agent_id):
-    #import pdb; pdb.set_trace()
-    if order_id == '0':
-        agent = EconomicAgent.objects.get(id=agent_id)
-        json = serializers.serialize("json", agent.all_customers(), fields=('pk', 'nick'))
-    else:
-        customers = []
-        order = Order.objects.get(id=order_id)
-        if order.provider:
-            customers.append(order.provider)
-        json = serializers.serialize("json", customers, fields=('pk', 'nick'))
-    return HttpResponse(json, content_type='application/json')       
-    
-def json_customer_orders(request, customer_id):
-    #import pdb; pdb.set_trace()
-    if customer_id == '0':
-        os = Order.objects.customer_orders()
-    else:
-        customer = EconomicAgent.objects.get(id=customer_id)
-        os = customer.sales_orders.all()
-    orders = []
-    for order in os:
-        fields = {
-            "pk": order.pk,
-            "name": unicode(order)
-        }
-        orders.append({"fields": fields})
-    data = simplejson.dumps(orders, ensure_ascii=False)
-    return HttpResponse(data, content_type="text/json-comment-filtered")
-   
-        
 def explore(request):
     return render_to_response("valueaccounting/explore.html", {
     }, context_instance=RequestContext(request))
-    
+
+
 def unfold_commitment(request, commitment_id):
     commitment = get_object_or_404(Commitment, pk=commitment_id)
     process = commitment.process
@@ -3087,7 +2868,8 @@ def unfold_commitment(request, commitment_id):
         "commitment": commitment,
         "process": process,
     }, context_instance=RequestContext(request))
-    
+
+
 def unfold_process(request, process_id):
     process = get_object_or_404(Process, pk=process_id)
     commitment = None
@@ -3096,19 +2878,21 @@ def unfold_process(request, process_id):
         "process": process,
     }, context_instance=RequestContext(request))
 
+
 @login_required
 def cleanup(request):
     if not request.user.is_superuser:
-        return render_to_response('valueaccounting/no_permission.html')         
+        return render_to_response('valueaccounting/no_permission.html')
 
     return render_to_response("valueaccounting/cleanup.html", {
     }, context_instance=RequestContext(request))
 
+
 @login_required
 def misc(request):
     if not request.user.is_superuser:
-        return render_to_response('valueaccounting/no_permission.html') 
-    
+        return render_to_response('valueaccounting/no_permission.html')
+
     context_agent = None
     context_agents = EconomicAgent.objects.context_agents()
     if context_agents:
@@ -3116,7 +2900,7 @@ def misc(request):
         for ca in context_agents:
             if ca.events.all().count() > context_agent.events.all().count():
                 context_agent = ca
-                
+
     ca_form = ContextAgentSelectionForm()
     if request.method == "POST":
         form = ContextAgentSelectionForm(data=request.POST)
@@ -3124,23 +2908,25 @@ def misc(request):
             data = form.cleaned_data
             agent = data["selected_agent"]
             return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/create-distribution', agent.id))    
+                                        % ('accounting/create-distribution', agent.id))
 
     return render_to_response("valueaccounting/misc.html", {
         "context_agent": context_agent,
         "ca_form": ca_form,
     }, context_instance=RequestContext(request))
-    
+
+
 @login_required
 def cleanup_processes(request):
     if not request.user.is_superuser:
         return render_to_response('valueaccounting/no_permission.html')
-    orphans = [p for p in Process.objects.all() if p.is_orphan()]           
+    orphans = [p for p in Process.objects.all() if p.is_orphan()]
 
     return render_to_response("valueaccounting/cleanup_processes.html", {
         "orphans": orphans,
     }, context_instance=RequestContext(request))
-    
+
+
 @login_required
 def cleanup_old_processes(request):
     if not request.user.is_superuser:
@@ -3153,59 +2939,65 @@ def cleanup_old_processes(request):
         "orphans": orphans,
     }, context_instance=RequestContext(request))
 
+
 @login_required
 def cleanup_resourcetypes(request):
     if not request.user.is_superuser:
         return render_to_response('valueaccounting/no_permission.html')
-    orphans = [rt for rt in EconomicResourceType.objects.all() if rt.is_orphan()]           
+    orphans = [rt for rt in EconomicResourceType.objects.all() if rt.is_orphan()]
 
     return render_to_response("valueaccounting/cleanup_resourcetypes.html", {
         "orphans": orphans,
     }, context_instance=RequestContext(request))
-    
+
+
 @login_required
 def cleanup_work_resourcetypes(request):
     if not request.user.is_superuser:
         return render_to_response('valueaccounting/no_permission.html')
-    suspects = [rt for rt in EconomicResourceType.objects.all() if rt.work_without_value()]           
+    suspects = [rt for rt in EconomicResourceType.objects.all() if rt.work_without_value()]
 
     return render_to_response("valueaccounting/cleanup_work_resourcetypes.html", {
         "suspects": suspects,
     }, context_instance=RequestContext(request))
-    
+
+
 @login_required
 def cleanup_resources(request):
     if not request.user.is_superuser:
         return render_to_response('valueaccounting/no_permission.html')
-    orphans = [er for er in EconomicResource.objects.all() if er.is_orphan()]           
+    orphans = [er for er in EconomicResource.objects.all() if er.is_orphan()]
 
     return render_to_response("valueaccounting/cleanup_resources.html", {
         "orphans": orphans,
     }, context_instance=RequestContext(request))
 
+
 @login_required
 def cleanup_unsourced_resources(request):
     if not request.user.is_superuser:
         return render_to_response('valueaccounting/no_permission.html')
-    suspects = [er for er in EconomicResource.objects.all() if er.unsourced_consumption()]           
+    suspects = [er for er in EconomicResource.objects.all() if er.unsourced_consumption()]
 
     return render_to_response("valueaccounting/cleanup_unsourced_resources.html", {
         "suspects": suspects,
     }, context_instance=RequestContext(request))
 
+
 @login_required
 def cleanup_unvalued_resources(request):
     if not request.user.is_superuser:
         return render_to_response('valueaccounting/no_permission.html')
-    suspects = [er for er in EconomicResource.objects.all() if er.used_without_value()]           
+    suspects = [er for er in EconomicResource.objects.all() if er.used_without_value()]
 
     return render_to_response("valueaccounting/cleanup_unvalued_resources.html", {
         "suspects": suspects,
     }, context_instance=RequestContext(request))
-    
+
+
 @login_required
 def create_order(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     patterns = PatternUseCase.objects.filter(use_case__identifier='cust_orders')
     if patterns:
         pattern = patterns[0].pattern
@@ -3217,7 +3009,7 @@ def create_order(request):
     order_form = OrderForm(data=data)
     for rt in rts:
         prefix1 = "-".join(['RT', str(rt.id)])
-        init = {'resource_type_id': rt.id,}
+        init = {'resource_type_id': rt.id, }
         form = OrderItemForm(data=data, prefix=prefix1, resource_type=rt, initial=init)
         form.features = []
         for ft in rt.features.all():
@@ -3225,36 +3017,36 @@ def create_order(request):
             form.features.append(OrderItemOptionsForm(data=data, prefix=prefix2, feature=ft))
         item_forms.append(form)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if order_form.is_valid():
             order = order_form.save(commit=False)
-            order.created_by=request.user
+            order.created_by = request.user
             order.order_type = "customer"
             order.save()
             uc = UseCase.objects.get(identifier="demand_xfer")
             ext_id = request.POST["exchange_type"]
-            exchange_type = ExchangeType.objects.get(id=ext_id)         
+            exchange_type = ExchangeType.objects.get(id=ext_id)
             exchange = Exchange(
                 name=exchange_type.name + " for customer order " + str(order.id),
                 exchange_type=exchange_type,
                 use_case=uc,
-                context_agent=order.provider, 
+                context_agent=order.provider,
                 start_date=order.due_date,
                 order=order,
-                created_by= request.user,
+                created_by=request.user,
             )
             exchange.save()
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             for form in item_forms:
                 if form.is_valid():
                     data = form.cleaned_data
                     qty = data["quantity"]
                     if qty:
-                        #import pdb; pdb.set_trace()
+                        # import pdb; pdb.set_trace()
                         rt_id = data["resource_type_id"]
                         description = data["description"]
                         rt = EconomicResourceType.objects.get(id=rt_id)
-                        #refactored for new customer_order_item logic
+                        # refactored for new customer_order_item logic
                         commitment = order.add_customer_order_item(
                             resource_type=rt,
                             quantity=qty,
@@ -3262,15 +3054,15 @@ def create_order(request):
                             user=request.user)
 
                         for ftr in form.features:
-                            #todo: shd be refactored as above
+                            # todo: shd be refactored as above
                             if ftr.is_valid():
                                 option_id = ftr.cleaned_data["options"]
                                 option = Option.objects.get(id=option_id)
                                 component = option.component
                                 feature = ftr.feature
-                                #todo:
-                                #see comment above about hack
-                                #didn't add transfer creation to this because feature is not being used right now (01/2016)
+                                # todo:
+                                # see comment above about hack
+                                # didn't add transfer creation to this because feature is not being used right now (01/2016)
                                 commitment = Commitment(
                                     order=order,
                                     independent_demand=order,
@@ -3287,8 +3079,8 @@ def create_order(request):
                                 commitment.save()
                                 commitment.order_item = commitment
                                 commitment.save()
-                                commitment.generate_producing_process(request.user, [], explode=True) 
-                                
+                                commitment.generate_producing_process(request.user, [], explode=True)
+
             oi_commitments = Commitment.objects.filter(order=order)
             tts = exchange.exchange_type.transfer_types_non_reciprocal()
             tt = None
@@ -3301,14 +3093,14 @@ def create_order(request):
                     transfer_type=tt,
                     context_agent=exchange.context_agent,
                     transfer_date=commit.commitment_date,
-                    created_by=request.user,                    
+                    created_by=request.user,
                 )
                 xfer.save()
                 commit.exchange = exchange
                 commit.transfer = xfer
                 commit.save()
-                
-            #todo: this should be able to figure out $ owed, including tax, etc.
+
+            # todo: this should be able to figure out $ owed, including tax, etc.
             rec_tts = exchange.exchange_type.transfer_types_reciprocal()
             rec_tt = None
             if rec_tts:
@@ -3323,7 +3115,7 @@ def create_order(request):
                 transfer_type=rec_tt,
                 context_agent=exchange.context_agent,
                 transfer_date=commit.commitment_date,
-                created_by=request.user,         
+                created_by=request.user,
             )
             cr_xfer.save()
             cr_commit = Commitment(
@@ -3338,27 +3130,28 @@ def create_order(request):
                 created_by=request.user
             )
             cr_commit.save()
-                        
+
             return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/order-schedule', order.id))
-                     
+                                        % ('accounting/order-schedule', order.id))
+
     return render_to_response("valueaccounting/create_order.html", {
         "order_form": order_form,
         "item_forms": item_forms,
     }, context_instance=RequestContext(request))
 
-#todo: s/b refactored in a commitment method
-#flow todo: shd order_item be used here?
-#I think not. Used only in delete_order_confirmation.
+
+# todo: s/b refactored in a commitment method
+# flow todo: shd order_item be used here?
+# I think not. Used only in delete_order_confirmation.
 def schedule_commitment(
-        commitment, 
-        schedule, 
-        reqs, 
-        work, 
-        tools, 
+        commitment,
+        schedule,
+        reqs,
+        work,
+        tools,
         visited_resources,
         depth):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     order = commitment.independent_demand
     commitment.depth = depth * 2
     schedule.append(commitment)
@@ -3368,31 +3161,32 @@ def schedule_commitment(
         if process in schedule:
             return schedule
         schedule.append(process)
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         for inp in process.schedule_requirements():
             inp.depth = depth * 2
             schedule.append(inp)
-            #if inp.event_type.resource_effect != "-":
+            # if inp.event_type.resource_effect != "-":
             #    continue
             resource_type = inp.resource_type
             if resource_type not in visited_resources:
-                #visited_resources.add(resource_type)
+                # visited_resources.add(resource_type)
                 pcs = inp.associated_producing_commitments()
                 if pcs:
                     for pc in pcs:
                         if pc.independent_demand == order:
-                            schedule_commitment(pc, schedule, reqs, work, tools, visited_resources, depth+1)
+                            schedule_commitment(pc, schedule, reqs, work, tools, visited_resources, depth + 1)
                 elif inp.independent_demand == order:
-                    #might want to keep, but treat differently in template
+                    # might want to keep, but treat differently in template
                     if inp.event_type.relationship != "work":
                         reqs.append(inp)
-                        #for art in resource_type.producing_agent_relationships():
+                        # for art in resource_type.producing_agent_relationships():
                         for art in inp.sources():
                             art.depth = (depth + 1) * 2
                             schedule.append(art)
 
     return schedule
-    
+
+
 def orders(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     orders = agent.active_orders()
@@ -3406,12 +3200,12 @@ def orders(request, agent_id):
         "agent": agent,
         "orders": orders,
     }, context_instance=RequestContext(request))
-    
+
 
 def order_schedule(request, order_id):
     agent = get_agent(request)
     order = get_object_or_404(Order, pk=order_id)
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     error_message = ""
     order_items = order.order_items()
     rts = None
@@ -3428,20 +3222,21 @@ def order_schedule(request, order_id):
             rts = ProcessPattern.objects.all_production_resource_types()
         if rts:
             add_order_item_form = AddOrderItemForm(resource_types=rts)
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         visited = set()
         for order_item in order_items:
             order_item.processes = order_item.unique_processes_for_order_item(visited)
             if order_item.is_workflow_order_item():
-                #import pdb; pdb.set_trace()
-                init = {'quantity': order_item.quantity,}
+                # import pdb; pdb.set_trace()
+                init = {'quantity': order_item.quantity, }
                 order_item.resource_qty_form = ResourceQuantityForm(prefix=str(order_item.id), initial=init)
-                init = {'context_agent': order_item.context_agent,}
+                init = {'context_agent': order_item.context_agent, }
                 order_item.project_form = ProjectSelectionForm(prefix=str(order_item.id), initial=init)
                 last_date = order_item.process.end_date
                 next_date = last_date + datetime.timedelta(days=1)
                 init = {"start_date": next_date, "end_date": next_date}
-                order_item.add_process_form = WorkflowProcessForm(prefix=str(order_item.id), initial=init, order_item=order_item)
+                order_item.add_process_form = WorkflowProcessForm(prefix=str(order_item.id), initial=init,
+                                                                  order_item=order_item)
     return render_to_response("valueaccounting/order_schedule.html", {
         "order": order,
         "agent": agent,
@@ -3450,39 +3245,42 @@ def order_schedule(request, order_id):
         "error_message": error_message,
     }, context_instance=RequestContext(request))
 
-@login_required    
+
+@login_required
 def change_commitment_quantities(request, order_item_id):
     order_item = get_object_or_404(Commitment, pk=order_item_id)
     qty_form = ResourceQuantityForm(prefix=str(order_item.id), data=request.POST or None)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if qty_form.is_valid():
             data = qty_form.cleaned_data
             new_qty = data["quantity"]
-            order_item.change_commitment_quantities(new_qty)   
+            order_item.change_commitment_quantities(new_qty)
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
 
-@login_required    
+
+@login_required
 def change_workflow_project(request, order_item_id):
     order_item = get_object_or_404(Commitment, pk=order_item_id)
     project_form = ProjectSelectionForm(prefix=str(order_item.id), data=request.POST or None)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if project_form.is_valid():
             data = project_form.cleaned_data
             new_proj = data["context_agent"]
-            order_item.change_workflow_project(new_proj)   
+            order_item.change_workflow_project(new_proj)
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
-        
+
+
 @login_required
 def add_order_item(
-    request, order_id):
+        request, order_id):
     order = get_object_or_404(Order, pk=order_id)
     rts = EconomicResourceType.objects.all()
     form = AddOrderItemForm(resource_types=rts, data=request.POST)
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if form.is_valid():
         data = form.cleaned_data
         rt = data["resource_type"]
@@ -3493,14 +3291,14 @@ def add_order_item(
             user=request.user)
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
-    
-    
-@login_required    
+
+
+@login_required
 def change_process_plan(request, process_id):
     process = get_object_or_404(Process, pk=process_id)
     form = PlanProcessForm(prefix=process.plan_form_prefix(), data=request.POST or None)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if form.is_valid():
             data = form.cleaned_data
             process.start_date = data["start_date"]
@@ -3516,16 +3314,17 @@ def change_process_plan(request, process_id):
                 if ct.due_date != process.end_date:
                     ct.due_date = process.end_date
                     ct.save()
-                
+
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
 
-@login_required    
-def create_process_for_streaming(request, order_item_id): #at the end of the order item
+
+@login_required
+def create_process_for_streaming(request, order_item_id):  # at the end of the order item
     order_item = get_object_or_404(Commitment, pk=order_item_id)
     form = WorkflowProcessForm(prefix=str(order_item.id), data=request.POST or None, order_item=order_item)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if form.is_valid():
             process = form.save(commit=False)
             data = form.cleaned_data
@@ -3538,20 +3337,21 @@ def create_process_for_streaming(request, order_item_id): #at the end of the ord
                     created_by=request.user,
                 )
                 pt.save()
-                process.process_type=pt
+                process.process_type = pt
             process.changed_by = request.user
             process.save()
             order_item.adjust_workflow_commitments_process_added(process=process, user=request.user)
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
 
-@login_required    
+
+@login_required
 def insert_process_for_streaming(request, order_item_id, process_id):
     order_item = get_object_or_404(Commitment, pk=order_item_id)
     next_process = Process.objects.get(id=process_id)
     form = WorkflowProcessForm(prefix=process_id, data=request.POST or None, order_item=order_item)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if form.is_valid():
             process = form.save(commit=False)
             data = form.cleaned_data
@@ -3564,26 +3364,28 @@ def insert_process_for_streaming(request, order_item_id, process_id):
                     created_by=request.user,
                 )
                 pt.save()
-                process.process_type=pt
+                process.process_type = pt
             process.changed_by = request.user
             process.save()
-            order_item.adjust_workflow_commitments_process_inserted(process=process, next_process=next_process, user=request.user)
+            order_item.adjust_workflow_commitments_process_inserted(process=process, next_process=next_process,
+                                                                    user=request.user)
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
-    
-@login_required    
+
+
+@login_required
 def delete_workflow_process(request, order_item_id, process_id):
     order_item = get_object_or_404(Commitment, pk=order_item_id)
     process = Process.objects.get(id=process_id)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if process.is_deletable():
             order_item.adjust_workflow_commitments_process_deleted(process=process, user=request.user)
             process.delete()
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
 
-                
+
 def demand(request):
     agent = get_agent(request)
     orders = Order.objects.customer_orders()
@@ -3592,36 +3394,38 @@ def demand(request):
     nav_form = DemandExchangeNavForm(data=request.POST or None)
     if agent:
         if request.method == "POST":
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             if nav_form.is_valid():
                 data = nav_form.cleaned_data
                 ext = data["exchange_type"]
             return HttpResponseRedirect('/%s/%s/%s/'
-                % ('accounting/exchange', ext.id, 0))
-    
+                                        % ('accounting/exchange', ext.id, 0))
+
     return render_to_response("valueaccounting/demand.html", {
         "orders": orders,
         "rands": rands,
         "agent": agent,
         "nav_form": nav_form,
         "help": help,
-    }, context_instance=RequestContext(request))     
-        
+    }, context_instance=RequestContext(request))
+
+
 def closed_work_orders(request):
     agent = get_agent(request)
     orders = Order.objects.closed_work_orders()
-    #help = get_help("demand")
+    # help = get_help("demand")
     return render_to_response("valueaccounting/closed_work_orders.html", {
         "rands": orders,
         "agent": agent,
-        #"help": help,
-    }, context_instance=RequestContext(request))    
-    
+        # "help": help,
+    }, context_instance=RequestContext(request))
+
+
 def resource_type_lists(request):
     agent = get_agent(request)
     rt_lists = ResourceTypeList.objects.all()
     rtl_form = ResourceTypeListForm(data=request.POST or None)
-    #help = get_help("demand")
+    # help = get_help("demand")
     if request.method == "POST":
         if rtl_form.is_valid():
             form_data = rtl_form.cleaned_data
@@ -3634,15 +3438,16 @@ def resource_type_lists(request):
                     resource_type=rt)
                 elem.save()
             return HttpResponseRedirect('/%s/'
-                % ('accounting/resource-type-lists'))
-        
+                                        % ('accounting/resource-type-lists'))
+
     return render_to_response("valueaccounting/resource_type_lists.html", {
         "rt_lists": rt_lists,
         "rtl_form": rtl_form,
         "agent": agent,
-        #"help": help,
-    }, context_instance=RequestContext(request)) 
-    
+        # "help": help,
+    }, context_instance=RequestContext(request))
+
+
 @login_required
 def create_resource_type_list(request):
     rtl_form = ResourceTypeListForm(data=request.POST or None)
@@ -3652,12 +3457,12 @@ def create_resource_type_list(request):
         init = {
             "resource_type_id": rrt.id,
             "resource_type_name": rrt.name,
-            }
+        }
         prefix = "".join(["RT", str(rrt.id)])
         form = ResourceTypeListElementForm(prefix=prefix, initial=init, data=request.POST or None)
         element_forms.append(form)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if rtl_form.is_valid():
             rt_list = rtl_form.save()
             for form in element_forms:
@@ -3668,32 +3473,33 @@ def create_resource_type_list(request):
                         rt_id = elem_data["resource_type_id"]
                         rt = EconomicResourceType.objects.get(id=rt_id)
                         elem = form.save(commit=False)
-                        elem.resource_type_list=rt_list
-                        elem.resource_type=rt
+                        elem.resource_type_list = rt_list
+                        elem.resource_type = rt
                         elem.save()
 
             return HttpResponseRedirect('/%s/'
-                % ('accounting/resource-type-lists'))
+                                        % ('accounting/resource-type-lists'))
 
     return render_to_response("valueaccounting/resource_type_list.html", {
         "rtl_form": rtl_form,
         "element_forms": element_forms,
-        #"help": get_help("associations"),
+        # "help": get_help("associations"),
     }, context_instance=RequestContext(request))
-    
+
+
 @login_required
 def change_resource_type_list(request, list_id):
     rt_list = get_object_or_404(ResourceTypeList, id=list_id)
     rtl_form = ResourceTypeListForm(instance=rt_list, data=request.POST or None)
     element_forms = []
     elems = rt_list.list_elements.all()
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     for elem in elems:
         init = {
             "resource_type_id": elem.resource_type.id,
             "resource_type_name": elem.resource_type.name,
             "added": True,
-            }
+        }
         prefix = "".join(["ELEM", str(elem.resource_type.id)])
         form = ResourceTypeListElementForm(instance=elem, prefix=prefix, initial=init, data=request.POST or None)
         element_forms.append(form)
@@ -3704,12 +3510,12 @@ def change_resource_type_list(request, list_id):
         init = {
             "resource_type_id": rrt.id,
             "resource_type_name": rrt.name,
-            }
+        }
         prefix = "".join(["RT", str(rrt.id)])
         form = ResourceTypeListElementForm(prefix=prefix, initial=init, data=request.POST or None)
         element_forms.append(form)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if rtl_form.is_valid():
             rt_list = rtl_form.save()
             for form in element_forms:
@@ -3720,14 +3526,14 @@ def change_resource_type_list(request, list_id):
                     instance = None
                     if elem.id:
                         instance = True
-                    if added: 
+                    if added:
                         if instance:
                             elem.save()
                         else:
                             rt_id = elem_data["resource_type_id"]
                             rt = EconomicResourceType.objects.get(id=rt_id)
-                            elem.resource_type_list=rt_list
-                            elem.resource_type=rt
+                            elem.resource_type_list = rt_list
+                            elem.resource_type = rt
                             elem.save()
                     else:
                         if instance:
@@ -3735,32 +3541,34 @@ def change_resource_type_list(request, list_id):
                             elem.delete()
 
             return HttpResponseRedirect('/%s/'
-                % ('accounting/resource-type-lists'))
-                
+                                        % ('accounting/resource-type-lists'))
+
     return render_to_response("valueaccounting/resource_type_list.html", {
         "rtl_form": rtl_form,
         "rt_list": rt_list,
         "element_forms": element_forms,
-        #"help": get_help("associations"),
+        # "help": get_help("associations"),
     }, context_instance=RequestContext(request))
-    
+
+
 @login_required
 def delete_resource_type_list(request, list_id):
     rt_list = get_object_or_404(ResourceTypeList, id=list_id)
     rt_list.delete()
     return HttpResponseRedirect('/%s/'
-        % ('accounting/resource-type-lists'))
-        
+                                % ('accounting/resource-type-lists'))
+
+
 def supply_older(request):
     mreqs = []
-    #todo: needs a lot of work
+    # todo: needs a lot of work
     mrqs = Commitment.objects.unfinished().filter(
         event_type__resource_effect="-",
         event_type__relationship="in").order_by("resource_type__name")
     suppliers = SortedDict()
     for commitment in mrqs:
         if not commitment.resource_type.producing_commitments():
-            if not commitment.fulfilling_events():    
+            if not commitment.fulfilling_events():
                 mreqs.append(commitment)
                 sources = commitment.resource_type.producing_agent_relationships().order_by("resource_type__name")
                 for source in sources:
@@ -3769,14 +3577,14 @@ def supply_older(request):
                         suppliers[agent] = SortedDict()
                     if source not in suppliers[agent]:
                         suppliers[agent][source] = []
-                    suppliers[agent][source].append(commitment) 
+                    suppliers[agent][source].append(commitment)
     treqs = []
     trqs = Commitment.objects.unfinished().filter(
         event_type__resource_effect="=",
         event_type__relationship="in").order_by("resource_type__name")
     for commitment in trqs:
         if not commitment.resource_type.producing_commitments():
-            if not commitment.fulfilling_events():    
+            if not commitment.fulfilling_events():
                 treqs.append(commitment)
                 sources = commitment.resource_type.producing_agent_relationships().order_by("resource_type__name")
                 for source in sources:
@@ -3785,22 +3593,23 @@ def supply_older(request):
                         suppliers[agent] = SortedDict()
                     if source not in suppliers[agent]:
                         suppliers[agent][source] = []
-                    suppliers[agent][source].append(commitment)  
+                    suppliers[agent][source].append(commitment)
     return render_to_response("valueaccounting/supply.html", {
         "mreqs": mreqs,
         "treqs": treqs,
         "suppliers": suppliers,
         "help": get_help("supply"),
     }, context_instance=RequestContext(request))
-    
+
+
 def supply_old(request):
     agent = get_agent(request)
     mreqs = []
     mrqs = Commitment.objects.to_buy()
     suppliers = SortedDict()
-    #supplier_form = AgentSupplierForm(prefix="supplier")
+    # supplier_form = AgentSupplierForm(prefix="supplier")
     for commitment in mrqs:
-        if not commitment.fulfilling_events():    
+        if not commitment.fulfilling_events():
             mreqs.append(commitment)
             sources = commitment.resource_type.producing_agent_relationships().order_by("resource_type__name")
             for source in sources:
@@ -3809,21 +3618,22 @@ def supply_old(request):
                     suppliers[agent] = SortedDict()
                 if source not in suppliers[agent]:
                     suppliers[agent][source] = []
-                suppliers[agent][source].append(commitment) 
+                suppliers[agent][source].append(commitment)
     treqs = []
     return render_to_response("valueaccounting/supply.html", {
         "mreqs": mreqs,
         "treqs": treqs,
         "suppliers": suppliers,
         "agent": agent,
-        #"supplier_form": supplier_form,
+        # "supplier_form": supplier_form,
         "help": get_help("supply"),
     }, context_instance=RequestContext(request))
+
 
 def supply(request):
     agent = get_agent(request)
     mrqs = Commitment.objects.filter(
-        Q(event_type__relationship='consume')|Q(event_type__relationship='use')).order_by("resource_type__name")
+        Q(event_type__relationship='consume') | Q(event_type__relationship='use')).order_by("resource_type__name")
     suppliers = SortedDict()
     supply = EventType.objects.get(name="Supply")
     mreqs = [ct for ct in mrqs if ct.quantity_to_buy()]
@@ -3838,20 +3648,20 @@ def supply(request):
             if source not in suppliers[agent]:
                 suppliers[agent][source] = []
             suppliers[agent][source].append(commitment)
-    #todo: separate tool reqs from material reqs
+    # todo: separate tool reqs from material reqs
     treqs = []
     nav_form = SupplyExchangeNavForm(data=request.POST or None)
     ext = None
-    
+
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if nav_form.is_valid():
             data = nav_form.cleaned_data
             ext = data["exchange_type"]
             if ext:
                 return HttpResponseRedirect('/%s/%s/%s/'
-                    % ('accounting/exchange', ext.id, 0))
-    
+                                            % ('accounting/exchange', ext.id, 0))
+
     return render_to_response("valueaccounting/supply.html", {
         "mreqs": mreqs,
         "treqs": treqs,
@@ -3861,26 +3671,27 @@ def supply(request):
         "help": get_help("supply"),
     }, context_instance=RequestContext(request))
 
+
 @login_required
 def create_supplier(request):
     supplier_form = AgentSupplierForm(prefix="supplier", data=request.POST or None)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if supplier_form.is_valid():
             supplier = supplier_form.save(commit=False)
             supplier.agent_type = AgentType.objects.get(name="Supplier")
             supplier.save()
     return HttpResponseRedirect('/%s/'
-        % ('accounting/supply'))
+                                % ('accounting/supply'))
 
 
 def assemble_schedule(start, end, context_agent=None):
     processes = Process.objects.unfinished()
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if start:
         processes = processes.filter(
             Q(start_date__range=(start, end)) | Q(end_date__range=(start, end)) |
-            Q(start_date__lt=start, end_date__gt=end))       
+            Q(start_date__lt=start, end_date__gt=end))
     processes = processes.order_by("context_agent__name", "end_date", "start_date")
     context_agents = SortedDict()
     for proc in processes:
@@ -3895,22 +3706,24 @@ def assemble_schedule(start, end, context_agent=None):
                 context_agents[proc.context_agent].append(proc)
     return processes, context_agents
 
+
 @login_required
 def change_process_sked_ajax(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     proc_id = request.POST["proc_id"]
     process = Process.objects.get(id=proc_id)
-    form = ScheduleProcessForm(prefix=proc_id,instance=process,data=request.POST)
+    form = ScheduleProcessForm(prefix=proc_id, instance=process, data=request.POST)
     if form.is_valid():
         data = form.cleaned_data
         process.start_date = data["start_date"]
         process.end_date = data["end_date"]
         process.notes = data["notes"]
         process.save()
-        return_data = "OK" 
+        return_data = "OK"
         return HttpResponse(return_data, content_type="text/plain")
     else:
         return HttpResponse(form.errors, content_type="text/json-comment-filtered")
+
 
 def work(request):
     next = settings.ALL_WORK_PAGE
@@ -3930,7 +3743,7 @@ def work(request):
         todo_form = TodoForm(pattern=pattern)
     else:
         todo_form = TodoForm()
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         if date_form.is_valid():
             dates = date_form.cleaned_data
@@ -3942,7 +3755,7 @@ def work(request):
                 if proj_id.isdigit:
                     context_id = proj_id
                     chosen_context_agent = EconomicAgent.objects.get(id=proj_id)
-    
+
     start_date = start.strftime('%Y_%m_%d')
     end_date = end.strftime('%Y_%m_%d')
     processes, context_agents = assemble_schedule(start, end, chosen_context_agent)
@@ -3963,23 +3776,25 @@ def work(request):
         "help": get_help("all_work"),
     }, context_instance=RequestContext(request))
 
-def schedule(request, context_agent_slug=None): 
+
+def schedule(request, context_agent_slug=None):
     context_agent = None
     if context_agent_slug:
         context_agent = get_object_or_404(EconomicAgent, slug=context_agent_slug)
     start = datetime.date.today() - datetime.timedelta(weeks=4)
     end = datetime.date.today() + datetime.timedelta(weeks=4)
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     processes, context_agents = assemble_schedule(start, end, context_agent)
     return render_to_response("valueaccounting/schedule.html", {
         "context_agents": context_agents,
     }, context_instance=RequestContext(request))
 
+
 def today(request):
     agent = get_agent(request)
     start = datetime.date.today()
     end = start
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     todos = Commitment.objects.todos().filter(due_date=start)
     processes, context_agents = assemble_schedule(start, end)
     events = EconomicEvent.objects.filter(event_date=start)
@@ -3990,10 +3805,10 @@ def today(request):
         "events": events,
     }, context_instance=RequestContext(request))
 
-    
+
 class EventProcessSummary(object):
-    def __init__(self, 
-        agent, context_agent, resource_type, process, quantity):
+    def __init__(self,
+                 agent, context_agent, resource_type, process, quantity):
         self.agent = agent
         self.context_agent = context_agent
         self.resource_type = resource_type
@@ -4002,21 +3817,21 @@ class EventProcessSummary(object):
 
     def key(self):
         return "-".join([
-            str(self.agent.id), 
+            str(self.agent.id),
             str(self.resource_type.id),
             str(self.project.id),
             str(self.process.id),
-            ])
+        ])
 
     def quantity_formatted(self):
         return self.quantity.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
-        
-        
+
+
 def condense_events(event_list):
     condensed_events = []
     if event_list:
         summaries = {}
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         for event in event_list:
             from_agent = event.from_agent or 0
             if from_agent:
@@ -4031,22 +3846,22 @@ def condense_events(event_list):
             if process:
                 process = process.id
             key = "-".join([
-                str(from_agent), 
-                str(context_agent), 
-                str(resource_type), 
+                str(from_agent),
+                str(context_agent),
+                str(resource_type),
                 str(process)
-                ])
+            ])
             if not key in summaries:
                 summaries[key] = EventProcessSummary(
-                    event.from_agent, 
-                    event.context_agent, 
-                    event.resource_type, 
-                    event.process, 
+                    event.from_agent,
+                    event.context_agent,
+                    event.resource_type,
+                    event.process,
                     Decimal('0.0'))
             summaries[key].quantity += event.quantity
         condensed_events = summaries.values()
     return condensed_events
-    
+
 
 def assemble_weekly_activity(event_list):
     event_summaries = condense_events(event_list)
@@ -4060,13 +3875,14 @@ def assemble_weekly_activity(event_list):
         processes[es.process].append(es)
     return context_agents
 
+
 def this_week(request):
     agent = get_agent(request)
     end = datetime.date.today()
     start = end - datetime.timedelta(days=7)
-    #start = end - datetime.timedelta(days=40)
-    #import pdb; pdb.set_trace()
-    
+    # start = end - datetime.timedelta(days=40)
+    # import pdb; pdb.set_trace()
+
     work_events = EconomicEvent.objects.filter(
         event_type__relationship="work",
         event_date__range=(start, end))
@@ -4074,7 +3890,7 @@ def this_week(request):
     total_participants = len(list(set(participants)))
     total_hours = sum(event.quantity for event in work_events)
     context_agents = assemble_weekly_activity(work_events)
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     cas = context_agents.keys()
     cas_ids = [ca.id for ca in cas]
     active = len(cas)
@@ -4090,10 +3906,11 @@ def this_week(request):
         "context_agents": context_agents,
     }, context_instance=RequestContext(request))
 
+
 @login_required
 def add_todo(request):
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         patterns = PatternUseCase.objects.filter(use_case__identifier='todo')
         if patterns:
             pattern = patterns[0].pattern
@@ -4111,10 +3928,10 @@ def add_todo(request):
             if form.is_valid():
                 data = form.cleaned_data
                 todo = form.save(commit=False)
-                todo.to_agent=agent
-                todo.event_type=et
+                todo.to_agent = agent
+                todo.event_type = et
                 todo.quantity = Decimal("0")
-                todo.unit_of_quantity=todo.resource_type.unit
+                todo.unit_of_quantity = todo.resource_type.unit
                 todo.save()
                 if notification:
                     if todo.from_agent:
@@ -4122,17 +3939,18 @@ def add_todo(request):
                             site_name = get_site_name()
                             user = todo.from_agent.user()
                             if user:
-                                #import pdb; pdb.set_trace()
+                                # import pdb; pdb.set_trace()
                                 notification.send(
-                                    [user.user,], 
-                                    "valnet_new_todo", 
+                                    [user.user, ],
+                                    "valnet_new_todo",
                                     {"description": todo.description,
-                                    "creator": agent,
-                                    "site_name": site_name,
-                                    }
+                                     "creator": agent,
+                                     "site_name": site_name,
+                                     }
                                 )
-            
+
     return HttpResponseRedirect(next)
+
 
 def create_event_from_todo(todo):
     event = EconomicEvent(
@@ -4150,9 +3968,10 @@ def create_event_from_todo(todo):
     )
     return event
 
+
 @login_required
 def todo_time(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         todo_id = request.POST.get("todoId")
         try:
@@ -4175,9 +3994,10 @@ def todo_time(request):
                 event.save()
     return HttpResponse("Ok", content_type="text/plain")
 
+
 @login_required
 def todo_description(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         todo_id = request.POST.get("todoId")
         try:
@@ -4196,9 +4016,10 @@ def todo_description(request):
                 event.save()
     return HttpResponse("Ok", content_type="text/plain")
 
+
 @login_required
 def todo_done(request, todo_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         try:
             todo = Commitment.objects.get(id=todo_id)
@@ -4214,9 +4035,10 @@ def todo_done(request, todo_id):
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
 
+
 @login_required
 def todo_mine(request, todo_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         try:
             todo = Commitment.objects.get(id=todo_id)
@@ -4230,11 +4052,12 @@ def todo_mine(request, todo_id):
     if next:
         return HttpResponseRedirect(next)
     return HttpResponseRedirect('/%s/'
-        % ('accounting/work'))
+                                % ('accounting/work'))
+
 
 @login_required
 def todo_change(request, todo_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         try:
             todo = Commitment.objects.get(id=todo_id)
@@ -4249,23 +4072,25 @@ def todo_change(request, todo_id):
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
 
+
 @login_required
 def todo_decline(request, todo_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         try:
             todo = Commitment.objects.get(id=todo_id)
         except Commitment.DoesNotExist:
             todo = None
         if todo:
-            todo.from_agent=None
+            todo.from_agent = None
             todo.save()
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
 
+
 @login_required
 def todo_delete(request, todo_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         try:
             todo = Commitment.objects.get(id=todo_id)
@@ -4279,18 +4104,19 @@ def todo_delete(request, todo_id):
                         site_name = get_site_name()
                         user = todo.from_agent.user()
                         if user:
-                            #import pdb; pdb.set_trace()
+                            # import pdb; pdb.set_trace()
                             notification.send(
-                                [user.user,], 
-                                "valnet_deleted_todo", 
+                                [user.user, ],
+                                "valnet_deleted_todo",
                                 {"description": todo.description,
-                                "creator": agent,
-                                "site_name": site_name,
-                                }
+                                 "creator": agent,
+                                 "site_name": site_name,
+                                 }
                             )
             todo.delete()
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
+
 
 @login_required
 def start(request):
@@ -4304,18 +4130,18 @@ def start(request):
             from_agent=agent)
         skill_ids = agent.resource_types.values_list('resource_type__id', flat=True)
         my_skillz = Commitment.objects.unfinished().filter(
-            from_agent=None, 
+            from_agent=None,
             event_type__relationship="work",
             resource_type__id__in=skill_ids)
         other_unassigned = Commitment.objects.unfinished().filter(
-            from_agent=None, 
-            event_type__relationship="work").exclude(resource_type__id__in=skill_ids)       
+            from_agent=None,
+            event_type__relationship="work").exclude(resource_type__id__in=skill_ids)
     else:
         other_unassigned = Commitment.objects.unfinished().filter(
-            from_agent=None, 
+            from_agent=None,
             event_type__relationship="work")
     todos = Commitment.objects.todos().filter(from_agent=agent)
-    init = {"from_agent": agent,}
+    init = {"from_agent": agent, }
     patterns = PatternUseCase.objects.filter(use_case__identifier='todo')
     if patterns:
         pattern = patterns[0].pattern
@@ -4354,10 +4180,11 @@ def agent_stats(request, agent_id):
         "member_hours": member_hours,
     }, context_instance=RequestContext(request))
 
+
 def project_stats(request, context_agent_slug):
     project = None
     member_hours = []
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if context_agent_slug:
         project = get_object_or_404(EconomicAgent, slug=context_agent_slug)
     if project:
@@ -4377,18 +4204,19 @@ def project_stats(request, context_agent_slug):
         "member_hours": member_hours,
         "page_title": "All-time project stats",
     }, context_instance=RequestContext(request))
-    
+
+
 def recent_stats(request, context_agent_slug):
     project = None
     member_hours = []
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if context_agent_slug:
         project = get_object_or_404(EconomicAgent, slug=context_agent_slug)
     if project:
         subs = project.with_all_sub_agents()
         end = datetime.date.today()
-        #end = end - datetime.timedelta(days=77)
-        start =  end - datetime.timedelta(days=60)
+        # end = end - datetime.timedelta(days=77)
+        start = end - datetime.timedelta(days=60)
         events = EconomicEvent.objects.filter(
             event_type__relationship="work",
             context_agent__in=subs,
@@ -4431,9 +4259,9 @@ def project_roles(request, context_agent_slug):
                     agents.setdefault(key, row)
                     idx = roles.index(ce.quantity_label()) + 1
                     agents[key][idx] += ce.quantity
-            headings = ["Member",]
+            headings = ["Member", ]
             headings.extend(roles)
-            for row in agents.values():                
+            for row in agents.values():
                 member_hours.append(row)
             member_hours.sort(lambda x, y: cmp(x[0], y[0]))
     return render_to_response("valueaccounting/project_roles.html", {
@@ -4442,20 +4270,23 @@ def project_roles(request, context_agent_slug):
         "member_hours": member_hours,
     }, context_instance=RequestContext(request))
 
+
 def order_graph(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     return render_to_response("valueaccounting/order_graph.html", {
         "order_id": order_id,
     }, context_instance=RequestContext(request))
 
+
 def processes_graph(request, object_type=None, object_id=None):
     url_extension = ""
     if object_type:
-        url_extension = "".join([ object_type, "/", object_id, "/"])
-    
+        url_extension = "".join([object_type, "/", object_id, "/"])
+
     return render_to_response("valueaccounting/processes_graph.html", {
         "url_extension": url_extension,
     }, context_instance=RequestContext(request))
+
 
 @login_required
 def commit_to_task(request, commitment_id):
@@ -4467,27 +4298,27 @@ def commit_to_task(request, commitment_id):
         form = CommitmentForm(data=request.POST, prefix=prefix)
         next = None
         next = request.POST.get("next")
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if form.is_valid():
             data = form.cleaned_data
-            #todo: next line did not work, don't want to take time to figure out why right now
-            #probly form shd have ct as instance.
-            #ct = form.save(commit=False)
+            # todo: next line did not work, don't want to take time to figure out why right now
+            # probly form shd have ct as instance.
+            # ct = form.save(commit=False)
             start_date = data["start_date"]
             description = data["description"]
             quantity = data["quantity"]
             unit_of_quantity = data["unit_of_quantity"]
-            ct.start_date=start_date
-            ct.quantity=quantity
-            ct.unit_of_quantity=unit_of_quantity
-            ct.description=description
+            ct.start_date = start_date
+            ct.quantity = quantity
+            ct.unit_of_quantity = unit_of_quantity
+            ct.description = description
             ct.from_agent = agent
-            ct.changed_by=request.user
+            ct.changed_by = request.user
             ct.save()
-            #todo: commented out for now
-            #might need more logic so it doesn't needlessly 
-            #push the next process out
-            #if start_date != process.start_date:
+            # todo: commented out for now
+            # might need more logic so it doesn't needlessly
+            # push the next process out
+            # if start_date != process.start_date:
             #    if process.work_requirements().count() == 1:
             #        if start_date > process.start_date:
             #            delta = start_date - process.start_date
@@ -4499,16 +4330,17 @@ def commit_to_task(request, commitment_id):
             if request.POST.get("start"):
                 if next == "work":
                     return HttpResponseRedirect('/%s/%s/%s/'
-                        % ('work/work-timer', process.id, ct.id))
+                                                % ('work/work-timer', process.id, ct.id))
                 else:
                     return HttpResponseRedirect('/%s/%s/%s/'
-                        % ('accounting/work-now', process.id, ct.id))
+                                                % ('accounting/work-now', process.id, ct.id))
             if request.POST.get("work-start"):
                 return HttpResponseRedirect('/%s/%s/%s/'
-                    % ('work/work-timer', process.id, ct.id))
-        
+                                            % ('work/work-timer', process.id, ct.id))
+
         return HttpResponseRedirect(next)
-        
+
+
 @login_required
 def join_task(request, commitment_id):
     if request.method == "POST":
@@ -4548,7 +4380,7 @@ def join_task(request, commitment_id):
             new_ct.save()
         '''
         if notification:
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             workers = ct.workers()
             users = []
             for worker in workers:
@@ -4557,27 +4389,28 @@ def join_task(request, commitment_id):
             site_name = get_site_name()
             if users:
                 notification.send(
-                    users, 
-                    "valnet_join_task", 
+                    users,
+                    "valnet_join_task",
                     {"resource_type": ct.resource_type,
-                    "due_date": ct.due_date,
-                    "hours": ct.quantity,
-                    "unit": ct.resource_type.unit,
-                    "description": ct.description or "",
-                    "process": process,
-                    "creator": agent,
-                    "site_name": site_name,
-                    }
+                     "due_date": ct.due_date,
+                     "hours": ct.quantity,
+                     "unit": ct.resource_type.unit,
+                     "description": ct.description or "",
+                     "process": process,
+                     "creator": agent,
+                     "site_name": site_name,
+                     }
                 )
-                    
+
         next = request.POST.get("next")
         if next:
             if next == "work":
                 return HttpResponseRedirect('/%s/%s/'
-                    % ('work/process-logging', process.id))
-        
+                                            % ('work/process-logging', process.id))
+
         return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/process', process.id))
+                                    % ('accounting/process', process.id))
+
 
 @login_required
 def change_commitment(request, commitment_id):
@@ -4586,8 +4419,8 @@ def change_commitment(request, commitment_id):
         process = ct.process
         agent = get_agent(request)
         prefix = ct.form_prefix()
-        #import pdb; pdb.set_trace()
-        if ct.event_type.relationship=="work":
+        # import pdb; pdb.set_trace()
+        if ct.event_type.relationship == "work":
             form = WorkCommitmentForm(instance=ct, data=request.POST, prefix=prefix)
         else:
             form = ChangeCommitmentForm(instance=ct, data=request.POST, prefix=prefix)
@@ -4598,21 +4431,22 @@ def change_commitment(request, commitment_id):
             rt = ct.resource_type
             demand = ct.independent_demand
             new_qty = data["quantity"]
-            old_ct = Commitment.objects.get(id=commitment_id)            
+            old_ct = Commitment.objects.get(id=commitment_id)
             explode = handle_commitment_changes(old_ct, rt, new_qty, demand, demand)
             commitment = form.save()
-            #flow todo: explode?
-            #explode wd apply to rt changes, which will not happen here
-            #handle_commitment_changes will propagate qty changes
-            
+            # flow todo: explode?
+            # explode wd apply to rt changes, which will not happen here
+            # handle_commitment_changes will propagate qty changes
+
         next = request.POST.get("next")
         if next:
             if next == "work":
                 return HttpResponseRedirect('/%s/%s/'
-                    % ('work/process-logging', process.id))
-        
+                                            % ('work/process-logging', process.id))
+
         return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/process', process.id))
+                                    % ('accounting/process', process.id))
+
 
 @login_required
 def change_exchange_commitment(request, commitment_id):
@@ -4627,7 +4461,8 @@ def change_exchange_commitment(request, commitment_id):
             data = form.cleaned_data
             commitment = form.save()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
+                                % ('accounting/exchange', exchange.id))
+
 
 @login_required
 def uncommit(request, commitment_id):
@@ -4639,54 +4474,57 @@ def uncommit(request, commitment_id):
     next = request.POST.get("next")
     if next == "start":
         return HttpResponseRedirect('/%s/'
-            % ('accounting/start'))
+                                    % ('accounting/start'))
     elif next == "work-start":
         return HttpResponseRedirect('/%s/'
-            % ('work/my-tasks'))
+                                    % ('work/my-tasks'))
     elif next == "work":
         return HttpResponseRedirect('/%s/'
-            % ('work/process-logging'))
+                                    % ('work/process-logging'))
     else:
         return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/process', process.id))
+                                    % ('accounting/process', process.id))
+
 
 @login_required
 def forward_schedule_source(request, commitment_id, source_id):
     if request.method == "POST":
         ct = get_object_or_404(Commitment, id=commitment_id)
         source = get_object_or_404(AgentResourceType, id=source_id)
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         ct.reschedule_forward_from_source(source.lead_time, request.user)
-        #notify_here
+        # notify_here
         next = request.POST.get("next")
         if next:
             return HttpResponseRedirect(next)
         else:
             return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/order-schedule', ct.independent_demand.id))
+                                        % ('accounting/order-schedule', ct.independent_demand.id))
+
 
 def forward_schedule_process(request, process_id):
     if request.method == "POST":
         process = get_object_or_404(Process, id=process_id)
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if process.started:
             lag = datetime.date.today() - process.end_date
         else:
             lag = datetime.date.today() - process.start_date
-        #munge for partial days
+        # munge for partial days
         delta_days = lag.days + 1
         process.reschedule_forward(delta_days, request.user)
-        #notify_here
+        # notify_here
         next = request.POST.get("next")
         if next:
             return HttpResponseRedirect(next)
         else:
             return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/order-schedule', ct.independent_demand.id))
-        
+                                        % ('accounting/order-schedule', ct.independent_demand.id))
+
+
 def create_labnotes_context(
-        request, 
-        commitment, 
+        request,
+        commitment,
         was_running=0,
         was_retrying=0):
     event = None
@@ -4702,7 +4540,7 @@ def create_labnotes_context(
             "process_done": commitment.process.finished,
         }
         wb_form = WorkbookForm(instance=event, initial=init)
-        duration = event.quantity * 60     
+        duration = event.quantity * 60
     else:
         init = {
             "description": commitment.description,
@@ -4711,7 +4549,7 @@ def create_labnotes_context(
         }
         wb_form = WorkbookForm(initial=init)
     prev_events = commitment.fulfillment_events.filter(event_date__lt=today)
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if prev_events:
         prev_dur = sum(prev.quantity for prev in prev_events)
         unit = ""
@@ -4720,7 +4558,7 @@ def create_labnotes_context(
         prev = " ".join([str(prev_dur), unit])
     others_working = []
     other_work_reqs = []
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     process = commitment.process
     wrqs = process.work_requirements()
     if wrqs.count() > 1:
@@ -4732,7 +4570,7 @@ def create_labnotes_context(
                 else:
                     other_work_reqs.append(wrq)
     failure_form = FailedOutputForm()
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if process.process_pattern:
         pattern = process.process_pattern
         add_output_form = ProcessOutputForm(prefix='output', pattern=pattern)
@@ -4778,17 +4616,17 @@ def create_labnotes_context(
     }
 
 
-#obsolete
+# obsolete
 def new_process_output(request, commitment_id):
     commitment = get_object_or_404(Commitment, pk=commitment_id)
     process = commitment.process
     was_running = request.POST["wasRunning"]
     was_retrying = request.POST["wasRetrying"]
     event_date = request.POST.get("outputDate")
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     event = None
     events = None
-    event_id=0
+    event_id = 0
     if event_date:
         event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
         events = commitment.fulfillment_events.filter(event_date=event_date)
@@ -4800,7 +4638,7 @@ def new_process_output(request, commitment_id):
         form = ProcessOutputForm(data=request.POST, prefix='output')
         if form.is_valid():
             output_data = form.cleaned_data
-            qty = output_data["quantity"] 
+            qty = output_data["quantity"]
             if qty:
                 ct = form.save(commit=False)
                 rt = output_data["resource_type"]
@@ -4809,13 +4647,13 @@ def new_process_output(request, commitment_id):
                 ct.event_type = event_type
                 ct.process = process
                 ct.context_agent = process.context_agent
-                #flow todo: add order_item
-                #or is this obsolete?
+                # flow todo: add order_item
+                # or is this obsolete?
                 ct.independent_demand = commitment.independent_demand
                 ct.due_date = process.end_date
                 ct.created_by = request.user
                 ct.save()
-                #if process.name == "Make something":
+                # if process.name == "Make something":
                 #    process.name = " ".join([
                 #                "Make",
                 #                ct.resource_type.name,
@@ -4823,22 +4661,24 @@ def new_process_output(request, commitment_id):
                 #    process.save()
     if reload == 'pastwork':
         return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
-            % ('accounting/pastwork-reload', commitment.id, event_id, was_running, was_retrying))
+                                    % (
+                                    'accounting/pastwork-reload', commitment.id, event_id, was_running, was_retrying))
     else:
         return HttpResponseRedirect('/%s/%s/%s/%s/'
-            % ('accounting/labnotes-reload', commitment.id, was_running, was_retrying))
+                                    % ('accounting/labnotes-reload', commitment.id, was_running, was_retrying))
 
-#obsolete
+
+# obsolete
 @login_required
 def new_process_input(request, commitment_id, slot):
     commitment = get_object_or_404(Commitment, pk=commitment_id)
     was_running = request.POST["wasRunning"] or 0
     was_retrying = request.POST["wasRetrying"] or 0
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     event_date = request.POST.get("inputDate")
     event = None
     events = None
-    event_id=0
+    event_id = 0
     if event_date:
         event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
         events = commitment.fulfillment_events.filter(event_date=event_date)
@@ -4866,37 +4706,39 @@ def new_process_input(request, commitment_id, slot):
                 event_type = pattern.event_type_for_resource_type(rel, rt)
                 ct.event_type = event_type
                 ct.process = process
-                #flow todo: add order_item
-                #or is this obsolete?
+                # flow todo: add order_item
+                # or is this obsolete?
                 ct.independent_demand = demand
                 ct.due_date = process.start_date
                 ct.created_by = request.user
-                #todo: add stage and state as args?
-                #todo pr: this shd probably use own_or_parent_recipes
+                # todo: add stage and state as args?
+                # todo pr: this shd probably use own_or_parent_recipes
                 ptrt, inheritance = ct.resource_type.main_producing_process_type_relationship()
                 if ptrt:
                     ct.context_agent = ptrt.process_type.context_agent
                 ct.save()
-                #todo: this is used in labnotes; shd it explode?
-                #explode_dependent_demands(ct, request.user)                
+                # todo: this is used in labnotes; shd it explode?
+                # explode_dependent_demands(ct, request.user)
     if reload == 'pastwork':
         return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
-            % ('accounting/pastwork-reload', commitment.id, event_id, was_running, was_retrying))
+                                    % (
+                                    'accounting/pastwork-reload', commitment.id, event_id, was_running, was_retrying))
     else:
         return HttpResponseRedirect('/%s/%s/%s/%s/'
-            % ('accounting/labnotes-reload', commitment.id, was_running, was_retrying))
+                                    % ('accounting/labnotes-reload', commitment.id, was_running, was_retrying))
 
-#obsolete
+
+# obsolete
 @login_required
 def new_process_citation(request, commitment_id):
     commitment = get_object_or_404(Commitment, pk=commitment_id)
     was_running = request.POST["wasRunning"] or 0
     was_retrying = request.POST["wasRetrying"] or 0
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     event_date = request.POST.get("citationDate")
     event = None
     events = None
-    event_id=0
+    event_id = 0
     if event_date:
         event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
         events = commitment.fulfillment_events.filter(event_date=event_date)
@@ -4905,7 +4747,7 @@ def new_process_citation(request, commitment_id):
         event_id = event.id
     reload = request.POST["reload"]
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         form = ProcessCitationForm(data=request.POST, prefix='citation')
         if form.is_valid():
             input_data = form.cleaned_data
@@ -4916,12 +4758,12 @@ def new_process_citation(request, commitment_id):
             pattern = process.process_pattern
             event_type = pattern.event_type_for_resource_type("cite", rt)
             agent = get_agent(request)
-            #todo: sub process.add_commitment()
-            #flow todo: add order_item
-            #but this is obsolete
+            # todo: sub process.add_commitment()
+            # flow todo: add order_item
+            # but this is obsolete
             ct = Commitment(
                 process=process,
-                #from_agent=agent,
+                # from_agent=agent,
                 independent_demand=demand,
                 event_type=event_type,
                 due_date=process.start_date,
@@ -4932,25 +4774,27 @@ def new_process_citation(request, commitment_id):
                 created_by=request.user,
             )
             ct.save()
-                
+
     if reload == 'pastwork':
         return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
-            % ('accounting/pastwork-reload', commitment.id, event_id, was_running, was_retrying))
+                                    % (
+                                    'accounting/pastwork-reload', commitment.id, event_id, was_running, was_retrying))
     else:
         return HttpResponseRedirect('/%s/%s/%s/%s/'
-            % ('accounting/labnotes-reload', commitment.id, was_running, was_retrying))
+                                    % ('accounting/labnotes-reload', commitment.id, was_running, was_retrying))
 
-#obsolete
+
+# obsolete
 @login_required
 def new_process_worker(request, commitment_id):
     commitment = get_object_or_404(Commitment, pk=commitment_id)
     was_running = request.POST["wasRunning"] or 0
     was_retrying = request.POST["wasRetrying"] or 0
-    #comes from past_work
+    # comes from past_work
     event_date = request.POST.get("workDate")
     event = None
     events = None
-    event_id=0
+    event_id = 0
     if event_date:
         event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
         events = commitment.fulfillment_events.filter(event_date=event_date)
@@ -4959,7 +4803,7 @@ def new_process_worker(request, commitment_id):
         event_id = event.id
     reload = request.POST["reload"]
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         form = WorkCommitmentForm(data=request.POST, prefix='work')
         if form.is_valid():
             input_data = form.cleaned_data
@@ -4969,51 +4813,53 @@ def new_process_worker(request, commitment_id):
             pattern = process.process_pattern
             event_type = pattern.event_type_for_resource_type("work", rt)
             ct = form.save(commit=False)
-            ct.process=process
-            #flow todo: add order_item
-            #or is this obsolete?
-            ct.independent_demand=demand
-            ct.event_type=event_type
-            ct.due_date=process.end_date
-            ct.resource_type=rt
-            ct.context_agent=process.context_agent
-            ct.unit_of_quantity=rt.directional_unit("use")
-            ct.created_by=request.user
+            ct.process = process
+            # flow todo: add order_item
+            # or is this obsolete?
+            ct.independent_demand = demand
+            ct.event_type = event_type
+            ct.due_date = process.end_date
+            ct.resource_type = rt
+            ct.context_agent = process.context_agent
+            ct.unit_of_quantity = rt.directional_unit("use")
+            ct.created_by = request.user
             ct.save()
             if notification:
-                #import pdb; pdb.set_trace()
+                # import pdb; pdb.set_trace()
                 agent = get_agent(request)
                 users = ct.possible_work_users()
                 site_name = get_site_name()
                 if users:
                     notification.send(
-                        users, 
-                        "valnet_help_wanted", 
+                        users,
+                        "valnet_help_wanted",
                         {"resource_type": ct.resource_type,
-                        "due_date": ct.due_date,
-                        "hours": ct.quantity,
-                        "unit": ct.resource_type.unit,
-                        "description": ct.description or "",
-                        "process": ct.process,
-                        "creator": agent,
-                        "site_name": site_name,
-                        }
+                         "due_date": ct.due_date,
+                         "hours": ct.quantity,
+                         "unit": ct.resource_type.unit,
+                         "description": ct.description or "",
+                         "process": ct.process,
+                         "creator": agent,
+                         "site_name": site_name,
+                         }
                     )
-                
+
     if reload == 'pastwork':
         return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
-            % ('accounting/pastwork-reload', commitment.id, event_id, was_running, was_retrying))
+                                    % (
+                                    'accounting/pastwork-reload', commitment.id, event_id, was_running, was_retrying))
     else:
         return HttpResponseRedirect('/%s/%s/%s/%s/'
-            % ('accounting/labnotes-reload', commitment.id, was_running, was_retrying))
+                                    % ('accounting/labnotes-reload', commitment.id, was_running, was_retrying))
+
 
 def add_process_output(request, process_id):
-    process = get_object_or_404(Process, pk=process_id)   
+    process = get_object_or_404(Process, pk=process_id)
     if request.method == "POST":
         form = ProcessOutputForm(data=request.POST, prefix='output')
         if form.is_valid():
             output_data = form.cleaned_data
-            qty = output_data["quantity"] 
+            qty = output_data["quantity"]
             if qty:
                 ct = form.save(commit=False)
                 rt = output_data["resource_type"]
@@ -5022,8 +4868,8 @@ def add_process_output(request, process_id):
                 ct.event_type = event_type
                 ct.process = process
                 ct.context_agent = process.context_agent
-                #flow todo: add order_item? [no]
-                #this is a new process output, need some analysis and testing
+                # flow todo: add order_item? [no]
+                # this is a new process output, need some analysis and testing
                 # e.g. is this an order_item itself?
                 # independent_demand.order_item.process == process?
                 ct.independent_demand = process.independent_demand()
@@ -5032,14 +4878,14 @@ def add_process_output(request, process_id):
                 ct.save()
                 if process.name == "Make something":
                     process.name = " ".join([
-                                "Make",
-                                ct.resource_type.name,
-                            ])
+                        "Make",
+                        ct.resource_type.name,
+                    ])
                 else:
                     process.name = " and ".join([
-                                process.name,
-                                ct.resource_type.name,
-                            ])
+                        process.name,
+                        ct.resource_type.name,
+                    ])
                 if len(process.name) > 128:
                     process.name = process.name[0:128]
                 process.save()
@@ -5047,19 +4893,20 @@ def add_process_output(request, process_id):
         if next:
             if next == "work":
                 return HttpResponseRedirect('/%s/%s/'
-                    % ('work/process-logging', process.id))
-                    
+                                            % ('work/process-logging', process.id))
+
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', process.id))
+                                % ('accounting/process', process.id))
+
 
 def add_unplanned_output(request, process_id):
-    process = get_object_or_404(Process, pk=process_id)   
+    process = get_object_or_404(Process, pk=process_id)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         form = UnplannedOutputForm(data=request.POST, prefix='unplannedoutput')
         if form.is_valid():
             output_data = form.cleaned_data
-            qty = output_data["quantity"] 
+            qty = output_data["quantity"]
             if qty:
                 event = form.save(commit=False)
                 rt = output_data["resource_type"]
@@ -5071,10 +4918,10 @@ def add_unplanned_output(request, process_id):
                 demand = None
                 if not rt.substitutable:
                     demand = process.independent_demand()
-                    #flow todo: add order_item ? [no]
-                    #N/A I think, but see also
-                    #add_process_output
-                    
+                    # flow todo: add order_item ? [no]
+                    # N/A I think, but see also
+                    # add_process_output
+
                 resource = EconomicResource(
                     resource_type=rt,
                     identifier=identifier,
@@ -5084,11 +4931,11 @@ def add_unplanned_output(request, process_id):
                     photo_url=photo_url,
                     quantity=event.quantity,
                     access_rules=access_rules,
-                    #unit_of_quantity=event.unit_of_quantity,
+                    # unit_of_quantity=event.unit_of_quantity,
                     created_by=request.user,
                 )
                 resource.save()
-                
+
                 event.resource = resource
                 pattern = process.process_pattern
                 event_type = pattern.event_type_for_resource_type("out", rt)
@@ -5102,8 +4949,8 @@ def add_unplanned_output(request, process_id):
                 event.created_by = request.user
                 event.save()
                 process.set_started(event.event_date, request.user)
-                
-                role_formset =  resource_role_agent_formset(prefix="resource", data=request.POST)
+
+                role_formset = resource_role_agent_formset(prefix="resource", data=request.POST)
                 for form_rra in role_formset.forms:
                     if form_rra.is_valid():
                         data_rra = form_rra.cleaned_data
@@ -5117,28 +4964,29 @@ def add_unplanned_output(request, process_id):
                                 rra.resource = resource
                                 rra.is_contact = data_rra["is_contact"]
                                 rra.save()
-                                
+
         next = request.POST.get("next")
         if next:
             if next == "work":
                 return HttpResponseRedirect('/%s/%s/'
-                    % ('work/process-logging', process.id))
-                
+                                            % ('work/process-logging', process.id))
+
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', process.id))
+                                % ('accounting/process', process.id))
 
 
 @login_required
 def add_unordered_receipt(request, exchange_id):
-    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+    exchange = get_object_or_404(Exchange, pk=exchange_id)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
-        pattern=exchange.process_pattern
-        context_agent=exchange.context_agent
-        form = UnorderedReceiptForm(data=request.POST, pattern=pattern, context_agent=context_agent, prefix='unorderedreceipt')
+        # import pdb; pdb.set_trace()
+        pattern = exchange.process_pattern
+        context_agent = exchange.context_agent
+        form = UnorderedReceiptForm(data=request.POST, pattern=pattern, context_agent=context_agent,
+                                    prefix='unorderedreceipt')
         if form.is_valid():
             output_data = form.cleaned_data
-            value = output_data["value"] 
+            value = output_data["value"]
             if value:
                 event = form.save(commit=False)
                 rt = output_data["resource_type"]
@@ -5148,7 +4996,7 @@ def add_unordered_receipt(request, exchange_id):
                     url = output_data["url"]
                     photo_url = output_data["photo_url"]
                     quantity = output_data["quantity"]
-                    #unit_of_quantity = output_data["unit_of_quantity"]
+                    # unit_of_quantity = output_data["unit_of_quantity"]
                     access_rules = output_data["access_rules"]
                     location = output_data["current_location"]
                     resource = EconomicResource(
@@ -5158,15 +5006,15 @@ def add_unordered_receipt(request, exchange_id):
                         url=url,
                         photo_url=photo_url,
                         quantity=quantity,
-                        #unit_of_quantity=unit_of_quantity,
+                        # unit_of_quantity=unit_of_quantity,
                         current_location=location,
                         access_rules=access_rules,
                         created_by=request.user,
                     )
                     resource.save()
                     event.resource = resource
-                    #import pdb; pdb.set_trace()
-                    role_formset =  resource_role_agent_formset(prefix="receiptrole", data=request.POST)
+                    # import pdb; pdb.set_trace()
+                    role_formset = resource_role_agent_formset(prefix="receiptrole", data=request.POST)
                     for form_rra in role_formset.forms:
                         if form_rra.is_valid():
                             data_rra = form_rra.cleaned_data
@@ -5187,18 +5035,19 @@ def add_unordered_receipt(request, exchange_id):
                 event.to_agent = event.default_agent()
                 event.created_by = request.user
                 event.save()
-                
+
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
+                                % ('accounting/exchange', exchange.id))
+
 
 def add_receipt_to_resource(request, exchange_id):
-    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+    exchange = get_object_or_404(Exchange, pk=exchange_id)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         pattern = exchange.process_pattern
         form = SelectResourceOfTypeForm(
-            prefix='addtoresource', 
-            pattern=pattern, 
+            prefix='addtoresource',
+            pattern=pattern,
             posting=True,
             data=request.POST)
         if form.is_valid():
@@ -5208,42 +5057,43 @@ def add_receipt_to_resource(request, exchange_id):
                 quantity = output_data["quantity"]
                 resource.quantity += quantity
                 resource.save()
-                value = output_data["value"] 
+                value = output_data["value"]
                 unit_of_value = output_data["unit_of_value"]
                 description = output_data["description"]
                 context_agent = exchange.context_agent
                 resource_type = resource.resource_type
                 event_type = pattern.event_type_for_resource_type("receive", resource_type)
                 event = EconomicEvent(
-                    event_type = event_type,
-                    event_date = datetime.date.today(),
-                    resource = resource,
-                    resource_type = resource_type,
-                    exchange = exchange,
-                    from_agent = exchange.supplier,
-                    to_agent = context_agent.default_agent(),
-                    context_agent = context_agent,
-                    quantity = quantity,
-                    unit_of_quantity = resource_type.unit,
-                    value = value,
-                    unit_of_value = unit_of_value,
-                    description = description,
-                    created_by = request.user,
-                    changed_by = request.user,
+                    event_type=event_type,
+                    event_date=datetime.date.today(),
+                    resource=resource,
+                    resource_type=resource_type,
+                    exchange=exchange,
+                    from_agent=exchange.supplier,
+                    to_agent=context_agent.default_agent(),
+                    context_agent=context_agent,
+                    quantity=quantity,
+                    unit_of_quantity=resource_type.unit,
+                    value=value,
+                    unit_of_value=unit_of_value,
+                    description=description,
+                    created_by=request.user,
+                    changed_by=request.user,
                 )
                 event.save()
-                
+
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
-        
+                                % ('accounting/exchange', exchange.id))
+
+
 def add_contribution_to_resource(request, exchange_id):
-    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+    exchange = get_object_or_404(Exchange, pk=exchange_id)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         pattern = exchange.process_pattern
         form = SelectContrResourceOfTypeForm(
-            prefix='addtoresource', 
-            pattern=pattern, 
+            prefix='addtoresource',
+            pattern=pattern,
             posting=True,
             data=request.POST)
         if form.is_valid():
@@ -5253,7 +5103,7 @@ def add_contribution_to_resource(request, exchange_id):
                 quantity = output_data["quantity"]
                 resource.quantity += quantity
                 resource.save()
-                value = output_data["value"] 
+                value = output_data["value"]
                 unit_of_value = output_data["unit_of_value"]
                 from_agent = output_data["from_agent"]
                 description = output_data["description"]
@@ -5261,39 +5111,39 @@ def add_contribution_to_resource(request, exchange_id):
                 resource_type = resource.resource_type
                 event_type = pattern.event_type_for_resource_type("resource", resource_type)
                 event = EconomicEvent(
-                    event_type = event_type,
-                    event_date = datetime.date.today(),
-                    resource = resource,
-                    resource_type = resource_type,
-                    exchange = exchange,
-                    from_agent = from_agent,
-                    to_agent = context_agent.default_agent(),
-                    context_agent = context_agent,
-                    quantity = quantity,
-                    unit_of_quantity = resource_type.unit,
-                    value = value,
-                    unit_of_value = unit_of_value,
-                    description = description,
-                    created_by = request.user,
-                    changed_by = request.user,
+                    event_type=event_type,
+                    event_date=datetime.date.today(),
+                    resource=resource,
+                    resource_type=resource_type,
+                    exchange=exchange,
+                    from_agent=from_agent,
+                    to_agent=context_agent.default_agent(),
+                    context_agent=context_agent,
+                    quantity=quantity,
+                    unit_of_quantity=resource_type.unit,
+                    value=value,
+                    unit_of_value=unit_of_value,
+                    description=description,
+                    created_by=request.user,
+                    changed_by=request.user,
                 )
                 event.save()
-                
+
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
+                                % ('accounting/exchange', exchange.id))
 
 
 @login_required
 def add_expense(request, exchange_id):
-    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+    exchange = get_object_or_404(Exchange, pk=exchange_id)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         pattern = exchange.process_pattern
         context_agent = exchange.context_agent
         form = ExpenseEventForm(data=request.POST, pattern=pattern, context_agent=context_agent, prefix='expense')
         if form.is_valid():
             expense_data = form.cleaned_data
-            value = expense_data["value"] 
+            value = expense_data["value"]
             if value:
                 event = form.save(commit=False)
                 rt = expense_data["resource_type"]
@@ -5306,21 +5156,22 @@ def add_expense(request, exchange_id):
                 event.unit_of_quantity = rt.unit
                 event.created_by = request.user
                 event.save()
-                
+
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
+                                % ('accounting/exchange', exchange.id))
+
 
 @login_required
 def add_process_expense(request, process_id):
-    process = get_object_or_404(Process, pk=process_id)   
+    process = get_object_or_404(Process, pk=process_id)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         pattern = process.process_pattern
         context_agent = process.context_agent
         form = ProcessExpenseEventForm(data=request.POST, pattern=pattern, prefix='processexpense')
         if form.is_valid():
             expense_data = form.cleaned_data
-            value = expense_data["value"] 
+            value = expense_data["value"]
             if value:
                 event = form.save(commit=False)
                 rt = expense_data["resource_type"]
@@ -5334,21 +5185,23 @@ def add_process_expense(request, process_id):
                 event.created_by = request.user
                 event.save()
                 process.set_started(event.event_date, request.user)
-                
+
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', process.id))
+                                % ('accounting/process', process.id))
+
 
 @login_required
 def add_material_contribution(request, exchange_id):
-    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+    exchange = get_object_or_404(Exchange, pk=exchange_id)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         pattern = exchange.process_pattern
         context_agent = exchange.context_agent
-        form = MaterialContributionEventForm(data=request.POST, pattern=pattern, context_agent=context_agent, prefix='material')
+        form = MaterialContributionEventForm(data=request.POST, pattern=pattern, context_agent=context_agent,
+                                             prefix='material')
         if form.is_valid():
             material_data = form.cleaned_data
-            qty = material_data["quantity"] 
+            qty = material_data["quantity"]
             if qty:
                 event = form.save(commit=False)
                 rt = material_data["resource_type"]
@@ -5358,7 +5211,7 @@ def add_material_contribution(request, exchange_id):
                     url = material_data["url"]
                     photo_url = material_data["photo_url"]
                     quantity = material_data["quantity"]
-                    #unit_of_quantity = material_data["unit_of_quantity"]
+                    # unit_of_quantity = material_data["unit_of_quantity"]
                     access_rules = material_data["access_rules"]
                     location = material_data["current_location"]
                     resource = EconomicResource(
@@ -5368,14 +5221,14 @@ def add_material_contribution(request, exchange_id):
                         url=url,
                         photo_url=photo_url,
                         quantity=quantity,
-                        #unit_of_quantity=unit_of_quantity,
+                        # unit_of_quantity=unit_of_quantity,
                         current_location=location,
                         access_rules=access_rules,
                         created_by=request.user,
                     )
                     resource.save()
                     event.resource = resource
-                    role_formset =  resource_role_agent_formset(prefix="materialrole", data=request.POST)
+                    role_formset = resource_role_agent_formset(prefix="materialrole", data=request.POST)
                     for form_rra in role_formset.forms:
                         if form_rra.is_valid():
                             data_rra = form_rra.cleaned_data
@@ -5398,29 +5251,30 @@ def add_material_contribution(request, exchange_id):
                 event.created_by = request.user
                 event.save()
 
-               
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
+                                % ('accounting/exchange', exchange.id))
+
 
 @login_required
 def add_cash_contribution(request, exchange_id):
-    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+    exchange = get_object_or_404(Exchange, pk=exchange_id)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         pattern = exchange.process_pattern
         context_agent = exchange.context_agent
-        form = CashContributionEventForm(data=request.POST, pattern=pattern, context_agent=context_agent, posting=True, prefix='cash')
+        form = CashContributionEventForm(data=request.POST, pattern=pattern, context_agent=context_agent, posting=True,
+                                         prefix='cash')
         if form.is_valid():
             cash_data = form.cleaned_data
-            value = cash_data["value"] 
+            value = cash_data["value"]
             if value:
                 event = form.save(commit=False)
                 rt = cash_data["resource_type"]
                 is_contr = False
                 if event.event_type.name == "Cash Contribution":
                     is_contr = True
-                #event_type = pattern.event_type_for_resource_type("cash", rt)
-                #event.event_type = event_type
+                # event_type = pattern.event_type_for_resource_type("cash", rt)
+                # event.event_type = event_type
                 event.exchange = exchange
                 event.context_agent = context_agent
                 event.to_agent = event.default_agent()
@@ -5434,46 +5288,48 @@ def add_cash_contribution(request, exchange_id):
                 if resource:
                     resource.quantity = resource.quantity + value
                     resource.save()
-                #import pdb; pdb.set_trace()
+                # import pdb; pdb.set_trace()
                 if cash_data["from_virtual_account"] == True:
                     va = event.from_agent.virtual_accounts()[0]
                     va.quantity = va.quantity - value
                     va.save()
                     from_event = EconomicEvent(
-                        event_type = EventType.objects.get(name="Cash Disbursement"),
-                        event_date = event.event_date,
-                        resource = va,
-                        resource_type = va.resource_type,
-                        exchange = exchange,
-                        from_agent = event.from_agent,
-                        to_agent = event.from_agent,
-                        context_agent = context_agent,
-                        quantity = event.quantity,
-                        unit_of_quantity = rt.unit,
-                        value = value,
-                        unit_of_value = rt.unit,
-                        created_by = request.user,                       
+                        event_type=EventType.objects.get(name="Cash Disbursement"),
+                        event_date=event.event_date,
+                        resource=va,
+                        resource_type=va.resource_type,
+                        exchange=exchange,
+                        from_agent=event.from_agent,
+                        to_agent=event.from_agent,
+                        context_agent=context_agent,
+                        quantity=event.quantity,
+                        unit_of_quantity=rt.unit,
+                        value=value,
+                        unit_of_value=rt.unit,
+                        created_by=request.user,
                     )
                     from_event.save()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
+                                % ('accounting/exchange', exchange.id))
+
 
 @login_required
 def add_cash_resource_contribution(request, exchange_id):
-    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+    exchange = get_object_or_404(Exchange, pk=exchange_id)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         pattern = exchange.process_pattern
         context_agent = exchange.context_agent
-        form = CashContributionResourceEventForm(data=request.POST, pattern=pattern, context_agent=context_agent, prefix='cashres')
+        form = CashContributionResourceEventForm(data=request.POST, pattern=pattern, context_agent=context_agent,
+                                                 prefix='cashres')
         if form.is_valid():
             cash_data = form.cleaned_data
-            value = cash_data["value"] 
+            value = cash_data["value"]
             if value:
                 event = form.save(commit=False)
                 rt = cash_data["resource_type"]
-                #event_type = pattern.event_type_for_resource_type("cash", rt)
-                #event.event_type = event_type
+                # event_type = pattern.event_type_for_resource_type("cash", rt)
+                # event.event_type = event_type
                 event.exchange = exchange
                 event.context_agent = context_agent
                 event.to_agent = event.default_agent()
@@ -5485,28 +5341,30 @@ def add_cash_resource_contribution(request, exchange_id):
                     identifier=cash_data["identifier"],
                     resource_type=rt,
                     quantity=value,
-                    #unit_of_quantity=event.unit_of_value,
+                    # unit_of_quantity=event.unit_of_value,
                     notes=cash_data["notes"],
                     current_location=cash_data["current_location"],
                     created_by=request.user
-                    )
+                )
                 resource.save()
                 event.resource = resource
                 event.save()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
+                                % ('accounting/exchange', exchange.id))
+
 
 @login_required
 def add_unplanned_payment(request, exchange_id):
-    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+    exchange = get_object_or_404(Exchange, pk=exchange_id)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         pattern = exchange.process_pattern
         context_agent = exchange.context_agent
-        form = PaymentEventForm(data=request.POST, pattern=pattern, context_agent=context_agent, posting=True, prefix='pay')
+        form = PaymentEventForm(data=request.POST, pattern=pattern, context_agent=context_agent, posting=True,
+                                prefix='pay')
         if form.is_valid():
             payment_data = form.cleaned_data
-            qty = payment_data["quantity"] 
+            qty = payment_data["quantity"]
             if qty:
                 event = form.save(commit=False)
                 rt = payment_data["resource_type"]
@@ -5523,19 +5381,21 @@ def add_unplanned_payment(request, exchange_id):
                     resource.quantity = resource.quantity - qty
                     resource.save()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
+                                % ('accounting/exchange', exchange.id))
+
 
 @login_required
 def add_cash_receipt(request, exchange_id):
-    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+    exchange = get_object_or_404(Exchange, pk=exchange_id)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         pattern = exchange.process_pattern
         context_agent = exchange.context_agent
-        form = CashReceiptForm(data=request.POST, pattern=pattern, context_agent=context_agent, posting=True, prefix='cr')
+        form = CashReceiptForm(data=request.POST, pattern=pattern, context_agent=context_agent, posting=True,
+                               prefix='cr')
         if form.is_valid():
             payment_data = form.cleaned_data
-            qty = payment_data["quantity"] 
+            qty = payment_data["quantity"]
             if qty:
                 event = form.save(commit=False)
                 rt = payment_data["resource_type"]
@@ -5551,21 +5411,22 @@ def add_cash_receipt(request, exchange_id):
                 if resource:
                     resource.quantity = resource.quantity + qty
                     resource.save()
-                
+
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
+                                % ('accounting/exchange', exchange.id))
+
 
 @login_required
 def add_cash_receipt_resource(request, exchange_id):
-    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+    exchange = get_object_or_404(Exchange, pk=exchange_id)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         pattern = exchange.process_pattern
         context_agent = exchange.context_agent
         form = CashReceiptResourceForm(data=request.POST, pattern=pattern, context_agent=context_agent, prefix='crr')
         if form.is_valid():
             payment_data = form.cleaned_data
-            qty = payment_data["quantity"] 
+            qty = payment_data["quantity"]
             if qty:
                 event = form.save(commit=False)
                 rt = payment_data["resource_type"]
@@ -5580,29 +5441,30 @@ def add_cash_receipt_resource(request, exchange_id):
                     identifier=payment_data["identifier"],
                     resource_type=rt,
                     quantity=qty,
-                    #unit_of_quantity=event.unit_of_quantity,
+                    # unit_of_quantity=event.unit_of_quantity,
                     notes=payment_data["notes"],
                     current_location=payment_data["current_location"],
                     created_by=request.user
-                    )
+                )
                 resource.save()
                 event.resource = resource
                 event.save()
-                
+
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
+                                % ('accounting/exchange', exchange.id))
+
 
 @login_required
 def add_shipment(request, exchange_id):
-    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+    exchange = get_object_or_404(Exchange, pk=exchange_id)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         pattern = exchange.process_pattern
         context_agent = exchange.context_agent
         form = ShipmentForm(data=request.POST, pattern=pattern, context_agent=context_agent, prefix='ship')
         if form.is_valid():
             data = form.cleaned_data
-            qty = data["quantity"] 
+            qty = data["quantity"]
             if qty:
                 event = form.save(commit=False)
                 resource = data["resource"]
@@ -5621,21 +5483,23 @@ def add_shipment(request, exchange_id):
                 if resource.quantity < 0:
                     resource.quantity = 0
                 resource.save()
-                
+
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
+                                % ('accounting/exchange', exchange.id))
+
 
 @login_required
 def add_uninventoried_shipment(request, exchange_id):
-    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+    exchange = get_object_or_404(Exchange, pk=exchange_id)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         pattern = exchange.process_pattern
         context_agent = exchange.context_agent
-        form = UninventoriedShipmentForm(data=request.POST, pattern=pattern, context_agent=context_agent, prefix='shipun')
+        form = UninventoriedShipmentForm(data=request.POST, pattern=pattern, context_agent=context_agent,
+                                         prefix='shipun')
         if form.is_valid():
             data = form.cleaned_data
-            qty = data["quantity"] 
+            qty = data["quantity"]
             if qty:
                 event = form.save(commit=False)
                 rt = data["resource_type"]
@@ -5650,8 +5514,9 @@ def add_uninventoried_shipment(request, exchange_id):
                 event.created_by = request.user
                 event.save()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))   
-        
+                                % ('accounting/exchange', exchange.id))
+
+
 @login_required
 def create_production_process(request, commitment_id):
     """ this creates a production process for a shipment commitment
@@ -5679,10 +5544,11 @@ def create_production_process(request, commitment_id):
                 state=None,
                 from_agent=process.context_agent,
                 to_agent=commitment.context_agent)
-                
+
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/order-schedule', commitment.order.id))
-        
+                                % ('accounting/order-schedule', commitment.order.id))
+
+
 @login_required
 def log_shipment(request, commitment_id, resource_id):
     ct = get_object_or_404(Commitment, pk=commitment_id)
@@ -5690,19 +5556,19 @@ def log_shipment(request, commitment_id, resource_id):
     if request.method == "POST":
         et_ship = EventType.objects.get(name="Shipment")
         event = EconomicEvent(
-            resource = resource,
-            commitment = ct,
-            event_date = datetime.date.today(),
-            event_type = et_ship,
-            from_agent = ct.context_agent,
-            to_agent = ct.exchange.customer,
-            resource_type = ct.resource_type,
-            exchange = ct.exchange,
-            context_agent = ct.context_agent,
-            quantity = ct.quantity,
-            unit_of_quantity = ct.unit_of_quantity,
-            created_by = request.user,
-            changed_by = request.user,
+            resource=resource,
+            commitment=ct,
+            event_date=datetime.date.today(),
+            event_type=et_ship,
+            from_agent=ct.context_agent,
+            to_agent=ct.exchange.customer,
+            resource_type=ct.resource_type,
+            exchange=ct.exchange,
+            context_agent=ct.context_agent,
+            quantity=ct.quantity,
+            unit_of_quantity=ct.unit_of_quantity,
+            created_by=request.user,
+            changed_by=request.user,
         )
         event.save()
         resource.quantity = resource.quantity - event.quantity
@@ -5710,31 +5576,33 @@ def log_shipment(request, commitment_id, resource_id):
             resource.quantity = 0
         resource.save()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', ct.exchange.id))
-        
+                                % ('accounting/exchange', ct.exchange.id))
+
+
 @login_required
 def log_uninventoried_shipment(request, commitment_id):
     ct = get_object_or_404(Commitment, pk=commitment_id)
     if request.method == "POST":
         et_ship = EventType.objects.get(name="Shipment")
         event = EconomicEvent(
-            commitment = ct,
-            event_date = datetime.date.today(),
-            event_type = et_ship,
-            from_agent = ct.context_agent,
-            to_agent = ct.exchange.customer,
-            resource_type = ct.resource_type,
-            exchange = ct.exchange,
-            context_agent = ct.context_agent,
-            quantity = ct.quantity,
-            unit_of_quantity = ct.unit_of_quantity,
-            created_by = request.user,
-            changed_by = request.user,
+            commitment=ct,
+            event_date=datetime.date.today(),
+            event_type=et_ship,
+            from_agent=ct.context_agent,
+            to_agent=ct.exchange.customer,
+            resource_type=ct.resource_type,
+            exchange=ct.exchange,
+            context_agent=ct.context_agent,
+            quantity=ct.quantity,
+            unit_of_quantity=ct.unit_of_quantity,
+            created_by=request.user,
+            changed_by=request.user,
         )
         event.save()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', ct.exchange.id))
-                
+                                % ('accounting/exchange', ct.exchange.id))
+
+
 def delete_shipment_event(request, event_id):
     if request.method == "POST":
         event = get_object_or_404(EconomicEvent, pk=event_id)
@@ -5745,19 +5613,20 @@ def delete_shipment_event(request, event_id):
             resource.save()
         event.delete()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
+                                % ('accounting/exchange', exchange.id))
+
 
 @login_required
 def add_distribution(request, distribution_id):
-    distribution = get_object_or_404(Distribution, pk=distribution_id)   
+    distribution = get_object_or_404(Distribution, pk=distribution_id)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         pattern = distribution.process_pattern
         context_agent = distribution.context_agent
         form = DistributionEventForm(data=request.POST, pattern=pattern, posting=True, prefix='dist')
         if form.is_valid():
             data = form.cleaned_data
-            qty = data["quantity"] 
+            qty = data["quantity"]
             if qty:
                 event = form.save(commit=False)
                 rt = data["resource_type"]
@@ -5775,21 +5644,22 @@ def add_distribution(request, distribution_id):
                 if resource:
                     resource.quantity = resource.quantity + qty
                     resource.save()
-                
+
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/distribution', distribution.id))
+                                % ('accounting/distribution', distribution.id))
+
 
 @login_required
 def add_disbursement(request, distribution_id):
-    distribution = get_object_or_404(Distribution, pk=distribution_id)   
+    distribution = get_object_or_404(Distribution, pk=distribution_id)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         pattern = distribution.process_pattern
         context_agent = distribution.context_agent
         form = DisbursementEventForm(data=request.POST, pattern=pattern, posting=True, prefix='disb')
         if form.is_valid():
             data = form.cleaned_data
-            qty = data["quantity"] 
+            qty = data["quantity"]
             if qty:
                 event = form.save(commit=False)
                 rt = data["resource_type"]
@@ -5811,22 +5681,24 @@ def add_disbursement(request, distribution_id):
                 if resource:
                     resource.quantity = resource.quantity - qty
                     resource.save()
-                
+
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/distribution', distribution.id))
+                                % ('accounting/distribution', distribution.id))
+
 
 @login_required
 def add_transfer(request, exchange_id, transfer_type_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     exchange = get_object_or_404(Exchange, pk=exchange_id)
     transfer_type = get_object_or_404(TransferType, pk=transfer_type_id)
     if request.method == "POST":
         exchange_type = exchange.exchange_type
         context_agent = exchange.context_agent
-        form = TransferForm(data=request.POST, transfer_type=transfer_type, context_agent=context_agent, posting=True, prefix="ATR" + str(transfer_type.id))
+        form = TransferForm(data=request.POST, transfer_type=transfer_type, context_agent=context_agent, posting=True,
+                            prefix="ATR" + str(transfer_type.id))
         if form.is_valid():
-            data = form.cleaned_data            
-            qty = data["quantity"] 
+            data = form.cleaned_data
+            qty = data["quantity"]
             res = None
             res_from = None
             et2 = None
@@ -5842,9 +5714,9 @@ def add_transfer(request, exchange_id, transfer_type_id):
                 if transfer_type.receive_agent_is_context:
                     to_agent = context_agent
                 else:
-                    to_agent = data["to_agent"]  
+                    to_agent = data["to_agent"]
                 rt = data["resource_type"]
-                #if not transfer_type.can_create_resource:
+                # if not transfer_type.can_create_resource:
                 res = data["resource"]
                 if transfer_type.is_currency:
                     res_from = data["from_resource"]
@@ -5868,7 +5740,7 @@ def add_transfer(request, exchange_id, transfer_type_id):
                     is_to_distribute = False
                 event_ref = data["event_reference"]
                 if transfer_type.can_create_resource:
-                    #res = data["resource"]
+                    # res = data["resource"]
                     if not res:
                         res_identifier = data["identifier"]
                         if res_identifier:
@@ -5883,7 +5755,7 @@ def add_transfer(request, exchange_id, transfer_type_id):
                                 exchange_stage=exchange_type,
                                 quantity=0,
                                 created_by=request.user,
-                                )
+                            )
                 if exchange.exchange_type.use_case == UseCase.objects.get(identifier="supply_xfer"):
                     if transfer_type.is_reciprocal:
                         if res:
@@ -5902,7 +5774,7 @@ def add_transfer(request, exchange_id, transfer_type_id):
                         if res:
                             res.quantity -= qty
                         et = et_give
-                else: #internal xfer use case
+                else:  # internal xfer use case
                     if transfer_type.is_reciprocal:
                         et = et_receive
                         et2 = et_give
@@ -5919,7 +5791,7 @@ def add_transfer(request, exchange_id, transfer_type_id):
                     res.save()
                 if res_from:
                     res_from.save()
-                if res_identifier: #new resource
+                if res_identifier:  # new resource
                     create_role_formset = resource_role_agent_formset(prefix=str(transfer_type.id), data=request.POST)
                     for form_rra in create_role_formset.forms:
                         if form_rra.is_valid():
@@ -5943,15 +5815,15 @@ def add_transfer(request, exchange_id, transfer_type_id):
                     xfer_name = xfer_name + " of " + rt.name
                 xfer = Transfer(
                     name=xfer_name,
-                    transfer_type = transfer_type,
-                    exchange = exchange,
-                    context_agent = context_agent,
-                    transfer_date = event_date,
-                    notes = description,
-                    created_by = request.user              
-                    )
+                    transfer_type=transfer_type,
+                    exchange=exchange,
+                    context_agent=context_agent,
+                    transfer_date=event_date,
+                    notes=description,
+                    created_by=request.user
+                )
                 xfer.save()
-                #import pdb; pdb.set_trace()
+                # import pdb; pdb.set_trace()
                 e_is_to_distribute = is_to_distribute
                 if et == et_give:
                     e_is_to_distribute = False
@@ -5963,24 +5835,24 @@ def add_transfer(request, exchange_id, transfer_type_id):
                 else:
                     event_res = res
                 event = EconomicEvent(
-                    event_type = et,
+                    event_type=et,
                     event_date=event_date,
                     resource_type=rt,
                     resource=event_res,
                     transfer=xfer,
                     exchange_stage=exchange.exchange_type,
-                    context_agent = context_agent,
+                    context_agent=context_agent,
                     quantity=qty,
-                    unit_of_quantity = rt.unit,
+                    unit_of_quantity=rt.unit,
                     value=value,
                     unit_of_value=unit_of_value,
-                    from_agent = from_agent,
-                    to_agent = to_agent,
-                    is_contribution = e_is_contribution,
-                    is_to_distribute = e_is_to_distribute,
+                    from_agent=from_agent,
+                    to_agent=to_agent,
+                    is_contribution=e_is_contribution,
+                    is_to_distribute=e_is_to_distribute,
                     event_reference=event_ref,
-                    created_by = request.user,
-                    )
+                    created_by=request.user,
+                )
                 event.save()
                 if et2:
                     e2_is_to_distribute = is_to_distribute
@@ -5994,28 +5866,29 @@ def add_transfer(request, exchange_id, transfer_type_id):
                     else:
                         event_res = res
                     event2 = EconomicEvent(
-                        event_type = et2,
+                        event_type=et2,
                         event_date=event_date,
                         resource_type=rt,
                         resource=event_res,
                         transfer=xfer,
                         exchange_stage=exchange.exchange_type,
-                        context_agent = context_agent,
+                        context_agent=context_agent,
                         quantity=qty,
-                        unit_of_quantity = rt.unit,
+                        unit_of_quantity=rt.unit,
                         value=value,
                         unit_of_value=unit_of_value,
-                        from_agent = from_agent,
-                        to_agent = to_agent,
-                        is_contribution = e2_is_contribution,
-                        is_to_distribute = e2_is_to_distribute,
+                        from_agent=from_agent,
+                        to_agent=to_agent,
+                        is_contribution=e2_is_contribution,
+                        is_to_distribute=e2_is_to_distribute,
                         event_reference=event_ref,
-                        created_by = request.user,
-                    )    
+                        created_by=request.user,
+                    )
                     event2.save()
-   
+
     return HttpResponseRedirect('/%s/%s/%s/'
-        % ('accounting/exchange', 0, exchange.id))
+                                % ('accounting/exchange', 0, exchange.id))
+
 
 @login_required
 def transfer_from_commitment(request, transfer_id):
@@ -6024,8 +5897,9 @@ def transfer_from_commitment(request, transfer_id):
     exchange = transfer.exchange
     context_agent = transfer.context_agent
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
-        form = TransferForm(data=request.POST, transfer_type=transfer.transfer_type, context_agent=transfer.context_agent, posting=True, prefix=transfer.form_prefix())
+        # import pdb; pdb.set_trace()
+        form = TransferForm(data=request.POST, transfer_type=transfer.transfer_type,
+                            context_agent=transfer.context_agent, posting=True, prefix=transfer.form_prefix())
         if form.is_valid():
             data = form.cleaned_data
             et_give = EventType.objects.get(name="Give")
@@ -6039,9 +5913,9 @@ def transfer_from_commitment(request, transfer_id):
             if transfer_type.receive_agent_is_context:
                 to_agent = context_agent
             else:
-                to_agent = data["to_agent"]  
+                to_agent = data["to_agent"]
             rt = data["resource_type"]
-            #if not transfer_type.can_create_resource:
+            # if not transfer_type.can_create_resource:
             res = data["resource"]
             description = data["description"]
             if transfer_type.is_currency:
@@ -6060,12 +5934,12 @@ def transfer_from_commitment(request, transfer_id):
             else:
                 is_contribution = False
             event_ref = data["event_reference"]
-            #res = None
+            # res = None
             if transfer_type.can_create_resource:
-                #res = data["resource"]
+                # res = data["resource"]
                 if not res:
                     res_identifier = data["identifier"]
-                    if res_identifier: #new resource
+                    if res_identifier:  # new resource
                         res = EconomicResource(
                             identifier=res_identifier,
                             url=data["url"],
@@ -6077,7 +5951,7 @@ def transfer_from_commitment(request, transfer_id):
                             exchange_stage=exchange.exchange_type,
                             quantity=0,
                             created_by=request.user,
-                            )
+                        )
                         res.save()
                         create_role_formset = transfer.create_role_formset(data=request.POST)
                         for form_rra in create_role_formset.forms:
@@ -6092,7 +5966,7 @@ def transfer_from_commitment(request, transfer_id):
                                         rra.role = role
                                         rra.resource = res
                                         rra.is_contact = data_rra["is_contact"]
-                                        rra.save()  
+                                        rra.save()
             for commit in transfer.commitments.all():
                 if commit.event_type == et_give and res_from:
                     event_res = res_from
@@ -6100,25 +5974,25 @@ def transfer_from_commitment(request, transfer_id):
                     event_res = res
                 event = EconomicEvent(
                     event_type=commit.event_type,
-                    resource_type = rt,
-                    resource = event_res,
-                    from_agent = from_agent,
-                    to_agent = to_agent,
+                    resource_type=rt,
+                    resource=event_res,
+                    from_agent=from_agent,
+                    to_agent=to_agent,
                     exchange_stage=transfer.exchange.exchange_type,
                     transfer=transfer,
                     commitment=commit,
-                    context_agent = transfer.context_agent,
-                    event_date = event_date,
+                    context_agent=transfer.context_agent,
+                    event_date=event_date,
                     quantity=qty,
-                    unit_of_quantity = rt.unit,
+                    unit_of_quantity=rt.unit,
                     value=value,
-                    unit_of_value = unit_of_value,
+                    unit_of_value=unit_of_value,
                     description=description,
                     event_reference=event_ref,
-                    created_by = request.user,
+                    created_by=request.user,
                 )
                 event.save()
-                if event_res:                
+                if event_res:
                     if event.event_type == et_give:
                         event_res.quantity -= event.quantity
                     else:
@@ -6126,22 +6000,24 @@ def transfer_from_commitment(request, transfer_id):
                     event_res.save()
                 commit.finished = True
                 commit.save()
-            
+
     return HttpResponseRedirect('/%s/%s/%s/'
-        % ('accounting/exchange', 0, exchange.id))    
+                                % ('accounting/exchange', 0, exchange.id))
+
 
 @login_required
 def add_transfer_commitment(request, exchange_id, transfer_type_id):
     transfer_type = get_object_or_404(TransferType, pk=transfer_type_id)
     exchange = get_object_or_404(Exchange, pk=exchange_id)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         exchange_type = exchange.exchange_type
         context_agent = exchange.context_agent
-        form = TransferCommitmentForm(data=request.POST, transfer_type=transfer_type, context_agent=context_agent, posting=True, prefix="ACM" + str(transfer_type.id))
+        form = TransferCommitmentForm(data=request.POST, transfer_type=transfer_type, context_agent=context_agent,
+                                      posting=True, prefix="ACM" + str(transfer_type.id))
         if form.is_valid():
             data = form.cleaned_data
-            qty = data["quantity"] 
+            qty = data["quantity"]
             et2 = None
             if qty:
                 commitment_date = data["commitment_date"]
@@ -6153,7 +6029,7 @@ def add_transfer_commitment(request, exchange_id, transfer_type_id):
                 if transfer_type.receive_agent_is_context:
                     to_agent = context_agent
                 else:
-                    to_agent = data["to_agent"]  
+                    to_agent = data["to_agent"]
                 rt = data["resource_type"]
                 description = data["description"]
                 if transfer_type.is_currency:
@@ -6173,14 +6049,14 @@ def add_transfer_commitment(request, exchange_id, transfer_type_id):
                     xfer_name = xfer_name + " of " + rt.name
                 xfer = Transfer(
                     name=xfer_name,
-                    transfer_type = transfer_type,
-                    exchange = exchange,
-                    context_agent = context_agent,
-                    transfer_date = commitment_date,
-                    created_by = request.user              
-                    )
+                    transfer_type=transfer_type,
+                    exchange=exchange,
+                    context_agent=context_agent,
+                    transfer_date=commitment_date,
+                    created_by=request.user
+                )
                 xfer.save()
-                
+
                 if exchange.exchange_type.use_case == UseCase.objects.get(identifier="supply_xfer"):
                     if transfer_type.is_reciprocal:
                         et = EventType.objects.get(name="Give")
@@ -6191,7 +6067,7 @@ def add_transfer_commitment(request, exchange_id, transfer_type_id):
                         et = EventType.objects.get(name="Receive")
                     else:
                         et = EventType.objects.get(name="Give")
-                else: #internal xfer use case
+                else:  # internal xfer use case
                     if transfer_type.is_reciprocal:
                         et = EventType.objects.get(name="Receive")
                         et2 = EventType.objects.get(name="Give")
@@ -6199,46 +6075,47 @@ def add_transfer_commitment(request, exchange_id, transfer_type_id):
                         et = EventType.objects.get(name="Give")
                         et2 = EventType.objects.get(name="Receive")
                 commit = Commitment(
-                    event_type = et,
+                    event_type=et,
                     commitment_date=commitment_date,
                     due_date=due_date,
                     resource_type=rt,
-                    exchange = exchange,
+                    exchange=exchange,
                     transfer=xfer,
                     exchange_stage=exchange.exchange_type,
-                    context_agent = context_agent,
+                    context_agent=context_agent,
                     quantity=qty,
-                    unit_of_quantity = rt.unit,
+                    unit_of_quantity=rt.unit,
                     value=value,
                     unit_of_value=unit_of_value,
-                    from_agent = from_agent,
-                    to_agent = to_agent,
+                    from_agent=from_agent,
+                    to_agent=to_agent,
                     description=description,
-                    created_by = request.user,
-                    )
+                    created_by=request.user,
+                )
                 commit.save()
                 if et2:
                     commit2 = Commitment(
-                        event_type = et2,
+                        event_type=et2,
                         commitment_date=commitment_date,
                         due_date=due_date,
                         resource_type=rt,
-                        exchange = exchange,
+                        exchange=exchange,
                         transfer=xfer,
                         exchange_stage=exchange.exchange_type,
-                        context_agent = context_agent,
+                        context_agent=context_agent,
                         quantity=qty,
-                        unit_of_quantity = rt.unit,
+                        unit_of_quantity=rt.unit,
                         value=value,
                         unit_of_value=unit_of_value,
-                        from_agent = from_agent,
-                        to_agent = to_agent,
-                        created_by = request.user,
-                    )    
+                        from_agent=from_agent,
+                        to_agent=to_agent,
+                        created_by=request.user,
+                    )
                     commit2.save()
-            
+
     return HttpResponseRedirect('/%s/%s/%s/'
-        % ('accounting/exchange', 0, exchange.id))
+                                % ('accounting/exchange', 0, exchange.id))
+
 
 @login_required
 def change_transfer_events(request, transfer_id):
@@ -6248,8 +6125,9 @@ def change_transfer_events(request, transfer_id):
         transfer_type = transfer.transfer_type
         exchange = transfer.exchange
         context_agent = transfer.context_agent
-        #import pdb; pdb.set_trace()
-        form = TransferForm(data=request.POST, transfer_type=transfer_type, context_agent=context_agent, posting=True, prefix=transfer.form_prefix() + "E")
+        # import pdb; pdb.set_trace()
+        form = TransferForm(data=request.POST, transfer_type=transfer_type, context_agent=context_agent, posting=True,
+                            prefix=transfer.form_prefix() + "E")
         if form.is_valid():
             data = form.cleaned_data
             et_give = EventType.objects.get(name="Give")
@@ -6264,7 +6142,7 @@ def change_transfer_events(request, transfer_id):
                 if transfer_type.receive_agent_is_context:
                     to_agent = context_agent
                 else:
-                    to_agent = data["to_agent"]  
+                    to_agent = data["to_agent"]
                 rt = data["resource_type"]
                 res = data["resource"]
                 res_from = None
@@ -6286,10 +6164,10 @@ def change_transfer_events(request, transfer_id):
                     is_contribution = False
                 event_ref = data["event_reference"]
 
-                #old_res = None
+                # old_res = None
                 old_qty = events[0].quantity
                 old_res_from, old_res = transfer.give_and_receive_resources()
-                #if events[0].resource:
+                # if events[0].resource:
                 #    old_res = events[0].resource
                 for event in events:
                     event.resource_type = rt
@@ -6299,12 +6177,12 @@ def change_transfer_events(request, transfer_id):
                     event.from_agent = from_agent
                     event.to_agent = to_agent
                     event.event_date = event_date
-                    event.quantity=qty
+                    event.quantity = qty
                     event.unit_of_quantity = rt.unit
-                    event.value=value
+                    event.value = value
                     event.unit_of_value = unit_of_value
-                    event.description=description
-                    event.event_reference=event_ref
+                    event.description = description
+                    event.event_reference = event_ref
                     event.changed_by = request.user
                     event.save()
                     res_to_change = event.resource
@@ -6348,9 +6226,10 @@ def change_transfer_events(request, transfer_id):
 
                 transfer.transfer_date = event_date
                 transfer.save()
-                
+
     return HttpResponseRedirect('/%s/%s/%s/'
-        % ('accounting/exchange', 0, exchange.id))    
+                                % ('accounting/exchange', 0, exchange.id))
+
 
 @login_required
 def change_transfer_commitments(request, transfer_id):
@@ -6360,8 +6239,9 @@ def change_transfer_commitments(request, transfer_id):
         transfer_type = transfer.transfer_type
         exchange = transfer.exchange
         context_agent = transfer.context_agent
-        #import pdb; pdb.set_trace()
-        form = TransferCommitmentForm(data=request.POST, transfer_type=transfer_type, context_agent=context_agent, posting=True, prefix=transfer.form_prefix() + "C")
+        # import pdb; pdb.set_trace()
+        form = TransferCommitmentForm(data=request.POST, transfer_type=transfer_type, context_agent=context_agent,
+                                      posting=True, prefix=transfer.form_prefix() + "C")
         if form.is_valid():
             data = form.cleaned_data
             et_give = EventType.objects.get(name="Give")
@@ -6377,7 +6257,7 @@ def change_transfer_commitments(request, transfer_id):
                 if transfer_type.receive_agent_is_context:
                     to_agent = context_agent
                 else:
-                    to_agent = data["to_agent"]  
+                    to_agent = data["to_agent"]
                 rt = data["resource_type"]
                 description = data["description"]
                 if transfer_type.is_currency:
@@ -6396,16 +6276,17 @@ def change_transfer_commitments(request, transfer_id):
                     commit.to_agent = to_agent
                     commit.commitment_date = commitment_date
                     commit.due_date = due_date
-                    commit.quantity=qty
+                    commit.quantity = qty
                     commit.unit_of_quantity = rt.unit
-                    commit.value=value
+                    commit.value = value
                     commit.unit_of_value = unit_of_value
-                    commit.description=description
+                    commit.description = description
                     commit.changed_by = request.user
                     commit.save()
-                 
+
     return HttpResponseRedirect('/%s/%s/%s/'
-        % ('accounting/exchange', 0, exchange.id))   
+                                % ('accounting/exchange', 0, exchange.id))
+
 
 @login_required
 def delete_transfer_commitments(request, transfer_id):
@@ -6416,9 +6297,10 @@ def delete_transfer_commitments(request, transfer_id):
             if commit.is_deletable():
                 commit.delete()
         if transfer.is_deletable():
-             transfer.delete()
+            transfer.delete()
     return HttpResponseRedirect('/%s/%s/%s/'
-        % ('accounting/exchange', 0, exchange.id)) 
+                                % ('accounting/exchange', 0, exchange.id))
+
 
 @login_required
 def delete_transfer_events(request, transfer_id):
@@ -6453,9 +6335,9 @@ def delete_transfer_events(request, transfer_id):
                 else:
                     receive_res.save()
         if transfer.is_deletable():
-             transfer.delete()
+            transfer.delete()
     return HttpResponseRedirect('/%s/%s/%s/'
-        % ('accounting/exchange', 0, exchange.id))   
+                                % ('accounting/exchange', 0, exchange.id))
 
 
 @login_required
@@ -6481,29 +6363,30 @@ def add_process_input(request, process_id, slot):
                 event_type = pattern.event_type_for_resource_type(rel, rt)
                 ct.event_type = event_type
                 ct.process = process
-                #ct.project = process.project
-                ct.context_agent=process.context_agent
-                #flow todo: test for this
+                # ct.project = process.project
+                ct.context_agent = process.context_agent
+                # flow todo: test for this
                 ct.order_item = process.order_item()
                 ct.independent_demand = demand
                 ct.due_date = process.start_date
                 ct.created_by = request.user
-                #todo: add stage and state as args?
-                #todo pr: this shd probably use own_or_parent_recipes
+                # todo: add stage and state as args?
+                # todo pr: this shd probably use own_or_parent_recipes
                 ptrt, inheritance = ct.resource_type.main_producing_process_type_relationship()
                 if ptrt:
                     ct.context_agent = ptrt.process_type.context_agent
                 ct.save()
-                #todo: this is used in process logging; shd it explode?
-                #explode_dependent_demands(ct, request.user)                
+                # todo: this is used in process logging; shd it explode?
+                # explode_dependent_demands(ct, request.user)
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', process.id))
+                                % ('accounting/process', process.id))
+
 
 @login_required
 def add_process_citation(request, process_id):
     process = get_object_or_404(Process, pk=process_id)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         form = ProcessCitationForm(data=request.POST, prefix='citation')
         if form.is_valid():
             input_data = form.cleaned_data
@@ -6514,17 +6397,17 @@ def add_process_citation(request, process_id):
             pattern = process.process_pattern
             event_type = pattern.event_type_for_resource_type("cite", rt)
             agent = get_agent(request)
-            #todo: sub process.add_commitment()
-            #flow todo: test for order_item
+            # todo: sub process.add_commitment()
+            # flow todo: test for order_item
             ct = Commitment(
                 process=process,
-                #from_agent=agent,
+                # from_agent=agent,
                 independent_demand=demand,
-                order_item = process.order_item(),
+                order_item=process.order_item(),
                 event_type=event_type,
                 due_date=process.start_date,
                 resource_type=rt,
-                #project=process.project,
+                # project=process.project,
                 context_agent=process.context_agent,
                 quantity=quantity,
                 description=descrip,
@@ -6532,15 +6415,16 @@ def add_process_citation(request, process_id):
                 created_by=request.user,
             )
             ct.save()
-                
+
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', process.id))
+                                % ('accounting/process', process.id))
+
 
 @login_required
 def add_process_worker(request, process_id):
     process = get_object_or_404(Process, pk=process_id)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         form = WorkCommitmentForm(data=request.POST, prefix='work')
         if form.is_valid():
             input_data = form.cleaned_data
@@ -6549,45 +6433,46 @@ def add_process_worker(request, process_id):
             pattern = process.process_pattern
             event_type = pattern.event_type_for_resource_type("work", rt)
             ct = form.save(commit=False)
-            ct.process=process
-            #flow todo: test order_item
+            ct.process = process
+            # flow todo: test order_item
             ct.order_item = process.order_item()
-            ct.independent_demand=demand
-            ct.event_type=event_type
-            #ct.due_date=process.end_date
-            ct.resource_type=rt
-            ct.context_agent=process.context_agent
-            ct.unit_of_quantity=rt.directional_unit("use")
-            ct.created_by=request.user
+            ct.independent_demand = demand
+            ct.event_type = event_type
+            # ct.due_date=process.end_date
+            ct.resource_type = rt
+            ct.context_agent = process.context_agent
+            ct.unit_of_quantity = rt.directional_unit("use")
+            ct.created_by = request.user
             ct.save()
             if notification:
-                #import pdb; pdb.set_trace()
+                # import pdb; pdb.set_trace()
                 agent = get_agent(request)
                 users = ct.possible_work_users()
                 site_name = get_site_name()
                 if users:
                     notification.send(
-                        users, 
-                        "valnet_help_wanted", 
+                        users,
+                        "valnet_help_wanted",
                         {"resource_type": ct.resource_type,
-                        "due_date": ct.due_date,
-                        "hours": ct.quantity,
-                        "unit": ct.resource_type.unit,
-                        "description": ct.description or "",
-                        "process": ct.process,
-                        "creator": agent,
-                        "site_name": site_name,
-                        }
+                         "due_date": ct.due_date,
+                         "hours": ct.quantity,
+                         "unit": ct.resource_type.unit,
+                         "description": ct.description or "",
+                         "process": ct.process,
+                         "creator": agent,
+                         "site_name": site_name,
+                         }
                     )
         next = request.POST.get("next")
         if next:
             if next == "work":
                 return HttpResponseRedirect('/%s/%s/'
-                    % ('work/process-logging', process.id))
-                
+                                            % ('work/process-logging', process.id))
+
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', process.id))
-        
+                                % ('accounting/process', process.id))
+
+
 @login_required
 def invite_collaborator(request, commitment_id):
     commitment = get_object_or_404(Commitment, pk=commitment_id)
@@ -6614,40 +6499,41 @@ def invite_collaborator(request, commitment_id):
             ct.created_by=request.user
             ct.save()
         '''
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if notification:
             agent = get_agent(request)
             users = commitment.possible_work_users()
             site_name = get_site_name()
             if users:
                 notification.send(
-                    users, 
-                    "valnet_help_wanted", 
+                    users,
+                    "valnet_help_wanted",
                     {"resource_type": commitment.resource_type,
-                    "due_date": commitment.due_date,
-                    "hours": commitment.quantity,
-                    "unit": commitment.resource_type.unit,
-                    "description": commitment.description or "",
-                    "process": commitment.process,
-                    "creator": agent,
-                    "site_name": site_name,
-                    }
+                     "due_date": commitment.due_date,
+                     "hours": commitment.quantity,
+                     "unit": commitment.resource_type.unit,
+                     "description": commitment.description or "",
+                     "process": commitment.process,
+                     "creator": agent,
+                     "site_name": site_name,
+                     }
                 )
-                    
+
         next = request.POST.get("next")
         if next:
             if next == "work":
                 return HttpResponseRedirect('/%s/%s/'
-                    % ('work/process-logging', process.id))
-                
+                                            % ('work/process-logging', process.id))
+
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', process.id))
+                                % ('accounting/process', process.id))
+
 
 @login_required
 def delete_commitment(request, commitment_id, labnotes_id):
     commitment = get_object_or_404(Commitment, pk=commitment_id)
     ct = get_object_or_404(Commitment, pk=labnotes_id)
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     commitment.delete()
     was_running = request.POST["wasRunning"] or 0
     was_retrying = request.POST["wasRetrying"] or 0
@@ -6655,7 +6541,7 @@ def delete_commitment(request, commitment_id, labnotes_id):
     event_date = request.POST.get("eventDate")
     event = None
     events = None
-    event_id=0
+    event_id = 0
     if event_date:
         event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
         events = ct.fulfillment_events.filter(event_date=event_date)
@@ -6664,28 +6550,30 @@ def delete_commitment(request, commitment_id, labnotes_id):
         event_id = event.id
     if reload == 'pastwork':
         return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
-            % ('accounting/pastwork-reload', labnotes_id, event_id, was_running, was_retrying))
+                                    % ('accounting/pastwork-reload', labnotes_id, event_id, was_running, was_retrying))
     else:
         return HttpResponseRedirect('/%s/%s/%s/%s/'
-            % ('accounting/labnotes-reload', labnotes_id, was_running, was_retrying))
+                                    % ('accounting/labnotes-reload', labnotes_id, was_running, was_retrying))
+
 
 @login_required
 def delete_process_commitment(request, commitment_id):
     commitment = get_object_or_404(Commitment, pk=commitment_id)
     process = commitment.process
-    #commitment.delete_dependants()
+    # commitment.delete_dependants()
     commitment.delete()
     next = request.POST.get("next")
     if next:
         if next == "work":
             return HttpResponseRedirect('/%s/%s/'
-                % ('work/process-logging', process.id))
+                                        % ('work/process-logging', process.id))
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', process.id))
+                                % ('accounting/process', process.id))
+
 
 @login_required
 def change_event_date(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     event_id = request.POST.get("eventId")
     event = get_object_or_404(EconomicEvent, pk=event_id)
     form = EventChangeDateForm(data=request.POST, instance=event, prefix=event_id)
@@ -6694,9 +6582,10 @@ def change_event_date(request):
         event = form.save()
     return HttpResponse("Ok", content_type="text/plain")
 
+
 @login_required
 def change_event_qty(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     event_id = request.POST.get("eventId")
     event = get_object_or_404(EconomicEvent, pk=event_id)
     form = EventChangeQuantityForm(data=request.POST, instance=event, prefix=event_id)
@@ -6705,14 +6594,15 @@ def change_event_qty(request):
         event = form.save()
     return HttpResponse("Ok", content_type="text/plain")
 
+
 @login_required
 def change_event(request, event_id):
     event = get_object_or_404(EconomicEvent, pk=event_id)
     page = request.GET.get("page")
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     event_form = event.change_form(data=request.POST or None)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         page = request.POST.get("page")
         if event_form.is_valid():
             event = event_form.save(commit=False)
@@ -6721,18 +6611,19 @@ def change_event(request, event_id):
         agent = event.from_agent
         if page:
             return HttpResponseRedirect('/%s/%s/?page=%s'
-                % ('accounting/contributionhistory', agent.id, page))
+                                        % ('accounting/contributionhistory', agent.id, page))
         else:
             return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/contributionhistory', agent.id))
+                                        % ('accounting/contributionhistory', agent.id))
     return render_to_response("valueaccounting/change_event.html", {
         "event_form": event_form,
         "page": page,
-    }, context_instance=RequestContext(request)) 
+    }, context_instance=RequestContext(request))
 
-@login_required        
+
+@login_required
 def delete_event(request, event_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         event = get_object_or_404(EconomicEvent, pk=event_id)
         agent = event.from_agent
@@ -6764,93 +6655,94 @@ def delete_event(request, event_id):
                 resource.save()
         else:
             event.delete()
-            
+
     next = request.POST.get("next")
     if next == "process":
         return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/process', process.id))
+                                    % ('accounting/process', process.id))
     if next == "cleanup-processes":
         return HttpResponseRedirect('/%s/'
-            % ('accounting/cleanup-processes'))
+                                    % ('accounting/cleanup-processes'))
     if next == "exchange":
         return HttpResponseRedirect('/%s/%s/%s/'
-            % ('accounting/exchange', 0, exchange.id))
+                                    % ('accounting/exchange', 0, exchange.id))
     if next == "distribution":
         return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/distribution', distribution.id))
+                                    % ('accounting/distribution', distribution.id))
     if next == "resource":
         resource_id = request.POST.get("resource_id")
         return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/resource', resource_id))
+                                    % ('accounting/resource', resource_id))
     elif next == "contributions":
         page = request.POST.get("page")
-        
+
         if page:
             return HttpResponseRedirect('/%s/%s/?page=%s'
-                % ('accounting/contributionhistory', agent.id, page))
+                                        % ('accounting/contributionhistory', agent.id, page))
         else:
             return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/contributionhistory', agent.id))
+                                        % ('accounting/contributionhistory', agent.id))
     elif next == "work-contributions":
         page = request.POST.get("page")
-        
+
         if page:
             return HttpResponseRedirect('/%s/?page=%s'
-                % ('work/my-history', page))
+                                        % ('work/my-history', page))
         else:
             return HttpResponseRedirect('/%s/'
-                % ('work/my-history'))
+                                        % ('work/my-history'))
     elif next == "work":
         return HttpResponseRedirect('/%s/%s/'
-            % ('work/process-logging', process.id))
+                                    % ('work/process-logging', process.id))
 
-@login_required        
+
+@login_required
 def delete_citation_event(request, commitment_id, resource_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         ct = get_object_or_404(Commitment, pk=commitment_id)
         resource = get_object_or_404(EconomicResource, pk=resource_id)
         process = ct.process
         events = ct.fulfillment_events.filter(resource=resource)
-        for event in events:                        
-            event.delete()        
+        for event in events:
+            event.delete()
     next = request.POST.get("next")
     if next == "process":
         return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/process', process.id))
+                                    % ('accounting/process', process.id))
     if next == "resource":
         resource_id = request.POST.get("resource_id")
         return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/resource', resource_id))
+                                    % ('accounting/resource', resource_id))
 
 
-@login_required        
-def delete_exchange(request, exchange_id): 
-    #import pdb; pdb.set_trace()
-    #todo: Lynn needs lots of work
+@login_required
+def delete_exchange(request, exchange_id):
+    # import pdb; pdb.set_trace()
+    # todo: Lynn needs lots of work
     if request.method == "POST":
         exchange = get_object_or_404(Exchange, pk=exchange_id)
         if exchange.is_deletable:
-            exchange.delete()           
+            exchange.delete()
         next = request.POST.get("next")
         if next == "exchanges":
             return HttpResponseRedirect('/%s/'
-                % ('accounting/exchanges'))
+                                        % ('accounting/exchanges'))
         if next == "demand_transfers":
             return HttpResponseRedirect('/%s/'
-                % ('accounting/sales-and-distributions')) #obsolete
+                                        % ('accounting/sales-and-distributions'))  # obsolete
         if next == "material_contributions":
             return HttpResponseRedirect('/%s/'
-                % ('accounting/material-contributions')) #obsolete
+                                        % ('accounting/material-contributions'))  # obsolete
         if next == "distributions":
             return HttpResponseRedirect('/%s/'
-                % ('accounting/distributions'))
-       #needs a fall-through if next is none of the above
+                                        % ('accounting/distributions'))
+            # needs a fall-through if next is none of the above
 
 
 @login_required
 def work_done(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     commitment_id = int(request.POST.get("commitmentId"))
     done = int(request.POST.get("done"))
     commitment = get_object_or_404(Commitment, pk=commitment_id)
@@ -6864,27 +6756,28 @@ def work_done(request):
             commitment.save()
 
     return HttpResponse("Ok", content_type="text/plain")
-    
+
+
 @login_required
 def commitment_finished(request, commitment_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     commitment = get_object_or_404(Commitment, pk=commitment_id)
     if not commitment.finished:
         commitment.finished = True
         commitment.changed_by = request.user
-        commitment.save() 
+        commitment.save()
     next = request.POST.get("next")
     if next:
         if next == "work-start":
             return HttpResponseRedirect('/%s/'
-                % ('work/my-tasks'))
+                                        % ('work/my-tasks'))
     return HttpResponseRedirect('/%s/'
-            % ('accounting/start'))
+                                % ('accounting/start'))
 
 
 @login_required
 def process_done(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     process_id = int(request.POST.get("processId"))
     commitment_id = int(request.POST.get("commitmentId"))
     done = int(request.POST.get("done"))
@@ -6910,9 +6803,10 @@ def process_done(request):
 
     return HttpResponse("Ok", content_type="text/plain")
 
+
 @login_required
 def process_finished(request, process_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     process = get_object_or_404(Process, pk=process_id)
     if not process.finished:
         process.finished = True
@@ -6921,71 +6815,74 @@ def process_finished(request, process_id):
         if process.finished:
             process.finished = False
             process.save()
-    #todo: finish commitments? (see process_done above)
-    #or refactor into process method and use for both?
-    #or refactor-combine
+    # todo: finish commitments? (see process_done above)
+    # or refactor into process method and use for both?
+    # or refactor-combine
     next = request.POST.get("next")
     if next:
         if next == "cleanup-processes":
             return HttpResponseRedirect('/%s/'
-                % ('accounting/cleanup-processes'))
+                                        % ('accounting/cleanup-processes'))
         if next == "cleanup-old-processes":
             return HttpResponseRedirect('/%s/'
-                % ('accounting/cleanup-old-processes'))
+                                        % ('accounting/cleanup-old-processes'))
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', process_id))
+                                % ('accounting/process', process_id))
+
 
 @login_required
 def delete_process(request, process_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     process = get_object_or_404(Process, pk=process_id)
     process.delete()
     next = request.POST.get("next")
     if next:
         if next == "cleanup-processes":
             return HttpResponseRedirect('/%s/'
-                % ('accounting/cleanup-processes'))
+                                        % ('accounting/cleanup-processes'))
         if next == "cleanup-old-processes":
             return HttpResponseRedirect('/%s/'
-                % ('accounting/cleanup-old-processes'))
+                                        % ('accounting/cleanup-old-processes'))
     return HttpResponseRedirect('/%s/'
-        % ('accounting/cleanup-processes'))
-  
+                                % ('accounting/cleanup-processes'))
+
+
 @login_required
 def labnotes_reload(
-        request, 
-        commitment_id, 
+        request,
+        commitment_id,
         was_running=0,
         was_retrying=0):
     ct = get_object_or_404(Commitment, id=commitment_id)
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     template_params = create_labnotes_context(
-        request, 
-        ct, 
+        request,
+        ct,
         was_running,
         was_retrying,
     )
     return render_to_response("valueaccounting/workbook.html",
-        template_params,
-        context_instance=RequestContext(request))
+                              template_params,
+                              context_instance=RequestContext(request))
+
 
 @login_required
 def work_commitment(
-        request, 
+        request,
         commitment_id):
     ct = get_object_or_404(Commitment, id=commitment_id)
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     agent = get_agent(request)
     if not request.user.is_superuser:
         if agent != ct.from_agent:
             return render_to_response('valueaccounting/no_permission.html')
     template_params = create_labnotes_context(
-        request, 
-        ct, 
+        request,
+        ct,
     )
     event = template_params["event"]
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         today = datetime.date.today()
         wb_form = WorkbookForm(request.POST)
         if wb_form.is_valid():
@@ -6998,7 +6895,7 @@ def work_commitment(
                 process = ct.process
                 if not process.started:
                     process.started = today
-                    process.changed_by=request.user
+                    process.changed_by = request.user
                     process.save()
                 event = wb_form.save(commit=False)
                 event.commitment = ct
@@ -7012,26 +6909,27 @@ def work_commitment(
                 event.unit_of_quantity = ct.unit_of_quantity
                 event.created_by = request.user
                 event.changed_by = request.user
-                
+
             event.save()
             description = data["description"]
             if description != ct.description:
                 ct.description = description
                 ct.save()
             return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/labnote', ct.id))
+                                        % ('accounting/labnote', ct.id))
     return render_to_response("valueaccounting/workbook.html",
-        template_params,
-        context_instance=RequestContext(request))
+                              template_params,
+                              context_instance=RequestContext(request))
+
 
 def create_worknow_context(
-        request, 
+        request,
         process,
         agent,
         commitment):
     prev = ""
     today = datetime.date.today()
-    #todo: will not now handle lack of commitment
+    # todo: will not now handle lack of commitment
     event = EconomicEvent(
         event_date=today,
         from_agent=agent,
@@ -7040,9 +6938,9 @@ def create_worknow_context(
         context_agent=process.context_agent,
         quantity=Decimal("0"),
         is_contribution=True,
-        created_by = request.user,
+        created_by=request.user,
     )
-        
+
     if commitment:
         event.commitment = commitment
         event.event_type = commitment.event_type
@@ -7086,48 +6984,50 @@ def create_worknow_context(
         "help": get_help("labnotes"),
     }
 
+
 @login_required
 def work_now(
         request,
         process_id,
         commitment_id=None):
     process = get_object_or_404(Process, id=process_id)
-    agent = get_agent(request) 
-    ct = None  
+    agent = get_agent(request)
+    ct = None
     if commitment_id:
-        ct = get_object_or_404(Commitment, id=commitment_id)    
-        #if not request.user.is_superuser:
+        ct = get_object_or_404(Commitment, id=commitment_id)
+        # if not request.user.is_superuser:
         #    if agent != ct.from_agent:
         #        return render_to_response('valueaccounting/no_permission.html')
     template_params = create_worknow_context(
-        request, 
+        request,
         process,
         agent,
-        ct, 
+        ct,
     )
     return render_to_response("valueaccounting/work_now.html",
-        template_params,
-        context_instance=RequestContext(request))
+                              template_params,
+                              context_instance=RequestContext(request))
+
 
 def create_past_work_context(
-        request, 
-        commitment, 
+        request,
+        commitment,
         was_running=0,
         was_retrying=0,
         event=None):
     duration = 0
     description = ""
     prev = ""
-    event_date=None
-    #import pdb; pdb.set_trace()
+    event_date = None
+    # import pdb; pdb.set_trace()
     if event:
         init = {
-                "work_done": commitment.finished,
-                "process_done": commitment.process.finished,
-            }
+            "work_done": commitment.finished,
+            "process_done": commitment.process.finished,
+        }
         wb_form = PastWorkForm(instance=event, initial=init)
-        duration = event.quantity * 60 
-        event_date=event.event_date
+        duration = event.quantity * 60
+        event_date = event.event_date
     else:
         init = {
             "description": commitment.description,
@@ -7147,7 +7047,7 @@ def create_past_work_context(
         prev = " ".join([str(prev_dur), unit])
     others_working = []
     other_work_reqs = []
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     process = commitment.process
     wrqs = process.work_requirements()
     if wrqs.count() > 1:
@@ -7204,65 +7104,68 @@ def create_past_work_context(
         "help": get_help("labnotes"),
     }
 
+
 @login_required
 def pastwork_reload(
-        request, 
-        commitment_id, 
+        request,
+        commitment_id,
         event_id,
         was_running=0,
         was_retrying=0,
-        ):
+):
     ct = get_object_or_404(Commitment, id=commitment_id)
     agent = get_agent(request)
     if agent != ct.from_agent:
         return render_to_response('valueaccounting/no_permission.html')
-    #import pdb; pdb.set_trace()
-    event=None
+    # import pdb; pdb.set_trace()
+    event = None
     event_id = int(event_id)
     if event_id:
         event = get_object_or_404(EconomicEvent, id=event_id)
     template_params = create_past_work_context(
-        request, 
-        ct, 
+        request,
+        ct,
         was_running,
         was_retrying,
         event,
     )
     if request.method == "POST":
         return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/labnote', ct.id))
+                                    % ('accounting/labnote', ct.id))
     return render_to_response("valueaccounting/log_past_work.html",
-        template_params,
-        context_instance=RequestContext(request))
+                              template_params,
+                              context_instance=RequestContext(request))
 
-#obsolete?
+
+# obsolete?
 @login_required
 def log_past_work(
-        request, 
+        request,
         commitment_id):
     ct = get_object_or_404(Commitment, id=commitment_id)
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     agent = get_agent(request)
     if not request.user.is_superuser:
         if agent != ct.from_agent:
             return render_to_response('valueaccounting/no_permission.html')
     template_params = create_past_work_context(
-        request, 
+        request,
         ct,
     )
     event = template_params["event"]
     if request.method == "POST":
         return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/labnote', ct.id))
+                                    % ('accounting/labnote', ct.id))
     return render_to_response("valueaccounting/log_past_work.html",
-        template_params,
-        context_instance=RequestContext(request))
+                              template_params,
+                              context_instance=RequestContext(request))
+
 
 @login_required
 def save_work_now(request, event_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
-        event = get_object_or_404(EconomicEvent, id=event_id)      
+        event = get_object_or_404(EconomicEvent, id=event_id)
         form = WorkbookForm(instance=event, data=request.POST)
         if form.is_valid():
             data = form.cleaned_data
@@ -7272,16 +7175,17 @@ def save_work_now(request, event_id):
             event.save()
             if not process.started:
                 process.started = event.event_date
-                process.changed_by=request.user
-                process.save()            
+                process.changed_by = request.user
+                process.save()
             data = "ok"
         else:
             data = form.errors
         return HttpResponse(data, content_type="text/plain")
 
+
 @login_required
 def save_labnotes(request, commitment_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         ct = get_object_or_404(Commitment, id=commitment_id)
         event = None
@@ -7319,7 +7223,7 @@ def save_labnotes(request, commitment_id):
                 process = ct.process
                 if not process.started:
                     process.started = event_date
-                    process.changed_by=request.user
+                    process.changed_by = request.user
                     process.save()
             event.save()
             description = data["description"]
@@ -7332,9 +7236,10 @@ def save_labnotes(request, commitment_id):
             data = form.errors
         return HttpResponse(data, content_type="text/plain")
 
+
 @login_required
 def save_past_work(request, commitment_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         ct = get_object_or_404(Commitment, id=commitment_id)
         event_date = request.POST.get("eventDate")
@@ -7342,7 +7247,7 @@ def save_past_work(request, commitment_id):
             event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
         events = ct.fulfillment_events.filter(event_date=event_date)
         if events:
-            #todo: if the past work logging form becomes accessible other ways,
+            # todo: if the past work logging form becomes accessible other ways,
             # existing events will need to be retrieved when the date is entered.
             event = events[events.count() - 1]
             form = PastWorkForm(instance=event, data=request.POST)
@@ -7372,7 +7277,7 @@ def save_past_work(request, commitment_id):
                 process = ct.process
                 if not process.started:
                     process.started = event_date
-                    process.changed_by=request.user
+                    process.changed_by = request.user
                     process.save()
                 event.save()
                 description = data["description"]
@@ -7401,11 +7306,12 @@ def process_details(request, process_id):
         "help": get_help("process"),
     }, context_instance=RequestContext(request))
 
-def process_oriented_logging(request, process_id):   
+
+def process_oriented_logging(request, process_id):
     process = get_object_or_404(Process, id=process_id)
     pattern = process.process_pattern
     context_agent = process.context_agent
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     agent = get_agent(request)
     user = request.user
     logger = False
@@ -7430,28 +7336,28 @@ def process_oriented_logging(request, process_id):
     work_now = settings.USE_WORK_NOW
     to_be_changed_requirement = None
     changeable_requirement = None
-    
+
     work_reqs = process.work_requirements()
     consume_reqs = process.consumed_input_requirements()
     use_reqs = process.used_input_requirements()
     unplanned_work = process.uncommitted_work_events()
-    
+
     if agent and pattern:
         slots = pattern.slots()
         event_types = pattern.event_types()
-        #if request.user.is_superuser or request.user == process.created_by:
+        # if request.user.is_superuser or request.user == process.created_by:
         if request.user.is_staff or request.user == process.created_by:
             logger = True
             super_logger = True
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         for req in work_reqs:
             req.changeform = req.change_work_form()
             if agent == req.from_agent:
                 logger = True
-                worker = True  
-            init = {"from_agent": agent, 
-                "event_date": todays_date,
-                "is_contribution": True,}
+                worker = True
+            init = {"from_agent": agent,
+                    "event_date": todays_date,
+                    "is_contribution": True, }
             req.input_work_form_init = req.input_event_form_init(init=init)
         for req in consume_reqs:
             req.changeform = req.change_form()
@@ -7461,15 +7367,15 @@ def process_oriented_logging(request, process_id):
             event.changeform = UnplannedWorkEventForm(
                 pattern=pattern,
                 context_agent=context_agent,
-                instance=event, 
+                instance=event,
                 prefix=str(event.id))
-        output_resource_types = pattern.output_resource_types()        
+        output_resource_types = pattern.output_resource_types()
         unplanned_output_form = UnplannedOutputForm(prefix='unplannedoutput')
         unplanned_output_form.fields["resource_type"].queryset = output_resource_types
         role_formset = resource_role_agent_formset(prefix="resource")
         produce_et = EventType.objects.get(name="Resource Production")
         change_et = EventType.objects.get(name="Change")
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if "out" in slots:
             if logger:
                 if change_et in event_types:
@@ -7487,25 +7393,27 @@ def process_oriented_logging(request, process_id):
                 work_init = {
                     "from_agent": agent,
                     "is_contribution": True,
-                } 
+                }
                 work_resource_types = pattern.work_resource_types()
                 if work_resource_types:
                     work_unit = work_resource_types[0].unit
-                    #work_init = {"unit_of_quantity": work_unit,}
+                    # work_init = {"unit_of_quantity": work_unit,}
                     work_init = {
                         "from_agent": agent,
                         "unit_of_quantity": work_unit,
                         "is_contribution": True,
-                    } 
-                    unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned", context_agent=context_agent, initial=work_init)
+                    }
+                    unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned", context_agent=context_agent,
+                                                                 initial=work_init)
                     unplanned_work_form.fields["resource_type"].queryset = work_resource_types
-                    #if logger:
+                    # if logger:
                     #    add_work_form = WorkCommitmentForm(initial=work_init, prefix='work', pattern=pattern)
                 else:
-                    unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned", pattern=pattern, context_agent=context_agent, initial=work_init)
-                    #is this correct? see commented-out lines above
+                    unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned", pattern=pattern,
+                                                                 context_agent=context_agent, initial=work_init)
+                    # is this correct? see commented-out lines above
                 if logger:
-                    date_init = {"due_date": process.end_date,}
+                    date_init = {"due_date": process.end_date, }
                     add_work_form = WorkCommitmentForm(prefix='work', pattern=pattern, initial=date_init)
 
         if "cite" in slots:
@@ -7513,7 +7421,7 @@ def process_oriented_logging(request, process_id):
             if context_agent.unit_of_claim_value:
                 cite_unit = context_agent.unit_of_claim_value
             if logger:
-                add_citation_form = ProcessCitationForm(prefix='citation', pattern=pattern)   
+                add_citation_form = ProcessCitationForm(prefix='citation', pattern=pattern)
         if "consume" in slots:
             unplanned_consumption_form = UnplannedInputEventForm(prefix='unplannedconsumption', pattern=pattern)
             if logger:
@@ -7524,9 +7432,9 @@ def process_oriented_logging(request, process_id):
                 add_usable_form = ProcessUsableForm(prefix='usable', pattern=pattern)
         if "payexpense" in slots:
             process_expense_form = ProcessExpenseEventForm(prefix='processexpense', pattern=pattern)
-    
+
     cited_ids = [c.resource.id for c in process.citations()]
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     citation_requirements = process.citation_requirements()
     for cr in citation_requirements:
         cr.resources = []
@@ -7534,9 +7442,9 @@ def process_oriented_logging(request, process_id):
             resource = evt.resource
             resource.event = evt
             cr.resources.append(resource)
-    
+
     output_resource_ids = [e.resource.id for e in process.production_events() if e.resource]
-    
+
     return render_to_response("valueaccounting/process_oriented_logging.html", {
         "process": process,
         "change_process_form": change_process_form,
@@ -7563,7 +7471,7 @@ def process_oriented_logging(request, process_id):
         "slots": slots,
         "to_be_changed_requirement": to_be_changed_requirement,
         "changeable_requirement": changeable_requirement,
-        "work_reqs": work_reqs,        
+        "work_reqs": work_reqs,
         "consume_reqs": consume_reqs,
         "uncommitted_consumption": process.uncommitted_consumption_events(),
         "use_reqs": use_reqs,
@@ -7574,15 +7482,16 @@ def process_oriented_logging(request, process_id):
         "help": get_help("process"),
     }, context_instance=RequestContext(request))
 
+
 @login_required
 def add_unplanned_cite_event(request, process_id):
     process = get_object_or_404(Process, pk=process_id)
     pattern = process.process_pattern
-    #import pdb; pdb.set_trace()
-    if pattern:        
+    # import pdb; pdb.set_trace()
+    if pattern:
         form = UnplannedCiteEventForm(
-            prefix='unplannedcite', 
-            data=request.POST, 
+            prefix='unplannedcite',
+            data=request.POST,
             pattern=pattern,
             load_resources=True)
         if form.is_valid():
@@ -7590,40 +7499,41 @@ def add_unplanned_cite_event(request, process_id):
             qty = data["quantity"]
             if qty:
                 agent = get_agent(request)
-                #import pdb; pdb.set_trace()
+                # import pdb; pdb.set_trace()
                 agent = get_agent(request)
                 rt = data["resource_type"]
                 r_id = data["resource"]
                 resource = EconomicResource.objects.get(id=r_id)
-                #todo: rethink for citations
+                # todo: rethink for citations
                 default_agent = process.default_agent()
                 from_agent = resource.owner() or default_agent
                 event_type = pattern.event_type_for_resource_type("cite", rt)
                 event = EconomicEvent(
                     event_type=event_type,
-                    resource_type = rt,
-                    resource = resource,
-                    from_agent = from_agent,
-                    to_agent = default_agent,
-                    process = process,
-                    #project = process.project,
-                    context_agent = process.context_agent,
-                    event_date = datetime.date.today(),
+                    resource_type=rt,
+                    resource=resource,
+                    from_agent=from_agent,
+                    to_agent=default_agent,
+                    process=process,
+                    # project = process.project,
+                    context_agent=process.context_agent,
+                    event_date=datetime.date.today(),
                     quantity=qty,
-                    unit_of_quantity = rt.directional_unit("cite"),
-                    created_by = request.user,
-                    changed_by = request.user,
+                    unit_of_quantity=rt.directional_unit("cite"),
+                    created_by=request.user,
+                    changed_by=request.user,
                 )
                 event.save()
                 process.set_started(event.event_date, request.user)
-                
+
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', process.id))
-        
+                                % ('accounting/process', process.id))
+
+
 @login_required
 def log_stage_change_event(request, commitment_id, resource_id):
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         to_be_changed_commitment = get_object_or_404(Commitment, pk=commitment_id)
         resource = get_object_or_404(EconomicResource, pk=resource_id)
         quantity = resource.quantity
@@ -7632,7 +7542,7 @@ def log_stage_change_event(request, commitment_id, resource_id):
         from_agent = default_agent
         event_date = datetime.date.today()
         prefix = resource.form_prefix()
-        #shameless hack
+        # shameless hack
         qty_field = prefix + "-quantity"
         if request.POST.get(qty_field):
             form = resource.transform_form(data=request.POST)
@@ -7646,64 +7556,65 @@ def log_stage_change_event(request, commitment_id, resource_id):
         event = EconomicEvent(
             commitment=to_be_changed_commitment,
             event_type=to_be_changed_commitment.event_type,
-            resource_type = rt,
-            resource = resource,
-            from_agent = from_agent,
-            to_agent = default_agent,
-            process = process,
-            context_agent = process.context_agent,
-            event_date = event_date,
+            resource_type=rt,
+            resource=resource,
+            from_agent=from_agent,
+            to_agent=default_agent,
+            process=process,
+            context_agent=process.context_agent,
+            event_date=event_date,
             quantity=resource.quantity,
-            unit_of_quantity = rt.unit,
-            created_by = request.user,
-            changed_by = request.user,
+            unit_of_quantity=rt.unit,
+            created_by=request.user,
+            changed_by=request.user,
         )
         event.save()
         event = EconomicEvent(
             commitment=change_commitment,
             event_type=change_commitment.event_type,
-            resource_type = rt,
-            resource = resource,
-            from_agent = from_agent,
-            to_agent = default_agent,
-            process = process,
-            context_agent = process.context_agent,
-            event_date = event_date,
+            resource_type=rt,
+            resource=resource,
+            from_agent=from_agent,
+            to_agent=default_agent,
+            process=process,
+            context_agent=process.context_agent,
+            event_date=event_date,
             quantity=quantity,
-            unit_of_quantity = rt.unit,
-            created_by = request.user,
-            changed_by = request.user,
+            unit_of_quantity=rt.unit,
+            created_by=request.user,
+            changed_by=request.user,
         )
         event.save()
         resource.stage = change_commitment.stage
         resource.quantity = quantity
         resource.save()
         process.set_started(event.event_date, request.user)
-        #todo: the following not tested
+        # todo: the following not tested
         next = request.POST.get("next")
         if next:
             if next == "work":
                 return HttpResponseRedirect('/%s/%s/'
-                    % ('work/process-logging', process.id))
-        
+                                            % ('work/process-logging', process.id))
+
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', process.id))
+                                % ('accounting/process', process.id))
+
 
 @login_required
 def add_unplanned_input_event(request, process_id, slot):
     process = get_object_or_404(Process, pk=process_id)
     pattern = process.process_pattern
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if pattern:
         if slot == "c":
-            prefix = "unplannedconsumption"  
-            et = "consume"  
+            prefix = "unplannedconsumption"
+            et = "consume"
         else:
-            prefix = "unplannedusable"  
-            et = "use" 
+            prefix = "unplannedusable"
+            et = "use"
         form = UnplannedInputEventForm(
-            prefix=prefix, 
-            data=request.POST, 
+            prefix=prefix,
+            data=request.POST,
             pattern=pattern,
             load_resources=True)
         if form.is_valid():
@@ -7723,41 +7634,42 @@ def add_unplanned_input_event(request, process_id, slot):
             event_type = pattern.event_type_for_resource_type(et, rt)
             event = EconomicEvent(
                 event_type=event_type,
-                resource_type = rt,
-                resource = resource,
-                from_agent = from_agent,
-                to_agent = default_agent,
-                process = process,
-                context_agent = process.context_agent,
-                event_date = event_date,
+                resource_type=rt,
+                resource=resource,
+                from_agent=from_agent,
+                to_agent=default_agent,
+                process=process,
+                context_agent=process.context_agent,
+                event_date=event_date,
                 quantity=qty,
-                unit_of_quantity = unit,
-                created_by = request.user,
-                changed_by = request.user,
+                unit_of_quantity=unit,
+                created_by=request.user,
+                changed_by=request.user,
             )
             event.save()
-            if event_type.consumes_resources():    
+            if event_type.consumes_resources():
                 resource.quantity -= event.quantity
-                resource.changed_by=request.user
+                resource.changed_by = request.user
                 resource.save()
             process.set_started(event.event_date, request.user)
-            
+
     next = request.POST.get("next")
     if next:
         if next == "work":
             return HttpResponseRedirect('/%s/%s/'
-                    % ('work/process-logging', process.id))
-                
-    return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', process.id))
+                                        % ('work/process-logging', process.id))
 
-@login_required    
+    return HttpResponseRedirect('/%s/%s/'
+                                % ('accounting/process', process.id))
+
+
+@login_required
 def log_resource_for_commitment(request, commitment_id):
     ct = get_object_or_404(Commitment, pk=commitment_id)
-    #prefix = ct.form_prefix()
-    #form = CreateEconomicResourceForm(prefix=prefix, data=request.POST)
+    # prefix = ct.form_prefix()
+    # form = CreateEconomicResourceForm(prefix=prefix, data=request.POST)
     form = ct.resource_create_form(data=request.POST)
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if form.is_valid():
         resource_data = form.cleaned_data
         agent = get_agent(request)
@@ -7769,7 +7681,7 @@ def log_resource_for_commitment(request, commitment_id):
             resource = form.save(commit=False)
             resource.quantity = qty
             resource.resource_type = resource_type
-            resource.created_by=request.user
+            resource.created_by = request.user
             if not ct.resource_type.substitutable:
                 resource.independent_demand = ct.independent_demand
                 resource.order_item = ct.order_item
@@ -7784,75 +7696,77 @@ def log_resource_for_commitment(request, commitment_id):
         if not from_agent:
             from_agent = default_agent
         event = EconomicEvent(
-            resource = resource,
-            commitment = ct,
-            event_date = event_date,
-            event_type = event_type,
-            from_agent = from_agent,
-            to_agent = default_agent,
-            resource_type = ct.resource_type,
-            process = ct.process,
-            context_agent = ct.process.context_agent,
-            quantity = qty,
-            unit_of_quantity = ct.unit_of_quantity,
-            created_by = request.user,
-            changed_by = request.user,
+            resource=resource,
+            commitment=ct,
+            event_date=event_date,
+            event_type=event_type,
+            from_agent=from_agent,
+            to_agent=default_agent,
+            resource_type=ct.resource_type,
+            process=ct.process,
+            context_agent=ct.process.context_agent,
+            quantity=qty,
+            unit_of_quantity=ct.unit_of_quantity,
+            created_by=request.user,
+            changed_by=request.user,
         )
         event.save()
         ct.process.set_started(event.event_date, request.user)
-        
+
     next = request.POST.get("next")
     if next:
         if next == "work":
             return HttpResponseRedirect('/%s/%s/'
-                % ('work/process-logging', ct.process.id))
-        
+                                        % ('work/process-logging', ct.process.id))
+
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', ct.process.id))
-        
-@login_required    
+                                % ('accounting/process', ct.process.id))
+
+
+@login_required
 def add_to_resource_for_commitment(request, commitment_id):
     ct = get_object_or_404(Commitment, pk=commitment_id)
     form = ct.select_resource_form(data=request.POST)
     if form.is_valid():
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         data = form.cleaned_data
         agent = get_agent(request)
         resource = data["resource"]
         quantity = data["quantity"]
         if resource and quantity:
             resource.quantity += quantity
-            resource.changed_by=request.user
+            resource.changed_by = request.user
             resource.save()
             event_type = ct.event_type
             default_agent = ct.process.default_agent()
             event = EconomicEvent(
-                resource = resource,
-                commitment = ct,
-                event_date = datetime.date.today(),
-                event_type = event_type,
-                from_agent = default_agent,
-                to_agent = default_agent,
-                resource_type = ct.resource_type,
-                process = ct.process,
-                context_agent = ct.context_agent,
-                quantity = quantity,
-                unit_of_quantity = ct.unit_of_quantity,
-                created_by = request.user,
-                changed_by = request.user,
+                resource=resource,
+                commitment=ct,
+                event_date=datetime.date.today(),
+                event_type=event_type,
+                from_agent=default_agent,
+                to_agent=default_agent,
+                resource_type=ct.resource_type,
+                process=ct.process,
+                context_agent=ct.context_agent,
+                quantity=quantity,
+                unit_of_quantity=ct.unit_of_quantity,
+                created_by=request.user,
+                changed_by=request.user,
             )
             event.save()
             ct.process.set_started(event.event_date, request.user)
-            
+
     next = request.POST.get("next")
     if next:
         if next == "work":
             return HttpResponseRedirect('/%s/%s/'
-                % ('work/process-logging', ct.process.id))
-            
+                                        % ('work/process-logging', ct.process.id))
+
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', ct.process.id))
-        
+                                % ('accounting/process', ct.process.id))
+
+
 '''
 @login_required
 #todo: make this work for payments when we add payment commitments, check form etc.
@@ -7887,16 +7801,17 @@ def log_payment_for_commitment(request, commitment_id):
         % ('accounting/exchange', ct.exchange.id))
 '''
 
+
 @login_required
 def add_work_event(request, commitment_id):
     ct = get_object_or_404(Commitment, pk=commitment_id)
     form = ct.input_event_form_init(data=request.POST)
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if form.is_valid():
         event = form.save(commit=False)
         event.commitment = ct
         event.event_type = ct.event_type
-        #event.from_agent = ct.from_agent
+        # event.from_agent = ct.from_agent
         event.to_agent = ct.process.default_agent()
         event.resource_type = ct.resource_type
         event.process = ct.process
@@ -7906,19 +7821,20 @@ def add_work_event(request, commitment_id):
         event.changed_by = request.user
         event.save()
         ct.process.set_started(event.event_date, request.user)
-        
+
     next = request.POST.get("next")
     if next:
         if next == "work":
             return HttpResponseRedirect('/%s/%s/'
-                    % ('work/process-logging', ct.process.id))
-        
-    return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', ct.process.id))
+                                        % ('work/process-logging', ct.process.id))
 
-#todo: refactor out a testable method
-#problem: event = form.save(commit=False)
-#need 'event_date', 'resource_type', 'from_agent', 'quantity', 'description'
+    return HttpResponseRedirect('/%s/%s/'
+                                % ('accounting/process', ct.process.id))
+
+
+# todo: refactor out a testable method
+# problem: event = form.save(commit=False)
+# need 'event_date', 'resource_type', 'from_agent', 'quantity', 'description'
 @login_required
 def add_unplanned_work_event(request, process_id):
     process = get_object_or_404(Process, pk=process_id)
@@ -7930,7 +7846,7 @@ def add_unplanned_work_event(request, process_id):
             rt = event.resource_type
             event.event_type = pattern.event_type_for_resource_type("work", rt)
             event.process = process
-            #event.project = process.project
+            # event.project = process.project
             event.context_agent = process.context_agent
             default_agent = process.default_agent()
             event.to_agent = default_agent
@@ -7939,19 +7855,20 @@ def add_unplanned_work_event(request, process_id):
             event.changed_by = request.user
             event.save()
             process.set_started(event.event_date, request.user)
-            
+
     next = request.POST.get("next")
     if next:
         if next == "work":
             return HttpResponseRedirect('/%s/%s/'
-                % ('work/process-logging', process.id))
-            
+                                        % ('work/process-logging', process.id))
+
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', process.id))
+                                % ('accounting/process', process.id))
+
 
 @login_required
 def add_work_for_exchange(request, exchange_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     exchange = get_object_or_404(Exchange, pk=exchange_id)
     context_agent = exchange.context_agent
     form = WorkEventAgentForm(data=request.POST)
@@ -7967,7 +7884,8 @@ def add_work_for_exchange(request, exchange_id):
         event.changed_by = request.user
         event.save()
     return HttpResponseRedirect('/%s/%s/%s/'
-        % ('accounting/exchange', 0, exchange.id))
+                                % ('accounting/exchange', 0, exchange.id))
+
 
 @login_required
 def add_use_event(request, commitment_id, resource_id):
@@ -7986,7 +7904,7 @@ def add_use_event(request, commitment_id, resource_id):
         event.resource_type = ct.resource_type
         event.resource = resource
         event.process = ct.process
-        #event.project = ct.project
+        # event.project = ct.project
         default_agent = ct.process.default_agent()
         event.from_agent = default_agent
         event.to_agent = default_agent
@@ -7996,19 +7914,20 @@ def add_use_event(request, commitment_id, resource_id):
         event.changed_by = request.user
         event.save()
         ct.process.set_started(event.event_date, request.user)
-        
+
     next = request.POST.get("next")
     if next:
         if next == "work":
             return HttpResponseRedirect('/%s/%s/'
-                % ('work/process-logging', ct.process.id))
-        
+                                        % ('work/process-logging', ct.process.id))
+
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', ct.process.id))
-        
+                                % ('accounting/process', ct.process.id))
+
+
 @login_required
 def add_citation_event(request, commitment_id, resource_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     ct = get_object_or_404(Commitment, pk=commitment_id)
     resource = get_object_or_404(EconomicResource, pk=resource_id)
     prefix = resource.form_prefix()
@@ -8024,7 +7943,7 @@ def add_citation_event(request, commitment_id, resource_id):
         event.resource_type = ct.resource_type
         event.resource = resource
         event.process = ct.process
-        #event.project = ct.project
+        # event.project = ct.project
         default_agent = ct.process.default_agent()
         event.from_agent = default_agent
         event.to_agent = default_agent
@@ -8034,9 +7953,10 @@ def add_citation_event(request, commitment_id, resource_id):
         event.changed_by = request.user
         event.save()
         ct.process.set_started(event.event_date, request.user)
-        
+
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', ct.process.id))
+                                % ('accounting/process', ct.process.id))
+
 
 @login_required
 def add_consumption_event(request, commitment_id, resource_id):
@@ -8052,7 +7972,7 @@ def add_consumption_event(request, commitment_id, resource_id):
         event.resource_type = ct.resource_type
         event.resource = resource
         event.process = ct.process
-        #event.project = ct.project
+        # event.project = ct.project
         event.context_agent = ct.context_agent
         default_agent = ct.process.default_agent()
         event.from_agent = default_agent
@@ -8061,14 +7981,15 @@ def add_consumption_event(request, commitment_id, resource_id):
         event.created_by = request.user
         event.changed_by = request.user
         event.save()
-        if ct.consumes_resources():    
+        if ct.consumes_resources():
             resource.quantity -= event.quantity
-            resource.changed_by=request.user
+            resource.changed_by = request.user
             resource.save()
         ct.process.set_started(event.event_date, request.user)
-            
+
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', ct.process.id))
+                                % ('accounting/process', ct.process.id))
+
 
 @login_required
 def log_citation(request, commitment_id, resource_id):
@@ -8076,32 +7997,32 @@ def log_citation(request, commitment_id, resource_id):
     resource = get_object_or_404(EconomicResource, pk=resource_id)
     if request.method == "POST":
         agent = get_agent(request)
-        #todo: rethink for citations
+        # todo: rethink for citations
         default_agent = ct.process.default_agent()
         from_agent = resource.owner() or default_agent
         event = EconomicEvent(
-            resource = resource,
-            commitment = ct,
-            event_date = datetime.date.today(),
-            event_type = ct.event_type,
-            from_agent = from_agent,
-            to_agent = default_agent,
-            resource_type = ct.resource_type,
-            process = ct.process,
-            #project = ct.project,
-            context_agent = ct.context_agent,
-            quantity = Decimal("1"),
-            unit_of_quantity = ct.unit_of_quantity,
-            created_by = request.user,
-            changed_by = request.user,
+            resource=resource,
+            commitment=ct,
+            event_date=datetime.date.today(),
+            event_type=ct.event_type,
+            from_agent=from_agent,
+            to_agent=default_agent,
+            resource_type=ct.resource_type,
+            process=ct.process,
+            # project = ct.project,
+            context_agent=ct.context_agent,
+            quantity=Decimal("1"),
+            unit_of_quantity=ct.unit_of_quantity,
+            created_by=request.user,
+            changed_by=request.user,
         )
         event.save()
         ct.process.set_started(event.event_date, request.user)
-        
-    return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', ct.process.id))
 
-        
+    return HttpResponseRedirect('/%s/%s/'
+                                % ('accounting/process', ct.process.id))
+
+
 def labnotes_history(request):
     agent = get_agent(request)
     procs = Process.objects.all().order_by("-start_date")
@@ -8112,7 +8033,7 @@ def labnotes_history(request):
             if e.description:
                 if p not in process_list:
                     process_list.append(p)
-                    
+
     paginator = Paginator(process_list, 25)
     page = request.GET.get('page')
     try:
@@ -8123,17 +8044,18 @@ def labnotes_history(request):
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         processes = paginator.page(paginator.num_pages)
-        
+
     return render_to_response("valueaccounting/labnotes_history.html", {
         "processes": processes,
         "photo_size": (128, 128),
         "agent": agent,
     }, context_instance=RequestContext(request))
 
+
 def todo_history(request):
-    #import pdb; pdb.set_trace()
-    todo_list = Commitment.objects.finished_todos().order_by('-due_date',)
-                   
+    # import pdb; pdb.set_trace()
+    todo_list = Commitment.objects.finished_todos().order_by('-due_date', )
+
     paginator = Paginator(todo_list, 25)
     page = request.GET.get('page')
     try:
@@ -8144,16 +8066,16 @@ def todo_history(request):
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         todos = paginator.page(paginator.num_pages)
-        
+
     return render_to_response("valueaccounting/todo_history.html", {
         "todos": todos,
     }, context_instance=RequestContext(request))
 
 
 def open_todos(request):
-    #import pdb; pdb.set_trace()
-    todo_list = Commitment.objects.todos().order_by('-due_date',)
-                   
+    # import pdb; pdb.set_trace()
+    todo_list = Commitment.objects.todos().order_by('-due_date', )
+
     paginator = Paginator(todo_list, 25)
     page = request.GET.get('page')
     try:
@@ -8164,14 +8086,14 @@ def open_todos(request):
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         todos = paginator.page(paginator.num_pages)
-        
+
     return render_to_response("valueaccounting/open_todos.html", {
         "todos": todos,
     }, context_instance=RequestContext(request))
 
 
 def resource(request, resource_id, extra_context=None):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     resource = get_object_or_404(EconomicResource, id=resource_id)
     agent = get_agent(request)
     RraFormSet = modelformset_factory(
@@ -8179,32 +8101,33 @@ def resource(request, resource_id, extra_context=None):
         form=ResourceRoleAgentForm,
         can_delete=True,
         extra=4,
-        )
+    )
     role_formset = RraFormSet(
-        prefix="role", 
+        prefix="role",
         queryset=resource.agent_resource_roles.all()
-        )
-        
+    )
+
     if not resource.is_digital_currency_resource():
         process_add_form = None
         order_form = None
         process = None
         pattern = None
-        if resource.producing_events(): 
+        if resource.producing_events():
             process = resource.producing_events()[0].process
             pattern = None
             if process:
-                pattern = process.process_pattern 
+                pattern = process.process_pattern
         else:
             if agent:
-                form_data = {'name': 'Create ' + resource.identifier, 'start_date': resource.created_date, 'end_date': resource.created_date}
+                form_data = {'name': 'Create ' + resource.identifier, 'start_date': resource.created_date,
+                             'end_date': resource.created_date}
                 process_add_form = AddProcessFromResourceForm(form_data)
                 if resource.resource_type.recipe_is_staged():
-                    init={"start_date": datetime.date.today(),}
+                    init = {"start_date": datetime.date.today(), }
                     order_form = StartDateAndNameForm(initial=init)
-                
+
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         process_save = request.POST.get("process-save")
         if process_save:
             process_add_form = AddProcessFromResourceForm(data=request.POST)
@@ -8213,14 +8136,14 @@ def resource(request, resource_id, extra_context=None):
                 process.started = process.start_date
                 process.finished = True
                 process.created_by = request.user
-                process.save() 
+                process.save()
                 event = EconomicEvent()
                 event.context_agent = process.context_agent
                 event.event_date = process.end_date
                 event.event_type = process.process_pattern.event_type_for_resource_type("out", resource.resource_type)
                 event.process = process
-                event.resource_type = resource.resource_type 
-                event.quantity = resource.quantity 
+                event.resource_type = resource.resource_type
+                event.quantity = resource.quantity
                 event.unit_of_quantity = resource.unit_of_quantity()
                 event.resource = resource
                 event.to_agent = event.context_agent
@@ -8228,11 +8151,11 @@ def resource(request, resource_id, extra_context=None):
                 event.created_by = request.user
                 event.save()
                 return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/resource', resource.id))
-    
+                                            % ('accounting/resource', resource.id))
+
     if resource.is_digital_currency_resource():
         send_coins_form = None
-        is_owner=False
+        is_owner = False
         limit = 0
         if agent:
             is_owner = agent.owns(resource)
@@ -8262,19 +8185,20 @@ def resource(request, resource_id, extra_context=None):
 
 
 def resource_role_agent_formset(prefix, data=None):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     RraFormSet = modelformset_factory(
         AgentResourceRole,
         form=ResourceRoleAgentForm,
         can_delete=True,
         extra=4,
-        )
+    )
     formset = RraFormSet(prefix=prefix, queryset=AgentResourceRole.objects.none(), data=data)
     return formset
 
+
 @login_required
 def plan_work_order_for_resource(request, resource_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         form = StartDateAndNameForm(data=request.POST)
         if form.is_valid():
@@ -8289,21 +8213,21 @@ def plan_work_order_for_resource(request, resource_id):
             order = resource_type.generate_staged_work_order_from_resource(resource, order_name, start, request.user)
             if order:
                 return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/order-schedule', order.id))
+                                            % ('accounting/order-schedule', order.id))
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/resource', resource_id))
-    
-    
+                                % ('accounting/resource', resource_id))
+
+
 def incoming_value_flows(request, resource_id):
     resource = get_object_or_404(EconomicResource, id=resource_id)
-    #flows = resource.incoming_value_flows()
+    # flows = resource.incoming_value_flows()
     flows = []
     depth = 0
     visited = set()
     ve = None
     all_ves = None
     ve_selection_form = None
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     ves = resource.value_equations()
     if len(ves) > 1:
         all_ves = ves
@@ -8339,9 +8263,10 @@ def incoming_value_flows(request, resource_id):
         "member_hours": member_hours,
     }, context_instance=RequestContext(request))
 
+
 @login_required
 def change_resource(request, resource_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         resource = get_object_or_404(EconomicResource, pk=resource_id)
         v_help = None
@@ -8351,31 +8276,32 @@ def change_resource(request, resource_id):
         if form.is_valid():
             data = form.cleaned_data
             resource = form.save(commit=False)
-            resource.changed_by=request.user
+            resource.changed_by = request.user
             resource.save()
             RraFormSet = modelformset_factory(
                 AgentResourceRole,
                 form=ResourceRoleAgentForm,
                 can_delete=True,
                 extra=4,
-                )
+            )
             role_formset = RraFormSet(
-                prefix="role", 
+                prefix="role",
                 queryset=resource.agent_resource_roles.all(),
                 data=request.POST
-                )
+            )
             if role_formset.is_valid():
                 saved_formset = role_formset.save(commit=False)
                 for role in saved_formset:
                     role.resource = resource
                     role.save()
             return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/resource', resource_id))
+                                        % ('accounting/resource', resource_id))
         else:
             raise ValidationError(form.errors)
 
+
 def get_labnote_context(commitment, request_agent):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     author = False
     agent = commitment.from_agent
     process = commitment.process
@@ -8404,45 +8330,48 @@ def get_labnote_context(commitment, request_agent):
         "used": used,
         "citations": citations,
     }
-    
+
+
 def labnotes(request, process_id):
     process = get_object_or_404(Process, id=process_id)
     agent = get_agent(request)
     work_commitments = process.work_requirements()
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if work_commitments.count() == 1:
         ct = work_commitments[0]
         template_params = get_labnote_context(ct, agent)
         return render_to_response("valueaccounting/labnote.html",
-            template_params,
-            context_instance=RequestContext(request))
+                                  template_params,
+                                  context_instance=RequestContext(request))
     else:
         return render_to_response("valueaccounting/labnotes.html", {
             "process": process,
             "agent": agent,
         }, context_instance=RequestContext(request))
 
+
 def labnote(request, commitment_id):
     ct = get_object_or_404(Commitment, id=commitment_id)
     request_agent = get_agent(request)
     template_params = get_labnote_context(ct, request_agent)
     return render_to_response("valueaccounting/labnote.html",
-        template_params,
-        context_instance=RequestContext(request))
+                              template_params,
+                              context_instance=RequestContext(request))
+
 
 @login_required
 def production_event_for_commitment(request):
     id = request.POST.get("id")
     quantity = request.POST.get("quantity")
     event_date = request.POST.get("eventDate")
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if event_date:
         event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
     else:
         event_date = datetime.date.today()
     ct = get_object_or_404(Commitment, pk=id)
     agent = get_agent(request)
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     quantity = Decimal(quantity)
     event = None
     events = ct.fulfillment_events.all()
@@ -8455,57 +8384,58 @@ def production_event_for_commitment(request):
             event.save()
             resource = event.resource
             resource.quantity = quantity
-            resource.changed_by=request.user
+            resource.changed_by = request.user
             resource.save()
     else:
-        #todo: resource creation shd depend on event_type and maybe rt
-        #design docs will need special handling (url)
-        #todo: add order if not RT.substitutable
+        # todo: resource creation shd depend on event_type and maybe rt
+        # design docs will need special handling (url)
+        # todo: add order if not RT.substitutable
         demand = None
         if not rt.substitutable:
             demand = ct.independent_demand
             order_item = ct.order_item
         resource = EconomicResource(
-            resource_type = ct.resource_type,
-            created_date = event_date,
-            quantity = quantity,
-            #unit_of_quantity = ct.unit_of_quantity,
+            resource_type=ct.resource_type,
+            created_date=event_date,
+            quantity=quantity,
+            # unit_of_quantity = ct.unit_of_quantity,
             created_by=request.user,
             independent_demand=demand,
             order_item=order_item,
         )
         resource.save()
         event = EconomicEvent(
-            resource = resource,
-            commitment = ct,
-            event_date = event_date,
-            event_type = ct.event_type,
-            from_agent = agent,
-            resource_type = ct.resource_type,
-            process = ct.process,
-            #project = ct.project,
-            context_agent = context_agent,
-            quantity = quantity,
-            unit_of_quantity = ct.unit_of_quantity,
-            created_by = request.user,
-            changed_by = request.user,
+            resource=resource,
+            commitment=ct,
+            event_date=event_date,
+            event_type=ct.event_type,
+            from_agent=agent,
+            resource_type=ct.resource_type,
+            process=ct.process,
+            # project = ct.project,
+            context_agent=context_agent,
+            quantity=quantity,
+            unit_of_quantity=ct.unit_of_quantity,
+            created_by=request.user,
+            changed_by=request.user,
         )
         event.save()
 
     data = "ok"
     return HttpResponse(data, content_type="text/plain")
 
+
 @login_required
 def resource_event_for_commitment(request, commitment_id):
-    #todo: bug: resource_event_for_commitment didn't return an HttpResponse object.
+    # todo: bug: resource_event_for_commitment didn't return an HttpResponse object.
     id = request.POST.get("itemId")
     event_date = request.POST.get("eventDate")
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if event_date:
         event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
     else:
         event_date = datetime.date.today()
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     ct = get_object_or_404(Commitment, pk=id)
     event = None
     events = ct.fulfillment_events.all()
@@ -8518,7 +8448,7 @@ def resource_event_for_commitment(request, commitment_id):
         form = EconomicResourceForm(prefix=prefix, data=request.POST)
     if form.is_valid():
         resource_data = form.cleaned_data
-        #quality = resource_data["quality"] or Decimal("0")
+        # quality = resource_data["quality"] or Decimal("0")
         agent = get_agent(request)
         if event:
             resource = form.save(commit=False)
@@ -8526,39 +8456,40 @@ def resource_event_for_commitment(request, commitment_id):
                 event.quantity = resource.quantity
                 event.changed_by = request.user
                 event.save()
-            resource.changed_by=request.user
+            resource.changed_by = request.user
             resource.save()
         else:
-            #todo: add order if not RT.substitutable
+            # todo: add order if not RT.substitutable
             resource = form.save(commit=False)
-            #resource.quality = quality
+            # resource.quality = quality
             rt = ct.resource_type
             resource.resource_type = rt
             if not rt.substitutable:
                 resource.independent_demand = ct.independent_demand
                 resource.order_item = ct.order_item
-            resource.created_by=request.user
+            resource.created_by = request.user
             resource.save()
             event = EconomicEvent(
-                resource = resource,
-                commitment = ct,
-                event_date = event_date,
-                event_type = ct.event_type,
-                from_agent = agent,
-                resource_type = ct.resource_type,
-                process = ct.process,
-                context_agent = ct.context_agent,
-                quantity = resource.quantity,
-                unit_of_quantity = ct.unit_of_quantity,
-                #quality = resource.quality,
-                created_by = request.user,
-                changed_by = request.user,
+                resource=resource,
+                commitment=ct,
+                event_date=event_date,
+                event_type=ct.event_type,
+                from_agent=agent,
+                resource_type=ct.resource_type,
+                process=ct.process,
+                context_agent=ct.context_agent,
+                quantity=resource.quantity,
+                unit_of_quantity=ct.unit_of_quantity,
+                # quality = resource.quality,
+                created_by=request.user,
+                changed_by=request.user,
             )
             event.save()
         data = unicode(resource.quantity)
     return HttpResponse(data, content_type="text/plain")
 
-#todo: how to handle splits?
+
+# todo: how to handle splits?
 @login_required
 def consumption_event_for_commitment(request):
     id = request.POST.get("id")
@@ -8569,11 +8500,11 @@ def consumption_event_for_commitment(request):
         event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
     else:
         event_date = datetime.date.today()
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     ct = get_object_or_404(Commitment, pk=id)
     resource = get_object_or_404(EconomicResource, pk=resource_id)
     agent = get_agent(request)
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     quantity = Decimal(quantity)
     if quantity:
         event = None
@@ -8590,32 +8521,33 @@ def consumption_event_for_commitment(request):
                     if ct.consumes_resources():
                         resource = event.resource
                         resource.quantity += delta
-                        resource.changed_by=request.user
+                        resource.changed_by = request.user
                         resource.save()
         else:
-            if ct.consumes_resources():    
+            if ct.consumes_resources():
                 resource.quantity -= quantity
-                resource.changed_by=request.user
+                resource.changed_by = request.user
                 resource.save()
             event = EconomicEvent(
-                resource = resource,
-                commitment = ct,
-                event_date = event_date,
-                event_type = ct.event_type,
-                to_agent = agent,
-                resource_type = ct.resource_type,
-                process = ct.process,
-                #project = ct.project,
-                context_agent = ct.context_agent,
-                quantity = quantity,
-                unit_of_quantity = ct.unit_of_quantity,
-                created_by = request.user,
-                changed_by = request.user,
+                resource=resource,
+                commitment=ct,
+                event_date=event_date,
+                event_type=ct.event_type,
+                to_agent=agent,
+                resource_type=ct.resource_type,
+                process=ct.process,
+                # project = ct.project,
+                context_agent=ct.context_agent,
+                quantity=quantity,
+                unit_of_quantity=ct.unit_of_quantity,
+                created_by=request.user,
+                changed_by=request.user,
             )
             event.save()
 
     data = "ok"
     return HttpResponse(data, content_type="text/plain")
+
 
 @login_required
 def citation_event_for_commitment(request):
@@ -8627,11 +8559,11 @@ def citation_event_for_commitment(request):
         event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
     else:
         event_date = datetime.date.today()
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     ct = get_object_or_404(Commitment, pk=id)
     resource = get_object_or_404(EconomicResource, pk=resource_id)
     agent = get_agent(request)
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     quantity = Decimal("1")
     event = None
     events = ct.fulfillment_events.filter(resource=resource)
@@ -8642,24 +8574,25 @@ def citation_event_for_commitment(request):
             event.delete()
     else:
         event = EconomicEvent(
-            resource = resource,
-            commitment = ct,
-            event_date = event_date,
-            event_type = ct.event_type,
-            from_agent = agent,
-            resource_type = ct.resource_type,
-            process = ct.process,
-            #project = ct.project,
-            context_agent = ct.context_agent,
-            quantity = quantity,
-            unit_of_quantity = ct.unit_of_quantity,
-            created_by = request.user,
-            changed_by = request.user,
+            resource=resource,
+            commitment=ct,
+            event_date=event_date,
+            event_type=ct.event_type,
+            from_agent=agent,
+            resource_type=ct.resource_type,
+            process=ct.process,
+            # project = ct.project,
+            context_agent=ct.context_agent,
+            quantity=quantity,
+            unit_of_quantity=ct.unit_of_quantity,
+            created_by=request.user,
+            changed_by=request.user,
         )
         event.save()
 
     data = "ok"
     return HttpResponse(data, content_type="text/plain")
+
 
 @login_required
 def time_use_event_for_commitment(request):
@@ -8669,17 +8602,17 @@ def time_use_event_for_commitment(request):
     event_date = request.POST.get("eventDate")
     if event_date:
         event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     ct = get_object_or_404(Commitment, pk=id)
     resource = get_object_or_404(EconomicResource, pk=resource_id)
     agent = get_agent(request)
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     quantity = Decimal(quantity)
     event = None
     events = ct.fulfillment_events.filter(resource=resource)
     if not event_date:
         event_date = datetime.date.today()
-    #todo: is this correct?
+    # todo: is this correct?
     if events:
         event = events[events.count() - 1]
     if event:
@@ -8692,33 +8625,34 @@ def time_use_event_for_commitment(request):
                 if ct.consumes_resources():
                     resource = event.resource
                     resource.quantity += delta
-                    resource.changed_by=request.user
+                    resource.changed_by = request.user
                     resource.save()
     else:
-        if ct.consumes_resources():    
+        if ct.consumes_resources():
             resource.quantity -= quantity
-            resource.changed_by=request.user
+            resource.changed_by = request.user
             resource.save()
         event = EconomicEvent(
-            resource = resource,
-            commitment = ct,
-            event_date = event_date,
-            event_type = ct.event_type,
-            from_agent = agent,
-            to_agent = ct.process.default_agent(),
-            resource_type = ct.resource_type,
-            process = ct.process,
-            #project = ct.project,
-            context_agent = ct.context_agent,
-            quantity = quantity,
-            unit_of_quantity = ct.unit_of_quantity,
-            created_by = request.user,
-            changed_by = request.user,
+            resource=resource,
+            commitment=ct,
+            event_date=event_date,
+            event_type=ct.event_type,
+            from_agent=agent,
+            to_agent=ct.process.default_agent(),
+            resource_type=ct.resource_type,
+            process=ct.process,
+            # project = ct.project,
+            context_agent=ct.context_agent,
+            quantity=quantity,
+            unit_of_quantity=ct.unit_of_quantity,
+            created_by=request.user,
+            changed_by=request.user,
         )
         event.save()
 
     data = "ok"
     return HttpResponse(data, content_type="text/plain")
+
 
 @login_required
 def failed_outputs(request, commitment_id):
@@ -8727,9 +8661,9 @@ def failed_outputs(request, commitment_id):
         event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
     else:
         event_date = datetime.date.today()
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         failure_form = FailedOutputForm(data=request.POST)
         if failure_form.is_valid():
             ct = get_object_or_404(Commitment, id=commitment_id)
@@ -8754,22 +8688,22 @@ def failed_outputs(request, commitment_id):
                     unit_type=unit_type)
                 event_type.save()
             resource = EconomicResource(
-                resource_type = ct.resource_type,
-                created_date = event_date,
-                quantity = quantity,
-                quality = Decimal("-1"),
-                #unit_of_quantity = ct.unit_of_quantity,
-                notes = description,
+                resource_type=ct.resource_type,
+                created_date=event_date,
+                quantity=quantity,
+                quality=Decimal("-1"),
+                # unit_of_quantity = ct.unit_of_quantity,
+                notes=description,
                 created_by=request.user,
             )
-            resource.save() 
-            event.resource = resource              
+            resource.save()
+            event.resource = resource
             event.event_date = event_date
             event.event_type = event_type
             event.from_agent = agent
             event.resource_type = ct.resource_type
             event.process = process
-            #event.project = ct.project
+            # event.project = ct.project
             event.context_agent = ct.context_agent
             event.unit_of_quantity = ct.unit_of_quantity
             event.quality = Decimal("-1")
@@ -8779,34 +8713,35 @@ def failed_outputs(request, commitment_id):
             data = unicode(ct.failed_output_qty())
             return HttpResponse(data, content_type="text/plain")
 
-#todo: obsolete
+
+# todo: obsolete
 @login_required
 def copy_process(request, process_id):
     process = get_object_or_404(Process, id=process_id)
-    #import pdb; pdb.set_trace()
-    #todo: is this correct? maybe not.
+    # import pdb; pdb.set_trace()
+    # todo: is this correct? maybe not.
     demand = process.independent_demand()
     demand_form = DemandSelectionForm(data=request.POST or None)
     process_init = {
         "project": process.context_agent,
         "url": process.url,
         "notes": process.notes,
-    }      
+    }
     process_form = ProcessForm(initial=process_init, data=request.POST or None)
     output_init = []
     for op in process.outgoing_commitments():
         output_init.append({
-            'resource_type': op.resource_type, 
-            'quantity': op.quantity, 
-            'description': op.description, 
+            'resource_type': op.resource_type,
+            'quantity': op.quantity,
+            'description': op.description,
             'unit_of_quantity': op.unit_of_quantity,
         })
     input_init = []
     for ip in process.incoming_commitments():
         input_init.append({
-            'resource_type': ip.resource_type, 
-            'quantity': ip.quantity, 
-            'description': ip.description, 
+            'resource_type': ip.resource_type,
+            'quantity': ip.quantity,
+            'description': ip.description,
             'unit_of_quantity': ip.unit_of_quantity,
         })
     OutputFormSet = modelformset_factory(
@@ -8814,7 +8749,7 @@ def copy_process(request, process_id):
         form=ProcessOutputForm,
         can_delete=True,
         extra=2,
-        )
+    )
     output_formset = OutputFormSet(
         queryset=Commitment.objects.none(),
         initial=output_init,
@@ -8825,20 +8760,20 @@ def copy_process(request, process_id):
         form=ProcessInputForm,
         can_delete=True,
         extra=4,
-        )
+    )
     input_formset = InputFormSet(
         queryset=Commitment.objects.none(),
         initial=input_init,
         data=request.POST or None,
         prefix='input')
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         keep_going = request.POST.get("keep-going")
         just_save = request.POST.get("save")
         if process_form.is_valid():
             process_data = process_form.cleaned_data
             process = process_form.save(commit=False)
-            process.created_by=request.user
+            process.created_by = request.user
             process.save()
             if demand_form.is_valid():
                 demand = demand_form.cleaned_data["demand"]
@@ -8849,13 +8784,13 @@ def copy_process(request, process_id):
                     if qty:
                         ct = form.save(commit=False)
                         rt = output_data["resource_type"]
-                        #rel = 
+                        # rel =
                         ct.relationship = rel
                         ct.event_type = rel.event_type
                         ct.process = process
                         ct.context_agent = process.context_agent
-                        #flow todo: add order_item
-                        #obsolete
+                        # flow todo: add order_item
+                        # obsolete
                         ct.independent_demand = demand
                         ct.due_date = process.end_date
                         ct.created_by = request.user
@@ -8867,27 +8802,27 @@ def copy_process(request, process_id):
                     if qty:
                         ct = form.save(commit=False)
                         rt = input_data["resource_type"]
-                        #rel = 
+                        # rel =
                         ct.relationship = rel
                         ct.event_type = rel.event_type
                         ct.process = process
-                        #flow todo: add order_item
-                        #obsolete
+                        # flow todo: add order_item
+                        # obsolete
                         ct.independent_demand = demand
                         ct.due_date = process.start_date
                         ct.created_by = request.user
                         rt = ct.resource_type
-                        #todo pr: this shd probably use own_or_parent_recipes
-                        #obsolete
+                        # todo pr: this shd probably use own_or_parent_recipes
+                        # obsolete
                         ptrt, inheritance = rt.main_producing_process_type_relationship()
                         ct.save()
                         explode_dependent_demands(ct, request.user)
             if just_save:
                 return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/process', process.id))
+                                            % ('accounting/process', process.id))
             elif keep_going:
                 return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/change-process', process.id))
+                                            % ('accounting/change-process', process.id))
     return render_to_response("valueaccounting/create_process.html", {
         "demand": demand,
         "demand_form": demand_form,
@@ -8896,29 +8831,31 @@ def copy_process(request, process_id):
         "input_formset": input_formset,
     }, context_instance=RequestContext(request))
 
+
 @login_required
 def change_work_event(request, event_id):
     event = get_object_or_404(EconomicEvent, id=event_id)
     commitment = event.commitment
     process = event.process
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         prefix = event.form_prefix()
         form = WorkEventChangeForm(instance=event, prefix=prefix, data=request.POST)
         if form.is_valid():
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             data = form.cleaned_data
             form.save()
     next = request.POST.get("next")
     if next == "process":
         return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/process', process.id))
+                                    % ('accounting/process', process.id))
     elif next == "work":
         return HttpResponseRedirect('/%s/%s/'
-                % ('work/process-logging', process.id))
+                                    % ('work/process-logging', process.id))
     else:
         return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/labnote', commitment.id))
+                                    % ('accounting/labnote', commitment.id))
+
 
 @login_required
 def change_unplanned_work_event(request, event_id):
@@ -8926,43 +8863,45 @@ def change_unplanned_work_event(request, event_id):
     process = event.process
     pattern = process.process_pattern
     if pattern:
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if request.method == "POST":
             form = UnplannedWorkEventForm(
                 pattern=pattern,
-                instance=event, 
-                prefix=str(event.id), 
+                instance=event,
+                prefix=str(event.id),
                 data=request.POST)
             if form.is_valid():
                 data = form.cleaned_data
                 form.save()
-                
+
     next = request.POST.get("next")
     if next:
         if next == "work":
             return HttpResponseRedirect('/%s/%s/'
-                % ('work/process-logging', process.id))
-                
+                                        % ('work/process-logging', process.id))
+
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', process.id))
+                                % ('accounting/process', process.id))
+
 
 @login_required
 def change_exchange_work_event(request, event_id):
     event = get_object_or_404(EconomicEvent, id=event_id)
     exchange = event.exchange
-    context_agent=exchange.context_agent
-    #import pdb; pdb.set_trace()
+    context_agent = exchange.context_agent
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         form = WorkEventAgentForm(
             context_agent=context_agent,
-            instance=event, 
+            instance=event,
             data=request.POST,
             prefix=str(event.id))
         if form.is_valid():
             data = form.cleaned_data
             form.save()
     return HttpResponseRedirect('/%s/%s/%s/'
-        % ('accounting/exchange', 0, exchange.id))
+                                % ('accounting/exchange', 0, exchange.id))
+
 
 @login_required
 def change_unplanned_payment_event(request, event_id):
@@ -8972,19 +8911,19 @@ def change_unplanned_payment_event(request, event_id):
     exchange = event.exchange
     pattern = exchange.process_pattern
     if pattern:
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if request.method == "POST":
             form = PaymentEventForm(
                 pattern=pattern,
                 instance=event,
                 posting=True,
-                prefix=str(event.id), 
+                prefix=str(event.id),
                 data=request.POST)
             if form.is_valid():
                 form.save(commit=False)
                 event.unit_of_quantity = event.resource_type.unit
                 form.save()
-                #import pdb; pdb.set_trace()
+                # import pdb; pdb.set_trace()
                 if event.resource:
                     resource = event.resource
                     if old_resource:
@@ -9004,7 +8943,8 @@ def change_unplanned_payment_event(request, event_id):
                         old_resource.quantity = old_resource.quantity + old_qty
                         old_resource.save()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
+                                % ('accounting/exchange', exchange.id))
+
 
 @login_required
 def change_receipt_event(request, event_id):
@@ -9012,22 +8952,23 @@ def change_receipt_event(request, event_id):
     exchange = event.exchange
     pattern = exchange.process_pattern
     if pattern:
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if request.method == "POST":
             form = UnorderedReceiptForm(
                 pattern=pattern,
-                instance=event, 
-                prefix=str(event.id), 
+                instance=event,
+                prefix=str(event.id),
                 data=request.POST)
             if form.is_valid():
                 data = form.cleaned_data
                 form.save()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
+                                % ('accounting/exchange', exchange.id))
+
 
 @login_required
 def change_cash_receipt_event(request, event_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     event = get_object_or_404(EconomicEvent, id=event_id)
     old_resource = event.resource
     old_qty = event.quantity
@@ -9039,13 +8980,13 @@ def change_cash_receipt_event(request, event_id):
                 pattern=pattern,
                 instance=event,
                 posting=True,
-                prefix=str(event.id), 
+                prefix=str(event.id),
                 data=request.POST)
             if form.is_valid():
                 form.save(commit=False)
                 event.unit_of_quantity = event.resource_type.unit
                 form.save()
-                #import pdb; pdb.set_trace()
+                # import pdb; pdb.set_trace()
                 if event.resource:
                     resource = event.resource
                     if old_resource:
@@ -9065,11 +9006,12 @@ def change_cash_receipt_event(request, event_id):
                         old_resource.quantity = old_resource.quantity - old_qty
                         old_resource.save()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
+                                % ('accounting/exchange', exchange.id))
+
 
 @login_required
 def change_shipment_event(request, event_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     event = get_object_or_404(EconomicEvent, id=event_id)
     old_resource = event.resource
     old_qty = event.quantity
@@ -9079,8 +9021,8 @@ def change_shipment_event(request, event_id):
         if request.method == "POST":
             form = ShipmentForm(
                 pattern=pattern,
-                instance=event, 
-                prefix=str(event.id), 
+                instance=event,
+                prefix=str(event.id),
                 data=request.POST)
             if form.is_valid():
                 data = form.cleaned_data
@@ -9099,11 +9041,12 @@ def change_shipment_event(request, event_id):
                         resource.quantity = 0
                     resource.save()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
+                                % ('accounting/exchange', exchange.id))
+
 
 @login_required
 def change_uninventoried_shipment_event(request, event_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     event = get_object_or_404(EconomicEvent, id=event_id)
     exchange = event.exchange
     pattern = exchange.process_pattern
@@ -9111,18 +9054,19 @@ def change_uninventoried_shipment_event(request, event_id):
         if request.method == "POST":
             form = UninventoriedShipmentForm(
                 pattern=pattern,
-                instance=event, 
-                prefix=str(event.id), 
+                instance=event,
+                prefix=str(event.id),
                 data=request.POST)
             if form.is_valid():
                 data = form.cleaned_data
                 form.save()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
-        
+                                % ('accounting/exchange', exchange.id))
+
+
 @login_required
 def change_distribution_event(request, event_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     event = get_object_or_404(EconomicEvent, id=event_id)
     old_resource = event.resource
     old_qty = event.quantity
@@ -9131,16 +9075,16 @@ def change_distribution_event(request, event_id):
     if request.method == "POST":
         form = DistributionEventForm(
             pattern=pattern,
-            instance=event, 
+            instance=event,
             posting=True,
-            prefix=event.form_prefix(), 
+            prefix=event.form_prefix(),
             data=request.POST)
         if form.is_valid():
             form.save(commit=False)
             event.unit_of_quantity = event.resource_type.unit
             event.changed_by = request.user
             event.save()
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             if event.resource:
                 resource = event.resource
                 if old_resource:
@@ -9160,11 +9104,12 @@ def change_distribution_event(request, event_id):
                     old_resource.quantity = old_resource.quantity - old_qty
                     old_resource.save()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/distribution', distribution.id))
+                                % ('accounting/distribution', distribution.id))
+
 
 @login_required
 def change_disbursement_event(request, event_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     event = get_object_or_404(EconomicEvent, id=event_id)
     old_resource = event.resource
     old_qty = event.quantity
@@ -9173,16 +9118,16 @@ def change_disbursement_event(request, event_id):
     if request.method == "POST":
         form = DisbursementEventForm(
             pattern=pattern,
-            instance=event, 
+            instance=event,
             posting=True,
-            prefix=event.form_prefix(), 
+            prefix=event.form_prefix(),
             data=request.POST)
         if form.is_valid():
             form.save(commit=False)
             event.unit_of_quantity = event.resource_type.unit
             event.changed_by = request.user
             event.save()
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             if event.resource:
                 resource = event.resource
                 if old_resource:
@@ -9202,7 +9147,8 @@ def change_disbursement_event(request, event_id):
                     old_resource.quantity = old_resource.quantity + old_qty
                     old_resource.save()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/distribution', distribution.id))
+                                % ('accounting/distribution', distribution.id))
+
 
 @login_required
 def change_expense_event(request, event_id):
@@ -9210,21 +9156,22 @@ def change_expense_event(request, event_id):
     exchange = event.exchange
     pattern = exchange.process_pattern
     if pattern:
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if request.method == "POST":
             form = ExpenseEventForm(
                 pattern=pattern,
-                instance=event, 
-                prefix=str(event.id), 
+                instance=event,
+                prefix=str(event.id),
                 data=request.POST)
             if form.is_valid():
                 data = form.cleaned_data
                 form.save()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
+                                % ('accounting/exchange', exchange.id))
+
 
 def handle_commitment_changes(old_ct, new_rt, new_qty, old_demand, new_demand):
-    propagators = [] 
+    propagators = []
     explode = True
     if old_ct.event_type.relationship == "out":
         dependants = old_ct.process.incoming_commitments()
@@ -9232,52 +9179,53 @@ def handle_commitment_changes(old_ct, new_rt, new_qty, old_demand, new_demand):
         if new_qty != old_ct.quantity:
             explode = False
     else:
-        dependants = old_ct.associated_producing_commitments()   
+        dependants = old_ct.associated_producing_commitments()
     old_rt = old_ct.resource_type
     order_item = old_ct.order_item
-    
+
     if not propagators:
         for dep in dependants:
             if order_item:
                 if dep.order_item == order_item:
-                    propagators.append(dep) 
+                    propagators.append(dep)
                     explode = False
             else:
                 if dep.due_date == old_ct.process.start_date:
                     if dep.quantity == old_ct.quantity:
                         propagators.append(dep)
-                        explode = False 
+                        explode = False
     if new_rt != old_rt:
         for ex_ct in old_ct.associated_producing_commitments():
             if ex_ct.order_item == order_item:
                 ex_ct.delete_dependants()
         old_ct.delete()
-        explode = True                                 
+        explode = True
     elif new_qty != old_ct.quantity:
         delta = new_qty - old_ct.quantity
         for pc in propagators:
             if new_demand != old_demand:
                 propagate_changes(pc, delta, old_demand, new_demand, [])
             else:
-                propagate_qty_change(pc, delta, []) 
+                propagate_qty_change(pc, delta, [])
     else:
         if new_demand != old_demand:
-            #this is because we are just changing the order
+            # this is because we are just changing the order
             delta = Decimal("0")
             for pc in propagators:
-                propagate_changes(pc, delta, old_demand, new_demand, []) 
+                propagate_changes(pc, delta, old_demand, new_demand, [])
             explode = False
-    
+
     return explode
+
 
 class ProcessOutputFormSet(BaseModelFormSet):
     def __init__(self, *args, **kwargs):
         self.pattern = kwargs.pop('pattern', None)
         super(ProcessOutputFormSet, self).__init__(*args, **kwargs)
 
-    def _construct_forms(self): 
+    def _construct_forms(self):
         self.forms = []
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         for i in xrange(self.total_form_count()):
             self.forms.append(self._construct_form(i, pattern=self.pattern))
 
@@ -9287,9 +9235,9 @@ class ProcessInputFormSet(BaseModelFormSet):
         self.pattern = kwargs.pop('pattern', None)
         super(ProcessInputFormSet, self).__init__(*args, **kwargs)
 
-    def _construct_forms(self): 
+    def _construct_forms(self):
         self.forms = []
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         for i in xrange(self.total_form_count()):
             self.forms.append(self._construct_form(i, pattern=self.pattern))
 
@@ -9299,9 +9247,9 @@ class ProcessCitationFormSet(BaseModelFormSet):
         self.pattern = kwargs.pop('pattern', None)
         super(ProcessCitationFormSet, self).__init__(*args, **kwargs)
 
-    def _construct_forms(self): 
+    def _construct_forms(self):
         self.forms = []
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         for i in xrange(self.total_form_count()):
             self.forms.append(self._construct_form(i, pattern=self.pattern))
 
@@ -9311,9 +9259,9 @@ class ProcessWorkFormSet(BaseModelFormSet):
         self.pattern = kwargs.pop('pattern', None)
         super(ProcessWorkFormSet, self).__init__(*args, **kwargs)
 
-    def _construct_forms(self): 
+    def _construct_forms(self):
         self.forms = []
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         for i in xrange(self.total_form_count()):
             self.forms.append(self._construct_form(i, pattern=self.pattern))
 
@@ -9321,10 +9269,10 @@ class ProcessWorkFormSet(BaseModelFormSet):
 @login_required
 def change_process(request, process_id):
     process = get_object_or_404(Process, id=process_id)
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         form = ProcessForm(
-            instance=process, 
+            instance=process,
             data=request.POST)
         if form.is_valid():
             data = form.cleaned_data
@@ -9332,10 +9280,10 @@ def change_process(request, process_id):
             next = request.POST.get("next")
             if next:
                 return HttpResponseRedirect('/%s/%s/'
-                    % ('work/process-logging', process.id))
+                                            % ('work/process-logging', process.id))
 
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', process.id))
+                                % ('accounting/process', process.id))
     '''
     process = get_object_or_404(Process, id=process_id)
     original_start = process.start_date
@@ -9713,16 +9661,17 @@ def change_process(request, process_id):
     }, context_instance=RequestContext(request))
     '''
 
-#todo: soon to be obsolete (is it obsolete now?)
+
+# todo: soon to be obsolete (is it obsolete now?)
 def explode_dependent_demands(commitment, user):
     """This method assumes an input commitment"""
-    
-    #import pdb; pdb.set_trace()
+
+    # import pdb; pdb.set_trace()
     qty_to_explode = commitment.net()
     if qty_to_explode:
         rt = commitment.resource_type
-        #todo: add stage and state as args?
-        #todo pr: this shd probably use own_or_parent_recipes
+        # todo: add stage and state as args?
+        # todo pr: this shd probably use own_or_parent_recipes
         ptrt, inheritance = rt.main_producing_process_type_relationship()
         demand = commitment.independent_demand
         if ptrt:
@@ -9739,10 +9688,10 @@ def explode_dependent_demands(commitment, user):
                 created_by=user,
             )
             feeder_process.save()
-            #todo: sub process.add_commitment()
+            # todo: sub process.add_commitment()
             output_commitment = Commitment(
                 independent_demand=demand,
-                order_item = commitment.order_item,
+                order_item=commitment.order_item,
                 event_type=ptrt.event_type,
                 due_date=commitment.due_date,
                 resource_type=rt,
@@ -9755,9 +9704,10 @@ def explode_dependent_demands(commitment, user):
             )
             output_commitment.save()
             recursively_explode_demands(feeder_process, demand, user, [])
-    
+
+
 def propagate_qty_change(commitment, delta, visited):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     process = commitment.process
     if commitment not in visited:
         visited.append(commitment)
@@ -9767,10 +9717,10 @@ def propagate_qty_change(commitment, delta, visited):
                 output_ctype = commitment.commitment_type()
                 ratio = input_ctype.quantity / output_ctype.quantity
                 new_delta = (delta * ratio).quantize(Decimal('.01'), rounding=ROUND_UP)
-                
+
                 ic.quantity += new_delta
                 ic.save()
-                #import pdb; pdb.set_trace()
+                # import pdb; pdb.set_trace()
                 rt = ic.resource_type
                 pcs = ic.associated_producing_commitments()
                 if pcs:
@@ -9786,16 +9736,17 @@ def propagate_qty_change(commitment, delta, visited):
                     if pc.order_item == order_item:
                         propagate_qty_change(pc, new_delta, visited)
     commitment.quantity += delta
-    commitment.save()  
+    commitment.save()
+
 
 def propagate_changes(commitment, delta, old_demand, new_demand, visited):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     process = commitment.process
     order_item = commitment.order_item
     if process not in visited:
         visited.append(process)
         for ic in process.incoming_commitments():
-            ratio = ic.quantity / commitment.quantity 
+            ratio = ic.quantity / commitment.quantity
             new_delta = (delta * ratio).quantize(Decimal('.01'), rounding=ROUND_UP)
             ic.quantity += new_delta
             ic.order_item = order_item
@@ -9807,11 +9758,12 @@ def propagate_changes(commitment, delta, old_demand, new_demand, visited):
     commitment.quantity += delta
     commitment.independent_demand = new_demand
     commitment.save()
-    
+
+
 @login_required
 def change_order(request, order_id):
     order = get_object_or_404(Order, id=order_id)
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     order_form = OrderChangeForm(instance=order, data=request.POST or None)
     if request.method == "POST":
         next = request.POST.get("next")
@@ -9819,10 +9771,10 @@ def change_order(request, order_id):
             order = order_form.save()
             if next == "demand":
                 return HttpResponseRedirect('/%s/'
-                    % ('accounting/demand'))
+                                            % ('accounting/demand'))
             if next == "closed_work_orders":
                 return HttpResponseRedirect('/%s/'
-                    % ('accounting/closed-work-orders'))
+                                            % ('accounting/closed-work-orders'))
     else:
         next = request.GET.get("next")
 
@@ -9832,20 +9784,22 @@ def change_order(request, order_id):
         "next": next,
     }, context_instance=RequestContext(request))
 
+
 class ResourceType_EventType(object):
     def __init__(self, resource_type, event_type):
         self.resource_type = resource_type
         self.event_type = event_type
 
+
 @login_required
 def process_selections(request, rand=0):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     slots = []
     resource_types = []
     selected_pattern = None
     selected_context_agent = None
     pattern_form = PatternProdSelectionForm()
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     ca_form = ProjectSelectionForm()
     init = {"start_date": datetime.date.today(), "end_date": datetime.date.today()}
     process_form = DateAndNameForm(data=request.POST or None)
@@ -9859,7 +9813,7 @@ def process_selections(request, rand=0):
         labnotes = request.POST.get("labnotes")
         get_related = request.POST.get("get-related")
         if get_related:
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             selected_pattern = ProcessPattern.objects.get(id=request.POST.get("pattern"))
             selected_context_agent = EconomicAgent.objects.get(id=request.POST.get("context_agent"))
             if selected_pattern:
@@ -9868,7 +9822,7 @@ def process_selections(request, rand=0):
                     slot.resource_types = selected_pattern.get_resource_types(slot)
             process_form = DateAndNameForm(initial=init)
         else:
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             rp = request.POST
             today = datetime.date.today()
             if process_form.is_valid():
@@ -9881,15 +9835,15 @@ def process_selections(request, rand=0):
             demand = None
             added_to_order = False
             if demand_form.is_valid():
-                demand = demand_form.cleaned_data["demand"] 
+                demand = demand_form.cleaned_data["demand"]
                 if demand:
-                    added_to_order = True               
+                    added_to_order = True
             produced_rts = []
             cited_rts = []
             consumed_rts = []
             used_rts = []
             work_rts = []
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             for key, value in dict(rp).iteritems():
                 if "selected-context-agent" in key:
                     context_agent_id = key.split("~")[1]
@@ -9902,7 +9856,7 @@ def process_selections(request, rand=0):
                 et = None
                 action = ""
                 try:
-                    #import pdb; pdb.set_trace()
+                    # import pdb; pdb.set_trace()
                     et_name = key.split("~")[0]
                     et = EventType.objects.get(name=et_name)
                     action = et.relationship
@@ -9934,7 +9888,7 @@ def process_selections(request, rand=0):
                     work_rts.append(work_rt)
                     continue
 
-            if rand: 
+            if rand:
                 if not demand:
                     demand = Order(
                         order_type="rand",
@@ -9959,15 +9913,15 @@ def process_selections(request, rand=0):
                 context_agent=selected_context_agent
             )
             process.save()
-        
-            #import pdb; pdb.set_trace()      
+
+            # import pdb; pdb.set_trace()
             for rt in produced_rts:
-                #import pdb; pdb.set_trace()
+                # import pdb; pdb.set_trace()
                 resource_types.append(rt)
                 et = selected_pattern.event_type_for_resource_type("out", rt)
                 if et:
                     commitment = process.add_commitment(
-                        resource_type= rt,
+                        resource_type=rt,
                         demand=demand,
                         quantity=Decimal("1"),
                         event_type=et,
@@ -10004,9 +9958,9 @@ def process_selections(request, rand=0):
                 et = selected_pattern.event_type_for_resource_type("cite", rt)
                 if et:
                     commitment = process.add_commitment(
-                        resource_type= rt,
+                        resource_type=rt,
                         demand=demand,
-                        order_item = process.order_item(),
+                        order_item=process.order_item(),
                         quantity=Decimal("1"),
                         event_type=et,
                         unit=rt.unit,
@@ -10018,41 +9972,41 @@ def process_selections(request, rand=0):
                     et = selected_pattern.event_type_for_resource_type("use", rt)
                     if et:
                         commitment = process.add_commitment(
-                            resource_type= rt,
+                            resource_type=rt,
                             demand=demand,
-                            order_item = process.order_item(),
+                            order_item=process.order_item(),
                             quantity=Decimal("1"),
                             event_type=et,
                             unit=rt.unit,
                             description="",
                             user=request.user)
-                        
+
             for rt in consumed_rts:
                 if rt not in resource_types:
                     resource_types.append(rt)
                     et = selected_pattern.event_type_for_resource_type("consume", rt)
                     if et:
                         commitment = process.add_commitment(
-                            resource_type= rt,
+                            resource_type=rt,
                             demand=demand,
-                            order_item = process.order_item(),
+                            order_item=process.order_item(),
                             quantity=Decimal("1"),
                             event_type=et,
                             unit=rt.unit,
                             description="",
                             user=request.user)
-                            
+
             for rt in work_rts:
-                #import pdb; pdb.set_trace()
+                # import pdb; pdb.set_trace()
                 agent = None
                 if labnotes:
                     agent = get_agent(request)
                 et = selected_pattern.event_type_for_resource_type("work", rt)
                 if et:
                     work_commitment = process.add_commitment(
-                        resource_type= rt,
+                        resource_type=rt,
                         demand=demand,
-                        order_item = process.order_item(),
+                        order_item=process.order_item(),
                         quantity=Decimal("1"),
                         event_type=et,
                         unit=rt.unit,
@@ -10060,42 +10014,42 @@ def process_selections(request, rand=0):
                         description="",
                         user=request.user)
                     if notification:
-                        #import pdb; pdb.set_trace()
+                        # import pdb; pdb.set_trace()
                         if not work_commitment.from_agent:
                             agent = get_agent(request)
                             users = work_commitment.possible_work_users()
                             site_name = get_site_name()
                             if users:
                                 notification.send(
-                                    users, 
-                                    "valnet_new_task", 
+                                    users,
+                                    "valnet_new_task",
                                     {"resource_type": work_commitment.resource_type,
-                                    "due_date": work_commitment.due_date,
-                                    "hours": work_commitment.quantity,
-                                    "unit": work_commitment.resource_type.unit,
-                                    "description": work_commitment.description or "",
-                                    "process": work_commitment.process,
-                                    "creator": agent,
-                                    "site_name": site_name,
-                                    }
+                                     "due_date": work_commitment.due_date,
+                                     "hours": work_commitment.quantity,
+                                     "unit": work_commitment.resource_type.unit,
+                                     "description": work_commitment.description or "",
+                                     "process": work_commitment.process,
+                                     "creator": agent,
+                                     "site_name": site_name,
+                                     }
                                 )
 
-            if done_process: 
-                #if demand:
+            if done_process:
+                # if demand:
                 #    return HttpResponseRedirect('/%s/%s/'
                 #        % ('accounting/order-schedule', demand.id))
-                #else:
+                # else:
                 return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/process', process.id))
-            if add_another: 
+                                            % ('accounting/process', process.id))
+            if add_another:
                 return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/process-selections', rand))             
+                                            % ('accounting/process-selections', rand))
             if edit_process:
                 return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/change-process', process.id))  
+                                            % ('accounting/change-process', process.id))
             if labnotes:
                 return HttpResponseRedirect('/%s/%s/%s/'
-                    % ('accounting/work-now', process.id, work_commitment.id))
+                                            % ('accounting/work-now', process.id, work_commitment.id))
 
     return render_to_response("valueaccounting/process_selections.html", {
         "slots": slots,
@@ -10109,16 +10063,17 @@ def process_selections(request, rand=0):
         "help": get_help("process_select"),
     }, context_instance=RequestContext(request))
 
+
 @login_required
 def plan_from_recipe(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     resource_types = []
     resource_type_lists = []
     selected_context_agent = None
     forward_schedule = False
     resource_driven = False
     ca_form = ProjectSelectionForm()
-    init = {"date": datetime.date.today(),}
+    init = {"date": datetime.date.today(), }
     date_name_form = OrderDateAndNameForm(data=request.POST or None)
     if request.method == "POST":
         create_order = request.POST.get("create-order")
@@ -10127,10 +10082,10 @@ def plan_from_recipe(request):
             selected_context_agent = EconomicAgent.objects.get(id=request.POST.get("context_agent"))
             date_name_form = OrderDateAndNameForm(initial=init)
             if selected_context_agent:
-                #import pdb; pdb.set_trace()
+                # import pdb; pdb.set_trace()
                 resource_type_lists = selected_context_agent.get_resource_type_lists()
                 candidate_resource_types = selected_context_agent.get_resource_types_with_recipe()
-                #import pdb; pdb.set_trace()
+                # import pdb; pdb.set_trace()
                 for rt in candidate_resource_types:
                     if rt.recipe_needs_starting_resource():
                         rt.onhand_resources = []
@@ -10142,7 +10097,7 @@ def plan_from_recipe(request):
                     else:
                         resource_types.append(rt)
         else:
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             rp = request.POST
             today = datetime.date.today()
             order_name = ""
@@ -10169,13 +10124,13 @@ def plan_from_recipe(request):
                     else:
                         produced_id = int(value)
                         produced_rt = EconomicResourceType.objects.get(id=produced_id)
-                        rts_to_produce = [produced_rt,]
+                        rts_to_produce = [produced_rt, ]
                         if produced_rt.recipe_is_staged():
                             forward_schedule = True
                             if produced_rt.recipe_needs_starting_resource():
-                                resource_driven = True     
+                                resource_driven = True
                 if "resourcesFor" in key:
-                    #import pdb; pdb.set_trace()
+                    # import pdb; pdb.set_trace()
                     resource_id = int(value[0])
                     resource = EconomicResource.objects.get(id=resource_id)
             if forward_schedule:
@@ -10184,7 +10139,7 @@ def plan_from_recipe(request):
                 else:
                     forward_schedule = False
 
-            #import pdb; pdb.set_trace() 
+            # import pdb; pdb.set_trace()
             if not forward_schedule:
                 demand = Order(
                     order_type="rand",
@@ -10193,12 +10148,13 @@ def plan_from_recipe(request):
                     name=order_name,
                     created_by=request.user)
                 demand.save()
-            
+
             for produced_rt in rts_to_produce:
                 if forward_schedule:
-                    #Todo: apply selected_context_agent to all of the above generators
+                    # Todo: apply selected_context_agent to all of the above generators
                     if resource_driven:
-                        demand = produced_rt.generate_staged_work_order_from_resource(resource, order_name, start_date, request.user)
+                        demand = produced_rt.generate_staged_work_order_from_resource(resource, order_name, start_date,
+                                                                                      request.user)
                     else:
                         if len(rts_to_produce) == 1:
                             demand = produced_rt.generate_staged_work_order(order_name, start_date, request.user)
@@ -10214,7 +10170,7 @@ def plan_from_recipe(request):
                     if et:
                         commitment = demand.add_commitment(
                             resource_type=produced_rt,
-                            #Todo: apply selected_context_agent here? Only if inheritance?
+                            # Todo: apply selected_context_agent here? Only if inheritance?
                             context_agent=ptrt.process_type.context_agent,
                             quantity=ptrt.quantity,
                             event_type=et,
@@ -10222,41 +10178,42 @@ def plan_from_recipe(request):
                             description=ptrt.description or "",
                             stage=ptrt.stage,
                             state=ptrt.state,
-                            )
-                        commitment.created_by=request.user
+                        )
+                        commitment.created_by = request.user
                         commitment.save()
 
-                        #import pdb; pdb.set_trace()
-                        #Todo: apply selected_context_agent here?
-                        process = commitment.generate_producing_process(request.user, [], inheritance=inheritance, explode=True)
-                    
+                        # import pdb; pdb.set_trace()
+                        # Todo: apply selected_context_agent here?
+                        process = commitment.generate_producing_process(request.user, [], inheritance=inheritance,
+                                                                        explode=True)
+
             if notification:
-                #import pdb; pdb.set_trace()
+                # import pdb; pdb.set_trace()
                 agent = get_agent(request)
                 work_cts = Commitment.objects.filter(
-                    independent_demand=demand, 
+                    independent_demand=demand,
                     event_type__relationship="work")
-                for ct in work_cts:                           
+                for ct in work_cts:
                     users = ct.possible_work_users()
                     site_name = get_site_name()
                     if users:
                         notification.send(
-                            users, 
-                            "valnet_new_task", 
+                            users,
+                            "valnet_new_task",
                             {"resource_type": ct.resource_type,
-                            "due_date": ct.due_date,
-                            "hours": ct.quantity,
-                            "unit": ct.resource_type.unit,
-                            "description": ct.description or "",
-                            "process": ct.process,
-                            "creator": agent,
-                            "site_name": site_name,
-                            }
+                             "due_date": ct.due_date,
+                             "hours": ct.quantity,
+                             "unit": ct.resource_type.unit,
+                             "description": ct.description or "",
+                             "process": ct.process,
+                             "creator": agent,
+                             "site_name": site_name,
+                             }
                         )
- 
+
             return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/order-schedule', demand.id))                 
-                            
+                                        % ('accounting/order-schedule', demand.id))
+
     return render_to_response("valueaccounting/plan_from_recipe.html", {
         "selected_context_agent": selected_context_agent,
         "ca_form": ca_form,
@@ -10266,9 +10223,10 @@ def plan_from_recipe(request):
         "help": get_help("plan_from_recipe"),
     }, context_instance=RequestContext(request))
 
+
 @login_required
 def plan_from_rt(request, resource_type_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     resource_type = EconomicResourceType.objects.get(id=resource_type_id)
     name = "Make " + resource_type.name
     init = {"start_date": datetime.date.today(), "end_date": datetime.date.today(), "name": name}
@@ -10278,7 +10236,7 @@ def plan_from_rt(request, resource_type_id):
         if form.is_valid():
             process = form.save(commit=False)
             process.created_by = request.user
-            process.save() 
+            process.save()
 
             demand = Order(
                 order_type="rand",
@@ -10296,25 +10254,26 @@ def plan_from_rt(request, resource_type_id):
             com.event_type = process.process_pattern.event_type_for_resource_type("out", resource_type)
             com.process = process
             com.due_date = process.end_date
-            com.resource_type = resource_type 
+            com.resource_type = resource_type
             com.quantity = Decimal("1")
-            com.unit_of_quantity = resource_type.unit 
+            com.unit_of_quantity = resource_type.unit
             com.created_by = request.user
             com.save()
-            #todo: if demand.add_commitment gets further developed, could use it instead of the above
+            # todo: if demand.add_commitment gets further developed, could use it instead of the above
 
             return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/process', process.id))
-  
+                                        % ('accounting/process', process.id))
+
     return render_to_response("valueaccounting/plan_from_rt.html", {
         "form": form,
         "resource_type": resource_type,
         "help": get_help("plan_from_rt"),
     }, context_instance=RequestContext(request))
 
+
 @login_required
 def plan_from_rt_recipe(request, resource_type_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     resource_type = EconomicResourceType.objects.get(id=resource_type_id)
     resource_required = False
     recipe_type = "assembly"
@@ -10346,16 +10305,17 @@ def plan_from_rt_recipe(request, resource_type_id):
                     due_date = order_date
             elif recipe_type == "resource_driven":
                 start_date = date_name_form.cleaned_data["start_date"]
-                #import pdb; pdb.set_trace()
+                # import pdb; pdb.set_trace()
                 rid = request.POST.get("resource")
                 if rid:
                     resource_id = int(rid)
                     resource = EconomicResource.objects.get(id=resource_id)
-                    demand = resource_type.generate_staged_work_order_from_resource(resource, order_name, start_date, request.user)
+                    demand = resource_type.generate_staged_work_order_from_resource(resource, order_name, start_date,
+                                                                                    request.user)
                 schedule = False
             else:
                 due_date = date_name_form.cleaned_data["due_date"]
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             if schedule:
                 demand = Order(
                     order_type="rand",
@@ -10377,37 +10337,37 @@ def plan_from_rt_recipe(request, resource_type_id):
                         unit=resource_type.unit,
                         description=ptrt.description or "",
                         stage=ptrt.stage,
-                        state=ptrt.state,)
-                    commitment.created_by=request.user
+                        state=ptrt.state, )
+                    commitment.created_by = request.user
                     commitment.save()
                     process = commitment.generate_producing_process(request.user, [], explode=True)
             if notification:
-                #import pdb; pdb.set_trace()
+                # import pdb; pdb.set_trace()
                 agent = get_agent(request)
                 work_cts = Commitment.objects.filter(
-                    independent_demand=demand, 
+                    independent_demand=demand,
                     event_type__relationship="work")
-                for ct in work_cts:                           
+                for ct in work_cts:
                     users = ct.possible_work_users()
                     site_name = get_site_name()
                     if users:
                         notification.send(
-                            users, 
-                            "valnet_new_task", 
+                            users,
+                            "valnet_new_task",
                             {"resource_type": ct.resource_type,
-                            "due_date": ct.due_date,
-                            "hours": ct.quantity,
-                            "unit": ct.resource_type.unit,
-                            "description": ct.description or "",
-                            "process": ct.process,
-                            "creator": agent,
-                            "site_name": site_name,
-                            }
+                             "due_date": ct.due_date,
+                             "hours": ct.quantity,
+                             "unit": ct.resource_type.unit,
+                             "description": ct.description or "",
+                             "process": ct.process,
+                             "creator": agent,
+                             "site_name": site_name,
+                             }
                         )
- 
+
             return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/order-schedule', demand.id))                 
-                            
+                                        % ('accounting/order-schedule', demand.id))
+
     return render_to_response("valueaccounting/plan_from_rt_recipe.html", {
         "date_name_form": date_name_form,
         "resource_type": resource_type,
@@ -10431,16 +10391,17 @@ def resource_facet_table(request):
         for rf in rt.facets.all():
             cell = headings.index(rf.facet_value.facet)
             row[cell] = rf
-        rows.append(row)     
+        rows.append(row)
     return render_to_response("valueaccounting/resource_facets.html", {
         "headings": headings,
         "rows": rows,
     }, context_instance=RequestContext(request))
-    
+
+
 @login_required
 def comments(request):
     comments = Comment.objects.all().order_by("-submit_date")
-    
+
     paginator = Paginator(comments, 25)
     page = request.GET.get('page')
     try:
@@ -10455,12 +10416,13 @@ def comments(request):
         "comment_list": comment_list,
     }, context_instance=RequestContext(request))
 
+
 @login_required
 def change_resource_facet_value(request):
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
-        #resource_type_label = request.POST.get("resourceType")
-        #rt_name = resource_type_label.split("-", 1)[1].lstrip()
+        # import pdb; pdb.set_trace()
+        # resource_type_label = request.POST.get("resourceType")
+        # rt_name = resource_type_label.split("-", 1)[1].lstrip()
         rt_name = request.POST.get("resourceType")
         facet_name = request.POST.get("facet")
         value = request.POST.get("facetValue")
@@ -10489,12 +10451,13 @@ def change_resource_facet_value(request):
 
     return HttpResponse("Ok", content_type="text/plain")
 
+
 def create_facet_formset(data=None):
     RtfvFormSet = formset_factory(ResourceTypeFacetValueForm, extra=0)
     init = []
     facets = Facet.objects.all()
     for facet in facets:
-        d = {"facet_id": facet.id,}
+        d = {"facet_id": facet.id, }
         init.append(d)
     formset = RtfvFormSet(initial=init, data=data)
     for form in formset:
@@ -10506,13 +10469,14 @@ def create_facet_formset(data=None):
         form.fields["value"].choices = choices
     return formset
 
+
 def create_patterned_facet_formset(pattern, slot, data=None):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     RtfvFormSet = formset_factory(ResourceTypeFacetValueForm, extra=0)
     init = []
     facets = pattern.facets_by_relationship(slot)
     for facet in facets:
-        d = {"facet_id": facet.id,}
+        d = {"facet_id": facet.id, }
         init.append(d)
     formset = RtfvFormSet(initial=init, data=data)
     for form in formset:
@@ -10527,37 +10491,37 @@ def create_patterned_facet_formset(pattern, slot, data=None):
 
 
 def exchanges(request, agent_id=None):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     agent = None
     if agent_id:
         agent = get_object_or_404(EconomicAgent, id=agent_id)
     today = datetime.date.today()
-    end =  today
+    end = today
     start = today - datetime.timedelta(days=365)
     init = {"start_date": start, "end_date": end}
     dt_selection_form = DateSelectionForm(initial=init, data=request.POST or None)
-    #et_donation = EventType.objects.get(name="Donation")
-    #et_cash = EventType.objects.get(name="Cash Contribution")
-    #et_pay = EventType.objects.get(name="Payment")   
-    #et_receive = EventType.objects.get(name="Receipt")
-    #et_expense = EventType.objects.get(name="Expense")
+    # et_donation = EventType.objects.get(name="Donation")
+    # et_cash = EventType.objects.get(name="Cash Contribution")
+    # et_pay = EventType.objects.get(name="Payment")
+    # et_receive = EventType.objects.get(name="Receipt")
+    # et_expense = EventType.objects.get(name="Expense")
     et_give = EventType.objects.get(name="Give")
     et_receive = EventType.objects.get(name="Receive")
-    #references = AccountingReference.objects.all()
+    # references = AccountingReference.objects.all()
     ets = ExchangeType.objects.supply_exchange_types()
     event_ids = ""
     select_all = True
     selected_values = "all"
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         dt_selection_form = DateSelectionForm(data=request.POST)
         if dt_selection_form.is_valid():
             start = dt_selection_form.cleaned_data["start_date"]
             end = dt_selection_form.cleaned_data["end_date"]
-            #exchanges = Exchange.objects.financial_contributions(start, end)
+            # exchanges = Exchange.objects.financial_contributions(start, end)
             exchanges = Exchange.objects.supply_exchanges(start, end)
         else:
-            #exchanges = Exchange.objects.financial_contributions()
+            # exchanges = Exchange.objects.financial_contributions()
             exchanges = Exchange.objects.supply_exchanges()
         if agent_id:
             exchanges = exchanges.filter(context_agent=agent)
@@ -10577,24 +10541,24 @@ def exchanges(request, agent_id=None):
                 for ex in exchanges:
                     if str(ex.exchange_type.id) in vals:
                         exchanges_included.append(ex)
-                    #the following a start at filtering by accounting ref, doesn't work
-                    #for transfer in ex.transfers.all():
-                    #    for event in transfer.events.all():
-                    #        if event.resource_type.accounting_reference:
-                    #           if event.resource_type.accounting_reference.code in vals:
-                    #                transfers_included.append(transfer)                                    
-                    #    if transfers_included != []:   
-                    #        ex.transfer_list = transfers_included
-                    #        exchanges_included.append(ex)
-                    #        transfers_included = []
-                    #for event in ex.events.all(): #work events not part of a transfer
-                    #    if event.resource_type.accounting_reference:
-                    #        if event.resource_type.accounting_reference.code in vals:
-                    #            events_included.append(event)                                    
-                    #    if events_included != []:   
-                    #        ex.event_list = events_included
-                    #        events_included = []
-                    #ex.event_list = events_included
+                        # the following a start at filtering by accounting ref, doesn't work
+                        # for transfer in ex.transfers.all():
+                        #    for event in transfer.events.all():
+                        #        if event.resource_type.accounting_reference:
+                        #           if event.resource_type.accounting_reference.code in vals:
+                        #                transfers_included.append(transfer)
+                        #    if transfers_included != []:
+                        #        ex.transfer_list = transfers_included
+                        #        exchanges_included.append(ex)
+                        #        transfers_included = []
+                        # for event in ex.events.all(): #work events not part of a transfer
+                        #    if event.resource_type.accounting_reference:
+                        #        if event.resource_type.accounting_reference.code in vals:
+                        #            events_included.append(event)
+                        #    if events_included != []:
+                        #        ex.event_list = events_included
+                        #        events_included = []
+                        # ex.event_list = events_included
                 exchanges = exchanges_included
     else:
         if agent_id:
@@ -10602,14 +10566,14 @@ def exchanges(request, agent_id=None):
         else:
             exchanges = Exchange.objects.supply_exchanges(start, end)
 
-    #total_cash = 0
-    #total_receipts = 0
-    #total_expenses = 0
-    #total_payments = 0
+    # total_cash = 0
+    # total_receipts = 0
+    # total_expenses = 0
+    # total_payments = 0
     total_transfers = 0
     total_rec_transfers = 0
     comma = ""
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     for x in exchanges:
         try:
             xx = list(x.transfer_list)
@@ -10625,53 +10589,54 @@ def exchanges(request, agent_id=None):
             for event in transfer.events.all():
                 event_ids = event_ids + comma + str(event.id)
                 comma = ","
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         for event in x.events.all():
             event_ids = event_ids + comma + str(event.id)
             comma = ","
-        #todo: get sort to work
+            # todo: get sort to work
 
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
 
     return render_to_response("valueaccounting/exchanges.html", {
-        "exchanges": exchanges, 
+        "exchanges": exchanges,
         "dt_selection_form": dt_selection_form,
         "total_transfers": total_transfers,
         "total_rec_transfers": total_rec_transfers,
         "select_all": select_all,
         "selected_values": selected_values,
-        #"references": references,
+        # "references": references,
         "ets": ets,
         "event_ids": event_ids,
         "agent": agent,
     }, context_instance=RequestContext(request))
 
-#obsolete
+
+# obsolete
 def exchanges_old(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     end = datetime.date.today()
     start = datetime.date(end.year, 1, 1)
     init = {"start_date": start, "end_date": end}
     dt_selection_form = DateSelectionForm(initial=init, data=request.POST or None)
     et_donation = EventType.objects.get(name="Donation")
     et_cash = EventType.objects.get(name="Cash Contribution")
-    et_pay = EventType.objects.get(name="Payment")   
+    et_pay = EventType.objects.get(name="Payment")
     et_receive = EventType.objects.get(name="Receipt")
     et_expense = EventType.objects.get(name="Expense")
-    #et_process_expense = EventType.objects.get(name="Process Expense")
+    # et_process_expense = EventType.objects.get(name="Process Expense")
     references = AccountingReference.objects.all()
     event_ids = ""
     select_all = True
     selected_values = "all"
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         dt_selection_form = DateSelectionForm(data=request.POST)
         if dt_selection_form.is_valid():
             start = dt_selection_form.cleaned_data["start_date"]
             end = dt_selection_form.cleaned_data["end_date"]
             exchanges = Exchange.objects.financial_contributions(start, end)
         else:
-            exchanges = Exchange.objects.financial_contributions()            
+            exchanges = Exchange.objects.financial_contributions()
         selected_values = request.POST["categories"]
         if selected_values:
             sv = selected_values.split(",")
@@ -10688,12 +10653,12 @@ def exchanges_old(request):
                     for event in ex.events.all():
                         if event.resource_type.accounting_reference:
                             if event.resource_type.accounting_reference.code in vals:
-                                #if ex.class_label() == "Exchange":
+                                # if ex.class_label() == "Exchange":
                                 events_included.append(event)
-                                #else: #process
+                                # else: #process
                                 #    if event.event_type == et_process_expense:
                                 #        events_included.append(event)
-                    if events_included != []:   
+                    if events_included != []:
                         ex.event_list = events_included
                         exchanges_included.append(ex)
                         events_included = []
@@ -10706,14 +10671,14 @@ def exchanges_old(request):
     total_expenses = 0
     total_payments = 0
     comma = ""
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     for x in exchanges:
         try:
             xx = x.event_list
         except AttributeError:
-            #if x.class_label() == "Exchange":
+            # if x.class_label() == "Exchange":
             x.event_list = x.events.all()
-            #else: #process
+            # else: #process
             #    #import pdb; pdb.set_trace()
             #    evs = x.events.all()
             #    event_list = []
@@ -10730,17 +10695,17 @@ def exchanges_old(request):
                 total_cash = total_cash + event.quantity
             elif event.event_type == et_expense:
                 total_expenses = total_expenses + event.value
-            #elif event.event_type == et_process_expense:
+            # elif event.event_type == et_process_expense:
             #    total_expenses = total_expenses + event.value
             #    total_payments = total_payments + event.value
             elif event.event_type == et_receive:
                 total_receipts = total_receipts + event.value
             event_ids = event_ids + comma + str(event.id)
             comma = ","
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
 
     return render_to_response("valueaccounting/exchanges.html", {
-        "exchanges": exchanges, 
+        "exchanges": exchanges,
         "dt_selection_form": dt_selection_form,
         "total_cash": total_cash,
         "total_receipts": total_receipts,
@@ -10752,25 +10717,26 @@ def exchanges_old(request):
         "event_ids": event_ids,
     }, context_instance=RequestContext(request))
 
+
 def internal_exchanges(request, agent_id=None):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     agent = None
     if agent_id:
         agent = get_object_or_404(EconomicAgent, id=agent_id)
     today = datetime.date.today()
-    end =  today
+    end = today
     start = today - datetime.timedelta(days=365)
     init = {"start_date": start, "end_date": end}
     dt_selection_form = DateSelectionForm(initial=init, data=request.POST or None)
     et_give = EventType.objects.get(name="Give")
     et_receive = EventType.objects.get(name="Receive")
-    #references = AccountingReference.objects.all()
+    # references = AccountingReference.objects.all()
     ets = ExchangeType.objects.internal_exchange_types()
     event_ids = ""
     select_all = True
     selected_values = "all"
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         dt_selection_form = DateSelectionForm(data=request.POST)
         if dt_selection_form.is_valid():
             start = dt_selection_form.cleaned_data["start_date"]
@@ -10806,7 +10772,7 @@ def internal_exchanges(request, agent_id=None):
     total_transfers = 0
     total_rec_transfers = 0
     comma = ""
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     for x in exchanges:
         try:
             xx = list(x.transfer_list)
@@ -10820,30 +10786,31 @@ def internal_exchanges(request, agent_id=None):
             for event in transfer.events.all():
                 event_ids = event_ids + comma + str(event.id)
                 comma = ","
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         for event in x.events.all():
             event_ids = event_ids + comma + str(event.id)
             comma = ","
-        #todo: get sort to work
+            # todo: get sort to work
 
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
 
     return render_to_response("valueaccounting/internal_exchanges.html", {
-        "exchanges": exchanges, 
+        "exchanges": exchanges,
         "dt_selection_form": dt_selection_form,
         "total_transfers": total_transfers,
         "total_rec_transfers": total_rec_transfers,
         "select_all": select_all,
         "selected_values": selected_values,
-        #"references": references,
+        # "references": references,
         "ets": ets,
         "event_ids": event_ids,
         "agent": agent,
     }, context_instance=RequestContext(request))
 
-#obsolete    
+
+# obsolete
 def material_contributions(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     end = datetime.date.today()
     start = datetime.date(end.year, 1, 1)
     init = {"start_date": start, "end_date": end}
@@ -10851,7 +10818,7 @@ def material_contributions(request):
     et_matl = EventType.objects.get(name="Resource Contribution")
     event_ids = ""
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         dt_selection_form = DateSelectionForm(data=request.POST)
         if dt_selection_form.is_valid():
             start = dt_selection_form.cleaned_data["start_date"]
@@ -10863,7 +10830,7 @@ def material_contributions(request):
         exchanges = Exchange.objects.material_contributions().filter(start_date__range=[start, end])
 
     comma = ""
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     for x in exchanges:
         try:
             xx = x.event_list
@@ -10872,7 +10839,7 @@ def material_contributions(request):
         for event in x.event_list:
             event_ids = event_ids + comma + str(event.id)
             comma = ","
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
 
     return render_to_response("valueaccounting/material_contributions.html", {
         "exchanges": exchanges,
@@ -10880,25 +10847,26 @@ def material_contributions(request):
         "event_ids": event_ids,
     }, context_instance=RequestContext(request))
 
+
 def demand_exchanges(request, agent_id=None):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     agent = None
     if agent_id:
         agent = get_object_or_404(EconomicAgent, id=agent_id)
     today = datetime.date.today()
-    end =  today
+    end = today
     start = today - datetime.timedelta(days=365)
     init = {"start_date": start, "end_date": end}
     dt_selection_form = DateSelectionForm(initial=init, data=request.POST or None)
     et_give = EventType.objects.get(name="Give")
     et_receive = EventType.objects.get(name="Receive")
-    #references = AccountingReference.objects.all()
+    # references = AccountingReference.objects.all()
     ets = ExchangeType.objects.demand_exchange_types()
     event_ids = ""
     select_all = True
     selected_values = "all"
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         dt_selection_form = DateSelectionForm(data=request.POST)
         if dt_selection_form.is_valid():
             start = dt_selection_form.cleaned_data["start_date"]
@@ -10934,7 +10902,7 @@ def demand_exchanges(request, agent_id=None):
     total_transfers = 0
     total_rec_transfers = 0
     comma = ""
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     for x in exchanges:
         try:
             xx = list(x.transfer_list)
@@ -10951,43 +10919,44 @@ def demand_exchanges(request, agent_id=None):
         for event in x.events.all():
             event_ids = event_ids + comma + str(event.id)
             comma = ","
-        #todo: get sort to work
+            # todo: get sort to work
 
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
 
     return render_to_response("valueaccounting/demand_exchanges.html", {
-        "exchanges": exchanges, 
+        "exchanges": exchanges,
         "dt_selection_form": dt_selection_form,
         "total_transfers": total_transfers,
         "total_rec_transfers": total_rec_transfers,
         "select_all": select_all,
         "selected_values": selected_values,
-        #"references": references,
+        # "references": references,
         "ets": ets,
         "event_ids": event_ids,
         "agent": agent,
     }, context_instance=RequestContext(request))
 
-#obsolete
+
+# obsolete
 def sales_and_distributions(request, agent_id=None):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     agent = None
     if agent_id:
         agent = get_object_or_404(EconomicAgent, id=agent_id)
     today = datetime.date.today()
-    end =  today + datetime.timedelta(days=90)
+    end = today + datetime.timedelta(days=90)
     start = datetime.date(today.year, 1, 1)
     init = {"start_date": start, "end_date": end}
     dt_selection_form = DateSelectionForm(initial=init, data=request.POST or None)
     et_cash_receipt = EventType.objects.get(name="Cash Receipt")
-    et_shipment = EventType.objects.get(name="Shipment")   
-    et_distribution = EventType.objects.get(name="Distribution")   
+    et_shipment = EventType.objects.get(name="Shipment")
+    et_distribution = EventType.objects.get(name="Distribution")
     references = AccountingReference.objects.all()
     event_ids = ""
     select_all = True
     selected_values = "all"
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         dt_selection_form = DateSelectionForm(data=request.POST)
         if dt_selection_form.is_valid():
             start = dt_selection_form.cleaned_data["start_date"]
@@ -11014,14 +10983,15 @@ def sales_and_distributions(request, agent_id=None):
                         if event.resource_type.accounting_reference:
                             if event.resource_type.accounting_reference.code in vals:
                                 events_included.append(event)
-                    if events_included != []:   
+                    if events_included != []:
                         ex.event_list = events_included
                         exchanges_included.append(ex)
                         events_included = []
                 exchanges = exchanges_included
     else:
         if agent_id:
-            exchanges = Exchange.objects.sales_and_distributions().filter(start_date__range=[start, end]).filter(context_agent=agent)
+            exchanges = Exchange.objects.sales_and_distributions().filter(start_date__range=[start, end]).filter(
+                context_agent=agent)
         else:
             exchanges = Exchange.objects.sales_and_distributions().filter(start_date__range=[start, end])
 
@@ -11029,7 +10999,7 @@ def sales_and_distributions(request, agent_id=None):
     total_shipments = 0
     total_distributions = 0
     comma = ""
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     for x in exchanges:
         try:
             xx = x.event_list
@@ -11044,7 +11014,7 @@ def sales_and_distributions(request, agent_id=None):
                 total_distributions = total_distributions + event.quantity
             event_ids = event_ids + comma + str(event.id)
             comma = ","
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
 
     return render_to_response("valueaccounting/sales_and_distributions.html", {
         "exchanges": exchanges,
@@ -11059,23 +11029,24 @@ def sales_and_distributions(request, agent_id=None):
         "agent": agent,
     }, context_instance=RequestContext(request))
 
+
 def distributions(request, agent_id=None):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     agent = None
     if agent_id:
         agent = get_object_or_404(EconomicAgent, id=agent_id)
     today = datetime.date.today()
     user_agent = get_agent(request)
-    end =  today + datetime.timedelta(days=5)
+    end = today + datetime.timedelta(days=5)
     start = datetime.date(today.year, 1, 1)
     init = {"start_date": start, "end_date": end}
     dt_selection_form = DateSelectionForm(initial=init, data=request.POST or None)
     event_ids = ""
-    distributions = Distribution.objects.filter(distribution_date__range=[start, end]) 
+    distributions = Distribution.objects.filter(distribution_date__range=[start, end])
     if agent_id:
         distributions = distributions.filter(context_agent=agent)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         dt_selection_form = DateSelectionForm(data=request.POST)
         if dt_selection_form.is_valid():
             start = dt_selection_form.cleaned_data["start_date"]
@@ -11088,7 +11059,7 @@ def distributions(request, agent_id=None):
 
     total_distributions = 0
     comma = ""
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     for dist in distributions:
         try:
             dist_el = dist.event_list
@@ -11098,7 +11069,7 @@ def distributions(request, agent_id=None):
             total_distributions = total_distributions + event.quantity
             event_ids = event_ids + comma + str(event.id)
             comma = ","
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
 
     return render_to_response("valueaccounting/distributions.html", {
         "distributions": distributions,
@@ -11108,15 +11079,18 @@ def distributions(request, agent_id=None):
         "agent": agent,
         "user_agent": user_agent,
     }, context_instance=RequestContext(request))
-  
-@login_required    
+
+
+@login_required
 def exchange_events_csv(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     event_ids = request.GET.get("event-ids")
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename=contributions.csv'
     writer = csv.writer(response)
-    writer.writerow(["Exchange Type", "Exchange ID", "Transfer Type", "Transfer ID", "Event ID", "Date", "Event Type", "Resource Type", "Quantity", "Unit of Quantity", "Value", "Unit of Value", "From Agent", "To Agent", "Project", "Description", "URL"])
+    writer.writerow(["Exchange Type", "Exchange ID", "Transfer Type", "Transfer ID", "Event ID", "Date", "Event Type",
+                     "Resource Type", "Quantity", "Unit of Quantity", "Value", "Unit of Value", "From Agent",
+                     "To Agent", "Project", "Description", "URL"])
     event_ids_split = event_ids.split(",")
     for event_id in event_ids_split:
         event = EconomicEvent.objects.get(pk=event_id)
@@ -11127,18 +11101,18 @@ def exchange_events_csv(request):
         if event.to_agent == None:
             to_agent = ""
         else:
-            to_agent = event.to_agent.nick  
+            to_agent = event.to_agent.nick
         if event.url == "":
             if event.transfer:
                 if event.transfer.exchange.url == "":
-                    url = "" 
+                    url = ""
                 else:
                     url = event.transfer.exchange.url
             else:
                 if event.exchange.url == "":
-                    url = "" 
+                    url = ""
                 else:
-                    url = event.exchange.url                
+                    url = event.exchange.url
         else:
             url = ""
         if event.exchange:
@@ -11160,7 +11134,7 @@ def exchange_events_csv(request):
              exchange_id,
              transfer_name,
              transfer_id,
-             event.id, 
+             event.id,
              event.event_date,
              event.event_type.name,
              event.resource_type.name,
@@ -11172,20 +11146,20 @@ def exchange_events_csv(request):
              to_agent,
              event.context_agent.name,
              event.description,
-             url,  
-            ]
+             url,
+             ]
         )
     return response
-    
-   
-@login_required    
+
+
+@login_required
 def contribution_events_csv(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     event_ids = request.GET.get("event-ids")
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename=contributions.csv'
     writer = csv.writer(response)
-    #writer.writerow(["Date", "Event Type", "Resource Type", "Quantity", "Unit of Quantity", "Value", "Unit of Value", "From Agent", "To Agent", "Project", "Description", "URL", "Use Case", "Event ID", "Exchange ID"])
+    # writer.writerow(["Date", "Event Type", "Resource Type", "Quantity", "Unit of Quantity", "Value", "Unit of Value", "From Agent", "To Agent", "Project", "Description", "URL", "Use Case", "Event ID", "Exchange ID"])
     event_ids_split = event_ids.split(",")
     queryset = EconomicEvent.objects.filter(id__in=event_ids_split)
     opts = EconomicEvent._meta
@@ -11205,20 +11179,20 @@ def contribution_events_csv(request):
     return response
 
 
-def exchange_logging(request, exchange_type_id=None, exchange_id=None, context_agent_id=None): 
-    #import pdb; pdb.set_trace()
+def exchange_logging(request, exchange_type_id=None, exchange_id=None, context_agent_id=None):
+    # import pdb; pdb.set_trace()
     agent = get_agent(request)
     logger = False
     add_work_form = None
     if agent:
         if request.user.is_superuser:
             logger = True
-    
-    if exchange_type_id != "0": #new exchange
+
+    if exchange_type_id != "0":  # new exchange
         if agent:
             exchange_type = get_object_or_404(ExchangeType, id=exchange_type_id)
             use_case = exchange_type.use_case
-            
+
             if request.method == "POST":
                 exchange_form = ExchangeForm(data=request.POST)
                 if exchange_form.is_valid():
@@ -11229,11 +11203,11 @@ def exchange_logging(request, exchange_type_id=None, exchange_id=None, context_a
                     exchange.save()
 
                     return HttpResponseRedirect('/%s/%s/%s/'
-                        % ('accounting/exchange', 0, exchange.id)) 
-            
+                                                % ('accounting/exchange', 0, exchange.id))
+
             if context_agent_id:
                 context_agent = EconomicAgent.objects.get(id=context_agent_id)
-                init = { "context_agent": context_agent }
+                init = {"context_agent": context_agent}
                 exchange_form = ExchangeForm(initial=init)
             else:
                 exchange_form = ExchangeForm()
@@ -11253,29 +11227,29 @@ def exchange_logging(request, exchange_type_id=None, exchange_id=None, context_a
         else:
             raise ValidationError("System Error: No agent, not allowed to create exchange.")
 
-    elif exchange_id != "0": #existing exchange
+    elif exchange_id != "0":  # existing exchange
         exchange = get_object_or_404(Exchange, id=exchange_id)
-        
+
         if request.method == "POST":
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             exchange_form = ExchangeForm(instance=exchange, data=request.POST)
             if exchange_form.is_valid():
                 exchange = exchange_form.save()
                 return HttpResponseRedirect('/%s/%s/%s/'
-                    % ('accounting/exchange', 0, exchange.id))   
-            
+                                            % ('accounting/exchange', 0, exchange.id))
+
         context_agent = exchange.context_agent
         exchange_type = exchange.exchange_type
         use_case = exchange_type.use_case
         exchange_form = ExchangeForm(instance=exchange)
-        
+
         slots = []
         total_t = 0
         total_rect = 0
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         work_events = exchange.work_events()
         slots = exchange.slots_with_detail()
-    
+
         for slot in slots:
             if slot.is_reciprocal:
                 total_rect = total_rect + slot.total
@@ -11283,22 +11257,22 @@ def exchange_logging(request, exchange_type_id=None, exchange_id=None, context_a
                 total_t = total_t + slot.total
 
         if agent:
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             if request.user == exchange.created_by:
                 logger = True
 
             for event in work_events:
                 event.changeform = WorkEventAgentForm(
                     context_agent=context_agent,
-                    instance=event, 
+                    instance=event,
                     prefix=str(event.id))
             work_init = {
                 "from_agent": agent,
                 "event_date": datetime.date.today()
             }
             add_work_form = WorkEventAgentForm(initial=work_init, context_agent=context_agent)
- 
-            #import pdb; pdb.set_trace()
+
+            # import pdb; pdb.set_trace()
             for slot in slots:
                 ta_init = slot.default_to_agent
                 fa_init = slot.default_from_agent
@@ -11311,16 +11285,18 @@ def exchange_logging(request, exchange_type_id=None, exchange_id=None, context_a
                     "to_agent": ta_init,
                     "event_date": datetime.date.today()
                 }
-                slot.add_xfer_form = TransferForm(initial=xfer_init, prefix="ATR" + str(slot.id), context_agent=context_agent, transfer_type=slot)
+                slot.add_xfer_form = TransferForm(initial=xfer_init, prefix="ATR" + str(slot.id),
+                                                  context_agent=context_agent, transfer_type=slot)
                 slot.create_role_formset = resource_role_agent_formset(prefix=str(slot.id))
                 commit_init = {
                     "from_agent": fa_init,
                     "to_agent": ta_init,
-                    "commitment_date": datetime.date.today(), 
+                    "commitment_date": datetime.date.today(),
                     "due_date": exchange.start_date,
                 }
-                slot.add_commit_form = TransferCommitmentForm(initial=commit_init, prefix="ACM" + str(slot.id), context_agent=context_agent, transfer_type=slot)
-                
+                slot.add_commit_form = TransferCommitmentForm(initial=commit_init, prefix="ACM" + str(slot.id),
+                                                              context_agent=context_agent, transfer_type=slot)
+
     else:
         raise ValidationError("System Error: No exchange or use case.")
 
@@ -11339,6 +11315,7 @@ def exchange_logging(request, exchange_type_id=None, exchange_id=None, context_a
         "total_rect": total_rect,
         "help": get_help("exchange"),
     }, context_instance=RequestContext(request))
+
 
 '''
 def exchange_logging_old(request, exchange_id):
@@ -11738,9 +11715,10 @@ def create_distribution(request, agent_id):
         "help": get_help("create_distribution"),
     }, context_instance=RequestContext(request))
 '''
-    
+
+
 def distribution_logging(request, distribution_id=None):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     agent = get_agent(request)
     if not agent:
         if not distribution_id:
@@ -11759,8 +11737,8 @@ def distribution_logging(request, distribution_id=None):
     total_dist = 0
     add_distribution_form = None
     add_disbursement_form = None
-    
-    if not distribution_id: #new distribution
+
+    if not distribution_id:  # new distribution
         if agent:
             if request.method == "POST":
                 main_form = DistributionForm(data=request.POST)
@@ -11770,33 +11748,33 @@ def distribution_logging(request, distribution_id=None):
                     dist.created_by = request.user
                     dist.save()
                     return HttpResponseRedirect('/%s/%s/'
-                        % ('accounting/distribution', dist.id)) 
-        
+                                                % ('accounting/distribution', dist.id))
+
             main_form = DistributionForm()
-        
+
         else:
             raise ValidationError("System Error: No agent, not allowed to create distribution.")
 
-    else: #existing distribution
+    else:  # existing distribution
         dist = get_object_or_404(Distribution, id=distribution_id)
-        
+
         if request.method == "POST":
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             main_form = DistributionForm(instance=dist, data=request.POST)
             if main_form.is_valid():
                 dist = main_form.save()
                 return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/distribution', dist.id))   
-         
+                                            % ('accounting/distribution', dist.id))
+
         main_form = DistributionForm(instance=dist)
         dist_init = {
             "event_date": dist.distribution_date,
-        }      
+        }
         add_distribution_form = DistributionEventForm(prefix='dist', initial=dist_init, pattern=pattern)
         disb_init = {
             "event_date": dist.distribution_date,
-        }      
-        add_disbursement_form = DisbursementEventForm(prefix='disb', initial=disb_init, pattern=pattern)   
+        }
+        add_disbursement_form = DisbursementEventForm(prefix='disb', initial=disb_init, pattern=pattern)
 
     return render_to_response("valueaccounting/distribution_logging.html", {
         "main_form": main_form,
@@ -11808,10 +11786,11 @@ def distribution_logging(request, distribution_id=None):
         "help": get_help("distribution_logging"),
     }, context_instance=RequestContext(request))
 
+
 @login_required
 def create_distribution_using_value_equation(request, agent_id, value_equation_id=None):
-    #import pdb; pdb.set_trace()
-    #start_time = time.time()
+    # import pdb; pdb.set_trace()
+    # start_time = time.time()
     if not request.user.is_staff:
         return render_to_response('valueaccounting/no_permission.html')
     context_agent = get_object_or_404(EconomicAgent, id=agent_id)
@@ -11829,8 +11808,9 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
     events_to_distribute = {}
     no_totals = None
     if request.method == "POST":
-        header_form = DistributionValueEquationForm(context_agent=context_agent, pattern=pattern, post=True, data=request.POST)
-        #import pdb; pdb.set_trace()
+        header_form = DistributionValueEquationForm(context_agent=context_agent, pattern=pattern, post=True,
+                                                    data=request.POST)
+        # import pdb; pdb.set_trace()
         if header_form.is_valid():
             data = header_form.cleaned_data
             ve = data["value_equation"]
@@ -11843,7 +11823,7 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
                 amount = 0
                 if len(etd) == 1:
                     if partial:
-                        amount= partial
+                        amount = partial
                     else:
                         amount = etd[0].quantity
                 else:
@@ -11853,7 +11833,7 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
             notes = data["notes"]
             serialized_filters = {}
             buckets = ve.buckets.all()
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             for bucket in buckets:
                 if bucket.filter_method:
                     bucket_form = bucket.filter_entry_form(data=request.POST or None)
@@ -11864,15 +11844,15 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
 
             test_only = request.POST.get("test-only")
             if test_only:
-                #import pdb; pdb.set_trace()
+                # import pdb; pdb.set_trace()
                 agent_totals, contribution_events = ve.run_value_equation(
                     amount_to_distribute=amount,
                     serialized_filters=serialized_filters)
                 if not agent_totals:
                     no_totals = "No contributions found."
-                
-            else:                            
-                distribution = Distribution(                
+
+            else:
+                distribution = Distribution(
                     name="Distribution for " + context_agent.nick,
                     process_pattern=pattern,
                     distribution_date=dist_date,
@@ -11880,25 +11860,26 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
                     context_agent=context_agent,
                     created_by=request.user,
                 )
-                #exchange.save()
-                
+                # exchange.save()
+
                 distribution = ve.run_value_equation_and_save(
                     events_to_distribute=etd,
-                    distribution=distribution, 
-                    money_resource=resource, 
-                    amount_to_distribute=amount, 
+                    distribution=distribution,
+                    money_resource=resource,
+                    amount_to_distribute=amount,
                     serialized_filters=serialized_filters)
                 for event in distribution.distribution_events():
                     send_distribution_notification(event)
-                    
+
                 return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/distribution', distribution.id))
-            
+                                            % ('accounting/distribution', distribution.id))
+
     else:
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         ves = context_agent.live_value_equations()
-        init = { "start_date": datetime.date.today(), "value_equation": ve }
-        header_form = DistributionValueEquationForm(context_agent=context_agent, pattern=pattern, post=False, initial=init)
+        init = {"start_date": datetime.date.today(), "value_equation": ve}
+        header_form = DistributionValueEquationForm(context_agent=context_agent, pattern=pattern, post=False,
+                                                    initial=init)
         etd = context_agent.undistributed_events()
         for ev in etd:
             events_to_distribute[ev.id] = float(ev.undistributed_amount())
@@ -11909,8 +11890,8 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
             for bucket in buckets:
                 if bucket.filter_method:
                     bucket.form = bucket.filter_entry_form()
-    #end_time = time.time()
-    #print("views.create_distribution_using_value_equation elapsed time was %g seconds" % (end_time - start_time))  
+    # end_time = time.time()
+    # print("views.create_distribution_using_value_equation elapsed time was %g seconds" % (end_time - start_time))
     return render_to_response("valueaccounting/create_distribution_using_value_equation.html", {
         "events_to_distribute": events_to_distribute,
         "header_form": header_form,
@@ -11921,23 +11902,24 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
         "no_totals": no_totals,
         "help": get_help("create_distribution"),
     }, context_instance=RequestContext(request))
-         
+
 
 def send_distribution_notification(distribution_event):
     if notification:
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         to_agent = distribution_event.to_agent
-        users =  users = [au.user for au in to_agent.users.all()]
+        users = users = [au.user for au in to_agent.users.all()]
         site_name = get_site_name()
         if users:
             notification.send(
-                users, 
-                "valnet_distribution", 
+                users,
+                "valnet_distribution",
                 {"distribution": distribution_event,
-                "account": distribution_event.resource,
-                "site_name": site_name,
-                }
+                 "account": distribution_event.resource,
+                 "site_name": site_name,
+                 }
             )
+
 
 '''
 #todo: this is not tested, is for exchange 
@@ -11985,43 +11967,46 @@ def payment_event_for_commitment(request):
     return HttpResponse(data, content_type="text/plain")
 '''
 
-#demo page for DHEN
-#@login_required
+
+# demo page for DHEN
+# @login_required
 def resource_flow(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     pattern = ProcessPattern.objects.get(name="Change")
     resource_form = ResourceFlowForm(pattern=pattern)
     role_formset = resource_role_agent_formset(prefix='role')
-    
+
     return render_to_response("valueaccounting/resource_flow.html", {
         "resource_form": resource_form,
         "role_formset": role_formset,
     }, context_instance=RequestContext(request))
-    
-#demo page for DHEN and GT
-#@login_required
+
+
+# demo page for DHEN and GT
+# @login_required
 def workflow_board_demo(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     pattern = ProcessPattern.objects.get(name="Change")
     resource_form = ResourceFlowForm(pattern=pattern)
     process_form = PlanProcessForm()
-    
+
     return render_to_response("valueaccounting/workflow_board_demo.html", {
         "resource_form": resource_form,
         "process_form": process_form,
     }, context_instance=RequestContext(request))
-    
-#demo page for DHEN
-#@login_required
+
+
+# demo page for DHEN
+# @login_required
 def inventory_board_demo(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     pattern = ProcessPattern.objects.get(name="Change")
     resource_form = ResourceFlowForm(pattern=pattern)
     process_form = PlanProcessForm()
     move_harvester_form = ExchangeFlowForm()
     move_dryer_form = ExchangeFlowForm()
     move_seller_form = ExchangeFlowForm()
-    
+
     return render_to_response("valueaccounting/inventory_board_demo.html", {
         "resource_form": resource_form,
         "process_form": process_form,
@@ -12030,18 +12015,20 @@ def inventory_board_demo(request):
         "move_seller_form": move_seller_form,
     }, context_instance=RequestContext(request))
 
+
 def lots(request):
-    #import pdb; pdb.set_trace()
-    
-    
+    # import pdb; pdb.set_trace()
+
+
     return render_to_response("valueaccounting/lots.html", {
         "resource_form": resource_form,
         "process_form": process_form,
     }, context_instance=RequestContext(request))
 
-#@login_required
+
+# @login_required
 def bucket_filter_header(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     header_form = FilterSetHeaderForm(data=request.POST or None)
     if request.method == "POST":
         if header_form.is_valid():
@@ -12053,15 +12040,16 @@ def bucket_filter_header(request):
                 pattern_id = pattern.id
             else:
                 pattern_id = 0
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             filter_set = data["filter_set"]
             return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
-                % ('accounting/bucket-filter', agent.id, event_type.id, pattern_id, filter_set))
+                                        % ('accounting/bucket-filter', agent.id, event_type.id, pattern_id, filter_set))
     return render_to_response("valueaccounting/bucket_filter_header.html", {
         "header_form": header_form,
     }, context_instance=RequestContext(request))
-    
-#@login_required
+
+
+# @login_required
 def bucket_filter(request, agent_id, event_type_id, pattern_id, filter_set):
     agent = get_object_or_404(EconomicAgent, pk=agent_id)
     event_type = get_object_or_404(EventType, pk=event_type_id)
@@ -12072,14 +12060,17 @@ def bucket_filter(request, agent_id, event_type_id, pattern_id, filter_set):
     if pattern_id:
         pattern = get_object_or_404(ProcessPattern, pk=pattern_id)
     if filter_set == "Order":
-        filter_form = OrderFilterSetForm(project=agent, event_type=event_type, pattern=pattern, data=request.POST or None)
+        filter_form = OrderFilterSetForm(project=agent, event_type=event_type, pattern=pattern,
+                                         data=request.POST or None)
     elif filter_set == "Context":
-        filter_form = ProjectFilterSetForm(project=agent, event_type=event_type, pattern=pattern, data=request.POST or None)
+        filter_form = ProjectFilterSetForm(project=agent, event_type=event_type, pattern=pattern,
+                                           data=request.POST or None)
     elif filter_set == "Delivery":
-        filter_form = DeliveryFilterSetForm(project=agent, event_type=event_type, pattern=pattern, data=request.POST or None)
+        filter_form = DeliveryFilterSetForm(project=agent, event_type=event_type, pattern=pattern,
+                                            data=request.POST or None)
     if request.method == "POST":
         if filter_form.is_valid():
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             s = filter_form.serialize()
             d = filter_form.deserialize(s)
             data = filter_form.cleaned_data
@@ -12087,7 +12078,7 @@ def bucket_filter(request, agent_id, event_type_id, pattern_id, filter_set):
             resource_types = data["resource_types"]
             if filter_set == "Order":
                 order = data["order"]
-                events = [e for e in order.all_events() if e.event_type==event_type]
+                events = [e for e in order.all_events() if e.event_type == event_type]
                 if process_types:
                     events = [e for e in events if e.process.process_type in process_types]
                 if resource_types:
@@ -12113,13 +12104,13 @@ def bucket_filter(request, agent_id, event_type_id, pattern_id, filter_set):
                 lots = [e.resource for e in shipment_events]
                 events = []
                 for lot in lots:
-                    events.extend([event for event in lot.incoming_events() if event.event_type==event_type])
+                    events.extend([event for event in lot.incoming_events() if event.event_type == event_type])
                 if process_types:
                     events = [e for e in events if e.process.process_type in process_types]
                 if resource_types:
                     events = [e for e in events if e.resource_type in resource_types]
                 count = len(events)
-                
+
     return render_to_response("valueaccounting/bucket_filter.html", {
         "filter_set": filter_set,
         "context_agent": agent,
@@ -12137,18 +12128,18 @@ class AgentSubtotal(object):
         self.bucket_rule = bucket_rule
         self.quantity = quantity
         self.value = value
-        self.distr_amt=distr_amt
+        self.distr_amt = distr_amt
 
     def key(self):
         return "-".join([str(self.agent.id), str(self.bucket_rule.id)])
 
     def quantity_formatted(self):
         return self.quantity.quantize(Decimal('.01'), rounding=ROUND_UP)
-        
+
 
 @login_required
 def value_equation_sandbox(request, value_equation_id=None):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     ve = None
     ves = ValueEquation.objects.all()
     init = {}
@@ -12168,7 +12159,7 @@ def value_equation_sandbox(request, value_equation_id=None):
             ve = ves[0]
         buckets = ve.buckets.all()
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if header_form.is_valid():
             data = header_form.cleaned_data
             value_equation = data["value_equation"]
@@ -12181,13 +12172,14 @@ def value_equation_sandbox(request, value_equation_id=None):
                         ser_string = bucket_data = bucket_form.serialize()
                         serialized_filters[bucket.id] = ser_string
                         bucket.form = bucket_form
-            #import pdb; pdb.set_trace()
-            agent_totals, details = ve.run_value_equation(amount_to_distribute=Decimal(amount), serialized_filters=serialized_filters)
+            # import pdb; pdb.set_trace()
+            agent_totals, details = ve.run_value_equation(amount_to_distribute=Decimal(amount),
+                                                          serialized_filters=serialized_filters)
             total = sum(at.quantity for at in agent_totals)
             hours = sum(d.quantity for d in details)
-            #import pdb; pdb.set_trace()
-            #daniel = EconomicAgent.objects.get(nick="Daniel")
-            #dan_details = [d for d in details if d.from_agent==daniel]
+            # import pdb; pdb.set_trace()
+            # daniel = EconomicAgent.objects.get(nick="Daniel")
+            # dan_details = [d for d in details if d.from_agent==daniel]
             agent_subtotals = {}
             for d in details:
                 key = "-".join([str(d.from_agent.id), str(d.vebr.id)])
@@ -12200,13 +12192,13 @@ def value_equation_sandbox(request, value_equation_id=None):
                 except AttributeError:
                     sub.value = Decimal("0.0")
                 try:
-                    sub.distr_amt += d.distr_amt                        
+                    sub.distr_amt += d.distr_amt
                 except AttributeError:
                     sub.distr_amt = Decimal("0.0")
                 sub.rate = 0
                 if sub.distr_amt and sub.quantity:
                     sub.rate = (sub.distr_amt / sub.quantity).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             agent_subtotals = agent_subtotals.values()
             agent_subtotals = sorted(agent_subtotals, key=methodcaller('key'))
 
@@ -12230,34 +12222,12 @@ def value_equation_sandbox(request, value_equation_id=None):
         "ve": ve,
     }, context_instance=RequestContext(request))
 
-def json_value_equation_bucket(request, value_equation_id):
-    #import pdb; pdb.set_trace()
-    ve = ValueEquation.objects.get(id=value_equation_id)
-    bkts = ve.buckets.all()
-    buckets = []
-    for b in bkts:
-        agent_name = "null"
-        filter_method = "null"
-        if b.distribution_agent:
-            agent_name = b.distribution_agent.name
-        if b.filter_method:
-            filter_method = b.filter_method
-        fields = {
-            "sequence": b.sequence,
-            "name": b.name,
-            "percentage": b.percentage,
-            "agent_name": agent_name,
-            "filter_method": filter_method,
-        }
-        buckets.append({"fields": fields})
-        json = simplejson.dumps(buckets, ensure_ascii=False)
-    return HttpResponse(json, content_type='application/json')   
-    
+
 def value_equations(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     value_equations = ValueEquation.objects.all()
-    agent = get_agent(request)    
-    
+    agent = get_agent(request)
+
     return render_to_response("valueaccounting/value_equations.html", {
         "value_equations": value_equations,
         "agent": agent,
@@ -12265,7 +12235,7 @@ def value_equations(request):
 
 
 def edit_value_equation(request, value_equation_id=None):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     value_equation = None
     value_equation_bucket_form = None
     if value_equation_id:
@@ -12278,7 +12248,7 @@ def edit_value_equation(request, value_equation_id=None):
     test_results = []
     rpt_heading = ""
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         rule_id = int(request.POST['test'])
         vebr = ValueEquationBucketRule.objects.get(id=rule_id)
         tr = vebr.test_results()
@@ -12289,9 +12259,9 @@ def edit_value_equation(request, value_equation_id=None):
         while count < nbr:
             tr[count].claim_amount = vebr.compute_claim_value(tr[count])
             test_results.append(tr[count])
-            count+=1
+            count += 1
         rpt_heading = "Bucket " + str(vebr.value_equation_bucket.sequence) + " " + vebr.event_type.name
-   
+
     return render_to_response("valueaccounting/edit_value_equation.html", {
         "value_equation": value_equation,
         "agent": agent,
@@ -12300,46 +12270,48 @@ def edit_value_equation(request, value_equation_id=None):
         "test_results": test_results,
         "rpt_heading": rpt_heading,
     }, context_instance=RequestContext(request))
-    
+
+
 @login_required
 def create_value_equation(request):
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         ve_form = ValueEquationForm(data=request.POST)
         if ve_form.is_valid():
             ve = ve_form.save(commit=False)
             ve.created_by = request.user
             ve.save()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/edit-value-equation', ve.id)) 
-    
+                                % ('accounting/edit-value-equation', ve.id))
+
+
 @login_required
 def change_value_equation(request, value_equation_id):
     ve = get_object_or_404(ValueEquation, id=value_equation_id)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         ve_form = ValueEquationForm(instance=ve, data=request.POST)
         if ve_form.is_valid():
             ve = ve_form.save(commit=False)
             ve.changed_by = request.user
             ve.save()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/edit-value-equation', ve.id)) 
+                                % ('accounting/edit-value-equation', ve.id))
 
-    
+
 @login_required
 def delete_value_equation(request, value_equation_id):
     ve = get_object_or_404(ValueEquation, id=value_equation_id)
     ve.delete()
     return HttpResponseRedirect('/%s/'
-        % ('accounting/value-equations')) 
-    
-        
+                                % ('accounting/value-equations'))
+
+
 @login_required
 def create_value_equation_bucket(request, value_equation_id):
     ve = get_object_or_404(ValueEquation, id=value_equation_id)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         veb_form = ValueEquationBucketForm(data=request.POST)
         if veb_form.is_valid():
             veb = veb_form.save(commit=False)
@@ -12347,92 +12319,100 @@ def create_value_equation_bucket(request, value_equation_id):
             veb.created_by = request.user
             veb.save()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/edit-value-equation', ve.id)) 
-    
+                                % ('accounting/edit-value-equation', ve.id))
+
+
 @login_required
 def change_value_equation_bucket(request, bucket_id):
     veb = get_object_or_404(ValueEquationBucket, id=bucket_id)
     ve = veb.value_equation
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         veb_form = ValueEquationBucketForm(prefix=str(veb.id), instance=veb, data=request.POST)
         if veb_form.is_valid():
             veb = veb_form.save(commit=False)
             veb.changed_by = request.user
             veb.save()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/edit-value-equation', ve.id)) 
-     
+                                % ('accounting/edit-value-equation', ve.id))
+
+
 @login_required
 def delete_value_equation_bucket(request, bucket_id):
     veb = get_object_or_404(ValueEquationBucket, id=bucket_id)
     ve = veb.value_equation
     veb.delete()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/edit-value-equation', ve.id))  
-           
+                                % ('accounting/edit-value-equation', ve.id))
+
+
 @login_required
 def create_value_equation_bucket_rule(request, bucket_id):
     veb = get_object_or_404(ValueEquationBucket, id=bucket_id)
     ve = veb.value_equation
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         vebr_form = ValueEquationBucketRuleForm(prefix=str(bucket_id), data=request.POST)
         if vebr_form.is_valid():
             vebr = vebr_form.save(commit=False)
             vebr.value_equation_bucket = veb
             vebr.created_by = request.user
-            filter_form = BucketRuleFilterSetForm(context_agent=None, event_type=None, pattern=None, prefix=str(bucket_id), data=request.POST)
+            filter_form = BucketRuleFilterSetForm(context_agent=None, event_type=None, pattern=None,
+                                                  prefix=str(bucket_id), data=request.POST)
             if filter_form.is_valid():
                 vebr.filter_rule = filter_form.serialize()
                 vebr.save()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/edit-value-equation', ve.id)) 
-    
+                                % ('accounting/edit-value-equation', ve.id))
+
+
 @login_required
 def change_value_equation_bucket_rule(request, rule_id):
     vebr = get_object_or_404(ValueEquationBucketRule, id=rule_id)
     ve = vebr.value_equation_bucket.value_equation
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         vebr_form = ValueEquationBucketRuleForm(prefix="vebr" + str(vebr.id), instance=vebr, data=request.POST)
         if vebr_form.is_valid():
             vebr = vebr_form.save(commit=False)
             vebr.changed_by = request.user
-            filter_form = BucketRuleFilterSetForm(context_agent=None, event_type=None, pattern=None, prefix="vebrf" + str(rule_id), data=request.POST)
+            filter_form = BucketRuleFilterSetForm(context_agent=None, event_type=None, pattern=None,
+                                                  prefix="vebrf" + str(rule_id), data=request.POST)
             if filter_form.is_valid():
                 vebr.filter_rule = filter_form.serialize()
                 vebr.save()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/edit-value-equation', ve.id)) 
-     
+                                % ('accounting/edit-value-equation', ve.id))
+
+
 @login_required
 def delete_value_equation_bucket_rule(request, rule_id):
     vebr = get_object_or_404(ValueEquationBucketRule, id=rule_id)
     ve = vebr.value_equation_bucket.value_equation
     vebr.delete()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/edit-value-equation', ve.id))   
+                                % ('accounting/edit-value-equation', ve.id))
+
 
 @login_required
 def value_equation_live_test(request, value_equation_id):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     value_equation = get_object_or_404(ValueEquation, pk=value_equation_id)
     if not value_equation.live:
         value_equation.live = True
         value_equation.save()
         return HttpResponseRedirect('/%s/'
-            % ('accounting/value-equations'))
+                                    % ('accounting/value-equations'))
     else:
         if value_equation.live:
             value_equation.live = False
             value_equation.save()
         return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/edit-value-equation', value_equation.id))
+                                    % ('accounting/edit-value-equation', value_equation.id))
 
 
 def cash_report(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     end = datetime.date.today()
     start = datetime.date(end.year, end.month, 1)
     init = {"start_date": start, "end_date": end}
@@ -12445,9 +12425,9 @@ def cash_report(request):
     external_accounts = None
     virtual_accounts = EconomicResource.objects.virtual_accounts()
     option = "S"
-    
+
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if dt_selection_form.is_valid():
             start = dt_selection_form.cleaned_data["start_date"]
             end = dt_selection_form.cleaned_data["end_date"]
@@ -12460,7 +12440,7 @@ def cash_report(request):
                 starting_balance = 0
         else:
             starting_balance = 0
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         option = request.POST["option"]
         selected_vas = request.POST["selected-vas"]
         if selected_vas:
@@ -12479,7 +12459,7 @@ def cash_report(request):
                 events = events_included
     else:
         events = EconomicEvent.objects.virtual_account_events(start_date=start, end_date=end)
- 
+
     in_total = 0
     out_total = 0
     comma = ""
@@ -12502,10 +12482,10 @@ def cash_report(request):
             summary[event.account] = summary[event.account] + event.quantity
         else:
             summary[event.account] = event.quantity
-                
+
     balance = starting_balance + in_total - out_total
     summary_list = sorted(summary.iteritems())
-    
+
     return render_to_response("valueaccounting/cash_report.html", {
         "events": events,
         "summary_list": summary_list,
@@ -12522,15 +12502,18 @@ def cash_report(request):
         "event_ids": event_ids,
         "option": option,
     }, context_instance=RequestContext(request))
-  
-@login_required    
+
+
+@login_required
 def cash_events_csv(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     event_ids = request.GET.get("event-ids")
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename=contributions.csv'
     writer = csv.writer(response)
-    writer.writerow(["Date", "Event Type", "Resource Type", "Quantity", "Unit of Quantity", "Value", "Unit of Value", "From Agent", "To Agent", "Project", "Reference", "Description", "URL", "Use Case", "Event ID", "Exchange ID"])
+    writer.writerow(
+        ["Date", "Event Type", "Resource Type", "Quantity", "Unit of Quantity", "Value", "Unit of Value", "From Agent",
+         "To Agent", "Project", "Reference", "Description", "URL", "Use Case", "Event ID", "Exchange ID"])
     event_ids_split = event_ids.split(",")
     for event_id in event_ids_split:
         event = EconomicEvent.objects.get(pk=event_id)
@@ -12541,14 +12524,14 @@ def cash_events_csv(request):
         if event.to_agent == None:
             to_agent = ""
         else:
-            to_agent = event.to_agent.nick  
+            to_agent = event.to_agent.nick
         if event.url == "":
             if event.exchange.url == "":
-                url = "" 
+                url = ""
             else:
                 url = event.exchange.url
         else:
-            url = ""     
+            url = ""
         writer.writerow(
             [event.event_date,
              event.event_type.name,
@@ -12565,36 +12548,38 @@ def cash_events_csv(request):
              url,
              event.exchange.use_case,
              event.id,
-             event.exchange.id   
-            ]
+             event.exchange.id
+             ]
         )
     return response
 
+
 def virtual_accounts(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     virtual_accounts = EconomicResource.objects.filter(resource_type__behavior="account")
     agent = get_agent(request)
     if agent:
         for va in virtual_accounts:
             va.payout = va.allow_payout_by(agent, request.user)
-    
+
     return render_to_response("valueaccounting/virtual_accounts.html", {
         "virtual_accounts": virtual_accounts,
         "agent": agent,
     }, context_instance=RequestContext(request))
 
-@login_required    
+
+@login_required
 def payout_from_virtual_account(request, account_id):
     if request.method == "POST":
         acct = get_object_or_404(EconomicResource, pk=account_id)
         owner = acct.owner()
         event_type = EventType.objects.get(name="Payout")
         context = None
-        cas = acct.context_agents() #todo: what is correct here?
+        cas = acct.context_agents()  # todo: what is correct here?
         if cas:
             context = cas[0]
         form = acct.payout_form(data=request.POST)
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if form.is_valid():
             cleaned_data = form.cleaned_data
             event = form.save(commit=False)
@@ -12605,114 +12590,115 @@ def payout_from_virtual_account(request, account_id):
             event.resource = acct
             event.unit_of_quantity = acct.unit_of_quantity()
             event.created_by = request.user
-            #event.context = context
+            # event.context = context
             event.save()
             acct.quantity -= event.quantity
             acct.save()
-    
+
     return HttpResponseRedirect('/%s/'
-        % ('accounting/virtual-accounts'))
+                                % ('accounting/virtual-accounts'))
 
 
-#obsolete: everything below has been moved to the new api app and shd be deleted soon
-#the following methods relate to providing linked open data from NRP instances, for the valueflows vocab project.
-#they use rdflib, Copyright (c) 2012-2015, RDFLib Team All rights reserved.
+# obsolete: everything below has been moved to the new api app and shd be deleted soon
+# the following methods relate to providing linked open data from NRP instances, for the valueflows vocab project.
+# they use rdflib, Copyright (c) 2012-2015, RDFLib Team All rights reserved.
 
 def get_lod_setup_items():
     from rdflib import Graph
     from rdflib.namespace import FOAF, RDF, RDFS, OWL, SKOS
     from rdflib import Namespace
-    
+
     path = get_url_starter() + "/accounting/"
     instance_abbrv = Site.objects.get_current().domain.split(".")[0]
-    
+
     context = {
         "vf": "https://w3id.org/valueflows/",
         "owl": "http://www.w3.org/2002/07/owl#",
         "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
         "skos": "http://www.w3.org/2004/02/skos/core#",
         "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
-        #"rdfs:label": { "@container": "@language" },
+        # "rdfs:label": { "@container": "@language" },
         "Agent": "vf:Agent",
         "Person": "vf:Person",
         "Group": "vf:Group",
-        #"Organization": "vf:Organization",
-        "url":  { "@id": "vf:url", "@type": "@id" },
-        "image": { "@id": "vf:image", "@type": "@id" },
-        #"displayName": "vf:displayName",
-        #"displayNameMap": { "@id": "displayName", "@container": "@language" },
+        # "Organization": "vf:Organization",
+        "url": {"@id": "vf:url", "@type": "@id"},
+        "image": {"@id": "vf:image", "@type": "@id"},
+        # "displayName": "vf:displayName",
+        # "displayNameMap": { "@id": "displayName", "@container": "@language" },
         "Relationship": "vf:Relationship",
-        "subject": { "@id": "vf:subject", "@type": "@id" },
-        "object": { "@id": "vf:object", "@type": "@id" },
-        "relationship": { "@id": "vf:relationship", "@type": "@id" },
-        #"member": { "@id": "vf:member", "@type": "@id" }
+        "subject": {"@id": "vf:subject", "@type": "@id"},
+        "object": {"@id": "vf:object", "@type": "@id"},
+        "relationship": {"@id": "vf:relationship", "@type": "@id"},
+        # "member": { "@id": "vf:member", "@type": "@id" }
         "label": "skos:prefLabel",
-        "labelMap": { "@id": "skos:prefLabel", "@container": "@language" },
+        "labelMap": {"@id": "skos:prefLabel", "@container": "@language"},
         "note": "skos:note",
-        "noteMap": { "@id": "skos:note", "@container": "@language" },
+        "noteMap": {"@id": "skos:note", "@container": "@language"},
         "inverseOf": "owl:inverseOf",
         instance_abbrv: path,
     }
-    
+
     store = Graph()
-    #store.bind("foaf", FOAF)
+    # store.bind("foaf", FOAF)
     store.bind("rdf", RDF)
     store.bind("rdfs", RDFS)
     store.bind("owl", OWL)
     store.bind("skos", SKOS)
-    #as_ns = Namespace("http://www.w3.org/ns/activitystreams#")
-    #store.bind("as", as_ns)
-    #schema_ns = Namespace("http://schema.org/")
-    #store.bind("schema", schema_ns)
-    #at_ns = Namespace(path + "agent-type/")
-    #store.bind("at", at_ns)
-    #aat_ns = Namespace(path + "agent-relationship-type/")
-    #store.bind("aat", aat_ns)
+    # as_ns = Namespace("http://www.w3.org/ns/activitystreams#")
+    # store.bind("as", as_ns)
+    # schema_ns = Namespace("http://schema.org/")
+    # store.bind("schema", schema_ns)
+    # at_ns = Namespace(path + "agent-type/")
+    # store.bind("at", at_ns)
+    # aat_ns = Namespace(path + "agent-relationship-type/")
+    # store.bind("aat", aat_ns)
     vf_ns = Namespace("https://w3id.org/valueflows/")
     store.bind("vf", vf_ns)
     instance_ns = Namespace(path)
     store.bind("instance", instance_ns)
-    
+
     return path, instance_abbrv, context, store, vf_ns
 
 
 def agent_type_lod(request, agent_type_name):
     ats = AgentType.objects.all()
     agent_type = None
-    
-    #import pdb; pdb.set_trace()
+
+    # import pdb; pdb.set_trace()
     for at in ats:
         if camelcase(at.name) == agent_type_name:
             agent_type = at
 
     if not agent_type:
-        return HttpResponse({}, content_type='application/json') 
-        
+        return HttpResponse({}, content_type='application/json')
+
     from rdflib import Graph, Literal, BNode
     from rdflib.namespace import FOAF, RDF, RDFS, OWL, SKOS
     from rdflib.serializer import Serializer
     from rdflib import Namespace, URIRef
 
     path, instance_abbrv, context, store, vf_ns = get_lod_setup_items()
-      
+
     if agent_type.name != "Person" and agent_type.name != "Group" and agent_type.name != "Individual":
         class_name = camelcase(agent_type.name)
-        ref = URIRef(instance_abbrv + ":agent-type-lod/" +class_name)
+        ref = URIRef(instance_abbrv + ":agent-type-lod/" + class_name)
         store.add((ref, RDF.type, OWL.Class))
         store.add((ref, SKOS.prefLabel, Literal(class_name, lang="en")))
         if agent_type.party_type == "individual":
             store.add((ref, RDFS.subClassOf, vf_ns.Person))
-        else: 
+        else:
             store.add((ref, RDFS.subClassOf, vf_ns.Group))
-    
+
     ser = store.serialize(format='json-ld', context=context, indent=4)
-    return HttpResponse(ser, content_type='application/json')    
-    #return render_to_response("valueaccounting/agent_type.html", {
+    return HttpResponse(ser, content_type='application/json')
+    # return render_to_response("valueaccounting/agent_type.html", {
     #    "agent_type": agent_type,
-    #}, context_instance=RequestContext(request))    
+    # }, context_instance=RequestContext(request))
+
 
 def agent_relationship_type_lod(request, agent_assoc_type_name):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     aats = AgentAssociationType.objects.all()
     agent_assoc_type = None
     for aat in aats:
@@ -12724,15 +12710,15 @@ def agent_relationship_type_lod(request, agent_assoc_type_name):
             inverse = True
 
     if not agent_assoc_type:
-        return HttpResponse({}, content_type='application/json') 
-    
+        return HttpResponse({}, content_type='application/json')
+
     from rdflib import Graph, Literal, BNode
     from rdflib.namespace import FOAF, RDF, RDFS, OWL, SKOS
     from rdflib.serializer import Serializer
     from rdflib import Namespace, URIRef
 
     path, instance_abbrv, context, store, vf_ns = get_lod_setup_items()
-    
+
     if inverse:
         property_name = camelcase_lower(agent_assoc_type.inverse_label)
         inverse_property_name = camelcase_lower(agent_assoc_type.label)
@@ -12748,10 +12734,11 @@ def agent_relationship_type_lod(request, agent_assoc_type_name):
     store.add((ref, OWL.inverseOf, inv_ref))
 
     ser = store.serialize(format='json-ld', context=context, indent=4)
-    return HttpResponse(ser, content_type='application/json')      
-    #return render_to_response("valueaccounting/agent_assoc_type.html", {
+    return HttpResponse(ser, content_type='application/json')
+    # return render_to_response("valueaccounting/agent_assoc_type.html", {
     #    "agent_assoc_type": agent_assoc_type,
-    #}, context_instance=RequestContext(request)) 
+    # }, context_instance=RequestContext(request))
+
 
 def agent_relationship_lod(request, agent_assoc_id):
     aa = AgentAssociation.objects.filter(id=agent_assoc_id)
@@ -12759,14 +12746,14 @@ def agent_relationship_lod(request, agent_assoc_id):
         return HttpResponse({}, content_type='application/json')
     else:
         agent_association = aa[0]
-    
+
     from rdflib import Graph, Literal, BNode
     from rdflib.namespace import FOAF, RDF, RDFS, OWL, SKOS
     from rdflib.serializer import Serializer
     from rdflib import Namespace, URIRef
 
     path, instance_abbrv, context, store, vf_ns = get_lod_setup_items()
-    
+
     ref = URIRef(instance_abbrv + ":agent-relationship-lod/" + str(agent_association.id) + "/")
     inv_ref = URIRef(instance_abbrv + ":agent-relationship-inv-lod/" + str(agent_association.id) + "/")
     ref_subject = URIRef(instance_abbrv + ":agent-lod/" + str(agent_association.is_associate.id) + "/")
@@ -12774,17 +12761,17 @@ def agent_relationship_lod(request, agent_assoc_id):
     property_name = camelcase_lower(agent_association.association_type.label)
     ref_relationship = URIRef(instance_abbrv + ":agent-relationship-type/" + property_name)
     store.add((ref, RDF.type, vf_ns["Relationship"]))
-    store.add((ref, vf_ns["subject"], ref_subject)) 
+    store.add((ref, vf_ns["subject"], ref_subject))
     store.add((ref, vf_ns["object"], ref_object))
     store.add((ref, vf_ns["relationship"], ref_relationship))
     store.add((ref, OWL.inverseOf, inv_ref))
 
     ser = store.serialize(format='json-ld', context=context, indent=4)
-    return HttpResponse(ser, content_type='application/json')         
-    #return render_to_response("valueaccounting/agent_association.html", {
+    return HttpResponse(ser, content_type='application/json')
+    # return render_to_response("valueaccounting/agent_association.html", {
     #    "agent_association": agent_association,
-    #}, context_instance=RequestContext(request))    
-    
+    # }, context_instance=RequestContext(request))
+
 
 def agent_relationship_inv_lod(request, agent_assoc_id):
     aa = AgentAssociation.objects.filter(id=agent_assoc_id)
@@ -12792,14 +12779,14 @@ def agent_relationship_inv_lod(request, agent_assoc_id):
         return HttpResponse({}, content_type='application/json')
     else:
         agent_association = aa[0]
-    
+
     from rdflib import Graph, Literal, BNode
     from rdflib.namespace import FOAF, RDF, RDFS, OWL, SKOS
     from rdflib.serializer import Serializer
     from rdflib import Namespace, URIRef
 
     path, instance_abbrv, context, store, vf_ns = get_lod_setup_items()
-    
+
     ref = URIRef(instance_abbrv + ":agent-relationship-inv-lod/" + str(agent_association.id) + "/")
     inv_ref = URIRef(instance_abbrv + ":agent-relationship-lod/" + str(agent_association.id) + "/")
     ref_object = URIRef(instance_abbrv + ":agent-lod/" + str(agent_association.is_associate.id) + "/")
@@ -12807,16 +12794,17 @@ def agent_relationship_inv_lod(request, agent_assoc_id):
     property_name = camelcase_lower(agent_association.association_type.inverse_label)
     ref_relationship = URIRef(instance_abbrv + ":agent-relationship-type-lod/" + property_name)
     store.add((ref, RDF.type, vf_ns["Relationship"]))
-    store.add((ref, vf_ns["subject"], ref_subject)) 
+    store.add((ref, vf_ns["subject"], ref_subject))
     store.add((ref, vf_ns["object"], ref_object))
     store.add((ref, vf_ns["relationship"], ref_relationship))
     store.add((ref, OWL.inverseOf, inv_ref))
 
     ser = store.serialize(format='json-ld', context=context, indent=4)
-    return HttpResponse(ser, content_type='application/json')         
-    #return render_to_response("valueaccounting/agent_association.html", {
+    return HttpResponse(ser, content_type='application/json')
+    # return render_to_response("valueaccounting/agent_association.html", {
     #    "agent_association": agent_association,
-    #}, context_instance=RequestContext(request))    
+    # }, context_instance=RequestContext(request))
+
 
 def agent_lod(request, agent_id):
     agents = EconomicAgent.objects.filter(id=agent_id)
@@ -12833,22 +12821,22 @@ def agent_lod(request, agent_id):
     from rdflib import Namespace, URIRef
 
     path, instance_abbrv, context, store, vf_ns = get_lod_setup_items()
-    
-    #Lynn: I made a change here for consistency. Please check and fix if needed.
+
+    # Lynn: I made a change here for consistency. Please check and fix if needed.
     ref = URIRef(instance_abbrv + ":agent-lod/" + str(agent.id) + "/")
     if agent.agent_type.name == "Individual" or agent.agent_type.name == "Person":
         store.add((ref, RDF.type, vf_ns.Person))
-    #elif agent.agent_type.name == "Organization":
+    # elif agent.agent_type.name == "Organization":
     #    store.add((ref, RDF.type, vf_ns.Organization))
     else:
         at_class_name = camelcase(agent.agent_type.name)
         ref_class = URIRef(instance_abbrv + ":agent-type-lod/" + at_class_name)
         store.add((ref, RDF.type, ref_class))
     store.add((ref, vf_ns["label"], Literal(agent.name, lang="en")))
-    #if agent.photo_url:
+    # if agent.photo_url:
     #    store.add((ref, vf_ns["image"], agent.photo_url))
-    
-    #if subject_assocs or object_assocs:
+
+    # if subject_assocs or object_assocs:
     #    store.add((  ))
     if subject_assocs:
         for a in subject_assocs:
@@ -12864,11 +12852,12 @@ def agent_lod(request, agent_id):
             store.add((ref, inv_ref_relationship, subj_ref))
 
     ser = store.serialize(format='json-ld', context=context, indent=4)
-    return HttpResponse(ser, content_type='application/json')  
-    
-#following method supplied by Niklas at rdflib-jsonld support to get the desired output for nested rdf inputs for rdflib
+    return HttpResponse(ser, content_type='application/json')
+
+
+# following method supplied by Niklas at rdflib-jsonld support to get the desired output for nested rdf inputs for rdflib
 def simplyframe(data):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     items, refs = {}, {}
     for item in data['@graph']:
         itemid = item.get('@id')
@@ -12879,53 +12868,54 @@ def simplyframe(data):
                 if isinstance(v, dict):
                     refid = v.get('@id')
                     if refid and refid.startswith('_:'):
-                        #import pdb; pdb.set_trace()
+                        # import pdb; pdb.set_trace()
                         refs.setdefault(refid, (v, []))[1].append(item)
     for ref, subjects in refs.values():
         if len(subjects) == 1:
             ref.update(items.pop(ref['@id']))
             del ref['@id']
     data['@graph'] = items.values()
-    
+
+
 def agent_jsonld(request):
-    #test = "{'@context': 'http://json-ld.org/contexts/person.jsonld', '@id': 'http://dbpedia.org/resource/John_Lennon', 'name': 'John Lennon', 'born': '1940-10-09', 'spouse': 'http://dbpedia.org/resource/Cynthia_Lennon' }"
-    #test = '{ "@id": "http://nrp.webfactional.com/accounting/agent-lod/1", "@type": "Person", "vf:label": { "@language": "en", "@value": "Bob Haugen" } }'
-    #return HttpResponse(test, content_type='application/json')
+    # test = "{'@context': 'http://json-ld.org/contexts/person.jsonld', '@id': 'http://dbpedia.org/resource/John_Lennon', 'name': 'John Lennon', 'born': '1940-10-09', 'spouse': 'http://dbpedia.org/resource/Cynthia_Lennon' }"
+    # test = '{ "@id": "http://nrp.webfactional.com/accounting/agent-lod/1", "@type": "Person", "vf:label": { "@language": "en", "@value": "Bob Haugen" } }'
+    # return HttpResponse(test, content_type='application/json')
 
     from rdflib import Graph, Literal, BNode
     from rdflib.namespace import FOAF, RDF, RDFS, OWL, SKOS
     from rdflib.serializer import Serializer
     from rdflib import Namespace, URIRef
 
-    #mport pdb; pdb.set_trace()
+    # mport pdb; pdb.set_trace()
     path, instance_abbrv, context, store, vf_ns = get_lod_setup_items()
-       
+
     agent_types = AgentType.objects.all()
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     for at in agent_types:
-        #if at.name != "Person" and at.name != "Organization" and at.name != "Group" and at.name != "Individual":
+        # if at.name != "Person" and at.name != "Organization" and at.name != "Group" and at.name != "Individual":
         if at.name != "Person" and at.name != "Group" and at.name != "Individual":
             class_name = camelcase(at.name)
-            #ref = URIRef(at_ns[class_name])
-            ref = URIRef(instance_abbrv + ":agent-type-lod/" +class_name)
+            # ref = URIRef(at_ns[class_name])
+            ref = URIRef(instance_abbrv + ":agent-type-lod/" + class_name)
             store.add((ref, RDF.type, OWL.Class))
             store.add((ref, SKOS.prefLabel, Literal(class_name, lang="en")))
             if at.party_type == "individual":
                 store.add((ref, RDFS.subClassOf, vf_ns.Person))
-            else: 
+            else:
                 store.add((ref, RDFS.subClassOf, vf_ns.Group))
-                
+
     aa_types = AgentAssociationType.objects.all()
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     for aat in aa_types:
         property_name = camelcase_lower(aat.label)
         inverse_property_name = camelcase_lower(aat.inverse_label)
         ref = URIRef(instance_abbrv + ":agent-relationship-type-lod/" + property_name)
         store.add((ref, RDF.type, RDF.Property))
         store.add((ref, SKOS.prefLabel, Literal(aat.label, lang="en")))
-        #inverse = BNode()
-        #store.add((ref, OWL.inverseOf, inverse))
-        #store.add((inverse, RDFS.label, Literal(aat.inverse_label, lang="en")))
+        # inverse = BNode()
+        # store.add((ref, OWL.inverseOf, inverse))
+        # store.add((inverse, RDFS.label, Literal(aat.inverse_label, lang="en")))
         if property_name != inverse_property_name:
             inv_ref = URIRef(instance_abbrv + ":agent-relationship-type-lod/" + inverse_property_name)
             store.add((inv_ref, RDF.type, RDF.Property))
@@ -12933,28 +12923,28 @@ def agent_jsonld(request):
         store.add((ref, OWL.inverseOf, inv_ref))
         store.add((inv_ref, OWL.inverseOf, ref))
 
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     associations = AgentAssociation.objects.filter(state="active")
     agents = [assn.is_associate for assn in associations]
     agents.extend([assn.has_associate for assn in associations])
     agents = list(set(agents))
-    
+
     for agent in agents:
         ref = URIRef(instance_abbrv + ":agent-lod/" + str(agent.id) + "/")
         if agent.agent_type.name == "Individual" or agent.agent_type.name == "Person":
             store.add((ref, RDF.type, vf_ns.Person))
-        #elif agent.agent_type.name == "Organization":
+        # elif agent.agent_type.name == "Organization":
         #    store.add((ref, RDF.type, vf_ns.Organization))
         else:
             at_class_name = camelcase(agent.agent_type.name)
             ref_class = URIRef(instance_abbrv + ":agent-type-lod/" + at_class_name)
             store.add((ref, RDF.type, ref_class))
         store.add((ref, vf_ns["label"], Literal(agent.name, lang="en")))
-        #if agent.name != agent.nick:
+        # if agent.name != agent.nick:
         #    store.add((ref, FOAF.nick, Literal(agent.nick, lang="en")))
-        #if agent.photo_url:
+        # if agent.photo_url:
         #    store.add((ref, vf_ns["image"], agent.photo_url))
-    
+
     for a in associations:
         ref = URIRef(instance_abbrv + ":agent-relationship-lod/" + str(a.id) + "/")
         inv_ref = URIRef(instance_abbrv + ":agent-relationship-inv-lod/" + str(a.id) + "/")
@@ -12965,21 +12955,22 @@ def agent_jsonld(request):
         ref_relationship = URIRef(instance_abbrv + ":agent-relationship-type-lod/" + property_name)
         inv_ref_relationship = URIRef(instance_abbrv + ":agent-relationship-type-lod/" + inv_property_name)
         store.add((ref, RDF.type, vf_ns["Relationship"]))
-        store.add((ref, vf_ns["subject"], ref_subject)) 
+        store.add((ref, vf_ns["subject"], ref_subject))
         store.add((ref, vf_ns["object"], ref_object))
         store.add((ref, vf_ns["relationship"], ref_relationship))
         store.add((inv_ref, RDF.type, vf_ns["Relationship"]))
-        store.add((inv_ref, vf_ns["object"], ref_subject)) 
+        store.add((inv_ref, vf_ns["object"], ref_subject))
         store.add((inv_ref, vf_ns["subject"], ref_object))
         store.add((inv_ref, vf_ns["relationship"], inv_ref_relationship))
-          
+
     ser = store.serialize(format='json-ld', context=context, indent=4)
-    #import pdb; pdb.set_trace()
-    #import json
-    #data = json.loads(ser)
-    #simplyframe(data)
-    #return HttpResponse(json.dumps(data, indent=4), content_type='application/json') 
+    # import pdb; pdb.set_trace()
+    # import json
+    # data = json.loads(ser)
+    # simplyframe(data)
+    # return HttpResponse(json.dumps(data, indent=4), content_type='application/json')
     return HttpResponse(ser, content_type='application/json')
+
 
 def agent_jsonld_query(request):
     from rdflib import Graph
@@ -12988,7 +12979,7 @@ def agent_jsonld_query(request):
     from urllib2 import urlopen
     from io import StringIO
 
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     g = Graph()
     url = "http://ocp.webfactional.com/accounting/agent-jsonld/"
     remote_jsonld = urlopen(url).read()
@@ -12999,17 +12990,17 @@ def agent_jsonld_query(request):
     g.parse(StringIO(unicode(local_graph)), context=context, format="json-ld")
     local_expanded_json = g.serialize(format="json-ld", indent=4)
     local_expanded_dict = simplejson.loads(local_expanded_json)
-    
-    #import pdb; pdb.set_trace()
-    
-    result = ""  
+
+    # import pdb; pdb.set_trace()
+
+    result = ""
     agents = [x for x in graph if x['@id'].find('agent-lod') > -1]
     agent_dict = {}
     for a in agents:
         agent_dict[str(a['@id'])] = a
-    
-    rels = [x for x in graph if x['@type']=='Relationship']
-    
+
+    rels = [x for x in graph if x['@type'] == 'Relationship']
+
     agent_rels = []
     for r in rels:
         d = {}
@@ -13017,7 +13008,7 @@ def agent_jsonld_query(request):
         d["object"] = agent_dict[r["object"]]
         d["relationship"] = r["relationship"]
         agent_rels.append(d)
-    
+
     for ar in agent_rels:
         object = ar['object']
         object_type = object['@type']
@@ -13034,11 +13025,11 @@ def agent_jsonld_query(request):
             relationship = relationship.split('/')[1]
         ostr = ", a ".join([object_label, object_type])
         sstr = ", a ".join([subject_label, subject_type])
-        line = " ".join([ sstr, relationship, ostr])
+        line = " ".join([sstr, relationship, ostr])
         result += line + "\n"
     result += "\n"
     result += "========== Gory details from http://ocp.webfactional.com/accounting/agent-jsonld/ ==========\n"
-    
+
     for item in local_expanded_dict:
         for key, value in item.iteritems():
             if type(value) is list:
@@ -13049,14 +13040,15 @@ def agent_jsonld_query(request):
                         valist.append(": ".join([key2, value2]))
                     value = ", ".join(valist)
             line = ": ".join([key, value])
-            result += line + "\n" 
+            result += line + "\n"
         result += "========== \n"
-    
-    #result = "Number of triples: " + str(len(g)) + "\n"
-    #for s,p,o in g.triples( (None, None, None) ):
+
+    # result = "Number of triples: " + str(len(g)) + "\n"
+    # for s,p,o in g.triples( (None, None, None) ):
     #    result += s + " " + p + " " + o + "\n"
     return HttpResponse(result, content_type='text/plain')
-    #return HttpResponse(local_expanded_json, content_type='application/json')
+    # return HttpResponse(local_expanded_json, content_type='application/json')
+
 
 '''
 g = Graph()
@@ -13072,18 +13064,19 @@ rels = [x for x in graph if x['@type']=='Relationship']
 ids = [x['@id'].split('/')[1] for x in graph]
 '''
 
+
 @login_required
 def skill_suggestions(request):
     state = "new"
     state_form = RequestStateForm(
-        initial={"state": "new",},
+        initial={"state": "new", },
         data=request.POST or None)
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         if state_form.is_valid():
             data = state_form.cleaned_data
             state = data["state"]
-    suggestions =  SkillSuggestion.objects.filter(state=state)
+    suggestions = SkillSuggestion.objects.filter(state=state)
 
     return render_to_response("valueaccounting/skill_suggestions.html", {
         "help": get_help("skill_suggestions"),
@@ -13092,9 +13085,10 @@ def skill_suggestions(request):
         "state": state,
     }, context_instance=RequestContext(request))
 
+
 @login_required
 def validate_resource_type_name(request):
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     answer = True
     error = ""
     data = request.GET
@@ -13118,11 +13112,11 @@ def create_skill_for_suggestion(request, suggestion_id):
     if request.method == "POST":
         suggestion = get_object_or_404(SkillSuggestion, pk=suggestion_id)
         form = SkillSuggestionResourceTypeForm(prefix=suggestion.form_prefix(), data=request.POST or None)
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if form.is_valid():
             skill = form.save(commit=False)
-            skill.inventory_rule="never"
-            skill.behavior="work"
+            skill.inventory_rule = "never"
+            skill.behavior = "work"
             hrs = Unit.objects.filter(name__icontains="Hour")
             hr = None
             if hrs:
@@ -13132,57 +13126,61 @@ def create_skill_for_suggestion(request, suggestion_id):
                     name="Hour",
                     unit_type="time",
                     abbrev="Hr",
-                    )
+                )
                 hr.save()
-            skill.unit=hr
-            skill.created_by=request.user
+            skill.unit = hr
+            skill.created_by = request.user
             skill.save()
-            suggestion.resource_type=skill
-            suggestion.state="accepted"
+            suggestion.resource_type = skill
+            suggestion.state = "accepted"
             suggestion.save()
-        
+
     return HttpResponseRedirect('/%s/'
-        % ('accounting/skill-suggestions'))
-        
-@login_required    
+                                % ('accounting/skill-suggestions'))
+
+
+@login_required
 def decline_suggestion(request, suggestion_id):
     suggestion = get_object_or_404(SkillSuggestion, pk=suggestion_id)
     suggestion.state = "declined"
     suggestion.save()
     return HttpResponseRedirect('/%s/'
-        % ('accounting/skill-suggestions'))
-        
-@login_required    
+                                % ('accounting/skill-suggestions'))
+
+
+@login_required
 def undecline_suggestion(request, suggestion_id):
     suggestion = get_object_or_404(SkillSuggestion, pk=suggestion_id)
     suggestion.state = "new"
     suggestion.save()
     return HttpResponseRedirect('/%s/'
-        % ('accounting/skill-suggestions'))
+                                % ('accounting/skill-suggestions'))
+
 
 @login_required
 def membership_requests(request):
     state = "new"
     state_form = RequestStateForm(
-        initial={"state": "new",},
+        initial={"state": "new", },
         data=request.POST or None)
-    #agent_form = MembershipAgentSelectionForm()
-    #import pdb; pdb.set_trace()
+    # agent_form = MembershipAgentSelectionForm()
+    # import pdb; pdb.set_trace()
     if request.method == "POST":
         if state_form.is_valid():
             data = state_form.cleaned_data
             state = data["state"]
-    requests =  MembershipRequest.objects.filter(state=state)
+    requests = MembershipRequest.objects.filter(state=state)
 
     return render_to_response("valueaccounting/membership_requests.html", {
         "help": get_help("membership_requests"),
         "requests": requests,
         "state_form": state_form,
         "state": state,
-        #"agent_form": agent_form,
+        # "agent_form": agent_form,
     }, context_instance=RequestContext(request))
-    
-@login_required    
+
+
+@login_required
 def membership_request(request, membership_request_id):
     user_agent = get_agent(request)
     if not user_agent:
@@ -13194,7 +13192,7 @@ def membership_request(request, membership_request_id):
         "description": mbr_req.description,
         "email": mbr_req.email_address,
         "url": mbr_req.website,
-        }
+    }
     if mbr_req.type_of_membership == "individual":
         at = AgentType.objects.filter(party_type="individual")
         if at:
@@ -13202,7 +13200,7 @@ def membership_request(request, membership_request_id):
             init["agent_type"] = at
     agent_form = AgentCreateForm(initial=init)
     nicks = '~'.join([
-        agt.nick for agt in EconomicAgent.objects.all()])
+                         agt.nick for agt in EconomicAgent.objects.all()])
     return render_to_response("valueaccounting/membership_request.html", {
         "help": get_help("membership_request"),
         "mbr_req": mbr_req,
@@ -13210,30 +13208,34 @@ def membership_request(request, membership_request_id):
         "user_agent": user_agent,
         "nicks": nicks,
     }, context_instance=RequestContext(request))
-    
-@login_required    
+
+
+@login_required
 def decline_request(request, membership_request_id):
     mbr_req = get_object_or_404(MembershipRequest, pk=membership_request_id)
     mbr_req.state = "declined"
     mbr_req.save()
     return HttpResponseRedirect('/%s/'
-        % ('accounting/membership-requests'))
-        
-@login_required    
+                                % ('accounting/membership-requests'))
+
+
+@login_required
 def undecline_request(request, membership_request_id):
     mbr_req = get_object_or_404(MembershipRequest, pk=membership_request_id)
     mbr_req.state = "new"
     mbr_req.save()
     return HttpResponseRedirect('/%s/'
-        % ('accounting/membership-requests'))
-        
-@login_required    
+                                % ('accounting/membership-requests'))
+
+
+@login_required
 def delete_request(request, membership_request_id):
     mbr_req = get_object_or_404(MembershipRequest, pk=membership_request_id)
     mbr_req.delete()
     return HttpResponseRedirect('/%s/'
-        % ('accounting/membership-requests'))
-    
+                                % ('accounting/membership-requests'))
+
+
 @login_required
 def create_agent_for_request(request, membership_request_id):
     if request.method == "POST":
@@ -13241,15 +13243,16 @@ def create_agent_for_request(request, membership_request_id):
         form = AgentCreateForm(request.POST)
         if form.is_valid():
             agent = form.save(commit=False)
-            agent.created_by=request.user
+            agent.created_by = request.user
             agent.save()
             mbr_req.agent = agent
             mbr_req.state = "accepted"
             mbr_req.save()
             return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/agent', agent.id))  
+                                        % ('accounting/agent', agent.id))
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/membership-request', membership_request_id)) 
+                                % ('accounting/membership-request', membership_request_id))
+
 
 def connect_agent_to_request(request, membership_request_id):
     mbr_req = get_object_or_404(MembershipRequest, pk=membership_request_id)
@@ -13257,10 +13260,10 @@ def connect_agent_to_request(request, membership_request_id):
         agent_form = MembershipAgentSelectionForm(data=request.POST)
         if agent_form.is_valid():
             data = agent_form.cleaned_data
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             agent = data["created_agent"]
-            mbr_req.agent=agent
+            mbr_req.agent = agent
             mbr_req.save()
-            
+
     return HttpResponseRedirect('/%s/'
-        % ('accounting/membership-requests'))
+                                % ('accounting/membership-requests'))

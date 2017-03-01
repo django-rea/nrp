@@ -210,11 +210,11 @@ class ProcessTypeResourceTypeAdmin(admin.ModelAdmin):
     list_filter = ['event_type', 'process_type', 'resource_type']
     search_fields = ['process_type__name','resource_type__name',]
     
-admin.site.register(ProcessTypeResourceType, ProcessTypeResourceTypeAdmin)
+admin.site.register(CommitmentType, ProcessTypeResourceTypeAdmin)
 
 
 class ProcessTypeResourceTypeInline(admin.TabularInline):
-    model = ProcessTypeResourceType
+    model = CommitmentType
     fk_name = "process_type"
 
 

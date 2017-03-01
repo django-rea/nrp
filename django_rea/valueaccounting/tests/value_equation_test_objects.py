@@ -153,7 +153,7 @@ class ValueEquationRecipe(Recipe):
         child_pt.context_agent = ca
         child_pt.save()
         
-        usable_input = ProcessTypeResourceType(
+        usable_input = CommitmentType(
             process_type=parent_pt,
             resource_type=urt,
             event_type=self.use_event_type,
@@ -162,7 +162,7 @@ class ValueEquationRecipe(Recipe):
         )
         usable_input.save()
         
-        self.community_input = ProcessTypeResourceType(
+        self.community_input = CommitmentType(
             process_type=child_pt,
             resource_type=self.community_rt,
             event_type=self.use_event_type,
@@ -248,7 +248,7 @@ class ValueEquationRecipe(Recipe):
             )
         self.consumable.save()
         
-        consumable_input = ProcessTypeResourceType(
+        consumable_input = CommitmentType(
             process_type=child_pt,
             resource_type=self.consumable_rt,
             event_type=self.consumption_event_type,

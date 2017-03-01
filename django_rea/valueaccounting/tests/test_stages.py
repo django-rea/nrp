@@ -5,6 +5,7 @@ from django.test import TestCase
 from django.test import Client
 
 from django_rea.valueaccounting.models import *
+from django.contrib.auth.models import User
 from django_rea.valueaccounting.tests.objects_for_testing import *
 
 class StageTest(TestCase):
@@ -37,7 +38,7 @@ class StageTest(TestCase):
         
         qty = Decimal("1.0")
         
-        self.ct1_create = ProcessTypeResourceType(
+        self.ct1_create = CommitmentType(
             process_type=self.ideation,
             resource_type=self.sow,
             event_type=self.creation_et,
@@ -46,7 +47,7 @@ class StageTest(TestCase):
         )
         self.ct1_create.save()
         
-        self.ct1_to_be = ProcessTypeResourceType(
+        self.ct1_to_be = CommitmentType(
             process_type=self.curation,
             resource_type=self.sow,
             event_type=self.to_be_et,
@@ -55,7 +56,7 @@ class StageTest(TestCase):
         )
         self.ct1_to_be.save()
         
-        self.ct2_change = ProcessTypeResourceType(
+        self.ct2_change = CommitmentType(
             process_type=self.curation,
             resource_type=self.sow,
             event_type=self.change_et,
@@ -64,7 +65,7 @@ class StageTest(TestCase):
         )
         self.ct2_change.save()
         
-        self.ct2_to_be = ProcessTypeResourceType(
+        self.ct2_to_be = CommitmentType(
             process_type=self.finish,
             resource_type=self.sow,
             event_type=self.to_be_et,
@@ -73,7 +74,7 @@ class StageTest(TestCase):
         )
         self.ct2_to_be.save()
         
-        self.ct3_change = ProcessTypeResourceType(
+        self.ct3_change = CommitmentType(
             process_type=self.finish,
             resource_type=self.sow,
             event_type=self.change_et,
@@ -102,7 +103,7 @@ class StageTest(TestCase):
         
         qty = Decimal("1.0")
         
-        self.rd1_to_be = ProcessTypeResourceType(
+        self.rd1_to_be = CommitmentType(
             process_type=self.diagnose,
             resource_type=self.equip,
             event_type=self.to_be_et,
@@ -111,7 +112,7 @@ class StageTest(TestCase):
         )
         self.rd1_to_be.save()
         
-        self.rd1_diagnose = ProcessTypeResourceType(
+        self.rd1_diagnose = CommitmentType(
             process_type=self.diagnose,
             resource_type=self.equip,
             event_type=self.change_et,
@@ -120,7 +121,7 @@ class StageTest(TestCase):
         )
         self.rd1_diagnose.save()
                       
-        self.rd2_to_be = ProcessTypeResourceType(
+        self.rd2_to_be = CommitmentType(
             process_type=self.repair,
             resource_type=self.equip,
             event_type=self.to_be_et,
@@ -129,7 +130,7 @@ class StageTest(TestCase):
         )
         self.rd2_to_be.save()
         
-        self.rd2_work = ProcessTypeResourceType(
+        self.rd2_work = CommitmentType(
             process_type=self.repair,
             resource_type=self.work,
             event_type=self.work_et,
@@ -137,7 +138,7 @@ class StageTest(TestCase):
         )
         self.rd2_work.save()
         
-        self.rd2_repair = ProcessTypeResourceType(
+        self.rd2_repair = CommitmentType(
             process_type=self.repair,
             resource_type=self.equip,
             event_type=self.change_et,
@@ -146,7 +147,7 @@ class StageTest(TestCase):
         )
         self.rd2_repair.save()
         
-        self.rd3_to_be = ProcessTypeResourceType(
+        self.rd3_to_be = CommitmentType(
             process_type=self.test,
             resource_type=self.equip,
             event_type=self.to_be_et,
@@ -155,7 +156,7 @@ class StageTest(TestCase):
         )
         self.rd3_to_be.save()
         
-        self.rd3_test = ProcessTypeResourceType(
+        self.rd3_test = CommitmentType(
             process_type=self.test,
             resource_type=self.equip,
             event_type=self.change_et,

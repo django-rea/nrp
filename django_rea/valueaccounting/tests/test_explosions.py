@@ -104,7 +104,7 @@ class ExplosionTest(TestCase):
         """
         
         child_pt = self.child.main_producing_process_type()
-        cyclic_input = ProcessTypeResourceType(
+        cyclic_input = CommitmentType(
             process_type=child_pt,
             resource_type=self.parent,
             event_type=self.consumption_event_type,

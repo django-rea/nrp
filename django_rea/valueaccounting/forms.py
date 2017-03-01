@@ -3078,7 +3078,7 @@ class FeatureForm(forms.ModelForm):
         exclude = ('product', 'relationship', 'process_type')
 
 
-class ProcessTypeResourceTypeForm(forms.ModelForm):
+class CommitmentTypeForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.all(), 
         empty_label=None, 
@@ -3093,7 +3093,7 @@ class ProcessTypeResourceTypeForm(forms.ModelForm):
         widget=forms.Select())
 
     class Meta:
-        model = ProcessTypeResourceType
+        model = CommitmentType
         exclude = ('process_type', 'relationship', 'event_type')
 
 
@@ -3112,7 +3112,7 @@ class ProcessTypeInputForm(forms.ModelForm):
         widget=forms.Select())
 
     class Meta:
-        model = ProcessTypeResourceType
+        model = CommitmentType
         exclude = ('process_type', 'relationship', 'event_type', 'state',)
 
     def __init__(self, process_type=None, *args, **kwargs):
@@ -3125,7 +3125,7 @@ class ProcessTypeInputForm(forms.ModelForm):
         if self.instance:
             if self.instance.id:
                 use_pattern = False
-                inst = ProcessTypeResourceType.objects.get(id=self.instance.id)
+                inst = CommitmentType.objects.get(id=self.instance.id)
                 rt = inst.resource_type
                 self.fields["resource_type"].queryset = EconomicResourceType.objects.filter(id=rt.id)
                 self.fields["stage"].queryset = rt.all_stages()
@@ -3151,7 +3151,7 @@ class ProcessTypeConsumableForm(forms.ModelForm):
         widget=forms.Select())
 
     class Meta:
-        model = ProcessTypeResourceType
+        model = CommitmentType
         exclude = ('process_type', 'relationship', 'event_type', 'state',)
 
     def __init__(self, process_type=None, *args, **kwargs):
@@ -3164,7 +3164,7 @@ class ProcessTypeConsumableForm(forms.ModelForm):
         if self.instance:
             if self.instance.id:
                 use_pattern = False
-                inst = ProcessTypeResourceType.objects.get(id=self.instance.id)
+                inst = CommitmentType.objects.get(id=self.instance.id)
                 rt = inst.resource_type
                 self.fields["resource_type"].queryset = EconomicResourceType.objects.filter(id=rt.id)
                 self.fields["stage"].queryset = rt.all_stages()
@@ -3199,7 +3199,7 @@ class ProcessTypeUsableForm(forms.ModelForm):
         widget=forms.Select())
 
     class Meta:
-        model = ProcessTypeResourceType
+        model = CommitmentType
         exclude = ('process_type', 'relationship', 'event_type', 'state', 'stage')
 
     def __init__(self, process_type=None, *args, **kwargs):
@@ -3212,7 +3212,7 @@ class ProcessTypeUsableForm(forms.ModelForm):
         if self.instance:
             if self.instance.id:
                 use_pattern = False
-                inst = ProcessTypeResourceType.objects.get(id=self.instance.id)
+                inst = CommitmentType.objects.get(id=self.instance.id)
                 rt = inst.resource_type
                 self.fields["resource_type"].queryset = EconomicResourceType.objects.filter(id=rt.id)
         if pattern:
@@ -3238,7 +3238,7 @@ class ProcessTypeCitableForm(forms.ModelForm):
         widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
 
     class Meta:
-        model = ProcessTypeResourceType
+        model = CommitmentType
         fields = ('resource_type', 'description')
 
     def __init__(self, process_type=None, *args, **kwargs):
@@ -3251,7 +3251,7 @@ class ProcessTypeCitableForm(forms.ModelForm):
         if self.instance:
             if self.instance.id:
                 use_pattern = False
-                inst = ProcessTypeResourceType.objects.get(id=self.instance.id)
+                inst = CommitmentType.objects.get(id=self.instance.id)
                 rt = inst.resource_type
                 self.fields["resource_type"].queryset = EconomicResourceType.objects.filter(id=rt.id)
         if pattern:
@@ -3272,7 +3272,7 @@ class ProcessTypeCitableStreamRecipeForm(forms.ModelForm):
         widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
 
     class Meta:
-        model = ProcessTypeResourceType
+        model = CommitmentType
         fields = ('resource_type', 'description')
 
     def __init__(self, process_type=None, *args, **kwargs):
@@ -3285,7 +3285,7 @@ class ProcessTypeCitableStreamRecipeForm(forms.ModelForm):
         if self.instance:
             if self.instance.id:
                 use_pattern = False
-                inst = ProcessTypeResourceType.objects.get(id=self.instance.id)
+                inst = CommitmentType.objects.get(id=self.instance.id)
                 rt = inst.resource_type
                 self.fields["resource_type"].queryset = EconomicResourceType.objects.filter(id=rt.id)
         if pattern:
@@ -3310,7 +3310,7 @@ class ProcessTypeWorkForm(forms.ModelForm):
         widget=forms.Select())
 
     class Meta:
-        model = ProcessTypeResourceType
+        model = CommitmentType
         exclude = ('process_type', 'relationship', 'event_type', 'state', 'stage')
 
     def __init__(self, process_type=None, *args, **kwargs):
@@ -3323,7 +3323,7 @@ class ProcessTypeWorkForm(forms.ModelForm):
         if self.instance:
             if self.instance.id:
                 use_pattern = False
-                inst = ProcessTypeResourceType.objects.get(id=self.instance.id)
+                inst = CommitmentType.objects.get(id=self.instance.id)
                 rt = inst.resource_type
                 self.fields["resource_type"].queryset = EconomicResourceType.objects.filter(id=rt.id)
         if pattern:

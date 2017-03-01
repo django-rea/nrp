@@ -80,7 +80,7 @@ class Recipe(object):
         )
         child_pt.save()
      
-        parent_output = ProcessTypeResourceType(
+        parent_output = CommitmentType(
             process_type=parent_pt,
             resource_type=self.parent,
             event_type=self.production_event_type,
@@ -89,7 +89,7 @@ class Recipe(object):
         )
         parent_output.save()
 
-        child_input = ProcessTypeResourceType(
+        child_input = CommitmentType(
             process_type=parent_pt,
             resource_type=self.child,
             event_type=self.consumption_event_type,
@@ -98,7 +98,7 @@ class Recipe(object):
         )
         child_input.save()
 
-        child_output = ProcessTypeResourceType(
+        child_output = CommitmentType(
             process_type=child_pt,
             resource_type=self.child,
             event_type=self.production_event_type,
@@ -107,7 +107,7 @@ class Recipe(object):
         )
         child_output.save()
 
-        grandchild_input = ProcessTypeResourceType(
+        grandchild_input = CommitmentType(
             process_type=child_pt,
             resource_type=self.grandchild,
             event_type=self.consumption_event_type,
@@ -233,7 +233,7 @@ class WorkFlowRecipe(object):
         )
         create_pt.save()
      
-        change_output = ProcessTypeResourceType(
+        change_output = CommitmentType(
             process_type=change_pt,
             stage=change_pt,
             resource_type=self.changeable,
@@ -243,7 +243,7 @@ class WorkFlowRecipe(object):
         )
         change_output.save()
 
-        change_input = ProcessTypeResourceType(
+        change_input = CommitmentType(
             process_type=change_pt,
             resource_type=self.changeable,
             stage=create_pt,
@@ -253,7 +253,7 @@ class WorkFlowRecipe(object):
         )
         change_input.save()
 
-        create_output = ProcessTypeResourceType(
+        create_output = CommitmentType(
             process_type=create_pt,
             stage=create_pt,
             resource_type=self.changeable,
@@ -275,7 +275,7 @@ class WorkFlowRecipe(object):
         )
         create_pt.save()
      
-        change_output = ProcessTypeResourceType(
+        change_output = CommitmentType(
             process_type=change_pt,
             stage=change_pt,
             resource_type=self.another_changeable,
@@ -285,7 +285,7 @@ class WorkFlowRecipe(object):
         )
         change_output.save()
 
-        change_input = ProcessTypeResourceType(
+        change_input = CommitmentType(
             process_type=change_pt,
             resource_type=self.another_changeable,
             stage=create_pt,
@@ -295,7 +295,7 @@ class WorkFlowRecipe(object):
         )
         change_input.save()
 
-        create_output = ProcessTypeResourceType(
+        create_output = CommitmentType(
             process_type=create_pt,
             stage=create_pt,
             resource_type=self.another_changeable,

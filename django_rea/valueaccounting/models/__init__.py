@@ -9,76 +9,97 @@ http://global.ihs.com/doc_detail.cfm?item_s_key=00495115&item_key_date=920616
 
 """
 
-from django_rea.valueaccounting.models.core import (
-    AccountingReference,
-    AgentUser,
-    AgentAssociation,
-    AgentResourceRole,
-    EconomicResource,
-    EconomicEvent,
-    EconomicAgent,
-    ResourceClass,
-    ResourceState,
-)
 
-from django_rea.valueaccounting.models.types import (
+#agent with type info, could create a separate agent app as well as support all of NRP
+from django_rea.valueaccounting.models.agent import (
+    EconomicAgent,
+    AgentUser, #should this be here? not sure how we are separating out the account stuff
+    AgentAssociation,
     AgentType,
     AgentAssociationType,
-    AgentResourceType,
-    AgentResourceRoleType,
-    CommitmentType,
+)
+
+#could support a separate app for designs, as well as just what is needed for most of NRP -
+#but decided to put exchange here too because eventually we want to have combined
+#process and exchange recipes
+from django_rea.valueaccounting.models.recipe import (
     EconomicResourceType,
-    EventType,
-    ExchangeType,
-    ProcessType,
+    ResourceClass,
     ResourceTypeSpecialPrice,
+    CommitmentType,
+    EventType,
+    ProcessType,
     ResourceTypeList,
     ResourceTypeListElement,
+    Feature,
+    Option,
+    SelectedOption, #double check this is part of options
+    Unit,
+    ExchangeType,
     TransferType,
-    TransferTypeFacetValue,
-    UseCaseEventType,
 )
 
-from django_rea.valueaccounting.models.schedule import (
-    Commitment,
-    Reciprocity,
+#could support a resource sharing app, as well as part of the core layer of NRP
+from django_rea.valueaccounting.models.resource import (
+    EconomicResource,
+    ResourceState,
+    AgentResourceRole,
+    AgentResourceType,
+    AgentResourceRoleType,
 )
 
-from django_rea.valueaccounting.models.processes import (
-    Claim,
-    ClaimEvent,
-    Order,
-    ProcessPattern,
+#could combine this and process and exchange - but I think on the view/templace
+#side it is good to separate process and exchange
+from django_rea.valueaccounting.models.event import (
+    EconomicEvent,
+    CachedEventSummary,
+    EventSummary,
+    AccountingReference,
+)
+
+from django_rea.valueaccounting.models.process import (
     Process,
-    PatternUseCase,
-    UseCase,
 )
-
 
 from django_rea.valueaccounting.models.trade import (
     Exchange,
     Transfer,
 )
 
+from django_rea.valueaccounting.models.schedule import (
+    Commitment,
+    Reciprocity, #possibly not used?
+    Order,
+)
 
-from django_rea.valueaccounting.models.behavior import (
-    CachedEventSummary,
+#only needed if you are doing contributory accounting
+from django_rea.valueaccounting.models.distribution import (
     Distribution,
     DistributionValueEquation,
-    EventSummary,
-    Unit,
     ValueEquation,
     ValueEquationBucket,
     ValueEquationBucketRule,
+    IncomeEventDistribution,
+    Claim,
+    ClaimEvent,
+)
+
+#both process and exchange facet-value config
+from django_rea.valueaccounting.models.facetconfig import (
     Facet,
     FacetValue,
     ResourceTypeFacetValue,
     PatternFacetValue,
-    IncomeEventDistribution,
+    ProcessPattern,
+    PatternUseCase,
+    TransferTypeFacetValue,
+    UseCase, #this may need to go somewhere more general, but I think this is most if not all of its usage
+    UseCaseEventType,
+)
+
+#needed in both agent and resource
+from django_rea.valueaccounting.models.location import (
     Location,
-    Feature,
-    Option,
-    SelectedOption,
 )
 
 from django_rea.valueaccounting.models.misc import (

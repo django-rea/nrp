@@ -1,30 +1,231 @@
 from __future__ import print_function
-from decimal import *
-import datetime
-import simplejson
 
+import datetime
+from decimal import *
+
+import simplejson
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.contrib.auth.models import User
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
-from .core import (
-    EconomicAgent,
-    EconomicEvent,
-)
-from .types import (
-    EventType,
-)
-from .trade import (
-    Exchange,
-)
-from .processes import (
-    Order,
-    ClaimEvent,
-    UseCase,
-    ProcessPattern,
-)
+from django_rea.valueaccounting.models.agent import EconomicAgent
+from django_rea.valueaccounting.models.event import EconomicEvent
+from django_rea.valueaccounting.models.recipe import EventType
+from django_rea.valueaccounting.models.trade import Exchange
+from django_rea.valueaccounting.models.schedule import Order
+from django_rea.valueaccounting.models.facetconfig import (ProcessPattern, UseCase)
+
+
+class DistributionManager(models.Manager):
+    def distributions(self, start=None, end=None):
+        if start and end:
+            dists = Distribution.objects.filter(distribution_date__range=[start, end])
+        else:
+            dists = Distribution.objects.all()
+        return dists
+
+
+@python_2_unicode_compatible
+class Distribution(models.Model):
+    name = models.CharField(_('name'), blank=True, max_length=128)
+    process_pattern = models.ForeignKey("ProcessPattern",
+                                        blank=True, null=True,
+                                        verbose_name=_('pattern'), related_name='distributions')
+    context_agent = models.ForeignKey("EconomicAgent",
+                                      blank=True, null=True,
+                                      limit_choices_to={"is_context": True, },
+                                      verbose_name=_('context agent'), related_name='distributions')
+    url = models.CharField(_('url'), max_length=255, blank=True, null=True)
+    distribution_date = models.DateField(_('distribution date'))
+    notes = models.TextField(_('notes'), blank=True)
+    value_equation = models.ForeignKey("ValueEquation",
+                                       blank=True, null=True,
+                                       verbose_name=_('value equation link'), related_name='distributions')
+    value_equation_content = models.TextField(_('value equation formulas used'), null=True, blank=True)
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+                                   related_name='distributions_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+                                   related_name='distributions_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+    slug = models.SlugField(_("Page name"), editable=False)
+
+    objects = DistributionManager()
+
+    class Meta:
+        ordering = ('-distribution_date',)
+        verbose_name_plural = _("distributions")
+
+    def __str__(self):
+        show_name = "Distribution"
+        name = ""
+        if self.name:
+            name = self.name + ","
+        return " ".join([
+            name,
+            show_name,
+            "starting",
+            self.distribution_date.strftime('%Y-%m-%d'),
+        ])
+
+    def deserialize_value_equation_content(self):
+        return simplejson.loads(self.value_equation_content)
+
+    def buckets(self):
+        dict = self.deserialize_value_equation_content()
+        bucket_dict = dict["buckets"]
+        buckets = []
+        for key, value in bucket_dict.iteritems():
+            bucket = ValueEquationBucket.objects.get(id=key)
+            bucket.value = value
+            buckets.append(bucket)
+        return buckets
+
+    def bucket_rules(self):
+        buckets = self.buckets()
+        answer = []
+        for bucket in buckets:
+            rules = bucket.value.get("bucket_rules")
+            if rules:
+                for key, value in rules.iteritems():
+                    rule = ValueEquationBucketRule.objects.get(id=key)
+                    rule.value = value
+                    answer.append(rule)
+        return answer
+
+    def orders(self):
+        buckets = self.buckets()
+        orders = []
+        for b in buckets:
+            filter = b.value.get("filter")
+            if filter:
+                method = filter.get("method")
+                if method:
+                    if method == "Order":
+                        oids = filter["orders"]
+                        for oid in oids:
+                            orders.append(Order.objects.get(id=oid))
+        return orders
+
+    def shipments(self):
+        buckets = self.buckets()
+        shipments = []
+        for b in buckets:
+            filter = b.value.get("filter")
+            if filter:
+                method = filter.get("method")
+                if method:
+                    if method == "Shipment":
+                        ship_ids = filter["shipments"]
+                        for sid in ship_ids:
+                            shipments.append(EconomicEvent.objects.get(id=sid))
+        return shipments
+
+    def distribution_events(self):
+        return self.events.filter(
+            event_type__relationship='distribute')
+
+    def disbursement_events(self):
+        return self.events.filter(
+            event_type__relationship='disburse')
+
+    def distribution_total(self):
+        dists = self.distribution_events()
+        total = 0
+        for dist in dists:
+            total += dist.quantity
+        return total
+
+    def disbursement_total(self):
+        disbs = self.disbursement_events()
+        total = 0
+        for disb in disbs:
+            total += disb.quantity
+        return total
+
+    def flow_type(self):
+        return "Distribution"
+
+    def flow_class(self):
+        return "distribution"
+
+    def flow_description(self):
+        return self.__str__()
+
+
+# obsolete
+class DistributionValueEquation(models.Model):
+    '''
+    Distribution itself is currently implemented using Exchange.  This is not totally correct from an REA point
+    of view.  It groups events that apply to many earlier exchanges. If we were using subclasses, it might be that
+    EconomicInteraction is the superclass of Process, Exchange, and Distribution.
+
+    This class holds the remaining information for a Distribution.
+    '''
+    distribution_date = models.DateField(_('distribution date'))
+    exchange = models.ForeignKey(Exchange,
+                                 blank=True, null=True,
+                                 verbose_name=_('exchange'), related_name='value_equation')
+    value_equation_link = models.ForeignKey("ValueEquation",
+                                            blank=True, null=True,
+                                            verbose_name=_('value equation link'), related_name='distributions_ve')
+    value_equation_content = models.TextField(_('value equation formulas used'), null=True, blank=True)
+
+    def deserialize_value_equation_content(self):
+        return simplejson.loads(self.value_equation_content)
+
+    def buckets(self):
+        dict = self.deserialize_value_equation_content()
+        bucket_dict = dict["buckets"]
+        buckets = []
+        for key, value in bucket_dict.iteritems():
+            bucket = ValueEquationBucket.objects.get(id=key)
+            bucket.value = value
+            buckets.append(bucket)
+        return buckets
+
+    def bucket_rules(self):
+        buckets = self.buckets()
+        answer = []
+        for bucket in buckets:
+            rules = bucket.value.get("bucket_rules")
+            if rules:
+                for key, value in rules.iteritems():
+                    rule = ValueEquationBucketRule.objects.get(id=key)
+                    rule.value = value
+                    answer.append(rule)
+        return answer
+
+    def orders(self):
+        buckets = self.buckets()
+        orders = []
+        for b in buckets:
+            filter = b.value.get("filter")
+            if filter:
+                method = filter.get("method")
+                if method:
+                    if method == "Order":
+                        oids = filter["orders"]
+                        for oid in oids:
+                            orders.append(Order.objects.get(id=oid))
+        return orders
+
+    def shipments(self):
+        buckets = self.buckets()
+        shipments = []
+        for b in buckets:
+            filter = b.value.get("filter")
+            if filter:
+                method = filter.get("method")
+                if method:
+                    if method == "Shipment":
+                        ship_ids = filter["shipments"]
+                        for sid in ship_ids:
+                            shipments.append(EconomicEvent.objects.get(id=sid))
+        return shipments
+
 
 PERCENTAGE_BEHAVIOR_CHOICES = (
     ('remaining', _('Remaining percentage')),
@@ -343,78 +544,6 @@ class ValueEquation(models.Model):
         # end_time = time.time()
         # print("run_value_equation elapsed time was %g seconds" % (end_time - start_time))
         return distribution_events, contribution_events
-
-
-# obsolete
-class DistributionValueEquation(models.Model):
-    '''
-    Distribution itself is currently implemented using Exchange.  This is not totally correct from an REA point
-    of view.  It groups events that apply to many earlier exchanges. If we were using subclasses, it might be that
-    EconomicInteraction is the superclass of Process, Exchange, and Distribution.
-
-    This class holds the remaining information for a Distribution.
-    '''
-    distribution_date = models.DateField(_('distribution date'))
-    exchange = models.ForeignKey(Exchange,
-                                 blank=True, null=True,
-                                 verbose_name=_('exchange'), related_name='value_equation')
-    value_equation_link = models.ForeignKey(ValueEquation,
-                                            blank=True, null=True,
-                                            verbose_name=_('value equation link'), related_name='distributions_ve')
-    value_equation_content = models.TextField(_('value equation formulas used'), null=True, blank=True)
-
-    def deserialize_value_equation_content(self):
-        return simplejson.loads(self.value_equation_content)
-
-    def buckets(self):
-        dict = self.deserialize_value_equation_content()
-        bucket_dict = dict["buckets"]
-        buckets = []
-        for key, value in bucket_dict.iteritems():
-            bucket = ValueEquationBucket.objects.get(id=key)
-            bucket.value = value
-            buckets.append(bucket)
-        return buckets
-
-    def bucket_rules(self):
-        buckets = self.buckets()
-        answer = []
-        for bucket in buckets:
-            rules = bucket.value.get("bucket_rules")
-            if rules:
-                for key, value in rules.iteritems():
-                    rule = ValueEquationBucketRule.objects.get(id=key)
-                    rule.value = value
-                    answer.append(rule)
-        return answer
-
-    def orders(self):
-        buckets = self.buckets()
-        orders = []
-        for b in buckets:
-            filter = b.value.get("filter")
-            if filter:
-                method = filter.get("method")
-                if method:
-                    if method == "Order":
-                        oids = filter["orders"]
-                        for oid in oids:
-                            orders.append(Order.objects.get(id=oid))
-        return orders
-
-    def shipments(self):
-        buckets = self.buckets()
-        shipments = []
-        for b in buckets:
-            filter = b.value.get("filter")
-            if filter:
-                method = filter.get("method")
-                if method:
-                    if method == "Shipment":
-                        ship_ids = filter["shipments"]
-                        for sid in ship_ids:
-                            shipments.append(EconomicEvent.objects.get(id=sid))
-        return shipments
 
 
 FILTER_METHOD_CHOICES = (
@@ -954,540 +1083,149 @@ class IncomeEventDistribution(models.Model):
                                          verbose_name=_('unit'), related_name="units")
 
 
-class DistributionManager(models.Manager):
-    def distributions(self, start=None, end=None):
-        if start and end:
-            dists = Distribution.objects.filter(distribution_date__range=[start, end])
-        else:
-            dists = Distribution.objects.all()
-        return dists
-
-
 @python_2_unicode_compatible
-class Distribution(models.Model):
-    name = models.CharField(_('name'), blank=True, max_length=128)
-    process_pattern = models.ForeignKey("ProcessPattern",
-                                        blank=True, null=True,
-                                        verbose_name=_('pattern'), related_name='distributions')
+class Claim(models.Model):
+    value_equation_bucket_rule = models.ForeignKey("ValueEquationBucketRule",
+                                                   blank=True, null=True,
+                                                   related_name="claims", verbose_name=_('value equation bucket rule'))
+    claim_date = models.DateField(_('claim date'))
+    has_agent = models.ForeignKey("EconomicAgent",
+                                  blank=True, null=True,
+                                  related_name="has_claims", verbose_name=_('has'))
+    against_agent = models.ForeignKey("EconomicAgent",
+                                      blank=True, null=True,
+                                      related_name="claims_against", verbose_name=_('against'))
     context_agent = models.ForeignKey("EconomicAgent",
                                       blank=True, null=True,
                                       limit_choices_to={"is_context": True, },
-                                      verbose_name=_('context agent'), related_name='distributions')
-    url = models.CharField(_('url'), max_length=255, blank=True, null=True)
-    distribution_date = models.DateField(_('distribution date'))
-    notes = models.TextField(_('notes'), blank=True)
-    value_equation = models.ForeignKey(ValueEquation,
-                                       blank=True, null=True,
-                                       verbose_name=_('value equation link'), related_name='distributions')
-    value_equation_content = models.TextField(_('value equation formulas used'), null=True, blank=True)
-    created_by = models.ForeignKey(User, verbose_name=_('created by'),
-                                   related_name='distributions_created', blank=True, null=True, editable=False)
-    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
-                                   related_name='distributions_changed', blank=True, null=True, editable=False)
-    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
-    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
-    slug = models.SlugField(_("Page name"), editable=False)
-
-    objects = DistributionManager()
-
-    class Meta:
-        ordering = ('-distribution_date',)
-        verbose_name_plural = _("distributions")
-
-    def __str__(self):
-        show_name = "Distribution"
-        name = ""
-        if self.name:
-            name = self.name + ","
-        return " ".join([
-            name,
-            show_name,
-            "starting",
-            self.distribution_date.strftime('%Y-%m-%d'),
-        ])
-
-    def deserialize_value_equation_content(self):
-        return simplejson.loads(self.value_equation_content)
-
-    def buckets(self):
-        dict = self.deserialize_value_equation_content()
-        bucket_dict = dict["buckets"]
-        buckets = []
-        for key, value in bucket_dict.iteritems():
-            bucket = ValueEquationBucket.objects.get(id=key)
-            bucket.value = value
-            buckets.append(bucket)
-        return buckets
-
-    def bucket_rules(self):
-        buckets = self.buckets()
-        answer = []
-        for bucket in buckets:
-            rules = bucket.value.get("bucket_rules")
-            if rules:
-                for key, value in rules.iteritems():
-                    rule = ValueEquationBucketRule.objects.get(id=key)
-                    rule.value = value
-                    answer.append(rule)
-        return answer
-
-    def orders(self):
-        buckets = self.buckets()
-        orders = []
-        for b in buckets:
-            filter = b.value.get("filter")
-            if filter:
-                method = filter.get("method")
-                if method:
-                    if method == "Order":
-                        oids = filter["orders"]
-                        for oid in oids:
-                            orders.append(Order.objects.get(id=oid))
-        return orders
-
-    def shipments(self):
-        buckets = self.buckets()
-        shipments = []
-        for b in buckets:
-            filter = b.value.get("filter")
-            if filter:
-                method = filter.get("method")
-                if method:
-                    if method == "Shipment":
-                        ship_ids = filter["shipments"]
-                        for sid in ship_ids:
-                            shipments.append(EconomicEvent.objects.get(id=sid))
-        return shipments
-
-    def distribution_events(self):
-        return self.events.filter(
-            event_type__relationship='distribute')
-
-    def disbursement_events(self):
-        return self.events.filter(
-            event_type__relationship='disburse')
-
-    def distribution_total(self):
-        dists = self.distribution_events()
-        total = 0
-        for dist in dists:
-            total += dist.quantity
-        return total
-
-    def disbursement_total(self):
-        disbs = self.disbursement_events()
-        total = 0
-        for disb in disbs:
-            total += disb.quantity
-        return total
-
-    def flow_type(self):
-        return "Distribution"
-
-    def flow_class(self):
-        return "distribution"
-
-    def flow_description(self):
-        return self.__str__()
-
-
-class EventSummary(object):
-    def __init__(self, agent, context_agent, resource_type, event_type, quantity, value=Decimal('0.0')):
-        self.agent = agent
-        self.context_agent = context_agent
-        self.resource_type = resource_type
-        self.event_type = event_type
-        self.quantity = quantity
-        self.value = value
-
-    def key(self):
-        return "-".join([
-            str(self.agent.id),
-            str(self.resource_type.id),
-            str(self.project.id),
-            str(self.event_type.id),
-        ])
-
-    def quantity_formatted(self):
-        return self.quantity.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
-
-
-# todo: this model is obsolete and can be deleted
-# as soon as we also remove the value equation demo page, view, etc.
-class CachedEventSummary(models.Model):
-    agent = models.ForeignKey(EconomicAgent,
-                              blank=True, null=True,
-                              related_name="cached_events", verbose_name=_('agent'))
-    context_agent = models.ForeignKey("EconomicAgent",
-                                      blank=True, null=True,
-                                      verbose_name=_('context agent'), related_name='context_cached_events')
-    resource_type = models.ForeignKey("EconomicResourceType",
-                                      blank=True, null=True,
-                                      verbose_name=_('resource type'), related_name='cached_events')
-    event_type = models.ForeignKey(EventType,
-                                   verbose_name=_('event type'), related_name='cached_events')
-    resource_type_rate = models.DecimalField(_('resource type rate'), max_digits=8, decimal_places=2,
-                                             default=Decimal("1.0"))
-    importance = models.DecimalField(_('importance'), max_digits=3, decimal_places=0, default=Decimal("1"))
-    reputation = models.DecimalField(_('reputation'), max_digits=8, decimal_places=2,
-                                     default=Decimal("1.00"))
-    quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2,
-                                   default=Decimal("0.0"))
+                                      related_name="claims", verbose_name=_('context agent'),
+                                      on_delete=models.SET_NULL)
     value = models.DecimalField(_('value'), max_digits=8, decimal_places=2,
                                 default=Decimal("0.0"))
+    unit_of_value = models.ForeignKey("Unit", blank=True, null=True,
+                                      verbose_name=_('unit of value'), related_name="claim_value_units")
+    original_value = models.DecimalField(_('original value'), max_digits=8, decimal_places=2,
+                                         default=Decimal("0.0"))
+    claim_creation_equation = models.TextField(_('creation equation'), null=True, blank=True)
+
+    slug = models.SlugField(_("Page name"), editable=False)
 
     class Meta:
-        ordering = ('agent', 'context_agent', 'resource_type')
+        ordering = ('claim_date',)
 
     def __str__(self):
-        agent_name = "Unknown"
-        if self.agent:
-            agent_name = self.agent.name
-        context_agent_name = "Unknown"
-        if self.context_agent:
-            context_agent_name = self.context_agent.name
-        resource_type_name = "Unknown"
-        if self.resource_type:
-            resource_type_name = self.resource_type.name
+        if self.unit_of_value:
+            if self.unit_of_value.symbol:
+                value_string = "".join([self.unit_of_value.symbol, str(self.value)])
+            else:
+                value_string = " ".join([str(self.value), self.unit_of_value.abbrev])
+        else:
+            value_string = str(self.value)
+        has_agt = 'Unassigned'
+        if self.has_agent:
+            has_agt = self.has_agent.nick
+        against_agt = 'Unassigned'
+        if self.against_agent:
+            against_agt = self.against_agent.nick
         return ' '.join([
-            'Agent:',
-            agent_name,
-            'Context:',
-            context_agent_name,
-            'Resource Type:',
-            resource_type_name,
+            'Claim',
+            has_agt,
+            'has against',
+            against_agt,
+            'for',
+            value_string,
+            'from',
+            self.claim_date.strftime('%Y-%m-%d'),
         ])
 
-    @classmethod
-    def summarize_events(cls, context_agent):
-        # import pdb; pdb.set_trace()
-        # todo: this code is obsolete, we don't want to roll up sub-projects anymore
-        all_subs = context_agent.with_all_sub_agents()
-        event_list = EconomicEvent.objects.filter(context_agent__in=all_subs)
-        summaries = {}
-        for event in event_list:
-            key = "-".join([str(event.from_agent.id), str(event.context_agent.id), str(event.resource_type.id)])
-            if not key in summaries:
-                summaries[key] = EventSummary(event.from_agent, event.context_agent, event.resource_type,
-                                              Decimal('0.0'))
-            summaries[key].quantity += event.quantity
-        summaries = summaries.values()
-        for summary in summaries:
-            ces = cls(
-                agent=summary.agent,
-                context_agent=summary.context_agent,
-                resource_type=summary.resource_type,
-                resource_type_rate=summary.resource_type.value_per_unit,
-                # importance=summary.project.importance, todo: need this in agent?
-                quantity=summary.quantity,
-            )
-            ces.save()
-        return cls.objects.all()
+    def creating_event(self):
+        event = None
+        claim_events = self.claim_events.all()
+        for ce in claim_events:
+            if ce.event_effect == "+":
+                event = ce.event
+                break
+        return event
 
-    @classmethod
-    def summarize_all_events(cls):
-        # import pdb; pdb.set_trace()
-        old_summaries = CachedEventSummary.objects.all()
-        old_summaries.delete()
-        event_list = EconomicEvent.objects.filter(is_contribution="true")
-        summaries = {}
-        # todo: very temporary hack
-        context_agent = EconomicAgent.objects.get(name="Not defined")
-        for event in event_list:
-            # todo: very temporary hack
-            if not event.context_agent:
-                event.context_agent = context_agent
-                event.save()
-            try:
-                key = "-".join([
-                    str(event.from_agent.id),
-                    str(event.context_agent.id),
-                    str(event.resource_type.id),
-                    str(event.event_type.id)
-                ])
-                if not key in summaries:
-                    summaries[key] = EventSummary(
-                        event.from_agent,
-                        event.context_agent,
-                        event.resource_type,
-                        event.event_type,
-                        Decimal('0.0'))
-                summaries[key].quantity += event.quantity
-            except AttributeError:
-                msg = " ".join(["invalid summary key:", key])
-                assert False, msg
-        summaries = summaries.values()
-        for summary in summaries:
-            ces = cls(
-                agent=summary.agent,
-                context_agent=summary.context_agent,
-                resource_type=summary.resource_type,
-                event_type=summary.event_type,
-                resource_type_rate=summary.resource_type.value_per_unit,
-                quantity=summary.quantity,
-            )
-            ces.save()
-        return cls.objects.all()
+    def format_value(self, value):
+        if self.unit_of_value:
+            if self.unit_of_value.symbol:
+                value_string = "".join([self.unit_of_value.symbol, str(value)])
+            else:
+                value_string = " ".join([str(value), self.unit_of_value.abbrev])
+        else:
+            value_string = str(value)
+        return value_string
 
-    def quantity_formatted(self):
-        return self.quantity.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
+    def original_value_formatted(self):
+        value = self.original_value
+        return self.format_value(value)
 
     def value_formatted(self):
-        return self.value.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
+        value = self.value
+        return self.format_value(value)
 
-    def quantity_label(self):
-        # return " ".join([self.resource_type.name, self.resource_type.unit.abbrev])
-        return self.resource_type.name
+    def distribution_events(self):
+        return self.claim_events.filter(event__event_type__name="Distribution")
 
 
-UNIT_TYPE_CHOICES = (
-    ('area', _('area')),
-    ('length', _('length')),
-    ('quantity', _('quantity')),
-    ('time', _('time')),
-    ('value', _('value')),
-    ('volume', _('volume')),
-    ('weight', _('weight')),
-    ('ip', _('ip')),
-    ('percent', _('percent')),
+EVENT_EFFECT_CHOICES = (
+    ('+', _('increase')),
+    ('-', _('decrease')),
 )
 
 
 @python_2_unicode_compatible
-class Unit(models.Model):
-    unit_type = models.CharField(_('unit type'), max_length=12, choices=UNIT_TYPE_CHOICES)
-    abbrev = models.CharField(_('abbreviation'), max_length=8)
-    name = models.CharField(_('name'), max_length=64)
-    symbol = models.CharField(_('symbol'), max_length=1, blank=True)
+class ClaimEvent(models.Model):
+    event = models.ForeignKey("EconomicEvent",
+                              blank=True, null=True,
+                              related_name="claim_events", verbose_name=_('claim event'))
+    claim = models.ForeignKey(Claim,
+                              related_name="claim_events", verbose_name=_('claims'))
+    claim_event_date = models.DateField(_('claim event date'), default=datetime.date.today)
+    value = models.DecimalField(_('value'), max_digits=8, decimal_places=2)
+    unit_of_value = models.ForeignKey("Unit", blank=True, null=True,
+                                      verbose_name=_('unit of value'), related_name="claim_event_value_units")
+    event_effect = models.CharField(_('event effect'),
+                                    max_length=12, choices=EVENT_EFFECT_CHOICES)
 
     class Meta:
-        ordering = ('name',)
+        ordering = ('claim_event_date',)
 
     def __str__(self):
-        return self.name
+        if self.unit_of_value:
+            value_string = " ".join([str(self.value), self.unit_of_value.abbrev])
+        else:
+            value_string = str(self.value)
+        if self.event:
+            event_str = self.event.__str__()
+        else:
+            event_str = "none"
+        return ' '.join([
+            'event:',
+            event_str,
+            'affecting claim:',
+            self.claim.__str__(),
+            'value:',
+            value_string,
+        ])
 
+    def update_claim(self):
+        if self.event_effect == "+":
+            self.claim.value += self.value
+        else:
+            self.claim.value -= self.value
+        self.claim.save()
 
-@python_2_unicode_compatible
-class Location(models.Model):
-    name = models.CharField(_('name'), max_length=128, unique=True)
-    description = models.TextField(_('description'), blank=True, null=True)
-    address = models.CharField(max_length=255, blank=True)
-    latitude = models.FloatField(default=0.0, blank=True, null=True)
-    longitude = models.FloatField(default=0.0, blank=True, null=True)
+    def value_formatted(self):
+        # import pdb; pdb.set_trace()
+        value = self.value
+        if self.unit_of_value:
+            if self.unit_of_value.symbol:
+                value_string = "".join([self.unit_of_value.symbol, str(value)])
+            else:
+                value_string = " ".join([str(value), self.unit_of_value.abbrev])
+        else:
+            value_string = str(value)
+        return value_string
 
-    class Meta:
-        ordering = ('name',)
-
-    def __str__(self):
-        return self.name
-
-    def resources(self):
-        return self.resources_at_location.all()
-
-    def agents(self):
-        return self.agents_at_location.all()
-
-
-@python_2_unicode_compatible
-class Facet(models.Model):
-    name = models.CharField(_('name'), max_length=32, unique=True)
-    description = models.TextField(_('description'), blank=True, null=True)
-
-    class Meta:
-        ordering = ('name',)
-
-    def __str__(self):
-        return self.name
-
-    def value_list(self):
-        return ", ".join([fv.value for fv in self.values.all()])
-
-
-@python_2_unicode_compatible
-class FacetValue(models.Model):
-    facet = models.ForeignKey(Facet,
-                              verbose_name=_('facet'), related_name='values')
-    value = models.CharField(_('value'), max_length=32)
-    description = models.TextField(_('description'), blank=True, null=True)
-
-    class Meta:
-        unique_together = ('facet', 'value')
-        ordering = ('facet', 'value')
-
-    def __str__(self):
-        return ": ".join([self.facet.name, self.value])
-
-
-@python_2_unicode_compatible
-class ResourceTypeFacetValue(models.Model):
-    resource_type = models.ForeignKey("EconomicResourceType",
-                                      verbose_name=_('resource type'), related_name='facets')
-    facet_value = models.ForeignKey("FacetValue",
-                                    verbose_name=_('facet value'), related_name='resource_types')
-
-    class Meta:
-        unique_together = ('resource_type', 'facet_value')
-        ordering = ('resource_type', 'facet_value')
-
-    def __str__(self):
-        return ": ".join([self.resource_type.name, self.facet_value.facet.name, self.facet_value.value])
-
-
-@python_2_unicode_compatible
-class PatternFacetValue(models.Model):
-    pattern = models.ForeignKey("ProcessPattern",
-                                verbose_name=_('pattern'), related_name='facets')
-    facet_value = models.ForeignKey(FacetValue,
-                                    verbose_name=_('facet value'), related_name='patterns')
-    event_type = models.ForeignKey(EventType,
-                                   verbose_name=_('event type'), related_name='patterns',
-                                   help_text=_('consumed means gone, used means re-usable'))
-
-    class Meta:
-        unique_together = ('pattern', 'facet_value', 'event_type')
-        ordering = ('pattern', 'event_type', 'facet_value')
-
-    def __str__(self):
-        return ": ".join([self.pattern.name, self.facet_value.facet.name, self.facet_value.value])
-
-
-@python_2_unicode_compatible
-class Feature(models.Model):
-    name = models.CharField(_('name'), max_length=128)
-    # todo: replace with ___? something
-    # option_category = models.ForeignKey(Category,
-    #    verbose_name=_('option category'), related_name='features',
-    #    blank=True, null=True,
-    #    help_text=_("option selections will be limited to this category"),
-    #    limit_choices_to=Q(applies_to='Anything') | Q(applies_to='EconomicResourceType'))
-    product = models.ForeignKey("EconomicResourceType",
-                                related_name="features", verbose_name=_('product'))
-    process_type = models.ForeignKey("ProcessType",
-                                     blank=True, null=True,
-                                     verbose_name=_('process type'), related_name='features')
-    event_type = models.ForeignKey(EventType,
-                                   verbose_name=_('event type'), related_name='features')
-    quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, default=Decimal('0.00'))
-    unit_of_quantity = models.ForeignKey(Unit, blank=True, null=True,
-                                         verbose_name=_('unit'), related_name="feature_units")
-    created_by = models.ForeignKey(User, verbose_name=_('created by'),
-                                   related_name='features_created', blank=True, null=True, editable=False)
-    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
-                                   related_name='features_changed', blank=True, null=True, editable=False)
-    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
-    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
-
-    class Meta:
-        ordering = ('name',)
-
-    def __str__(self):
-        return " ".join([self.name, "Feature for", self.product.name])
-
-    def xbill_child_object(self):
-        return self
-
-    def xbill_class(self):
-        return "feature"
-
-    def xbill_parent_object(self):
-        return self.process_type
-
-    def xbill_children(self):
-        return self.options.all()
-
-    def xbill_explanation(self):
-        return "Feature"
-
-    def xbill_label(self):
-        abbrev = ""
-        if self.unit_of_quantity:
-            abbrev = self.unit_of_quantity.abbrev
-        return " ".join([str(self.quantity), abbrev])
-
-    # def xbill_category(self):
-    #    return Category(name="features")
-
-    def node_id(self):
-        return "-".join(["Feature", str(self.id)])
-
-    def xbill_parents(self):
-        return [self.process_type, self]
-
-    def options_form(self):
-        from django_rea.valueaccounting.forms import OptionsForm
-        return OptionsForm(feature=self)
-
-    def options_change_form(self):
-        from django_rea.valueaccounting.forms import OptionsForm
-        option_ids = self.options.values_list('component__id', flat=True)
-        init = {'options': option_ids, }
-        return OptionsForm(feature=self, initial=init)
-
-    def xbill_change_prefix(self):
-        return "".join(["FTR", str(self.id)])
-
-    def xbill_change_form(self):
-        from django_rea.valueaccounting.forms import FeatureForm
-        # return FeatureForm(instance=self, prefix=self.xbill_change_prefix())
-        return FeatureForm(instance=self)
-
-
-@python_2_unicode_compatible
-class Option(models.Model):
-    feature = models.ForeignKey(Feature,
-                                related_name="options", verbose_name=_('feature'))
-    component = models.ForeignKey("EconomicResourceType",
-                                  related_name="options", verbose_name=_('component'))
-    created_by = models.ForeignKey(User, verbose_name=_('created by'),
-                                   related_name='options_created', blank=True, null=True, editable=False)
-    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
-                                   related_name='options_changed', blank=True, null=True, editable=False)
-    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
-    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
-
-    class Meta:
-        ordering = ('component',)
-
-    def __str__(self):
-        return " ".join([self.component.name, "option for", self.feature.name])
-
-    def xbill_child_object(self):
-        return self.component
-
-    def xbill_class(self):
-        return "option"
-
-    def xbill_parent_object(self):
-        return self.feature
-
-    def xbill_children(self):
-        return self.component.xbill_children()
-
-    def xbill_explanation(self):
-        return "Option"
-
-    def xbill_label(self):
-        return ""
-
-    # def xbill_category(self):
-    #    return Category(name="features")
-
-    def node_id(self):
-        return "-".join(["Option", str(self.id)])
-
-    def xbill_parents(self):
-        return [self.feature, self]
-
-
-@python_2_unicode_compatible
-class SelectedOption(models.Model):
-    commitment = models.ForeignKey("Commitment",
-                                   related_name="options", verbose_name=_('commitment'))
-    option = models.ForeignKey(Option,
-                               related_name="commitments", verbose_name=_('option'))
-
-    class Meta:
-        ordering = ('commitment', 'option')
-
-    def __str__(self):
-        return " ".join([self.option.name, "option for", self.commitment.resource_type.name])

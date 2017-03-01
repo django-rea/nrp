@@ -11,462 +11,32 @@ from django.utils.encoding import python_2_unicode_compatible
 
 from easy_thumbnails.fields import ThumbnailerImageField
 
+from django_rea.valueaccounting.models.agent import EconomicAgent
+from django_rea.valueaccounting.models.resource import EconomicResource
+from django_rea.valueaccounting.models.facetconfig import Facet, ResourceTypeFacetValue
+
 from ._utils import unique_slugify
 
-from .core import EconomicResource
 
-SIZE_CHOICES = (
-    ('individual', _('individual')),
-    ('org', _('organization')),
-    ('network', _('network')),
-    ('team', _('project')),
-    ('community', _('community')),
-)
+class RecipeInheritance(object):
+    def __init__(self, parent, heir):
+        self.parent = parent
+        self.heir = heir
 
-
-class AgentTypeManager(models.Manager):
-    def context_agent_types(self):
-        return AgentType.objects.filter(is_context=True)
-
-    def context_types_string(self):
-        return " or ".join([at.name for at in self.context_agent_types()])
-
-    def non_context_agent_types(self):
-        return AgentType.objects.filter(is_context=False)
-
-    def individual_type(self):
-        at = AgentType.objects.filter(party_type="individual")
-        if at:
-            return at[0]
+    def substitute(self, candidate):
+        if candidate == self.parent:
+            return self.heir
         else:
-            return None
+            return candidate
 
 
-@python_2_unicode_compatible
-class AgentType(models.Model):
-    name = models.CharField(_('name'), max_length=128)
-    parent = models.ForeignKey('self', blank=True, null=True,
-                               verbose_name=_('parent'), related_name='sub_agents', editable=False)
-    party_type = models.CharField(_('party type'),
-                                  max_length=12, choices=SIZE_CHOICES,
-                                  default='individual')
-    description = models.TextField(_('description'), blank=True, null=True)
-    is_context = models.BooleanField(_('is context'), default=False)
-    objects = AgentTypeManager()
-
-    class Meta:
-        ordering = ('name',)
-
-    def __str__(self):
-        return self.name
-
-    @classmethod
-    def create(cls, name, party_type, is_context, verbosity=2):
-        """
-        Creates a new AgentType, updates an existing one, or does nothing.
-        This is intended to be used as a post_syncdb manangement step.
-        """
+class EconomicResourceTypeManager(models.Manager):
+    def membership_share(self):
         try:
-            agent_type = cls._default_manager.get(name=name)
-            updated = False
-            if party_type != agent_type.party_type:
-                agent_type.party_type = party_type
-                updated = True
-            if is_context != agent_type.is_context:
-                agent_type.is_context = is_context
-                updated = True
-            if updated:
-                agent_type.save()
-                if verbosity > 1:
-                    print("Updated %s AgentType" % name)
-        except cls.DoesNotExist:
-            cls(name=name, party_type=party_type, is_context=is_context).save()
-            if verbosity > 1:
-                print("Created %s AgentType" % name)
-
-
-ASSOCIATION_BEHAVIOR_CHOICES = (
-    ('supplier', _('supplier')),
-    ('customer', _('customer')),
-    ('member', _('member')),
-    ('child', _('child')),
-    ('custodian', _('custodian')),
-    ('manager', _('manager')),
-    ('peer', _('peer'))
-)
-
-
-@python_2_unicode_compatible
-class AgentAssociationType(models.Model):
-    identifier = models.CharField(_('identifier'), max_length=12, unique=True)
-    name = models.CharField(_('name'), max_length=128)
-    plural_name = models.CharField(_('plural name'), default="", max_length=128)
-    association_behavior = models.CharField(_('association behavior'),
-                                            max_length=12, choices=ASSOCIATION_BEHAVIOR_CHOICES,
-                                            blank=True, null=True)
-    description = models.TextField(_('description'), blank=True, null=True)
-    label = models.CharField(_('label'), max_length=32, null=True)
-    inverse_label = models.CharField(_('inverse label'), max_length=40, null=True)
-
-    def __str__(self):
-        return self.name
-
-    @classmethod
-    def create(cls, identifier, name, plural_name, association_behavior, label, inverse_label, verbosity=2):
-        """
-        Creates a new AgentType, updates an existing one, or does nothing.
-        This is intended to be used as a post_syncdb manangement step.
-        """
-        try:
-            agent_association_type = cls._default_manager.get(identifier=identifier)
-            updated = False
-            if name != agent_association_type.name:
-                agent_association_type.name = name
-                updated = True
-            if plural_name != agent_association_type.plural_name:
-                agent_association_type.plural_name = plural_name
-                updated = True
-            if association_behavior != agent_association_type.association_behavior:
-                agent_association_type.association_behavior = association_behavior
-                updated = True
-            if label != agent_association_type.label:
-                agent_association_type.label = label
-                updated = True
-            if inverse_label != agent_association_type.inverse_label:
-                agent_association_type.inverse_label = inverse_label
-                updated = True
-            if updated:
-                agent_association_type.save()
-                if verbosity > 1:
-                    print("Updated %s AgentAssociationType" % name)
-        except cls.DoesNotExist:
-            cls(identifier=identifier, name=name, plural_name=plural_name, association_behavior=association_behavior,
-                label=label, inverse_label=inverse_label).save()
-            if verbosity > 1:
-                print("Created %s AgentAssociationType" % name)
-
-
-@python_2_unicode_compatible
-class AgentResourceType(models.Model):
-    agent = models.ForeignKey("EconomicAgent",
-                              verbose_name=_('agent'), related_name='resource_types')
-    resource_type = models.ForeignKey("EconomicResourceType",
-                                      verbose_name=_('resource type'), related_name='agents')
-    score = models.DecimalField(_('score'), max_digits=8, decimal_places=2,
-                                default=Decimal("0.0"),
-                                help_text=_("the quantity of contributions of this resource type from this agent"))
-    event_type = models.ForeignKey("EventType",
-                                   verbose_name=_('event type'), related_name='agent_resource_types')
-    lead_time = models.IntegerField(_('lead time'),
-                                    default=0, help_text=_("in days"))
-    value = models.DecimalField(_('value'), max_digits=8, decimal_places=2,
-                                default=Decimal("0.0"))
-    unit_of_value = models.ForeignKey("Unit", blank=True, null=True,
-                                      limit_choices_to={'unit_type': 'value'},
-                                      verbose_name=_('unit of value'), related_name="agent_resource_value_units")
-    value_per_unit = models.DecimalField(_('value per unit'), max_digits=8, decimal_places=2,
-                                         default=Decimal("0.0"))
-    description = models.TextField(_('description'), null=True, blank=True)
-    created_by = models.ForeignKey(User, verbose_name=_('created by'),
-                                   related_name='arts_created', blank=True, null=True, editable=False)
-    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
-                                   related_name='arts_changed', blank=True, null=True, editable=False)
-    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
-    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
-
-    def __str__(self):
-        return ' '.join([
-            self.agent.name,
-            self.event_type.label,
-            self.resource_type.name,
-        ])
-
-    def label(self):
-        return "source"
-
-    def timeline_title(self):
-        return " ".join(["Get ", self.resource_type.name, "from ", self.agent.name])
-
-    def inverse_label(self):
-        return self.event_type.inverse_label()
-
-    def xbill_label(self):
-        # return self.event_type.infer_label()
-        return ""
-
-    def xbill_explanation(self):
-        return "Possible source"
-
-    def xbill_child_object(self):
-        if self.event_type.relationship == 'out':
-            return self.agent
-        else:
-            return self.resource_type
-
-    def xbill_class(self):
-        return self.xbill_child_object().xbill_class()
-
-    def xbill_parent_object(self):
-        if self.event_type.relationship == 'out':
-            return self.resource_type
-        else:
-            return self.agent
-
-    def node_id(self):
-        return "-".join(["AgentResource", str(self.id)])
-
-    def xbill_change_prefix(self):
-        return "".join(["AR", str(self.id)])
-
-    def xbill_change_form(self):
-        from django_rea.valueaccounting.forms import AgentResourceTypeForm
-        return AgentResourceTypeForm(instance=self, prefix=self.xbill_change_prefix())
-
-    def total_required(self):
-        from .schedule import Commitment
-        commitments = Commitment.objects.unfinished().filter(resource_type=self.resource_type)
-        return sum(req.quantity_to_buy() for req in commitments)
-
-    def comparative_scores(self):
-        scores = AgentResourceType.objects.filter(resource_type=self.resource_type).values_list('score', flat=True)
-        average = str((sum(scores) / len(scores)).quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
-        return "".join([
-            "Min: ", str(min(scores).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)),
-            ", Average: ", average,
-            ", Max: ", str(max(scores).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)),
-        ])
-
-
-class AgentResourceRoleTypeManager(models.Manager):
-    def owner_role(self):
-        role_types = AgentResourceRoleType.objects.filter(is_owner=True)
-        owner_role_type = None
-        if role_types:
-            return role_types[0]
-        else:
-            raise ValidationError("No owner AgentResourceRoleType")
-
-
-@python_2_unicode_compatible
-class AgentResourceRoleType(models.Model):
-    name = models.CharField(_('name'), max_length=128)
-    description = models.TextField(_('description'), blank=True, null=True)
-    is_owner = models.BooleanField(_('is owner'), default=False)
-
-    objects = AgentResourceRoleTypeManager()
-
-    def __str__(self):
-        return self.name
-
-
-@python_2_unicode_compatible
-class CommitmentType(models.Model):
-    process_type = models.ForeignKey("ProcessType",
-                                     verbose_name=_('process type'), related_name='resource_types')
-    resource_type = models.ForeignKey("EconomicResourceType",
-                                      verbose_name=_('resource type'), related_name='process_types')
-    event_type = models.ForeignKey("EventType",
-                                   verbose_name=_('event type'), related_name='process_resource_types')
-    stage = models.ForeignKey("ProcessType", related_name="commitmenttypes_at_stage",
-                              verbose_name=_('stage'), blank=True, null=True)
-    state = models.ForeignKey("ResourceState", related_name="commitmenttypes_at_state",
-                              verbose_name=_('state'), blank=True, null=True)
-    quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, default=Decimal('0.00'))
-    unit_of_quantity = models.ForeignKey("Unit", blank=True, null=True,
-                                         verbose_name=_('unit'), related_name="process_resource_qty_units")
-    description = models.TextField(_('description'), null=True, blank=True)
-    created_by = models.ForeignKey(User, verbose_name=_('created by'),
-                                   related_name='ptrts_created', blank=True, null=True, editable=False)
-    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
-                                   related_name='ptrts_changed', blank=True, null=True, editable=False)
-    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
-    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
-
-    class Meta:
-        ordering = ('resource_type',)
-        verbose_name = _('commitment type')
-
-    def __str__(self):
-        relname = ""
-        if self.event_type:
-            relname = self.event_type.label
-        rt_name = self.resource_type.name
-        if self.stage:
-            rt_name = "".join([rt_name, "@", self.stage.name])
-        return " ".join([self.process_type.name, relname, str(self.quantity), rt_name])
-
-    def inverse_label(self):
-        return self.event_type.inverse_label
-
-    def cycle_id(self):
-        stage_id = ""
-        if self.stage:
-            stage_id = str(self.stage.id)
-        state_id = ""
-        if self.state:
-            state_id = str(self.state.id)
-        return "-".join([str(self.resource_type.id), stage_id, state_id])
-
-    def is_change_related(self):
-        return self.event_type.is_change_related()
-
-    def follow_stage_chain(self, chain):
-        # import pdb; pdb.set_trace()
-        if self.event_type.is_change_related():
-            if self not in chain:
-                chain.append(self)
-                if self.event_type.relationship == "out":
-                    next_in_chain = CommitmentType.objects.filter(
-                        resource_type=self.resource_type,
-                        stage=self.stage,
-                        event_type__resource_effect=">~")
-                if self.event_type.relationship == "in":
-                    next_in_chain = CommitmentType.objects.filter(
-                        resource_type=self.resource_type,
-                        stage=self.process_type,
-                        event_type__resource_effect="~>")
-                if next_in_chain:
-                    next_in_chain[0].follow_stage_chain(chain)
-
-    def follow_stage_chain_beyond_workflow(self, chain):
-        # import pdb; pdb.set_trace()
-        chain.append(self)
-        if self.event_type.is_change_related():
-            if self.event_type.relationship == "out":
-                next_in_chain = self.resource_type.wanting_process_type_relationships_for_stage(self.stage)
-            if self.event_type.relationship == "in":
-                next_in_chain = CommitmentType.objects.filter(
-                    resource_type=self.resource_type,
-                    stage=self.process_type,
-                    event_type__resource_effect="~>")
-            if next_in_chain:
-                next_in_chain[0].follow_stage_chain_beyond_workflow(chain)
-
-    def create_commitment_for_process(self, process, user, inheritance):
-        from .schedule import Commitment
-        # pr changed
-        if self.event_type.relationship == "out":
-            due_date = process.end_date
-        else:
-            due_date = process.start_date
-        resource_type = self.resource_type
-        # todo dhen: this is where species would be used
-        if inheritance:
-            if resource_type == inheritance.parent:
-                resource_type = inheritance.substitute(resource_type)
-        unit = self.resource_type.directional_unit(self.event_type.relationship)
-        # import pdb; pdb.set_trace()
-        commitment = Commitment(
-            process=process,
-            stage=self.stage,
-            state=self.state,
-            description=self.description,
-            context_agent=process.context_agent,
-            event_type=self.event_type,
-            resource_type=resource_type,
-            quantity=self.quantity,
-            unit_of_quantity=unit,
-            due_date=due_date,
-            # from_agent=from_agent,
-            # to_agent=to_agent,
-            created_by=user)
-        commitment.save()
-        return commitment
-
-    def create_commitment(self, due_date, user):
-        from .schedule import Commitment
-        unit = self.resource_type.directional_unit(self.event_type.relationship)
-        # import pdb; pdb.set_trace()
-        commitment = Commitment(
-            stage=self.stage,
-            state=self.state,
-            description=self.description,
-            context_agent=self.process_type.context_agent,
-            event_type=self.event_type,
-            resource_type=self.resource_type,
-            quantity=self.quantity,
-            # todo exchange redesign fallout
-            unit_of_quantity=unit,
-            due_date=due_date,
-            # from_agent=from_agent,
-            # to_agent=to_agent,
-            created_by=user)
-        commitment.save()
-        return commitment
-
-    def stream_label(self):
-        relname = ""
-        if self.event_type:
-            relname = self.event_type.label
-        rt_name = self.resource_type.name
-        if self.stage:
-            rt_name = "".join([rt_name, "@", self.stage.name])
-        abbrev = ""
-        if self.unit_of_quantity:
-            abbrev = self.unit_of_quantity.abbrev
-        return " ".join([relname, str(self.quantity), abbrev, rt_name])
-
-    def xbill_label(self):
-        if self.event_type.relationship == 'out':
-            # return self.inverse_label()
-            return ""
-        else:
-            abbrev = ""
-            if self.unit_of_quantity:
-                abbrev = self.unit_of_quantity.abbrev
-            return " ".join([self.event_type.label, str(self.quantity), abbrev])
-
-    def xbill_explanation(self):
-        if self.event_type.relationship == 'out':
-            return "Process Type"
-        else:
-            return "Input"
-
-    def xbill_child_object(self):
-        if self.event_type.relationship == 'out':
-            return self.process_type
-        else:
-            return self.resource_type
-
-    def xbill_class(self):
-        return self.xbill_child_object().xbill_class()
-
-    def xbill_parent_object(self):
-        if self.event_type.relationship == 'out':
-            return self.resource_type
-            # if self.resource_type.category.name == 'option':
-            #    return self
-            # else:
-            #    return self.resource_type
-        else:
-            return self.process_type
-
-    def xbill_parents(self):
-        return [self.resource_type, self]
-
-    def node_id(self):
-        # todo: where is this used? Did I break it with this change?
-        # (adding stage and state)
-        answer = "-".join(["ProcessResource", str(self.id)])
-        if self.stage:
-            answer = "-".join([answer, str(self.stage.id)])
-        if self.state:
-            answer = "-".join([answer, self.state.name])
-        return answer
-
-    def xbill_change_prefix(self):
-        return "".join(["PTRT", str(self.id)])
-
-    def xbill_change_form(self):
-        from django_rea.valueaccounting.forms import ProcessTypeInputForm, ProcessTypeCitableForm, ProcessTypeWorkForm
-        if self.event_type.relationship == "work":
-            return ProcessTypeWorkForm(instance=self, process_type=self.process_type, prefix=self.xbill_change_prefix())
-        elif self.event_type.relationship == "cite":
-            return ProcessTypeCitableForm(instance=self, process_type=self.process_type,
-                                          prefix=self.xbill_change_prefix())
-        else:
-            return ProcessTypeInputForm(instance=self, process_type=self.process_type,
-                                        prefix=self.xbill_change_prefix())
+            share = EconomicResourceType.objects.get(name="Membership Share")
+        except EconomicResourceType.DoesNotExist:
+            raise ValidationError("Membership Share does not exist by that name")
+        return share
 
 
 INVENTORY_RULE_CHOICES = (
@@ -483,27 +53,6 @@ BEHAVIOR_CHOICES = (
     ('dig_wallet', _('Digital Currency Wallet')),
     ('other', _('Other')),
 )
-
-
-class EconomicResourceTypeManager(models.Manager):
-    def membership_share(self):
-        try:
-            share = EconomicResourceType.objects.get(name="Membership Share")
-        except EconomicResourceType.DoesNotExist:
-            raise ValidationError("Membership Share does not exist by that name")
-        return share
-
-
-class RecipeInheritance(object):
-    def __init__(self, parent, heir):
-        self.parent = parent
-        self.heir = heir
-
-    def substitute(self, candidate):
-        if candidate == self.parent:
-            return self.heir
-        else:
-            return candidate
 
 
 @python_2_unicode_compatible
@@ -940,9 +489,9 @@ class EconomicResourceType(models.Model):
         return False
 
     def generate_staged_work_order(self, order_name, start_date, user):
-        from .processes import Order
         # pr changed
         # import pdb; pdb.set_trace()
+        from django_rea.valueaccounting.models.schedule import Order
         pts, inheritance = self.staged_process_type_sequence()
         order = Order(
             order_type="rand",
@@ -1012,7 +561,7 @@ class EconomicResourceType(models.Model):
         return order
 
     def generate_staged_work_order_from_resource(self, resource, order_name, start_date, user):
-        from .processes import Order
+        from django_rea.valueaccounting.models.schedule import Order
         # pr changed
         # import pdb; pdb.set_trace()
         pts, inheritance = self.staged_process_type_sequence()
@@ -1347,6 +896,236 @@ class EconomicResourceType(models.Model):
             return True
 
 
+@python_2_unicode_compatible
+class ResourceClass(models.Model):
+    name = models.CharField(_('name'), max_length=128, unique=True)
+    description = models.TextField(_('description'), blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+
+class ResourceTypeSpecialPrice(models.Model):
+    resource_type = models.ForeignKey("EconomicResourceType",
+                                      verbose_name=_('resource type'), related_name='prices')
+    identifier = models.CharField(_('identifier'), max_length=128)
+    description = models.TextField(_('description'), blank=True, null=True)
+    price_per_unit = models.DecimalField(_('price per unit'), max_digits=8, decimal_places=2,
+                                         default=Decimal("0.00"))
+    stage = models.ForeignKey("ProcessType", related_name="price_at_stage",
+                              verbose_name=_('stage'), blank=True, null=True)
+
+
+@python_2_unicode_compatible
+class CommitmentType(models.Model):
+    process_type = models.ForeignKey("ProcessType",
+                                     verbose_name=_('process type'), related_name='resource_types')
+    resource_type = models.ForeignKey("EconomicResourceType",
+                                      verbose_name=_('resource type'), related_name='process_types')
+    event_type = models.ForeignKey("EventType",
+                                   verbose_name=_('event type'), related_name='process_resource_types')
+    stage = models.ForeignKey("ProcessType", related_name="commitmenttypes_at_stage",
+                              verbose_name=_('stage'), blank=True, null=True)
+    state = models.ForeignKey("ResourceState", related_name="commitmenttypes_at_state",
+                              verbose_name=_('state'), blank=True, null=True)
+    quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, default=Decimal('0.00'))
+    unit_of_quantity = models.ForeignKey("Unit", blank=True, null=True,
+                                         verbose_name=_('unit'), related_name="process_resource_qty_units")
+    description = models.TextField(_('description'), null=True, blank=True)
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+                                   related_name='ptrts_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+                                   related_name='ptrts_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+
+    class Meta:
+        ordering = ('resource_type',)
+        verbose_name = _('commitment type')
+
+    def __str__(self):
+        relname = ""
+        if self.event_type:
+            relname = self.event_type.label
+        rt_name = self.resource_type.name
+        if self.stage:
+            rt_name = "".join([rt_name, "@", self.stage.name])
+        return " ".join([self.process_type.name, relname, str(self.quantity), rt_name])
+
+    def inverse_label(self):
+        return self.event_type.inverse_label
+
+    def cycle_id(self):
+        stage_id = ""
+        if self.stage:
+            stage_id = str(self.stage.id)
+        state_id = ""
+        if self.state:
+            state_id = str(self.state.id)
+        return "-".join([str(self.resource_type.id), stage_id, state_id])
+
+    def is_change_related(self):
+        return self.event_type.is_change_related()
+
+    def follow_stage_chain(self, chain):
+        # import pdb; pdb.set_trace()
+        if self.event_type.is_change_related():
+            if self not in chain:
+                chain.append(self)
+                if self.event_type.relationship == "out":
+                    next_in_chain = CommitmentType.objects.filter(
+                        resource_type=self.resource_type,
+                        stage=self.stage,
+                        event_type__resource_effect=">~")
+                if self.event_type.relationship == "in":
+                    next_in_chain = CommitmentType.objects.filter(
+                        resource_type=self.resource_type,
+                        stage=self.process_type,
+                        event_type__resource_effect="~>")
+                if next_in_chain:
+                    next_in_chain[0].follow_stage_chain(chain)
+
+    def follow_stage_chain_beyond_workflow(self, chain):
+        # import pdb; pdb.set_trace()
+        chain.append(self)
+        if self.event_type.is_change_related():
+            if self.event_type.relationship == "out":
+                next_in_chain = self.resource_type.wanting_process_type_relationships_for_stage(self.stage)
+            if self.event_type.relationship == "in":
+                next_in_chain = CommitmentType.objects.filter(
+                    resource_type=self.resource_type,
+                    stage=self.process_type,
+                    event_type__resource_effect="~>")
+            if next_in_chain:
+                next_in_chain[0].follow_stage_chain_beyond_workflow(chain)
+
+    def create_commitment_for_process(self, process, user, inheritance):
+        from .schedule import Commitment
+        # pr changed
+        if self.event_type.relationship == "out":
+            due_date = process.end_date
+        else:
+            due_date = process.start_date
+        resource_type = self.resource_type
+        # todo dhen: this is where species would be used
+        if inheritance:
+            if resource_type == inheritance.parent:
+                resource_type = inheritance.substitute(resource_type)
+        unit = self.resource_type.directional_unit(self.event_type.relationship)
+        # import pdb; pdb.set_trace()
+        commitment = Commitment(
+            process=process,
+            stage=self.stage,
+            state=self.state,
+            description=self.description,
+            context_agent=process.context_agent,
+            event_type=self.event_type,
+            resource_type=resource_type,
+            quantity=self.quantity,
+            unit_of_quantity=unit,
+            due_date=due_date,
+            # from_agent=from_agent,
+            # to_agent=to_agent,
+            created_by=user)
+        commitment.save()
+        return commitment
+
+    def create_commitment(self, due_date, user):
+        from .schedule import Commitment
+        unit = self.resource_type.directional_unit(self.event_type.relationship)
+        # import pdb; pdb.set_trace()
+        commitment = Commitment(
+            stage=self.stage,
+            state=self.state,
+            description=self.description,
+            context_agent=self.process_type.context_agent,
+            event_type=self.event_type,
+            resource_type=self.resource_type,
+            quantity=self.quantity,
+            # todo exchange redesign fallout
+            unit_of_quantity=unit,
+            due_date=due_date,
+            # from_agent=from_agent,
+            # to_agent=to_agent,
+            created_by=user)
+        commitment.save()
+        return commitment
+
+    def stream_label(self):
+        relname = ""
+        if self.event_type:
+            relname = self.event_type.label
+        rt_name = self.resource_type.name
+        if self.stage:
+            rt_name = "".join([rt_name, "@", self.stage.name])
+        abbrev = ""
+        if self.unit_of_quantity:
+            abbrev = self.unit_of_quantity.abbrev
+        return " ".join([relname, str(self.quantity), abbrev, rt_name])
+
+    def xbill_label(self):
+        if self.event_type.relationship == 'out':
+            # return self.inverse_label()
+            return ""
+        else:
+            abbrev = ""
+            if self.unit_of_quantity:
+                abbrev = self.unit_of_quantity.abbrev
+            return " ".join([self.event_type.label, str(self.quantity), abbrev])
+
+    def xbill_explanation(self):
+        if self.event_type.relationship == 'out':
+            return "Process Type"
+        else:
+            return "Input"
+
+    def xbill_child_object(self):
+        if self.event_type.relationship == 'out':
+            return self.process_type
+        else:
+            return self.resource_type
+
+    def xbill_class(self):
+        return self.xbill_child_object().xbill_class()
+
+    def xbill_parent_object(self):
+        if self.event_type.relationship == 'out':
+            return self.resource_type
+            # if self.resource_type.category.name == 'option':
+            #    return self
+            # else:
+            #    return self.resource_type
+        else:
+            return self.process_type
+
+    def xbill_parents(self):
+        return [self.resource_type, self]
+
+    def node_id(self):
+        # todo: where is this used? Did I break it with this change?
+        # (adding stage and state)
+        answer = "-".join(["ProcessResource", str(self.id)])
+        if self.stage:
+            answer = "-".join([answer, str(self.stage.id)])
+        if self.state:
+            answer = "-".join([answer, self.state.name])
+        return answer
+
+    def xbill_change_prefix(self):
+        return "".join(["PTRT", str(self.id)])
+
+    def xbill_change_form(self):
+        from django_rea.valueaccounting.forms import ProcessTypeInputForm, ProcessTypeCitableForm, ProcessTypeWorkForm
+        if self.event_type.relationship == "work":
+            return ProcessTypeWorkForm(instance=self, process_type=self.process_type, prefix=self.xbill_change_prefix())
+        elif self.event_type.relationship == "cite":
+            return ProcessTypeCitableForm(instance=self, process_type=self.process_type,
+                                          prefix=self.xbill_change_prefix())
+        else:
+            return ProcessTypeInputForm(instance=self, process_type=self.process_type,
+                                        prefix=self.xbill_change_prefix())
+
+
 # todo exchange redesign fallout
 # many of these are obsolete
 DIRECTION_CHOICES = (
@@ -1565,71 +1344,6 @@ class EventType(models.Model):
             return False
 
 
-class ExchangeTypeManager(models.Manager):
-    # before deleting this, track down the connections
-    def sale_exchange_types(self):
-        return ExchangeType.objects.filter(use_case__identifier='sale')
-
-    def internal_exchange_types(self):
-        return ExchangeType.objects.filter(use_case__identifier='intrnl_xfer')
-
-    def supply_exchange_types(self):
-        return ExchangeType.objects.filter(use_case__identifier='supply_xfer')
-
-    def demand_exchange_types(self):
-        return ExchangeType.objects.filter(use_case__identifier='demand_xfer')
-
-    def membership_share_exchange_type(self):
-        try:
-            xt = ExchangeType.objects.get(name='Membership Contribution')
-        except ExchangeType.DoesNotExist:
-            raise ValidationError("Membership Contribution does not exist by that name")
-        return xt
-
-
-@python_2_unicode_compatible
-class ExchangeType(models.Model):
-    name = models.CharField(_('name'), max_length=128)
-    use_case = models.ForeignKey("UseCase",
-                                 blank=True, null=True,
-                                 verbose_name=_('use case'), related_name='exchange_types')
-    description = models.TextField(_('description'), blank=True, null=True)
-    created_by = models.ForeignKey(User, verbose_name=_('created by'),
-                                   related_name='exchange_types_created', blank=True, null=True, editable=False)
-    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
-                                   related_name='exchange_types_changed', blank=True, null=True, editable=False)
-    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
-    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
-    slug = models.SlugField(_("Page name"), editable=False)
-
-    objects = ExchangeTypeManager()
-
-    class Meta:
-        ordering = ('name',)
-
-    def __str__(self):
-        return self.name
-
-    def save(self, *args, **kwargs):
-        unique_slugify(self, self.name)
-        super(ExchangeType, self).save(*args, **kwargs)
-
-    def slots(self):
-        return self.transfer_types.all()
-
-    def is_deletable(self):
-        answer = True
-        if self.exchanges.all():
-            answer = False
-        return answer
-
-    def transfer_types_non_reciprocal(self):
-        return self.transfer_types.filter(is_reciprocal=False)
-
-    def transfer_types_reciprocal(self):
-        return self.transfer_types.filter(is_reciprocal=True)
-
-
 class ProcessTypeManager(models.Manager):
     def workflow_process_types(self):
         pts = ProcessType.objects.all()
@@ -1686,8 +1400,8 @@ class ProcessType(models.Model):
         return "blue"
 
     def create_process(self, start_date, user, inheritance=None):
-        from .processes import Process
         # pr changed
+        from django_rea.valueaccounting.models.process import Process
         end_date = start_date + datetime.timedelta(minutes=self.estimated_duration)
         process = Process(
             name=self.name,
@@ -1955,7 +1669,6 @@ class ProcessType(models.Model):
     def create_facet_formset_filtered(self, pre, slot, data=None):
         from django.forms.models import formset_factory
         from django_rea.valueaccounting.forms import ResourceTypeFacetValueForm
-        from .behavior import Facet
         # import pdb; pdb.set_trace()
         RtfvFormSet = formset_factory(ResourceTypeFacetValueForm, extra=0)
         init = []
@@ -1988,141 +1701,6 @@ class ProcessType(models.Model):
 
     def xbill_class(self):
         return "process-type"
-
-
-@python_2_unicode_compatible
-class TransferType(models.Model):
-    name = models.CharField(_('name'), max_length=128)
-    sequence = models.IntegerField(_('sequence'), default=0)
-    exchange_type = models.ForeignKey(ExchangeType,
-                                      verbose_name=_('exchange type'), related_name='transfer_types')
-    description = models.TextField(_('description'), blank=True, null=True)
-    is_contribution = models.BooleanField(_('is contribution'), default=False)
-    is_to_distribute = models.BooleanField(_('is to distribute'), default=False)
-    is_reciprocal = models.BooleanField(_('is reciprocal'), default=False)
-    can_create_resource = models.BooleanField(_('can create resource'), default=False)
-    is_currency = models.BooleanField(_('is currency'), default=False)
-    give_agent_is_context = models.BooleanField(_('give agent is context'), default=False)
-    receive_agent_is_context = models.BooleanField(_('receive agent is context'), default=False)
-    give_agent_association_type = models.ForeignKey(AgentAssociationType,
-                                                    blank=True, null=True,
-                                                    verbose_name=_('give agent association type'),
-                                                    related_name='transfer_types_give')
-    receive_agent_association_type = models.ForeignKey(AgentAssociationType,
-                                                       blank=True, null=True,
-                                                       verbose_name=_('receive agent association type'),
-                                                       related_name='transfer_types_receive')
-    created_by = models.ForeignKey(User, verbose_name=_('created by'),
-                                   related_name='transfer_types_created', blank=True, null=True, editable=False)
-    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
-                                   related_name='transfer_types_changed', blank=True, null=True, editable=False)
-    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
-    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        ordering = ('sequence',)
-
-    def is_deletable(self):
-        if self.transfers.all():
-            return False
-        return True
-
-    def facets(self):
-        facets = [ttfv.facet_value.facet for ttfv in self.facet_values.all()]
-        return list(set(facets))
-
-    def get_resource_types(self):
-        from .processes import ResourceTypeFacetValue
-        # import pdb; pdb.set_trace()
-        tt_facet_values = self.facet_values.all()
-        facet_values = [ttfv.facet_value for ttfv in tt_facet_values]
-        facets = {}
-        for fv in facet_values:
-            if fv.facet not in facets:
-                facets[fv.facet] = []
-            facets[fv.facet].append(fv.value)
-
-        fv_ids = [fv.id for fv in facet_values]
-        rt_facet_values = ResourceTypeFacetValue.objects.filter(facet_value__id__in=fv_ids)
-
-        rts = {}
-        for rtfv in rt_facet_values:
-            rt = rtfv.resource_type
-            if rt not in rts:
-                rts[rt] = []
-            rts[rt].append(rtfv.facet_value)
-
-        # import pdb; pdb.set_trace()
-        matches = []
-
-        for rt, facet_values in rts.iteritems():
-            match = True
-            for facet, values in facets.iteritems():
-                rt_fv = [fv for fv in facet_values if fv.facet == facet]
-                if rt_fv:
-                    rt_fv = rt_fv[0]
-                    if rt_fv.value not in values:
-                        match = False
-                else:
-                    match = False
-            if match:
-                matches.append(rt)
-
-        answer_ids = [a.id for a in matches]
-        answer = EconomicResourceType.objects.filter(id__in=answer_ids)
-        return answer
-
-    def to_agents(self, context_agent):
-        from .core import EconomicAgent
-        # import pdb; pdb.set_trace()
-        if self.receive_agent_association_type:
-            return context_agent.has_associates_self_or_inherited(self.receive_agent_association_type.identifier)
-        else:
-            return EconomicAgent.objects.all()
-
-    def from_agents(self, context_agent):
-        from .core import EconomicAgent
-        if self.give_agent_association_type:
-            return context_agent.has_associates_self_or_inherited(self.give_agent_association_type.identifier)
-        else:
-            return EconomicAgent.objects.all()
-
-    def form_prefix(self):
-        return "-".join(["TT", str(self.id)])
-
-    def change_form(self):
-        from django_rea.valueaccounting.forms import TransferTypeForm
-        prefix = self.form_prefix()
-        return TransferTypeForm(instance=self, prefix=prefix)
-
-
-@python_2_unicode_compatible
-class TransferTypeFacetValue(models.Model):
-    transfer_type = models.ForeignKey("TransferType",
-                                      verbose_name=_('transfer type'), related_name='facet_values')
-    facet_value = models.ForeignKey("FacetValue",
-                                    verbose_name=_('facet value'), related_name='transfer_types')
-
-    class Meta:
-        unique_together = ('transfer_type', 'facet_value')
-        ordering = ('transfer_type', 'facet_value')
-
-    def __str__(self):
-        return ": ".join([self.transfer_type.name, self.facet_value.facet.name, self.facet_value.value])
-
-
-class ResourceTypeSpecialPrice(models.Model):
-    resource_type = models.ForeignKey("EconomicResourceType",
-                                      verbose_name=_('resource type'), related_name='prices')
-    identifier = models.CharField(_('identifier'), max_length=128)
-    description = models.TextField(_('description'), blank=True, null=True)
-    price_per_unit = models.DecimalField(_('price per unit'), max_digits=8, decimal_places=2,
-                                         default=Decimal("0.00"))
-    stage = models.ForeignKey(ProcessType, related_name="price_at_stage",
-                              verbose_name=_('stage'), blank=True, null=True)
 
 
 @python_2_unicode_compatible
@@ -2179,27 +1757,340 @@ class ResourceTypeListElement(models.Model):
 
 
 @python_2_unicode_compatible
-class UseCaseEventType(models.Model):
-    use_case = models.ForeignKey("UseCase",
-                                 verbose_name=_('use case'), related_name='event_types')
+class Feature(models.Model):
+    name = models.CharField(_('name'), max_length=128)
+    # todo: replace with ___? something
+    # option_category = models.ForeignKey(Category,
+    #    verbose_name=_('option category'), related_name='features',
+    #    blank=True, null=True,
+    #    help_text=_("option selections will be limited to this category"),
+    #    limit_choices_to=Q(applies_to='Anything') | Q(applies_to='EconomicResourceType'))
+    product = models.ForeignKey("EconomicResourceType",
+                                related_name="features", verbose_name=_('product'))
+    process_type = models.ForeignKey("ProcessType",
+                                     blank=True, null=True,
+                                     verbose_name=_('process type'), related_name='features')
     event_type = models.ForeignKey(EventType,
-                                   verbose_name=_('event type'), related_name='use_cases')
+                                   verbose_name=_('event type'), related_name='features')
+    quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, default=Decimal('0.00'))
+    unit_of_quantity = models.ForeignKey("Unit", blank=True, null=True,
+                                         verbose_name=_('unit'), related_name="feature_units")
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+                                   related_name='features_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+                                   related_name='features_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+
+    class Meta:
+        ordering = ('name',)
 
     def __str__(self):
-        return ": ".join([self.use_case.name, self.event_type.name])
+        return " ".join([self.name, "Feature for", self.product.name])
 
-    @classmethod
-    def create(cls, use_case_identifier, event_type_name):
-        """
-        Creates a new UseCaseEventType, updates an existing one, or does nothing.
-        This is intended to be used as a post_syncdb manangement step.
-        """
-        from .processes import UseCase
+    def xbill_child_object(self):
+        return self
+
+    def xbill_class(self):
+        return "feature"
+
+    def xbill_parent_object(self):
+        return self.process_type
+
+    def xbill_children(self):
+        return self.options.all()
+
+    def xbill_explanation(self):
+        return "Feature"
+
+    def xbill_label(self):
+        abbrev = ""
+        if self.unit_of_quantity:
+            abbrev = self.unit_of_quantity.abbrev
+        return " ".join([str(self.quantity), abbrev])
+
+    # def xbill_category(self):
+    #    return Category(name="features")
+
+    def node_id(self):
+        return "-".join(["Feature", str(self.id)])
+
+    def xbill_parents(self):
+        return [self.process_type, self]
+
+    def options_form(self):
+        from django_rea.valueaccounting.forms import OptionsForm
+        return OptionsForm(feature=self)
+
+    def options_change_form(self):
+        from django_rea.valueaccounting.forms import OptionsForm
+        option_ids = self.options.values_list('component__id', flat=True)
+        init = {'options': option_ids, }
+        return OptionsForm(feature=self, initial=init)
+
+    def xbill_change_prefix(self):
+        return "".join(["FTR", str(self.id)])
+
+    def xbill_change_form(self):
+        from django_rea.valueaccounting.forms import FeatureForm
+        # return FeatureForm(instance=self, prefix=self.xbill_change_prefix())
+        return FeatureForm(instance=self)
+
+
+@python_2_unicode_compatible
+class Option(models.Model):
+    feature = models.ForeignKey(Feature,
+                                related_name="options", verbose_name=_('feature'))
+    component = models.ForeignKey("EconomicResourceType",
+                                  related_name="options", verbose_name=_('component'))
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+                                   related_name='options_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+                                   related_name='options_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+
+    class Meta:
+        ordering = ('component',)
+
+    def __str__(self):
+        return " ".join([self.component.name, "option for", self.feature.name])
+
+    def xbill_child_object(self):
+        return self.component
+
+    def xbill_class(self):
+        return "option"
+
+    def xbill_parent_object(self):
+        return self.feature
+
+    def xbill_children(self):
+        return self.component.xbill_children()
+
+    def xbill_explanation(self):
+        return "Option"
+
+    def xbill_label(self):
+        return ""
+
+    # def xbill_category(self):
+    #    return Category(name="features")
+
+    def node_id(self):
+        return "-".join(["Option", str(self.id)])
+
+    def xbill_parents(self):
+        return [self.feature, self]
+
+
+@python_2_unicode_compatible
+class SelectedOption(models.Model):
+    commitment = models.ForeignKey("Commitment",
+                                   related_name="options", verbose_name=_('commitment'))
+    option = models.ForeignKey(Option,
+                               related_name="commitments", verbose_name=_('option'))
+
+    class Meta:
+        ordering = ('commitment', 'option')
+
+    def __str__(self):
+        return " ".join([self.option.name, "option for", self.commitment.resource_type.name])
+
+
+UNIT_TYPE_CHOICES = (
+    ('area', _('area')),
+    ('length', _('length')),
+    ('quantity', _('quantity')),
+    ('time', _('time')),
+    ('value', _('value')),
+    ('volume', _('volume')),
+    ('weight', _('weight')),
+    ('ip', _('ip')),
+    ('percent', _('percent')),
+)
+
+
+@python_2_unicode_compatible
+class Unit(models.Model):
+    unit_type = models.CharField(_('unit type'), max_length=12, choices=UNIT_TYPE_CHOICES)
+    abbrev = models.CharField(_('abbreviation'), max_length=8)
+    name = models.CharField(_('name'), max_length=64)
+    symbol = models.CharField(_('symbol'), max_length=1, blank=True)
+
+    class Meta:
+        ordering = ('name',)
+
+    def __str__(self):
+        return self.name
+
+
+class ExchangeTypeManager(models.Manager):
+    # before deleting this, track down the connections
+    def sale_exchange_types(self):
+        return ExchangeType.objects.filter(use_case__identifier='sale')
+
+    def internal_exchange_types(self):
+        return ExchangeType.objects.filter(use_case__identifier='intrnl_xfer')
+
+    def supply_exchange_types(self):
+        return ExchangeType.objects.filter(use_case__identifier='supply_xfer')
+
+    def demand_exchange_types(self):
+        return ExchangeType.objects.filter(use_case__identifier='demand_xfer')
+
+    def membership_share_exchange_type(self):
         try:
-            use_case = UseCase.objects.get(identifier=use_case_identifier)
-            event_type = EventType.objects.get(name=event_type_name)
-            ucet = cls._default_manager.get(use_case=use_case, event_type=event_type)
-        except cls.DoesNotExist:
-            cls(use_case=use_case, event_type=event_type).save()
-            # import pdb; pdb.set_trace()
-            print("Created %s UseCaseEventType" % (use_case_identifier + " " + event_type_name))
+            xt = ExchangeType.objects.get(name='Membership Contribution')
+        except ExchangeType.DoesNotExist:
+            raise ValidationError("Membership Contribution does not exist by that name")
+        return xt
+
+
+@python_2_unicode_compatible
+class ExchangeType(models.Model):
+    name = models.CharField(_('name'), max_length=128)
+    use_case = models.ForeignKey("UseCase",
+                                 blank=True, null=True,
+                                 verbose_name=_('use case'), related_name='exchange_types')
+    description = models.TextField(_('description'), blank=True, null=True)
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+                                   related_name='exchange_types_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+                                   related_name='exchange_types_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+    slug = models.SlugField(_("Page name"), editable=False)
+
+    objects = ExchangeTypeManager()
+
+    class Meta:
+        ordering = ('name',)
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        unique_slugify(self, self.name)
+        super(ExchangeType, self).save(*args, **kwargs)
+
+    def slots(self):
+        return self.transfer_types.all()
+
+    def is_deletable(self):
+        answer = True
+        if self.exchanges.all():
+            answer = False
+        return answer
+
+    def transfer_types_non_reciprocal(self):
+        return self.transfer_types.filter(is_reciprocal=False)
+
+    def transfer_types_reciprocal(self):
+        return self.transfer_types.filter(is_reciprocal=True)
+
+
+@python_2_unicode_compatible
+class TransferType(models.Model):
+    name = models.CharField(_('name'), max_length=128)
+    sequence = models.IntegerField(_('sequence'), default=0)
+    exchange_type = models.ForeignKey(ExchangeType,
+                                      verbose_name=_('exchange type'), related_name='transfer_types')
+    description = models.TextField(_('description'), blank=True, null=True)
+    is_contribution = models.BooleanField(_('is contribution'), default=False)
+    is_to_distribute = models.BooleanField(_('is to distribute'), default=False)
+    is_reciprocal = models.BooleanField(_('is reciprocal'), default=False)
+    can_create_resource = models.BooleanField(_('can create resource'), default=False)
+    is_currency = models.BooleanField(_('is currency'), default=False)
+    give_agent_is_context = models.BooleanField(_('give agent is context'), default=False)
+    receive_agent_is_context = models.BooleanField(_('receive agent is context'), default=False)
+    give_agent_association_type = models.ForeignKey("AgentAssociationType",
+                                                    blank=True, null=True,
+                                                    verbose_name=_('give agent association type'),
+                                                    related_name='transfer_types_give')
+    receive_agent_association_type = models.ForeignKey("AgentAssociationType",
+                                                       blank=True, null=True,
+                                                       verbose_name=_('receive agent association type'),
+                                                       related_name='transfer_types_receive')
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+                                   related_name='transfer_types_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+                                   related_name='transfer_types_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ('sequence',)
+
+    def is_deletable(self):
+        if self.transfers.all():
+            return False
+        return True
+
+    def facets(self):
+        facets = [ttfv.facet_value.facet for ttfv in self.facet_values.all()]
+        return list(set(facets))
+
+    def get_resource_types(self):
+        # import pdb; pdb.set_trace()
+        tt_facet_values = self.facet_values.all()
+        facet_values = [ttfv.facet_value for ttfv in tt_facet_values]
+        facets = {}
+        for fv in facet_values:
+            if fv.facet not in facets:
+                facets[fv.facet] = []
+            facets[fv.facet].append(fv.value)
+
+        fv_ids = [fv.id for fv in facet_values]
+        rt_facet_values = ResourceTypeFacetValue.objects.filter(facet_value__id__in=fv_ids)
+
+        rts = {}
+        for rtfv in rt_facet_values:
+            rt = rtfv.resource_type
+            if rt not in rts:
+                rts[rt] = []
+            rts[rt].append(rtfv.facet_value)
+
+        # import pdb; pdb.set_trace()
+        matches = []
+
+        for rt, facet_values in rts.iteritems():
+            match = True
+            for facet, values in facets.iteritems():
+                rt_fv = [fv for fv in facet_values if fv.facet == facet]
+                if rt_fv:
+                    rt_fv = rt_fv[0]
+                    if rt_fv.value not in values:
+                        match = False
+                else:
+                    match = False
+            if match:
+                matches.append(rt)
+
+        answer_ids = [a.id for a in matches]
+        answer = EconomicResourceType.objects.filter(id__in=answer_ids)
+        return answer
+
+    def to_agents(self, context_agent):
+        # import pdb; pdb.set_trace()
+        if self.receive_agent_association_type:
+            return context_agent.has_associates_self_or_inherited(self.receive_agent_association_type.identifier)
+        else:
+            return EconomicAgent.objects.all()
+
+    def from_agents(self, context_agent):
+        if self.give_agent_association_type:
+            return context_agent.has_associates_self_or_inherited(self.give_agent_association_type.identifier)
+        else:
+            return EconomicAgent.objects.all()
+
+    def form_prefix(self):
+        return "-".join(["TT", str(self.id)])
+
+    def change_form(self):
+        from django_rea.valueaccounting.forms import TransferTypeForm
+        prefix = self.form_prefix()
+        return TransferTypeForm(instance=self, prefix=prefix)

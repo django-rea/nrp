@@ -193,7 +193,7 @@ INSTALLED_APPS = [
     'django_rea.board.apps.BoardAppConfig',
     'django_rea.api.apps.ApiAppConfig',
     'account',
-    'ocp.work',
+    'ocp.work.apps.WorkAppConfig',
 
 
 ]

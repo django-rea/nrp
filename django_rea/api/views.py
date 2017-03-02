@@ -15,7 +15,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import MultipleObjectsReturned
 from django.forms import ValidationError
 import json as simplejson
-from django.utils.datastructures import SortedDict
+from collections import OrderedDict
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.contrib.auth.models import User, Group

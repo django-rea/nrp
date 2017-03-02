@@ -1,10 +1,11 @@
 --extra-index-url=http://dist.pinaxproject.com/dev/
 --extra-index-url=http://dist.pinaxproject.com/alpha/
 
-Django<1.9
+Django<1.10
 django-extensions
 pinax-theme-bootstrap==2.0.4
 pinax-theme-bootstrap-account==1.0b2
+django-appconf==1.0.2
 django-forms-bootstrap==2.0.3.post1
 webtest
 django-webtest
@@ -13,7 +14,7 @@ toposort
 django-cors-headers
 rdflib
 rdflib-jsonld
-djangorestframework==2.4.8
+djangorestframework
 jsonrpclib
 django-contrib-comments
 html5lib==0.9999999

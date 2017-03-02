@@ -24,7 +24,7 @@ class PlainContextSerializer(serializers.HyperlinkedModelSerializer):
         view_name='context-detail',
         lookup_field='pk'
     )
-    agent_type = serializers.RelatedField()
+    agent_type = serializers.RelatedField(read_only=True)
     class Meta:
         model = EconomicAgent
         fields = ('api_url', 'url', 'name', 'slug', 'agent_type', 'address',)
@@ -35,7 +35,7 @@ class EconomicAgentSerializer(serializers.HyperlinkedModelSerializer):
         view_name='economicagent-detail',
         lookup_field='pk'
     )
-    agent_type = serializers.RelatedField()
+    agent_type = serializers.RelatedField(read_only=True)
     projects = PlainContextSerializer(source='contexts_participated_in',
         many=True, read_only=True)
     class Meta:
@@ -44,7 +44,7 @@ class EconomicAgentSerializer(serializers.HyperlinkedModelSerializer):
 
         
 class EconomicAgentCreationSerializer(serializers.HyperlinkedModelSerializer):
-    #agent_type = serializers.RelatedField()
+    #agent_type = serializers.RelatedField(read_only=True)
     class Meta:
         model = EconomicAgent
         fields = (
@@ -67,7 +67,7 @@ class AgentUserSerializer(serializers.HyperlinkedModelSerializer):
 
         
 class PeopleSerializer(serializers.HyperlinkedModelSerializer):
-    #agent_type = serializers.RelatedField()
+    #agent_type = serializers.RelatedField(read_only=True)
     api_url = serializers.HyperlinkedIdentityField(
         view_name='people-detail',
         lookup_field='pk'
@@ -79,7 +79,7 @@ class PeopleSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('api_url', 'url', 'name', 'nick', 'agent_type', 'address', 'email', 'projects')
         
 class PlainPeopleSerializer(serializers.HyperlinkedModelSerializer):
-    #agent_type = serializers.RelatedField()
+    #agent_type = serializers.RelatedField(read_only=True)
     api_url = serializers.HyperlinkedIdentityField(
         view_name='people-detail',
         lookup_field='pk'
@@ -93,7 +93,7 @@ class ContextSerializer(serializers.HyperlinkedModelSerializer):
         view_name='context-detail',
         lookup_field='pk'
     )
-    agent_type = serializers.RelatedField()
+    agent_type = serializers.RelatedField(read_only=True)
     contributors = PlainPeopleSerializer(source='contributors',
         many=True, read_only=True)
     class Meta:
@@ -107,7 +107,7 @@ class AgentTypeSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('api_url', 'name', 'party_type', )
         
 class EconomicEventSerializer(serializers.HyperlinkedModelSerializer):
-    unit_of_quantity = serializers.RelatedField()
+    unit_of_quantity = serializers.RelatedField(read_only=True)
     class Meta:
         model = EconomicEvent
         fields = ('api_url', 
@@ -127,7 +127,7 @@ class EconomicEventSerializer(serializers.HyperlinkedModelSerializer):
             )
         
 class ContributionSerializer(serializers.HyperlinkedModelSerializer):
-    unit_of_quantity = serializers.RelatedField()
+    unit_of_quantity = serializers.RelatedField(read_only=True)
     class Meta:
         model = EconomicEvent
         fields = ('api_url', 

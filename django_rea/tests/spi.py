@@ -8,6 +8,7 @@ class ModelProviderSpiUnittest(unittest.TestCase):
         """
         Tests no duplicate implementations are allowed per interface.
         """
+        ModelProvider.mapping = {}
         ModelProvider.register_implementation(object, object)
         with self.assertRaises(ValueError) as context:
             ModelProvider.register_implementation(object, object)
@@ -18,5 +19,6 @@ class ModelProviderSpiUnittest(unittest.TestCase):
         """
         Tests duplicate implementations are allowed per interface if `replace=True`.
         """
+        ModelProvider.mapping = {}
         ModelProvider.register_implementation(object, object)
         ModelProvider.register_implementation(object, object, replace=True)

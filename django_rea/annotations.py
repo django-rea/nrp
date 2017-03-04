@@ -52,3 +52,14 @@ def push_down(layer=None):
         return func
 
     return wrapper
+
+
+def split_apart(layer=None):
+    logger.warn(
+        "{0} - Planned to be splitted apart in the next release to layer: {1}".format(caller_name(2), layer or 'None')
+    )
+
+    def wrapper(func):
+        return func
+
+    return wrapper

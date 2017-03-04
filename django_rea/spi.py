@@ -64,3 +64,6 @@ class BaseExtensibleReaModel(six.with_metaclass(ModelProviderMeta, Model)):
     Classes extending this base will be registered in the `ModelProvider` registry allowing
     to be overridden in latter registered applications.
     """
+
+    class Meta:
+        abstract = True

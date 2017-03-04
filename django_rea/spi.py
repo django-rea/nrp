@@ -1,3 +1,8 @@
+from django.db.models import Model
+from django.db.models.base import ModelBase
+from django.utils import six
+
+
 class PluginMount(type):
     """
     Plugin mount is a metaclass based on the ideas of http://martyalchin.com/2008/jan/10/simple-plugin-framework/
@@ -20,25 +25,42 @@ class PluginMount(type):
 
 
 class ModelProvider:
-    __metaclass__ = PluginMount
+    """
+    A class mapping registry.
+    """
+
+    mapping = {}
 
     @classmethod
-    def register_implementation(cls, interface, implementation):
-        instance = _ModelImplementation(interface, implementation)
-        if instance.interface in cls.mapping:
+    def register_implementation(cls, interface, implementation, replace=False):
+        """
+        Registers an implementation as a mapping.
+        :param interface:
+        :param implementation:
+        :param replace:
+        :return:
+        """
+        if interface in cls.mapping and not replace:
             raise ValueError(
                 "The interface {0} is already mapped to {1}".format(
-                    instance.interface,
-                    cls.mapping[instance.interface])
+                    interface,
+                    cls.mapping[interface])
             )
-        cls.mapping[instance.interface] = instance.implementation
+        cls.mapping[interface] = implementation
 
     @classmethod
     def get_implementation(cls, interface):
         return cls.mapping[interface]
 
 
-class _ModelImplementation(ModelProvider):
-    def __init__(self, interface, implementation):
-        self.interface = interface
-        self.implementation = implementation
+class ModelProviderMeta(ModelBase):
+    def __init__(cls, what, bases=None, dict=None):
+        super(ModelProviderMeta, cls).__init__(what, bases, dict)
+        ModelProvider.register_implementation(cls, cls, replace=True)
+
+
+class BaseExtensibleReaModel(six.with_metaclass(ModelProviderMeta, Model)):
+    """
+    Classes extending this base will be registered in the `ModelProvider` registry allowing
+    to be overridden in latter registered applications.
+    """

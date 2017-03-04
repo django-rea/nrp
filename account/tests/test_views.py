@@ -1,6 +1,6 @@
 from django.core.urlresolvers import reverse
 from django.test.client import RequestFactory
-from django.utils import unittest
+import unittest
 
 from django.contrib.auth.models import AnonymousUser, User
 
@@ -8,21 +8,19 @@ from account.views import SignupView, LoginView
 
 
 class SignupEnabledView(SignupView):
-    
     def is_open(self):
         return True
 
 
 class SignupDisabledView(SignupView):
-    
     def is_open(self):
         return False
 
 
 class LoginDisabledView(LoginView):
-    
     def disabled(self):
         return True
+
 
 """
 class SignupViewTestCase(unittest.TestCase):
@@ -61,11 +59,11 @@ class SignupViewTestCase(unittest.TestCase):
         self.asserEqual(user.email, "info@example.com")
 """
 
+
 class LoginViewTestCase(unittest.TestCase):
-    
     def setUp(self):
         self.factory = RequestFactory()
-    
+
     def test_get(self):
         request = self.factory.get(reverse("account_login"))
         request.user = AnonymousUser()
@@ -78,7 +76,7 @@ class LoginViewTestCase(unittest.TestCase):
         request.user = AnonymousUser()
         response = LoginDisabledView.as_view()(request)
         self.assertEqual(response.status_code, 200)
-    
+
     def test_post_disabled(self):
         request = self.factory.post(reverse("account_login"))
         request.user = AnonymousUser()

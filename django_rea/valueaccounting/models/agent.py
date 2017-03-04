@@ -13,6 +13,8 @@ from django.utils.encoding import python_2_unicode_compatible
 
 from easy_thumbnails.fields import ThumbnailerImageField
 
+from django_rea.annotations import push_down
+from django_rea.spi import BaseExtensibleReaModel
 from ._utils import unique_slugify
 
 
@@ -58,6 +60,7 @@ class AgentManager(models.Manager):
                 ua_ids.append(agent.id)
         return EconomicAgent.objects.filter(id__in=ua_ids)
 
+    @push_down(layer="OCP")
     def without_membership_request(self):
         from ocp.work.models import MembershipRequest
         reqs = MembershipRequest.objects.all()
@@ -65,6 +68,7 @@ class AgentManager(models.Manager):
         rids = [agt.id for agt in req_agts]
         return EconomicAgent.objects.exclude(id__in=rids).order_by("name")
 
+    @push_down(layer="OCP")
     def without_join_request(self):
         from ocp.work.models import JoinRequest
         reqs = JoinRequest.objects.all()
@@ -98,6 +102,7 @@ class AgentManager(models.Manager):
         # todo: should there be some limits?  Ran into condition where we needed an organization, therefore change to below.
         return EconomicAgent.objects.all()
 
+    @push_down(layer="OCP")
     def freedom_coop(self):
         if not settings.use_faircoins:
             return None
@@ -113,7 +118,7 @@ class AgentManager(models.Manager):
 
 
 @python_2_unicode_compatible
-class EconomicAgent(models.Model):
+class EconomicAgent(BaseExtensibleReaModel):
     name = models.CharField(_('name'), max_length=255)
     nick = models.CharField(_('ID'), max_length=32, unique=True,
                             help_text=_("Must be unique, and no more than 32 characters"))
@@ -173,6 +178,7 @@ class EconomicAgent(models.Model):
         return ('agent', (),
                 {'agent_id': str(self.id), })
 
+    @push_down(layer="OCP")
     def membership_request(self):
         reqs = self.membership_requests.all()
         if reqs:
@@ -180,6 +186,7 @@ class EconomicAgent(models.Model):
         else:
             return None
 
+    @push_down(layer="OCP")
     def membership_request_id(self):
         req = self.membership_request()
         if req:
@@ -202,6 +209,7 @@ class EconomicAgent(models.Model):
             return None
     """
 
+    @push_down(layer="OCP")
     def joinaproject_requests(self):
         reqs = self.project_join_requests.all()
         if reqs:
@@ -209,6 +217,7 @@ class EconomicAgent(models.Model):
         else:
             return None
 
+    @push_down(layer="OCP")
     def joinaproject_requests_projects(self):
         reqs = self.project_join_requests.all()
         projects = []
@@ -219,6 +228,7 @@ class EconomicAgent(models.Model):
         else:
             return None
 
+    @push_down(layer="OCP")
     def request_faircoin_address(self):
         # import pdb; pdb.set_trace()
         address = self.faircoin_address()
@@ -227,6 +237,7 @@ class EconomicAgent(models.Model):
             resource = self.create_faircoin_resource(address)
         return address
 
+    @push_down(layer="OCP")
     def create_fake_faircoin_address(self):
         # import pdb; pdb.set_trace()
         address = self.faircoin_address()
@@ -236,6 +247,7 @@ class EconomicAgent(models.Model):
             print("created fake faircoin address")
         return address
 
+    @push_down(layer="OCP")
     def create_faircoin_resource(self, address):
         from django_rea.valueaccounting.models.resource import EconomicResource, AgentResourceRole, AgentResourceRoleType
         from django_rea.valueaccounting.models.recipe import EconomicResourceType
@@ -274,6 +286,7 @@ class EconomicAgent(models.Model):
             raise ValidationError(
                 "Cannot create digital currency resource for " + self.nick + " because no owner AgentResourceRoleTypes.")
 
+    @push_down(layer="OCP")
     def faircoin_address(self):
         if not settings.use_faircoins:
             return None
@@ -283,6 +296,7 @@ class EconomicAgent(models.Model):
         else:
             return None
 
+    @push_down(layer="OCP")
     def faircoin_resource(self):
         if not settings.use_faircoins:
             return None
@@ -295,6 +309,7 @@ class EconomicAgent(models.Model):
         else:
             return None
 
+    @push_down(layer="OCP")
     def candidate_membership(self):
         aa = self.candidate_association()
         if aa:
@@ -302,6 +317,7 @@ class EconomicAgent(models.Model):
                 return aa.has_associate
         return None
 
+    @push_down(layer="OCP")
     def candidate_association(self):
         aas = self.is_associate_of.all()
         if aas:
@@ -309,6 +325,7 @@ class EconomicAgent(models.Model):
             if aa.state == "potential":
                 return aa
 
+    @push_down(layer="OCP")
     def number_of_shares(self):
         if self.agent_type.party_type == "individual":
             shares = 1
@@ -357,6 +374,7 @@ class EconomicAgent(models.Model):
             return True
         return False
 
+    @push_down(layer="OCP")
     def is_active_freedom_coop_member(self):
         if not settings.use_faircoins:
             return False
@@ -370,6 +388,7 @@ class EconomicAgent(models.Model):
         else:
             return False
 
+    @push_down(layer="OCP")
     def is_participant(self):
         fcaas = None
         if not self.is_active_freedom_coop_member() and self.joinaproject_requests():
@@ -388,6 +407,7 @@ class EconomicAgent(models.Model):
         else:
             return False
 
+    @push_down(layer="OCP")
     def is_participant_candidate(self):
         fcaas = None
         if not self.is_active_freedom_coop_member() and self.joinaproject_requests():

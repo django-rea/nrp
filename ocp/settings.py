@@ -97,7 +97,8 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'django_rea.login_required_middleware.LoginRequiredMiddleware',
+    'django_rea.middleware.LoginRequiredMiddleware',
+    'django_rea.middleware.AuthenticatedUserAgentRequestMiddleware',
     'account.middleware.LocaleMiddleware',
     #'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]

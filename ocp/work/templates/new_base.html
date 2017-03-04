@@ -6,7 +6,7 @@
 <html lang="{{ LANGUAGE_CODE }}">
     <head>
         <meta charset="utf-8" />
-        <title>{% block head_title_base %}{% if SITE_NAME %}{{ SITE_NAME }} | {% endif %}{% block head_title %}{% endblock %}{% endblock %} </title>
+        <title>{% block head_title_base %}{% if site_name %}{{ site_name }} | {% endif %}{% block head_title %}{% endblock %}{% endblock %} </title>
         {% block viewport %}
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
         {% endblock %}
@@ -50,7 +50,7 @@
                 <span class="icon-bar"></span>
               </a>
               {% block site_brand %}
-                <a class="brand" href="{% url 'work_home' %}">{{ SITE_NAME }}</a>
+                <a class="brand" href="{% url 'work_home' %}">{{ site_name }}</a>
               {% endblock %}
               <div class="nav-collapse">
                 {% block nav %}

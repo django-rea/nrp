@@ -6,7 +6,7 @@ def settings(request):
     if Site._meta.installed:
         site = Site.objects.get_current()
         ctx.update({
-            "SITE_NAME": site.name,
-            "SITE_DOMAIN": site.domain
+            "site_name": site.name,
+            "site_domain": site.domain
         })
     return ctx

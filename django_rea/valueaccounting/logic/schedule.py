@@ -1,7 +1,12 @@
 from decimal import *
+import datetime
 
 
 # todo: soon to be obsolete (is it obsolete now?)
+from django_rea.valueaccounting.models import Commitment
+from django_rea.valueaccounting.models import Process
+
+
 def explode_dependent_demands(commitment, user):
     """This method assumes an input commitment"""
 

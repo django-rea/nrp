@@ -9,6 +9,18 @@ from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import python_2_unicode_compatible
 
+from django_rea.valueaccounting.models.process import Process
+from django_rea.valueaccounting.models.trade import Exchange
+from django_rea.valueaccounting.models.resource import EconomicResource
+from django_rea.valueaccounting.models.event import EventSummary
+from django_rea.valueaccounting.models.recipe import CommitmentType, EventType
+from django_rea.valueaccounting.models.facetconfig import (
+    PatternUseCase,
+    ProcessPattern,
+    UseCase
+)
+from django_rea.valueaccounting.models.recipe import ProcessType
+
 from ._utils import (
     unique_slugify,
     collect_trash,
@@ -219,7 +231,6 @@ class Commitment(models.Model):
         return answer
 
     def commitment_type(self):
-        from .types import CommitmentType
         rt = self.resource_type
         pt = None
         if self.process:
@@ -416,7 +427,6 @@ class Commitment(models.Model):
 
     def work_todo_change_form(self):
         # import pdb; pdb.set_trace()
-        from .processes import PatternUseCase
         from ocp.work.forms import WorkTodoForm
         agent = self.to_agent  # poster of todo
         prefix = self.form_prefix()
@@ -490,7 +500,6 @@ class Commitment(models.Model):
 
     def resources_ready_to_be_changed(self):
         # import pdb; pdb.set_trace()
-        from .core import EconomicResource
         resources = []
         if self.event_type.stage_to_be_changed():
             if self.resource_type.substitutable:
@@ -508,7 +517,6 @@ class Commitment(models.Model):
         return self.fulfillment_events.all()
 
     def fulfilling_events_condensed(self):
-        from .behavior import EventSummary
         # import pdb; pdb.set_trace()
         event_list = self.fulfillment_events.all()
         condensed_events = []
@@ -608,7 +616,6 @@ class Commitment(models.Model):
         return True
 
     def onhand(self):
-        from .core import EconomicResource
         answer = []
         rt = self.resource_type
         if self.stage:
@@ -773,7 +780,6 @@ class Commitment(models.Model):
             explode is also optional. If used by a caller, and inheritance is not used,
             explode must be a keyword arg.
         """
-        from .processes import Process
         # import pdb; pdb.set_trace()
         qty_required = self.quantity
         rt = self.resource_type
@@ -989,7 +995,6 @@ class Commitment(models.Model):
         return list(set(pts))
 
     def available_workflow_process_types(self):
-        from .types import ProcessType
         all_pts = ProcessType.objects.workflow_process_types()
         my_pts = self.process_types()
         available_pt_ids = []
@@ -1222,8 +1227,6 @@ class Reciprocity(models.Model):
 
 
 def all_purchased_resource_types():
-    from .processes import UseCase, ProcessPattern
-    from .types import EventType
     uc = UseCase.objects.get(name="Purchasing")
     pats = ProcessPattern.objects.usecase_patterns(uc)
     # todo exchange redesign fallout
@@ -1233,3 +1236,380 @@ def all_purchased_resource_types():
     for pat in pats:
         rts.extend(pat.get_resource_types(et))
     return rts
+
+
+ORDER_TYPE_CHOICES = (
+    ('customer', _('Customer order')),
+    ('rand', _('Work order')),
+    ('holder', _('Placeholder order')),
+)
+
+
+class OrderManager(models.Manager):
+    def customer_orders(self):
+        return Order.objects.filter(order_type="customer")
+
+    def rand_orders(self):
+        return Order.objects.filter(order_type="rand")
+
+    def open_rand_orders(self):
+        orders = self.rand_orders()
+        open_orders = []
+        for order in orders:
+            if order.has_open_processes():
+                open_orders.append(order)
+            if not order.unordered_processes():
+                open_orders.append(order)
+        return open_orders
+
+    def closed_work_orders(self):
+        orders = self.rand_orders()
+        closed_orders = []
+        for order in orders:
+            if not order.has_open_processes():
+                closed_orders.append(order)
+        return closed_orders
+
+
+# todo: Order is used for both of the above types.
+# maybe shd be renamed?
+@python_2_unicode_compatible
+class Order(models.Model):
+    order_type = models.CharField(_('order type'), max_length=12,
+                                  choices=ORDER_TYPE_CHOICES, default='customer')
+    name = models.CharField(_('name'), max_length=255, blank=True,
+                            help_text=_("appended to process labels for Work orders"))
+    receiver = models.ForeignKey("EconomicAgent",
+                                 blank=True, null=True,
+                                 related_name="purchase_orders", verbose_name=_('receiver'))
+    provider = models.ForeignKey("EconomicAgent",
+                                 blank=True, null=True,
+                                 related_name="sales_orders", verbose_name=_('provider'))
+    order_date = models.DateField(_('order date'), default=datetime.date.today)
+    due_date = models.DateField(_('due date'))
+    description = models.TextField(_('description'), null=True, blank=True)
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+                                   related_name='orders_created', blank=True, null=True)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+                                   related_name='orders_changed', blank=True, null=True)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+
+    objects = OrderManager()
+
+    class Meta:
+        ordering = ('due_date',)
+
+    def __str__(self):
+        provider_name = ""
+        process_name = ""
+        provider_label = ""
+        receiver_label = ""
+        process = self.process()
+        if process:
+            process_name = ", " + process.name
+        if self.name:
+            process_name = " ".join(["for", self.name])
+        if self.provider:
+            provider_name = self.provider.nick
+            provider_label = ", provider:"
+        receiver_name = ""
+        if self.receiver:
+            receiver_name = self.receiver.nick
+            receiver_label = ", receiver:"
+        if self.order_type == "customer":
+            provider_label = ", Seller:"
+            receiver_label = ", Buyer:"
+        due_label = " due:"
+        if provider_name or receiver_name:
+            due_label = ", due:"
+        return " ".join(
+            [self.get_order_type_display(),
+             str(self.id),
+             process_name,
+             provider_label,
+             provider_name,
+             receiver_label,
+             receiver_name,
+             due_label,
+             self.due_date.strftime('%Y-%m-%d'),
+             ])
+
+    def shorter_label_customer_order(self):
+        receiver_label = ", buyer:"
+        receiver_name = ""
+        if self.receiver:
+            receiver_name = self.receiver.name
+        due_label = " on:"
+        return " ".join(
+            [self.get_order_type_display(),
+             str(self.id),
+             receiver_label,
+             receiver_name,
+             due_label,
+             self.due_date.strftime('%Y-%m-%d'),
+             ])
+
+    @models.permalink
+    def get_absolute_url(self):
+        return ('order_schedule', (),
+                {'order_id': str(self.id), })
+
+    def exchange(self):
+        # import pdb; pdb.set_trace()
+        exs = Exchange.objects.filter(order=self)
+        if exs:
+            return exs[0]
+        return None
+
+    def node_id(self):
+        return "-".join(["Order", str(self.id)])
+
+    def timeline_title(self):
+        return self.__str__()
+
+    def timeline_description(self):
+        return self.description
+
+    def producing_commitments(self):
+        return self.commitments.all()
+
+    def order_items(self):
+        return self.commitments.all()
+
+    def consumed_input_requirements(self):
+        return []
+
+    def used_input_requirements(self):
+        return []
+
+    def work_requirements(self):
+        return []
+
+    def process(self):  # todo: should this be on order_item?
+        answer = None
+        # todo: why rand, what difference does it make?
+        if self.order_type == 'rand':
+            process = None
+            for item in self.producing_commitments():
+                if item.process:
+                    answer = item.process
+                    break
+        return answer
+
+    def add_commitment(self,
+                       resource_type,
+                       context_agent,
+                       quantity,
+                       event_type,
+                       unit,
+                       description,
+                       stage=None,
+                       state=None,
+                       due=None):
+        # todo: needs process and project. Anything else? >>context agent
+        # might not be worth refactoring out.
+        if not due:
+            due = self.due_date
+        ct = Commitment(
+            order=self,
+            independent_demand=self,
+            event_type=event_type,
+            resource_type=resource_type,
+            context_agent=context_agent,
+            description=description,
+            stage=stage,
+            state=state,
+            quantity=quantity,
+            unit_of_quantity=unit,
+            due_date=due)
+        ct.save()
+        ct.order_item = ct
+        ct.save()
+        # todo: shd this generate_producing_process?
+        return ct
+
+    def create_order_item(self,
+                          resource_type,
+                          quantity,
+                          user):
+        # todo pr: may need return inheritance?
+        # import pdb; pdb.set_trace()
+        ptrt, inheritance = resource_type.main_producing_process_type_relationship()
+        description = ""
+        context_agent = None
+        stage = None
+        state = None
+        if ptrt:
+            event_type = ptrt.event_type
+            stage = ptrt.stage
+            state = ptrt.state
+            description = ptrt.description
+            context_agent = ptrt.process_type.context_agent
+        else:
+            if self.order_type == "customer":
+                # todo exchange redesign fallout
+                event_type = EventType.objects.get(name="Give")
+                ois = self.order_items()
+                if ois:
+                    context_agent = ois[0].context_agent
+            else:
+                # todo wha?
+                assert ptrt, 'create_order_item for a work order assumes items with a producing process type'
+        commitment = self.add_commitment(
+            resource_type=resource_type,
+            context_agent=context_agent,
+            quantity=quantity,
+            event_type=event_type,
+            unit=resource_type.unit,
+            description=description,
+            stage=stage,
+            state=state)
+        if ptrt:
+            commitment.generate_producing_process(user, [], inheritance, explode=True)
+        return commitment
+
+    def add_customer_order_item(self,
+                                resource_type,
+                                quantity,
+                                description,
+                                user,
+                                stage=None,
+                                state=None,
+                                due=None):
+        # import pdb; pdb.set_trace()
+        if not due:
+            due = self.due_date
+        event_type = EventType.objects.get(name="Give")  # (relationship="shipment")
+        ct = Commitment(
+            order=self,
+            independent_demand=self,
+            event_type=event_type,
+            resource_type=resource_type,
+            from_agent=self.provider,
+            to_agent=self.receiver,
+            context_agent=self.provider,
+            description=description,
+            stage=stage,
+            state=state,
+            quantity=quantity,
+            unit_of_quantity=resource_type.unit,
+            due_date=due,
+            created_by=user)
+        ct.save()
+        ct.order_item = ct
+        ct.save()
+        ct.generate_producing_process(user, [], inheritance=None, explode=True)
+        return ct
+
+    def all_processes(self):
+        # this method includes only processes for this order
+        # import pdb; pdb.set_trace()
+        deliverables = self.commitments.filter(event_type__relationship="out")
+        if deliverables:
+            processes = [d.process for d in deliverables if d.process]
+        else:
+            processes = []
+            commitments = Commitment.objects.filter(independent_demand=self)
+            for c in commitments:
+                if c.process:
+                    processes.append(c.process)
+            processes = list(set(processes))
+        ends = []
+        # import pdb; pdb.set_trace()
+        for proc in processes:
+            if not proc.next_processes_for_order(self):
+                ends.append(proc)
+        ordered_processes = []
+        for end in ends:
+            visited = []
+            end.all_previous_processes_for_order(self, ordered_processes, visited, 0)
+        ordered_processes.reverse()
+        # todo: review bug fixes
+        # this code might need more testing for orders with more than one end process
+        return ordered_processes
+
+    def unordered_processes(self):
+        # this cd be cts = order.dependent_commitments.all()
+        # or self.all_dependent_commitments()
+        cts = Commitment.objects.filter(independent_demand=self)
+        processes = set()
+        for ct in cts:
+            if ct.process:
+                processes.add(ct.process)
+        return processes
+
+    def all_dependent_commitments(self):
+        # this cd be return order.dependent_commitments.all()
+        return Commitment.objects.filter(independent_demand=self)
+
+    def has_open_processes(self):
+        answer = False
+        processes = self.unordered_processes()
+        for process in processes:
+            if process.finished == False:
+                answer = True
+                break
+        return answer
+
+    def last_process_in_order(self):
+        processes = self.all_processes()
+        if processes:
+            return processes[-1]
+        else:
+            return None
+
+    def first_process_in_order(self):
+        # import pdb; pdb.set_trace()
+        processes = list(self.unordered_processes())
+        if processes:
+            first = processes[0]
+            for p in processes:
+                if p.start_date < first.start_date:
+                    first = p
+            return first
+        else:
+            return None
+
+    def process_types(self):
+        pts = []
+        for process in self.all_processes():
+            if process.process_type:
+                pts.append(process.process_type)
+        return pts
+
+    def all_events(self):
+        processes = self.unordered_processes()
+        events = []
+        for process in processes:
+            events.extend(process.events.all())
+        return events
+
+    def all_input_events(self):
+        processes = self.unordered_processes()
+        events = []
+        for process in processes:
+            events.extend(process.events.exclude(event_type__relationship="out"))
+        return events
+
+    def context_agents(self):
+        items = self.order_items()
+        return [item.context_agent for item in items]
+
+    def sale(self):
+        sale = None
+        if self.order_type == "customer":
+            exchange = Exchange.objects.filter(order=self).filter(use_case__identifier="sale")
+            sale = exchange[0]
+        return sale
+
+    def reschedule_forward(self, delta_days, user):
+        # import pdb; pdb.set_trace()
+        self.due_date = self.due_date + datetime.timedelta(days=delta_days)
+        self.changed_by = user
+        self.save()
+        ois = self.order_items()
+        for oi in ois:
+            if oi.due_date != self.due_date:
+                oi.due_date = self.due_date
+                oi.save()

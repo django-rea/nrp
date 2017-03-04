@@ -1,6 +1,4 @@
 from __future__ import print_function
-from decimal import *
-import datetime
 
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible

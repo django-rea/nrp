@@ -1,11 +1,12 @@
 import datetime
 from decimal import *
 
+from django.contrib.auth.models import User
 from django.test import TestCase
 from django.test import Client
 
+from django_rea.valueaccounting.logic.schedule import handle_commitment_changes
 from django_rea.valueaccounting.models import *
-from django_rea.valueaccounting.views import *
 from django_rea.valueaccounting.utils import *
 from django_rea.valueaccounting.tests.objects_for_testing import *
 

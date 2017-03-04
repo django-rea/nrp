@@ -1,11 +1,12 @@
-from django.db import models
 from django.contrib.auth.models import User
-
+from django.db import models
+from django.utils.html import escape
+from django.utils.six import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
-
 from easy_thumbnails.fields import ThumbnailerImageField
 
 from django_rea.valueaccounting.models import *
+
 #from fobi.models import FormEntry
 
 MEMBERSHIP_TYPE_CHOICES = (
@@ -20,6 +21,7 @@ REQUEST_STATE_CHOICES = (
     ('declined', _('declined')),
 )
 
+@python_2_unicode_compatible
 class MembershipRequest(models.Model):
     request_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     name = models.CharField(_('Name'), max_length=255)
@@ -67,7 +69,7 @@ class MembershipRequest(models.Model):
         max_length=12, choices=REQUEST_STATE_CHOICES,
         default='new', editable=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -82,6 +84,7 @@ VISIBILITY_CHOICES = (
     ('public', _('public')),
 )
 
+@python_2_unicode_compatible
 class Project(models.Model):
     agent = models.OneToOneField(EconomicAgent,
         verbose_name=_('agent'), related_name='project')
@@ -103,7 +106,7 @@ class Project(models.Model):
     #    blank=True, null=True,
     #    help_text=_("this Project is using this JoinRequest form"))
 
-    def __unicode__(self):
+    def __str__(self):
         return _('Project: ') + self.agent.name
 
     def is_moderated(self):
@@ -113,6 +116,7 @@ class Project(models.Model):
         return self.visibility == 'public'
 
 
+@python_2_unicode_compatible
 class SkillSuggestion(models.Model):
     skill = models.CharField(_('skill'), max_length=128,
         help_text=_("A new skill that you want to offer that is not already listed"))
@@ -128,7 +132,7 @@ class SkillSuggestion(models.Model):
         default='new', editable=False)
 
 
-    def __unicode__(self):
+    def __str__(self):
         return self.skill
        
     def form_prefix(self):
@@ -142,7 +146,6 @@ class SkillSuggestion(models.Model):
         return SkillSuggestionResourceTypeForm(initial=init, prefix=self.form_prefix())
 
 
-from nine.versions import DJANGO_LTE_1_5
 from fobi.contrib.plugins.form_handlers.db_store.models import SavedFormDataEntry
 
 USER_TYPE_CHOICES = (
@@ -151,6 +154,7 @@ USER_TYPE_CHOICES = (
     ('collective', _('collective')),
 )
 
+@python_2_unicode_compatible
 class JoinRequest(models.Model):
     # common fields for all projects
     project = models.ForeignKey(Project,
@@ -193,7 +197,7 @@ class JoinRequest(models.Model):
         return self.project.fobi_slug
       return False
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
         
     def form_prefix(self):
@@ -227,6 +231,7 @@ class JoinRequest(models.Model):
         return ProjectAgentCreateForm(initial=init, prefix=self.form_prefix())
 
 
+@python_2_unicode_compatible
 class NewFeature(models.Model):
     name = models.CharField(_('name'), max_length=24)
     deployment_date = models.DateField(_("deployment date"),)
@@ -239,10 +244,11 @@ class NewFeature(models.Model):
     class Meta:
         ordering = ('-deployment_date',)
     
-    def __unicode__(self):
+    def __str__(self):
         return self.name
         
 
+@python_2_unicode_compatible
 class InvoiceNumber(models.Model):
     invoice_number = models.CharField(_('invoice number'), max_length=128)
     invoice_date = models.DateField(_("invoice date"),)
@@ -262,7 +268,7 @@ class InvoiceNumber(models.Model):
     class Meta:
         ordering = ('-invoice_date', "-sequence",)
     
-    def __unicode__(self):
+    def __str__(self):
         return self.invoice_number
         
     def save(self, *args, **kwargs):
@@ -288,11 +294,11 @@ class InvoiceNumber(models.Model):
             else:
                 sequence = 1
             self.sequence = sequence
-        self.invoice_number = "/".join([
-            unicode(year),
-            unicode(quarter),
-            unicode(sequence),
-            unicode(self.member.id),
-            ])
+        self.invoice_number = u"/".join(map(escape, [ # the escape function converts to unicode in both py2 and py3
+            year,
+            quarter,
+            sequence,
+            self.member.id,
+            ]))
         super(InvoiceNumber, self).save(*args, **kwargs)
     

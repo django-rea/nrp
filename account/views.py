@@ -10,7 +10,7 @@ from django.views.generic.edit import FormView
 
 from django.contrib import auth, messages
 from django.contrib.auth.models import User
-from django.contrib.sites.models import get_current_site
+from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth.tokens import default_token_generator
 
 from account import signals
@@ -75,7 +75,7 @@ class SignupView(FormView):
         redirect_field_name = self.get_redirect_field_name()
         ctx.update({
             "redirect_field_name": redirect_field_name,
-            "redirect_field_value": self.request.REQUEST.get(redirect_field_name),
+            "redirect_field_value": self.request.GET.get(redirect_field_name),
         })
         return ctx
     
@@ -189,7 +189,7 @@ class SignupView(FormView):
         self.request.session.set_expiry(0)
     
     def is_open(self):
-        code = self.request.REQUEST.get("code")
+        code = self.request.GET.get("code")
         if code:
             try:
                 self.signup_code = SignupCode.check_in_signupcode(code)
@@ -236,7 +236,7 @@ class LoginView(FormView):
         redirect_field_name = self.get_redirect_field_name()
         ctx.update({
             "redirect_field_name": redirect_field_name,
-            "redirect_field_value": self.request.REQUEST.get(redirect_field_name),
+            "redirect_field_value": self.request.GET.get(redirect_field_name),
         })
         return ctx
     
@@ -306,7 +306,7 @@ class LogoutView(TemplateResponseMixin, View):
         redirect_field_name = self.get_redirect_field_name()
         ctx.update({
             "redirect_field_name": redirect_field_name,
-            "redirect_field_value": self.request.REQUEST.get(redirect_field_name),
+            "redirect_field_value": self.request.GET.get(redirect_field_name),
         })
         return ctx
         

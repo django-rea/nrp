@@ -14,7 +14,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.forms.models import formset_factory, modelformset_factory, inlineformset_factory, BaseModelFormSet
 from django.forms import ValidationError
 import json as simplejson
-from django.utils.datastructures import SortedDict
+from collections import OrderedDict
 from django.contrib.auth.forms import UserCreationForm
 from django.conf import settings
 from django.contrib.sites.models import Site

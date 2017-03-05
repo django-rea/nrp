@@ -34,48 +34,25 @@ class AgentAccount(object):
 class AgentManager(models.Manager):
     def without_user(self):
         # import pdb; pdb.set_trace()
-        all_agents = EconomicAgent.objects.all()
-        ua_ids = []
-        for agent in all_agents:
-            if agent.users.all():
-                ua_ids.append(agent.id)
-        return EconomicAgent.objects.exclude(id__in=ua_ids)
+        return self.filter(users__isnull=True)
 
     def individuals_without_user(self):
         # import pdb; pdb.set_trace()
-        all_agents = self.individuals()
-        ua_ids = []
-        for agent in all_agents:
-            if agent.users.all():
-                ua_ids.append(agent.id)
-        return all_agents.exclude(id__in=ua_ids)
+        return self.individuals().filter(users__isnull=True)
 
     def with_user(self):
         # better version from django-users
         # needs testing
         # return EconomicAgent.objects.filter(users__isnull=False).distinct()
-        all_agents = EconomicAgent.objects.all()
-        ua_ids = []
-        for agent in all_agents:
-            if agent.users.all():
-                ua_ids.append(agent.id)
-        return EconomicAgent.objects.filter(id__in=ua_ids)
+        return self.exclude(users__isnull=True)
 
     @push_down(layer="OCP")
     def without_membership_request(self):
-        from ocp.work.models import MembershipRequest
-        reqs = MembershipRequest.objects.all()
-        req_agts = [req.agent for req in reqs if req.agent]
-        rids = [agt.id for agt in req_agts]
-        return EconomicAgent.objects.exclude(id__in=rids).order_by("name")
+        return self.filter(membership_requests__isnull=True).order_by("name")
 
     @push_down(layer="OCP")
     def without_join_request(self):
-        from ocp.work.models import JoinRequest
-        reqs = JoinRequest.objects.all()
-        req_agts = [req.agent for req in reqs if req.agent]
-        rids = [agt.id for agt in req_agts]
-        return EconomicAgent.objects.exclude(id__in=rids).order_by("name")
+        return self.filter(project_join_requests__isnull=True).order_by("name")
 
     def projects(self):
         return EconomicAgent.objects.filter(agent_type__party_type="team")

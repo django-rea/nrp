@@ -3879,15 +3879,20 @@ class ValueEquationBucketForm(forms.ModelForm):
    
 class ValueEquationBucketRuleForm(forms.ModelForm):
     event_type = forms.ModelChoiceField(
-        queryset=EventType.objects.used_for_value_equations().order_by("name"),
+        queryset=None, # fill later as it's not a lazy QS
         required=True,
         empty_label=None,
         help_text="A default equation will appear below when you select an event type.",
-        widget=forms.Select(attrs={'class': 'chzn-select input-medium event-type-selector'}))
+        widget=forms.Select(attrs={'class': 'chzn-select input-medium event-type-selector'})
+    )
     claim_creation_equation = forms.CharField(
         required=False,
         help_text="You may use any or all of the variables shown above in a mathematical equation.<br /> Leave a space between each element, and do not change the names of the variables.", 
         widget=forms.Textarea(attrs={'class': 'equation',}))
+
+    def __init__(self, *args, **kwargs):
+        super(ValueEquationBucketRuleForm, self).__init__(*args, **kwargs)
+        self.fields['event_type'].queryset = EventType.objects.used_for_value_equations().order_by("name")
 
     class Meta:
         model = ValueEquationBucketRule

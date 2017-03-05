@@ -7,11 +7,12 @@ import simplejson
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import six
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
 from django_rea.annotations import push_down
-from django_rea.spi import BaseExtensibleReaModel
+from django_rea.spi import ModelProviderMeta
 from django_rea.valueaccounting.models.agent import EconomicAgent
 from django_rea.valueaccounting.models.event import EconomicEvent
 from django_rea.valueaccounting.models.recipe import EventType
@@ -236,7 +237,7 @@ PERCENTAGE_BEHAVIOR_CHOICES = (
 
 
 @python_2_unicode_compatible
-class ValueEquation(BaseExtensibleReaModel):
+class ValueEquation(six.with_metaclass(ModelProviderMeta, models.Model)):
     name = models.CharField(_('name'), max_length=255, blank=True)
     context_agent = models.ForeignKey(EconomicAgent,
                                       limit_choices_to={"is_context": True, },

@@ -8,13 +8,14 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models import Q
 from django.conf import settings
+from django.utils import six
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import python_2_unicode_compatible
 
 from easy_thumbnails.fields import ThumbnailerImageField
 
 from django_rea.annotations import push_down
-from django_rea.spi import BaseExtensibleReaModel
+from django_rea.spi import ModelProviderMeta
 from ._utils import unique_slugify
 
 
@@ -118,7 +119,7 @@ class AgentManager(models.Manager):
 
 
 @python_2_unicode_compatible
-class EconomicAgent(BaseExtensibleReaModel):
+class EconomicAgent(six.with_metaclass(ModelProviderMeta, models.Model)):
     name = models.CharField(_('name'), max_length=255)
     nick = models.CharField(_('ID'), max_length=32, unique=True,
                             help_text=_("Must be unique, and no more than 32 characters"))

@@ -57,13 +57,3 @@ class ModelProviderMeta(ModelBase):
     def __init__(cls, what, bases=None, dict=None):
         super(ModelProviderMeta, cls).__init__(what, bases, dict)
         ModelProvider.register_implementation(cls, cls, replace=True)
-
-
-class BaseExtensibleReaModel(six.with_metaclass(ModelProviderMeta, Model)):
-    """
-    Classes extending this base will be registered in the `ModelProvider` registry allowing
-    to be overridden in latter registered applications.
-    """
-
-    class Meta:
-        abstract = True

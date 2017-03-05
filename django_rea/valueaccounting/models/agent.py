@@ -104,7 +104,7 @@ class AgentManager(models.Manager):
 
     @push_down(layer="OCP")
     def freedom_coop(self):
-        if not settings.use_faircoins:
+        if not settings.USE_FAIRCOINS:
             return None
         try:
             fc = EconomicAgent.objects.get(name="Freedom Coop")
@@ -251,7 +251,7 @@ class EconomicAgent(BaseExtensibleReaModel):
     def create_faircoin_resource(self, address):
         from django_rea.valueaccounting.models.resource import EconomicResource, AgentResourceRole, AgentResourceRoleType
         from django_rea.valueaccounting.models.recipe import EconomicResourceType
-        if not settings.use_faircoins:
+        if not settings.USE_FAIRCOINS:
             return None
         role_types = AgentResourceRoleType.objects.filter(is_owner=True)
         owner_role_type = None
@@ -288,7 +288,7 @@ class EconomicAgent(BaseExtensibleReaModel):
 
     @push_down(layer="OCP")
     def faircoin_address(self):
-        if not settings.use_faircoins:
+        if not settings.USE_FAIRCOINS:
             return None
         fcr = self.faircoin_resource()
         if fcr:
@@ -298,7 +298,7 @@ class EconomicAgent(BaseExtensibleReaModel):
 
     @push_down(layer="OCP")
     def faircoin_resource(self):
-        if not settings.use_faircoins:
+        if not settings.USE_FAIRCOINS:
             return None
         candidates = self.agent_resource_roles.filter(
             role__is_owner=True,
@@ -376,7 +376,7 @@ class EconomicAgent(BaseExtensibleReaModel):
 
     @push_down(layer="OCP")
     def is_active_freedom_coop_member(self):
-        if not settings.use_faircoins:
+        if not settings.USE_FAIRCOINS:
             return False
         fc = EconomicAgent.objects.freedom_coop()
         fcaas = self.is_associate_of.filter(

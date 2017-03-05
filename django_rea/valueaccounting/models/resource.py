@@ -153,7 +153,7 @@ class EconomicResource(models.Model):
         ])
 
     def is_digital_currency_resource(self):
-        if not settings.use_faircoins:
+        if not settings.USE_FAIRCOINS:
             return False
         if self.digital_currency_address:
             return True
@@ -161,7 +161,7 @@ class EconomicResource(models.Model):
             return False
 
     def address_is_activated(self):
-        if not settings.use_faircoins:
+        if not settings.USE_FAIRCOINS:
             return False
         address = self.digital_currency_address
         if address:
@@ -171,7 +171,7 @@ class EconomicResource(models.Model):
 
     def digital_currency_history(self):
         history = []
-        if not settings.use_faircoins:
+        if not settings.USE_FAIRCOINS:
             return history
         address = self.digital_currency_address
         if address:
@@ -181,7 +181,7 @@ class EconomicResource(models.Model):
 
     def digital_currency_balance(self):
         bal = 0
-        if not settings.use_faircoins:
+        if not settings.USE_FAIRCOINS:
             return bal
         address = self.digital_currency_address
         if address:
@@ -197,7 +197,7 @@ class EconomicResource(models.Model):
 
     def spending_limit(self):
         limit = 0
-        if not settings.use_faircoins:
+        if not settings.USE_FAIRCOINS:
             return limit
         address = self.digital_currency_address
         if address:

@@ -331,7 +331,7 @@ class EconomicEvent(models.Model):
 
     def transaction_state(self):
         # import pdb; pdb.set_trace()
-        if not settings.use_faircoins:
+        if not settings.USE_FAIRCOINS:
             return None
         state = self.digital_currency_tx_state
         new_state = None

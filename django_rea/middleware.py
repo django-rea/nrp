@@ -50,7 +50,7 @@ class AuthenticatedUserAgentRequestMiddleware:
                     work, ensure your TEMPLATE_CONTEXT_PROCESSORS setting includes\
                     'django.core.context_processors.auth'."
 
-        if request.user.is_authenticated() and request.user.agent:
+        if request.user.is_authenticated() and hasattr(request.user, 'agent'):
             request.agent = request.user.agent.agent
         else:
             request.agent = None

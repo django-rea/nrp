@@ -2,6 +2,7 @@ import simplejson
 import datetime
 import time
 
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.http.response import HttpResponse, Http404
 from django.core import serializers

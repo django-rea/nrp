@@ -232,7 +232,7 @@ class LoginView(FormView):
         return super(LoginView, self).get(*args, **kwargs)
     
     def get_context_data(self, **kwargs):
-        ctx = kwargs
+        ctx = super(LoginView, self).get_context_data(**kwargs)
         redirect_field_name = self.get_redirect_field_name()
         ctx.update({
             "redirect_field_name": redirect_field_name,

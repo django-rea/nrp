@@ -1405,7 +1405,6 @@ def add_todo(request):
                 if notification:
                     if todo.from_agent:
                         if todo.from_agent != agent:
-                            site_name = get_site_name()
                             user = todo.from_agent.user()
                             if user:
                                 #import pdb; pdb.set_trace()
@@ -1414,7 +1413,6 @@ def add_todo(request):
                                     "valnet_new_todo",
                                     {"description": todo.description,
                                     "creator": agent,
-                                    "site_name": site_name,
                                     }
                                 )
 

@@ -5,6 +5,7 @@ from decimal import *
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.utils.six import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
 from _utils import unique_slugify
@@ -38,6 +39,7 @@ class ProcessManager(models.Manager):
         return Process.objects.filter(pk__in=ids)
 
 
+@python_2_unicode_compatible
 class Process(models.Model):
     name = models.CharField(_('name'), max_length=128)
     parent = models.ForeignKey('self', blank=True, null=True,

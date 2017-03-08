@@ -79,7 +79,7 @@ urlpatterns = patterns("",
         name="delete_request"),
     url(r'^create-ocp-acount/(?P<join_request_id>\d+)/$', 'ocp.work.views.create_account_for_join_request',
         name="create_account_for_join_request"),
-    url(r"^comments/$", 'ocp.work.views.comments', name="comments"),
+    #TODO: fix url(r"^comments/$", 'ocp.work.views.comments', name="comments"),
 
     url(r'^share-payment/(?P<agent_id>\d+)/$', 'ocp.work.views.share_payment', name="share_payment"),
     url(r"^validate-nick/$", 'ocp.work.views.validate_nick', name="validate_nick"),

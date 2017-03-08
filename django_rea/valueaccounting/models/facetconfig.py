@@ -104,6 +104,7 @@ class ProcessPatternManager(models.Manager):
         return EconomicResourceType.objects.filter(id__in=rt_ids)
 
 
+@python_2_unicode_compatible
 class ProcessPattern(models.Model):
     name = models.CharField(_('name'), max_length=32)
     objects = ProcessPatternManager()

@@ -1167,6 +1167,7 @@ class EventSummary(object):
         return self.quantity.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
 
 
+@python_2_unicode_compatible
 class CachedEventSummary(models.Model):
     agent = models.ForeignKey(EconomicAgent,
                               blank=True, null=True,

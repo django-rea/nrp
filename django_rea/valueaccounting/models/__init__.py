@@ -68,7 +68,6 @@ from django_rea.valueaccounting.models.trade import (
 
 from django_rea.valueaccounting.models.schedule import (
     Commitment,
-    Reciprocity, #possibly not used?
     Order,
 )
 

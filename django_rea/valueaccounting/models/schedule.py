@@ -1185,47 +1185,6 @@ class Commitment(models.Model):
         return production_commitments
 
 
-# todo: not used.
-class Reciprocity(models.Model):
-    """One Commitment reciprocating another.
-
-    The EconomicAgents in the reciprocal commitments
-    must be opposites.
-    That is, the from_agent of one commitment must be
-    the to-agent of the other commitment, and vice versa.
-    Reciprocal commitments have a M:M relationship:
-    that is, one commitment can be reciprocated by many other commitments,
-    and the other commitment can reciprocate many initiating commitments.
-
-    """
-    initiating_commitment = models.ForeignKey("Commitment",
-                                              related_name="initiated_commitments",
-                                              verbose_name=_('initiating commitment'))
-    reciprocal_commitment = models.ForeignKey("Commitment",
-                                              related_name="reciprocal_commitments",
-                                              verbose_name=_('reciprocal commitment'))
-    reciprocity_date = models.DateField(_('reciprocity date'), default=datetime.date.today)
-
-    class Meta:
-        ordering = ('reciprocity_date',)
-
-    def __str__(self):
-        return ' '.join([
-            'inititating commmitment:',
-            self.initiating_commmitment.__str__(),
-            'reciprocal commmitment:',
-            self.reciprocal_commitment.__str__(),
-            self.reciprocity_date.strftime('%Y-%m-%d'),
-        ])
-
-    def clean(self):
-        # import pdb; pdb.set_trace()
-        if self.initiating_commitment.from_agent.id != self.reciprocal_commitment.to_agent.id:
-            raise ValidationError('Initiating commitment from_agent must be the reciprocal commitment to_agent.')
-        if self.initiating_commitment.to_agent.id != self.reciprocal_commitment.from_agent.id:
-            raise ValidationError('Initiating commitment to_agent must be the reciprocal commitment from_agent.')
-
-
 def all_purchased_resource_types():
     uc = UseCase.objects.get(name="Purchasing")
     pats = ProcessPattern.objects.usecase_patterns(uc)

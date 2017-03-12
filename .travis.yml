@@ -2,11 +2,15 @@ language: python
 sudo: false
 python: 2.7
 cache: pip
+env:
+  - TOXENV="py27"
+  - TOXENV="pypy"
+  - TOXENV="py33"
+  - TOXENV="py_django19"
+  #- TOXENV="py_django110"
 install:
   - pip install --upgrade setuptools
   - pip install --upgrade pip
-  - pip install -r requirements.txt --trusted-host dist.pinaxproject.com --quiet
-before_script:
-  - python manage.py migrate
+  - pip install tox
 script:
-  - python manage.py test
+  - tox -e $TOXENV

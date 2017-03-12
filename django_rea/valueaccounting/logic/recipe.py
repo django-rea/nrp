@@ -3,67 +3,76 @@ import datetime
 from django.utils.html import linebreaks
 from django.contrib.sites.models import Site
 
+
 def camelcase(name):
-     return ''.join(x.capitalize() or ' ' for x in name.split(' '))
- 
+    return ''.join(x.capitalize() or ' ' for x in name.split(' '))
+
+
 def camelcase_lower(name):
     pname = camelcase(name)
     return pname[0].lower() + pname[1:]
 
+
 def split_thousands(n, sep=','):
     s = str(n)
-    if len(s) <= 3: return s  
+    if len(s) <= 3: return s
     return split_thousands(s[:-3], sep) + sep + s[-3:]
+
 
 def dfs(node, all_nodes, depth):
     """
     Performs a recursive depth-first search starting at ``node``. 
     """
-    to_return = [node,]
+    to_return = [node, ]
     for subnode in all_nodes:
         if subnode.parent and subnode.parent.id == node.id:
-            to_return.extend(dfs(subnode, all_nodes, depth+1))
+            to_return.extend(dfs(subnode, all_nodes, depth + 1))
     return to_return
 
-def flattened_children(node, all_nodes, to_return):
-     to_return.append(node)
-     for subnode in all_nodes:
-         if subnode.parent and subnode.parent.id == node.id:
-             flattened_children(subnode, all_nodes, to_return)
-     return to_return
 
-def flattened_children_by_association(node, all_associations, to_return): #works only for agents
-    #todo: figure out why this failed when AAs were ordered by from_agent
-    #import pdb; pdb.set_trace()
+def flattened_children(node, all_nodes, to_return):
+    to_return.append(node)
+    for subnode in all_nodes:
+        if subnode.parent and subnode.parent.id == node.id:
+            flattened_children(subnode, all_nodes, to_return)
+    return to_return
+
+
+def flattened_children_by_association(node, all_associations, to_return):  # works only for agents
+    # todo: figure out why this failed when AAs were ordered by from_agent
+    # import pdb; pdb.set_trace()
     to_return.append(node)
     for association in all_associations:
-        #if association.has_associate.id == node.id:
+        # if association.has_associate.id == node.id:
         #    import pdb; pdb.set_trace()
         if association.has_associate.id == node.id and association.association_type.association_behavior == "child":
             flattened_children_by_association(association.is_associate, all_associations, to_return)
     return to_return
 
-def flattened_group_associations(node, all_associations, to_return): #works only for agents
-    #import pdb; pdb.set_trace()
+
+def flattened_group_associations(node, all_associations, to_return):  # works only for agents
+    # import pdb; pdb.set_trace()
     to_return.append(node)
     for association in all_associations:
-        if association.has_associate.id == node.id and association.from_agent.agent_type.party_type!="individual":
+        if association.has_associate.id == node.id and association.from_agent.agent_type.party_type != "individual":
             flattened_group_associations(association.is_associate, all_associations, to_return)
     return to_return
 
-def agent_dfs_by_association(node, all_associations, depth): #works only for agents
-    #todo: figure out why this failed when AAs were ordered by from_agent
-    #import pdb; pdb.set_trace()
+
+def agent_dfs_by_association(node, all_associations, depth):  # works only for agents
+    # todo: figure out why this failed when AAs were ordered by from_agent
+    # import pdb; pdb.set_trace()
     node.depth = depth
-    to_return = [node,]
+    to_return = [node, ]
     for association in all_associations:
         if association.has_associate.id == node.id and association.association_type.association_behavior == "child":
-            to_return.extend(agent_dfs_by_association(association.is_associate, all_associations, depth+1))
+            to_return.extend(agent_dfs_by_association(association.is_associate, all_associations, depth + 1))
     return to_return
 
+
 def group_dfs_by_has_associate(root, node, all_associations, visited, depth):
-    #works only for agents, and only follows association_from
-    #import pdb; pdb.set_trace()
+    # works only for agents, and only follows association_from
+    # import pdb; pdb.set_trace()
     to_return = []
     if node not in visited:
         visited.append(node)
@@ -71,11 +80,13 @@ def group_dfs_by_has_associate(root, node, all_associations, visited, depth):
         to_return.append(node)
         for association in all_associations:
             if association.has_associate.id == node.id:
-                    to_return.extend(group_dfs_by_has_associate(root, association.is_associate, all_associations, visited, depth+1))
+                to_return.extend(
+                    group_dfs_by_has_associate(root, association.is_associate, all_associations, visited, depth + 1))
     return to_return
 
-def group_dfs_by_is_associate(root, node, all_associations, visited, depth): 
-    #import pdb; pdb.set_trace()
+
+def group_dfs_by_is_associate(root, node, all_associations, visited, depth):
+    # import pdb; pdb.set_trace()
     to_return = []
     if node not in visited:
         visited.append(node)
@@ -83,8 +94,10 @@ def group_dfs_by_is_associate(root, node, all_associations, visited, depth):
         to_return.append(node)
         for association in all_associations:
             if association.is_associate.id == node.id:
-                    to_return.extend(group_dfs_by_is_associate(root, association.has_associate, all_associations, visited, depth+1))
+                to_return.extend(
+                    group_dfs_by_is_associate(root, association.has_associate, all_associations, visited, depth + 1))
     return to_return
+
 
 class Edge(object):
     def __init__(self, from_node, to_node, label):
@@ -102,12 +115,14 @@ class Edge(object):
         }
         return d
 
+
 def process_link_label(from_process, to_process):
     outputs = [oc.resource_type for oc in from_process.outgoing_commitments()]
     inputs = [ic.resource_type for ic in to_process.incoming_commitments()]
     intersect = set(outputs) & set(inputs)
     label = ", ".join(rt.name for rt in intersect)
     return label
+
 
 def process_graph(processes):
     nodes = []
@@ -126,7 +141,7 @@ def process_graph(processes):
                 "project-id": project_id,
                 "start": p.start_date.strftime('%Y-%m-%d'),
                 "end": p.end_date.strftime('%Y-%m-%d'),
-                }
+            }
             nodes.append(d)
         next = p.next_processes()
         for n in next:
@@ -141,7 +156,7 @@ def process_graph(processes):
                     "project-id": project_id,
                     "start": n.start_date.strftime('%Y-%m-%d'),
                     "end": n.end_date.strftime('%Y-%m-%d'),
-                    }
+                }
                 nodes.append(d)
             c = "-".join([str(p.id), str(n.id)])
             if c not in connections:
@@ -162,7 +177,7 @@ def process_graph(processes):
                     "project-id": project_id,
                     "start": n.start_date.strftime('%Y-%m-%d'),
                     "end": n.end_date.strftime('%Y-%m-%d'),
-                    }
+                }
                 nodes.append(d)
             c = "-".join([str(n.id), str(p.id)])
             if c not in connections:
@@ -175,6 +190,7 @@ def process_graph(processes):
         "edges": edges,
     }
     return big_d
+
 
 def project_process_resource_agent_graph(project_list, process_list):
     processes = {}
@@ -194,7 +210,7 @@ def project_process_resource_agent_graph(project_list, process_list):
             "end": p.end_date.strftime('%Y-%m-%d'),
             "orphan": p.is_orphan(),
             "next": []
-            }
+        }
         processes[p.node_id()] = dp
 
     for p in process_list:
@@ -221,7 +237,7 @@ def project_process_resource_agent_graph(project_list, process_list):
             "name": agnt.name,
             "type": "agent",
             "processes": []
-            }
+        }
         for p in procs:
             da["processes"].append(p.node_id())
         agents[agnt.node_id()] = da
@@ -236,6 +252,7 @@ def project_process_resource_agent_graph(project_list, process_list):
 
     return big_d
 
+
 def get_order_id(p):
     order = p.independent_demand()
     order_id = ''
@@ -243,6 +260,7 @@ def get_order_id(p):
         order_id = order.node_id()
 
     return order_id
+
 
 def get_resource_types(rt_set, processes):
     resource_types = {}
@@ -258,7 +276,7 @@ def get_resource_types(rt_set, processes):
             "url": "".join([get_url_starter(), rt.get_absolute_url()]),
             "photo-url": rt.photo_url,
             "next": []
-            }
+        }
 
         for wct in rt.wanting_commitments():
             match = False
@@ -276,15 +294,17 @@ def get_resource_types(rt_set, processes):
 
     return resource_types
 
+
 def get_projects(project_list):
     projects = {}
     for p in project_list:
         d = {
             "name": p.name,
-            }
+        }
         projects[p.node_id()] = d
 
     return projects
+
 
 def get_project_id(p):
     project_id = ""
@@ -293,8 +313,10 @@ def get_project_id(p):
 
     return project_id
 
+
 def get_url_starter():
     return "".join(["https://", Site.objects.get_current().domain])
+
 
 def get_order_details(order, url_starter, processes):
     receiver_name = ""
@@ -308,9 +330,10 @@ def get_order_details(order, url_starter, processes):
         "due": order.due_date.strftime('%Y-%m-%d'),
         "url": "".join([url_starter, order.get_absolute_url()]),
         "processes": []
-        }
+    }
 
     return dord
+
 
 def project_process_graph(project_list, process_list):
     projects = {}
@@ -320,8 +343,8 @@ def project_process_graph(project_list, process_list):
     for p in project_list:
         d = {
             "name": p.name,
-            }
-        projects[p.node_id()] = d   
+        }
+        projects[p.node_id()] = d
     for p in process_list:
         project_id = ""
         if p.context_agent:
@@ -332,7 +355,7 @@ def project_process_graph(project_list, process_list):
             "start": p.start_date.strftime('%Y-%m-%d'),
             "end": p.end_date.strftime('%Y-%m-%d'),
             "next": []
-            }
+        }
         processes[p.node_id()] = dp
         p.dp = dp
         agnts = p.working_agents()
@@ -347,7 +370,7 @@ def project_process_graph(project_list, process_list):
         da = {
             "name": agnt.name,
             "processes": []
-            }
+        }
         for p in procs:
             da["processes"].append(p.node_id())
         agents[agnt.node_id()] = da
@@ -359,10 +382,11 @@ def project_process_graph(project_list, process_list):
 
     return big_d
 
+
 def project_graph(producers):
     nodes = []
     edges = []
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     for p in producers:
         for rt in p.produced_resource_type_relationships():
             for pt in rt.resource_type.consuming_process_type_relationships():
@@ -373,15 +397,16 @@ def project_graph(producers):
                         edges.append(Edge(rt.resource_type, pt.process_type.context_agent, pt.inverse_label()))
     return [nodes, edges]
 
+
 def explode(process_type_relationship, nodes, edges, depth, depth_limit):
     if depth > depth_limit:
         return
-    #if process_type_relationship.process_type.name.startswith('Q'):
+    # if process_type_relationship.process_type.name.startswith('Q'):
     #    return
     nodes.append(process_type_relationship.process_type)
     edges.append(Edge(
-        process_type_relationship.process_type, 
-        process_type_relationship.resource_type, 
+        process_type_relationship.process_type,
+        process_type_relationship.resource_type,
         process_type_relationship.event_type.label
     ))
     for rtr in process_type_relationship.process_type.consumed_and_used_resource_type_relationships():
@@ -390,9 +415,10 @@ def explode(process_type_relationship, nodes, edges, depth, depth_limit):
         for art in rtr.resource_type.producing_agent_relationships():
             nodes.append(art.agent)
             edges.append(Edge(art.agent, rtr.resource_type, art.event_type.label))
-        #todo pr: shd this use own or own_or_parent_recipes?
+        # todo pr: shd this use own or own_or_parent_recipes?
         for pt in rtr.resource_type.producing_process_type_relationships():
-            explode(pt, nodes, edges, depth+1, depth_limit)
+            explode(pt, nodes, edges, depth + 1, depth_limit)
+
 
 def graphify(focus, depth_limit):
     nodes = [focus]
@@ -400,15 +426,16 @@ def graphify(focus, depth_limit):
     for art in focus.consuming_agent_relationships():
         nodes.append(art.agent)
         edges.append(Edge(focus, art.agent, art.event_type.label))
-    #todo pr: shd this use own or own_or_parent_recipes?
+    # todo pr: shd this use own or own_or_parent_recipes?
     for ptr in focus.producing_process_type_relationships():
         explode(ptr, nodes, edges, 0, depth_limit)
     return [nodes, edges]
 
+
 def project_network():
     producers = [p for p in ProcessType.objects.all() if p.produced_resource_types()]
     nodes = []
-    edges = []        
+    edges = []
     for p in producers:
         for rt in p.produced_resource_types():
             for pt in rt.consuming_process_types():
@@ -418,14 +445,15 @@ def project_network():
                     edges.append(Edge(rt, pt.context_agent))
     return [nodes, edges]
 
+
 class TimelineEvent(object):
     def __init__(self, node, start, end, title, link, description):
-         self.node = node
-         self.start = start
-         self.end = end
-         self.title = title
-         self.link = link
-         self.description = description
+        self.node = node
+        self.start = start
+        self.end = end
+        self.title = title
+        self.link = link
+        self.description = description
 
     def dictify(self):
         descrip = ""
@@ -501,6 +529,7 @@ class TimelineEvent(object):
         d["next"] = next
         return d
 
+
 def create_events(orders, processes, events):
     for order in orders:
         te = TimelineEvent(
@@ -523,6 +552,7 @@ def create_events(orders, processes, events):
         )
         events['events'].append(te.dictify())
 
+
 def explode_events(resource_type, backsked_date, events):
     for art in resource_type.producing_agent_relationships():
         order_date = backsked_date - datetime.timedelta(days=art.lead_time)
@@ -536,7 +566,7 @@ def explode_events(resource_type, backsked_date, events):
         )
         events['events'].append(te.dictify())
     for pp in resource_type.producing_process_types():
-        start_date = backsked_date - datetime.timedelta(days=(pp.estimated_duration/1440))
+        start_date = backsked_date - datetime.timedelta(days=(pp.estimated_duration / 1440))
         ppte = TimelineEvent(
             pp,
             start_date,
@@ -549,15 +579,16 @@ def explode_events(resource_type, backsked_date, events):
         for crt in pp.consumed_resource_types():
             explode_events(crt, start_date, events)
 
-def backschedule_process_types(commitment, process_type,events):
-    lead_time=1
+
+def backschedule_process_types(commitment, process_type, events):
+    lead_time = 1
     arts = None
     if commitment.from_agent:
         arts = commitment.from_agent.resource_types.filter(resource_type=commitment.resource_type)
     if arts:
         lead_time = arts[0].lead_time
     end_date = commitment.due_date - datetime.timedelta(days=lead_time)
-    start_date = end_date - datetime.timedelta(days=(process_type.estimated_duration/1440))
+    start_date = end_date - datetime.timedelta(days=(process_type.estimated_duration / 1440))
     ppte = TimelineEvent(
         process_type,
         start_date,
@@ -569,6 +600,7 @@ def backschedule_process_types(commitment, process_type,events):
     events['events'].append(ppte.dictify())
     for crt in process_type.consumed_resource_types():
         explode_events(crt, start_date, events)
+
 
 def backschedule_process(order, process, events):
     te = TimelineEvent(
@@ -608,6 +640,7 @@ def backschedule_process(order, process, events):
 
     return events
 
+
 def backschedule_order(order, events):
     te = TimelineEvent(
         order,
@@ -633,11 +666,11 @@ def backschedule_order(order, events):
 
 class XbillNode(object):
     def __init__(self, node, depth):
-         self.node = node
-         self.depth = depth
-         self.open = False
-         self.close = []
-         self.xbill_class = self.node.xbill_class()
+        self.node = node
+        self.depth = depth
+        self.open = False
+        self.close = []
+        self.xbill_class = self.node.xbill_class()
 
     def xbill_object(self):
         return self.node.xbill_child_object()
@@ -648,8 +681,8 @@ class XbillNode(object):
     def xbill_explanation(self):
         return self.node.xbill_explanation()
 
-    #def category(self):
-    #    return self.node.xbill_category()
+        # def category(self):
+        #    return self.node.xbill_category()
 
 
 def xbill_dfs(node, all_nodes, visited, depth):
@@ -659,27 +692,28 @@ def xbill_dfs(node, all_nodes, visited, depth):
     to_return = []
     if node not in visited:
         visited.append(node)
-        #to_return = [XbillNode(node,depth),]
-        to_return.append(XbillNode(node,depth))
-        #print "+created node:+", node, depth
+        # to_return = [XbillNode(node,depth),]
+        to_return.append(XbillNode(node, depth))
+        # print "+created node:+", node, depth
         for subnode in all_nodes:
             parents = subnode.xbill_parent_object().xbill_parents()
             xclass = subnode.xbill_class()
             if subnode.node_id() != node.node_id():
                 if parents and node in parents:
-                    #print "*active node:*", node, "*depth:*", depth, "*subnode:*", subnode, "*parent_object:*", subnode.xbill_parent_object(), "*parents:*", parents
-                    #import pdb; pdb.set_trace()
-                    to_return.extend(xbill_dfs(subnode, all_nodes, visited, depth+1))
+                    # print "*active node:*", node, "*depth:*", depth, "*subnode:*", subnode, "*parent_object:*", subnode.xbill_parent_object(), "*parents:*", parents
+                    # import pdb; pdb.set_trace()
+                    to_return.extend(xbill_dfs(subnode, all_nodes, visited, depth + 1))
     return to_return
+
 
 def explode_xbill_children(node, nodes, exploded):
     if node not in nodes:
         nodes.append(node)
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         xclass = node.xbill_class()
         explode = True
         if xclass == 'process-type':
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             pt = node.process_type
             if pt in exploded:
                 explode = False
@@ -689,25 +723,26 @@ def explode_xbill_children(node, nodes, exploded):
             for kid in node.xbill_child_object().xbill_children():
                 explode_xbill_children(kid, nodes, exploded)
 
-#todo: obsolete
+
+# todo: obsolete
 def generate_xbill(resource_type):
     nodes = []
     exploded = []
     for kid in resource_type.xbill_children():
         explode_xbill_children(kid, nodes, exploded)
     nodes = list(set(nodes))
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     to_return = []
     visited = []
     for kid in resource_type.xbill_children():
         to_return.extend(xbill_dfs(kid, nodes, visited, 1))
     annotate_tree_properties(to_return)
-    #to_return.sort(lambda x, y: cmp(x.xbill_object().name,
+    # to_return.sort(lambda x, y: cmp(x.xbill_object().name,
     #                                y.xbill_object().name))
     return to_return
 
 
-#adapted from threaded_comments.util
+# adapted from threaded_comments.util
 def annotate_tree_properties(nodes):
     """
     iterate through nodes and adds some magic properties to each of them
@@ -729,7 +764,7 @@ def annotate_tree_properties(nodes):
         if c.depth > old.depth:
             c.open = True
 
-        else: # c.depth <= old.depth
+        else:  # c.depth <= old.depth
             # close some depths
             old.close = range(old.depth - c.depth)
 

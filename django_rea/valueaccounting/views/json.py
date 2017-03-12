@@ -9,7 +9,7 @@ from django.core import serializers
 
 from django_rea.valueaccounting.models import *
 
-from django_rea.valueaccounting.utils import (
+from django_rea.valueaccounting.logic.recipe import (
     create_events,
     process_graph,
     project_process_resource_agent_graph

@@ -1,12 +1,11 @@
 language: python
 sudo: false
-python: 2.7
 cache: pip
 env:
   - TOXENV="py27"
   - TOXENV="pypy"
   #- TOXENV="py35"
-  - TOXENV="py_django110"
+  #- TOXENV="py_django110"
 install:
   - pip install --upgrade setuptools
   - pip install --upgrade pip

@@ -5,9 +5,8 @@ cache: pip
 env:
   - TOXENV="py27"
   - TOXENV="pypy"
-  #- TOXENV="py33"
-  - TOXENV="py_django19"
-  #- TOXENV="py_django110"
+  #- TOXENV="py35"
+  - TOXENV="py_django110"
 install:
   - pip install --upgrade setuptools
   - pip install --upgrade pip

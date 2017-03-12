@@ -109,15 +109,16 @@ from django_rea.valueaccounting.views.agent import (
     ProjectsView,
     ProjectNetworkView,
     AgentView,
+    AgentsView
 )
 
 urlpatterns += patterns("",
                         url(r"^start/$", StartView.as_view(), name="start"),
                         url(r"^projects/$", ProjectsView.as_view(), name="projects"),
-                        url(r"^agents/$", 'django_rea.valueaccounting.views.agents', name="agents"),
+                        url(r"^agents/$", AgentsView.as_view(), name="agents"),
                         # url(r"^create-project/$", 'django_rea.valueaccounting.views.create_project', name="create_project"),
-                        url(r"^resources/$", 'django_rea.valueaccounting.views.resource_types', name="resource_types"),
-                        url(r"^resource-type/(?P<resource_type_id>\d+)/$",
+                        url(r"^resource-types/$", 'django_rea.valueaccounting.views.resource_types', name="resource_types"),
+                        url(r"^resource-types/(?P<resource_type_id>\d+)/$",
                             'django_rea.valueaccounting.views.resource_type', name="resource_type"),
                         url(r"^inventory/$", 'django_rea.valueaccounting.views.inventory', name="inventory"),
                         url(r"^all-contributions/$", 'django_rea.valueaccounting.views.all_contributions',

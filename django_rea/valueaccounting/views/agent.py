@@ -9,7 +9,7 @@ from django.core.urlresolvers import reverse
 from django_rea.valueaccounting.forms import AgentCreateForm, InternalExchangeNavForm
 from django_rea.valueaccounting.models import *
 from django_rea.valueaccounting.utils import annotate_tree_properties, project_graph
-from django_rea.valueaccounting.views.generic import BaseReaAuthenticatedView
+from django_rea.valueaccounting.views.generic import BaseReaAuthenticatedView, BaseReaView
 
 
 class ProjectsView(BaseReaAuthenticatedView):
@@ -50,6 +50,7 @@ class ProjectsView(BaseReaAuthenticatedView):
             "nicks": nicks,
         })
 
+
 class ProjectNetworkView(BaseReaAuthenticatedView):
     template_name = "valueaccounting/network.html"
 
@@ -61,6 +62,7 @@ class ProjectNetworkView(BaseReaAuthenticatedView):
             "nodes": nodes,
             "edges": edges,
         })
+
 
 class AgentView(BaseReaAuthenticatedView):
     template_name = "valueaccounting/agent.html"
@@ -191,7 +193,7 @@ class AgentView(BaseReaAuthenticatedView):
             ext = data["exchange_type"]
             return HttpResponseRedirect(reverse('exchange_logging', kwargs={
                 'exchange_type_id': ext.id,
-                'exchange_id':0,
+                'exchange_id': 0,
                 'context_agent_id': agent.id,
             }))
         else:
@@ -201,3 +203,22 @@ class AgentView(BaseReaAuthenticatedView):
         agent = self._get_agent(agent_id)
         return self._render(request, agent)
 
+
+class AgentsView(BaseReaView):
+    template_name = "valueaccounting/agents.html"
+
+    def get(self, request):
+        # import pdb; pdb.set_trace()
+        user_agent = request.agent
+        EconomicAgentCls = self.get_model_class(EconomicAgent)
+        agents = EconomicAgentCls.objects.all().order_by("agent_type__name", "name")
+        agent_form = AgentCreateForm()
+        nicks = '~'.join([agt.nick for agt in EconomicAgentCls.objects.all()])
+
+        return self.render_to_response({
+            "agents": agents,
+            "agent_form": agent_form,
+            "user_agent": user_agent,
+            "help": self.get_help("agents"),
+            "nicks": nicks,
+        })

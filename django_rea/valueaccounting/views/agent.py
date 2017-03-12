@@ -8,7 +8,7 @@ from django.core.urlresolvers import reverse
 
 from django_rea.valueaccounting.forms import AgentCreateForm, InternalExchangeNavForm
 from django_rea.valueaccounting.models import *
-from django_rea.valueaccounting.utils import annotate_tree_properties, project_graph
+from django_rea.valueaccounting.logic.recipe import annotate_tree_properties, project_graph
 from django_rea.valueaccounting.views.generic import BaseReaAuthenticatedView, BaseReaView
 
 

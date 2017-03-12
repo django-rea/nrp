@@ -1,22 +1,9 @@
 import datetime
 
 from django.utils.html import linebreaks
-from django.contrib.sites.models import Site
+from django_rea.valueaccounting.utils import get_url_starter
 
-
-def camelcase(name):
-    return ''.join(x.capitalize() or ' ' for x in name.split(' '))
-
-
-def camelcase_lower(name):
-    pname = camelcase(name)
-    return pname[0].lower() + pname[1:]
-
-
-def split_thousands(n, sep=','):
-    s = str(n)
-    if len(s) <= 3: return s
-    return split_thousands(s[:-3], sep) + sep + s[-3:]
+from django_rea.valueaccounting.models.recipe import ProcessType
 
 
 def dfs(node, all_nodes, depth):
@@ -312,10 +299,6 @@ def get_project_id(p):
         project_id = p.context_agent.node_id()
 
     return project_id
-
-
-def get_url_starter():
-    return "".join(["https://", Site.objects.get_current().domain])
 
 
 def get_order_details(order, url_starter, processes):

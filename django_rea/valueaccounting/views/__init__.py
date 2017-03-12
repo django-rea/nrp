@@ -26,7 +26,7 @@ from django_comments.models import Comment, CommentFlag
 
 from django_rea.valueaccounting.models import *
 from django_rea.valueaccounting.forms import *
-from django_rea.valueaccounting.utils import *
+from django_rea.valueaccounting.logic.recipe import *
 from ocp.work.models import MembershipRequest, SkillSuggestion
 
 if "pinax.notifications" in settings.INSTALLED_APPS:

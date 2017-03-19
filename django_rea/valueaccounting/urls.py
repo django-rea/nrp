@@ -112,14 +112,20 @@ from django_rea.valueaccounting.views.agent import (
     AgentsView
 )
 
+from django_rea.valueaccounting.views.resource import (
+    ResourceTypesListView,
+    ResourceTypeView,
+    ResourceView,
+)
+
 urlpatterns += patterns("",
                         url(r"^start/$", StartView.as_view(), name="start"),
                         url(r"^projects/$", ProjectsView.as_view(), name="projects"),
                         url(r"^agents/$", AgentsView.as_view(), name="agents"),
                         # url(r"^create-project/$", 'django_rea.valueaccounting.views.create_project', name="create_project"),
-                        url(r"^resource-types/$", 'django_rea.valueaccounting.views.resource_types', name="resource_types"),
+                        url(r"^resource-types/$", ResourceTypesListView.as_view(), name="resource_types"),
                         url(r"^resource-types/(?P<resource_type_id>\d+)/$",
-                            'django_rea.valueaccounting.views.resource_type', name="resource_type"),
+                            ResourceTypeView.as_view(), name="resource_type"),
                         url(r"^inventory/$", 'django_rea.valueaccounting.views.inventory', name="inventory"),
                         url(r"^all-contributions/$", 'django_rea.valueaccounting.views.all_contributions',
                             name="all_contributions"),
@@ -425,7 +431,7 @@ urlpatterns += patterns("",
                             name="labnotes"),
                         url(r"^labnote/(?P<commitment_id>\d+)/$", 'django_rea.valueaccounting.views.labnote',
                             name="labnote"),
-                        url(r"^resource/(?P<resource_id>\d+)/$", 'django_rea.valueaccounting.views.resource',
+                        url(r"^resource/(?P<resource_id>\d+)/$", ResourceView.as_view(),
                             name="resource"),
                         url(r"^adjust-resource/(?P<resource_id>\d+)/$",
                             'django_rea.valueaccounting.views.adjust_resource',

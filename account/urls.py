@@ -1,4 +1,4 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
 from account.views import SignupView, LoginView, LogoutView, DeleteView
 from account.views import ConfirmEmailView
@@ -6,7 +6,7 @@ from account.views import ChangePasswordView, PasswordResetView, PasswordResetTo
 from account.views import SettingsView, WorkSettingsView, WorkChangePasswordView
 
 
-urlpatterns = patterns("",
+urlpatterns =  [
     url(r"^signup/$", SignupView.as_view(), name="account_signup"),
     url(r"^login/$", LoginView.as_view(), name="account_login"),
     url(r"^logout/$", LogoutView.as_view(), name="account_logout"),
@@ -18,4 +18,4 @@ urlpatterns = patterns("",
     url(r"^worksettings/$", WorkSettingsView.as_view(), name="work_account_settings"),
     url(r"^workpassword/$", WorkChangePasswordView.as_view(), name="work_account_password"),
     url(r"^delete/$", DeleteView.as_view(), name="account_delete"),
-)
+]

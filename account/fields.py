@@ -5,8 +5,6 @@ from account.conf import settings
 
 class TimeZoneField(models.CharField):
     
-    __metaclass__ = models.SubfieldBase
-    
     def __init__(self, *args, **kwargs):
         defaults = {
             "max_length": 100,

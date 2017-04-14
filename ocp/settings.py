@@ -6,7 +6,6 @@ PACKAGE_ROOT = os.path.abspath(os.path.dirname(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 DEBUG = True
-TEMPLATE_DEBUG = DEBUG
 
 # settings.TESTING will be True in a testing enviroment.
 TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
@@ -52,24 +51,29 @@ STATICFILES_FINDERS = [
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = "use ./manage.py generate_secret_key to make this"
 
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = [
-    "django.template.loaders.filesystem.Loader",
-    "django.template.loaders.app_directories.Loader",
-]
-
-TEMPLATE_CONTEXT_PROCESSORS = [
-    "django.contrib.auth.context_processors.auth",
-    #"django.core.context_processors.debug",
-    "django.core.context_processors.i18n",
-    "django.core.context_processors.media",
-    "django.core.context_processors.static",
-    "django.core.context_processors.tz",
-    "django.core.context_processors.request",
-    "django.contrib.messages.context_processors.messages",
-    "django_rea.context_processors.settings",
-    "account.context_processors.account",
-    "fobi.context_processors.theme",
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            os.path.join(PACKAGE_ROOT, "templates"),
+        ],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.contrib.auth.context_processors.auth',
+                #'django.template.context_processors.debug',
+                'django.template.context_processors.i18n',
+                'django.template.context_processors.media',
+                'django.template.context_processors.static',
+                'django.template.context_processors.tz',
+                "django.template.context_processors.request",
+                'django.contrib.messages.context_processors.messages',
+                "account.context_processors.account",
+                "fobi.context_processors.theme",
+            ],
+            'debug': DEBUG,
+        },
+    },
 ]
 
 LOGIN_URL = '/account/login/'
@@ -109,10 +113,6 @@ ROOT_URLCONF = "ocp.urls"
 
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = "ocp.wsgi.application"
-
-TEMPLATE_DIRS = [
-    os.path.join(PACKAGE_ROOT, "templates"),
-]
 
 INSTALLED_APPS = [
     "django.contrib.admin",

@@ -1,4 +1,3 @@
-{% load firstof from future %}
 {% load account_tags %}
 {% load i18n %}
 <ul class="nav pull-right">
@@ -63,7 +62,7 @@
         </li>
     {% else %}
         <li>
-            {% if request.path = '/' %}
+            {% if request.path == '/' %}
                 <a href="{% url "account_login" %}">
             {% else %}
                 <a href="{% url "account_login" %}?next={% firstof request.path '/' %}">

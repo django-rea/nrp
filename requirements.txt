@@ -17,8 +17,9 @@ rdflib-jsonld
 djangorestframework
 jsonrpclib
 django-contrib-comments
-html5lib==0.9999999
+html5lib==0.99999999
 bleach
 django-simple-captcha
 django-fobi<0.10.5
 pytz
+selenium

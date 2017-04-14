@@ -3,8 +3,8 @@ sudo: false
 python: 2.7
 cache: pip
 install:
+  - pip install --upgrade pip setuptools --quiet
   - pip install -r requirements.txt --trusted-host dist.pinaxproject.com --quiet
-before_script:
-  - python manage.py migrate
+  - pip install Image
 script:
   - python manage.py test

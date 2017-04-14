@@ -1,4 +1,4 @@
-import os
+import os, sys
 from django.utils.translation import ugettext_lazy as _
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
@@ -7,6 +7,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
+
+# settings.TESTING will be True in a testing enviroment.
+TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
 
 ADMINS = (
     # ("Your Name", "your_email@example.com"),

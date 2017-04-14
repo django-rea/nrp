@@ -1,6 +1,6 @@
 from django.core.urlresolvers import reverse
 from django.test.client import RequestFactory
-from django.utils import unittest
+import unittest
 
 from django.contrib.auth.models import AnonymousUser, User
 
